@@ -5,7 +5,7 @@ use tracable_result::*;
 use crate::types::liquidity::Liquidity;
 
 #[decimal(30)]
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, scale::Decode, scale::Encode)]
 pub struct SecondsPerLiquidity {
     pub v: u128,
 }

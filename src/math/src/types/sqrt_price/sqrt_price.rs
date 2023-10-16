@@ -6,7 +6,7 @@ use crate::consts::*;
 use crate::types::{fixed_point::FixedPoint, token_amount::TokenAmount};
 
 #[decimal(24)]
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, scale::Decode, scale::Encode)]
 pub struct SqrtPrice {
     pub v: u128,
 }

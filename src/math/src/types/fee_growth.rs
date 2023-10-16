@@ -4,7 +4,7 @@ use decimal::*;
 use tracable_result::*;
 
 #[decimal(28)]
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, scale::Decode, scale::Encode)]
 pub struct FeeGrowth {
     pub v: u128,
 }
