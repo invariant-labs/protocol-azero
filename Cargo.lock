@@ -2569,6 +2569,7 @@ name = "math"
 version = "0.1.0"
 dependencies = [
  "decimal",
+ "parity-scale-codec",
  "tracable_result",
 ]
 
