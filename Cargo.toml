@@ -1,5 +1,5 @@
 [package]
-name = "invariant-math"
+name = "invariant-protocol"
 version = "0.1.0"
 authors = ["Invariant Labs"]
 edition = "2021"
@@ -12,21 +12,29 @@ tracable_result = { path = "src/tracable_result" }
 
 # ink
 ink = { version = "4.2.0", default-features = false }
+ink_env = { version = "4.3.0", default-features = false }
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = [
   "derive",
 ] }
 scale-info = { version = "2.6", default-features = false, features = [
   "derive",
 ], optional = true }
+openbrush = { git = "https://github.com/Brushfam/openbrush-contracts", branch = "develop", default-features = false, features = [
+  "psp22",
+  "ownable",
+] }
 
 [dev-dependencies]
 ink_e2e = "4.2.0"
 
 [lib]
+name = "flipper"
 path = "src/lib.rs"
 
 [features]
 default = ["std"]
-std = ["ink/std", "scale/std", "scale-info/std"]
+std = ["ink/std", "ink_env/std", "scale/std", "scale-info/std",
+# Brush dependency
+"openbrush/std",]
 ink-as-dependency = []
 e2e-tests = []
