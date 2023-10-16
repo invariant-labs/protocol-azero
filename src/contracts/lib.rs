@@ -1,8 +1,8 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 #![feature(min_specialization)]
 
-extern crate alloc;
-mod contracts;
+pub mod logic;
+pub mod pair;
 
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
@@ -26,8 +26,7 @@ pub mod contract {
         modifiers,
     };
 
-    use crate::contracts::{logic::traits::pair::Pair, pair::pair::PairField};
-    use crate::ContractErrors;
+    use crate::{logic::traits::pair::Pair, pair::pair::PairField, ContractErrors};
 
     #[derive(Debug)]
     pub struct OrderPair {
