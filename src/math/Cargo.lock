@@ -584,7 +584,7 @@ dependencies = [
  "ink",
  "parity-scale-codec",
  "scale-info",
- "tracable_result",
+ "traceable_result",
 ]
 
 [[package]]
@@ -978,7 +978,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "tracable_result"
+name = "traceable_result"
 version = "0.1.0"
 
 [[package]]

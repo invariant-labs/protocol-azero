@@ -3,7 +3,7 @@ use math::types::{
     sqrt_price::sqrt_price::calculate_sqrt_price, sqrt_price::sqrt_price::SqrtPrice,
 };
 
-use tracable_result::*;
+use traceable_result::*;
 
 use decimal::*;
 

@@ -1,7 +1,7 @@
 use crate::alloc::string::ToString;
 use crate::types::{liquidity::*, token_amount::*};
 use decimal::*;
-use tracable_result::*;
+use traceable_result::*;
 
 #[decimal(28)]
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, scale::Decode, scale::Encode)]

@@ -12,7 +12,7 @@ use math::{
         token_amount::TokenAmount,
     },
 };
-use tracable_result::*;
+use traceable_result::*;
 
 #[derive(PartialEq, Clone, Debug)] // Default
 #[ink::storage_item]

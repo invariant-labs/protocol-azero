@@ -1,6 +1,6 @@
 use crate::alloc::string::ToString;
 use decimal::*;
-use tracable_result::*;
+use traceable_result::*;
 
 use crate::types::liquidity::Liquidity;
 

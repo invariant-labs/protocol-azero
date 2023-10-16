@@ -1,4 +1,4 @@
-use tracable_result::*;
+use traceable_result::*;
 
 use crate::consts::*;
 use crate::types::sqrt_price::sqrt_price::SqrtPrice;

@@ -5,7 +5,9 @@ edition = "2021"
 
 [dependencies]
 decimal = { path = "../decimal" }
-tracable_result = { path = "../tracable_result" }
+traceable_result = { path = "../traceable_result" }
+
+# ink
 ink = { version = "4.2.0", default-features = false }
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = [
   "derive",
