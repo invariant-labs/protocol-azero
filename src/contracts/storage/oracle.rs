@@ -1,7 +1,8 @@
 use ink::prelude::{vec, vec::Vec};
 use math::types::sqrt_price::sqrt_price::SqrtPrice;
 
-#[derive(Default, Debug, PartialEq, Clone, scale::Decode, scale::Encode)]
+#[derive(Default, Debug, PartialEq, Clone)]
+#[ink::storage_item]
 pub struct Oracle {
     pub data: Vec<Record>,
     pub head: u16,
@@ -10,6 +11,10 @@ pub struct Oracle {
 }
 
 #[derive(Default, Debug, PartialEq, Copy, Clone, scale::Decode, scale::Encode)]
+#[cfg_attr(
+    feature = "std",
+    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+)]
 pub struct Record {
     pub timestamp: u64,
     pub price: SqrtPrice,

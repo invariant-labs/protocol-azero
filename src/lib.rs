@@ -6,13 +6,17 @@ pub mod contracts;
 
 #[ink::contract]
 mod contract {
-    use crate::contracts::Tickmap;
+    use math::token_amount::TokenAmount;
+
+    use crate::contracts::{Pool, Tickmap};
 
     #[ink(storage)]
     #[derive(Default)]
     pub struct Flipper {
         value: u128,
         tickmap: Tickmap,
+        pool: Pool,
+        token_amount: TokenAmount,
     }
 
     impl Flipper {

@@ -14,7 +14,8 @@ use math::{
 };
 use tracable_result::*;
 
-#[derive(PartialEq, Clone, Debug, scale::Decode, scale::Encode)] // Default
+#[derive(PartialEq, Clone, Debug)] // Default
+#[ink::storage_item]
 pub struct Pool {
     pub token_x: AccountId,
     pub token_y: AccountId,
