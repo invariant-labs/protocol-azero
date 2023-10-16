@@ -1,3 +1,5 @@
+#[allow(unused_imports)]
+use crate::alloc::string::ToString;
 use decimal::*;
 use tracable_result::*;
 
