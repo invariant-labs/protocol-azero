@@ -6,16 +6,23 @@ pub mod contracts;
 
 #[ink::contract]
 mod contract {
+    use math::token_amount::TokenAmount;
+
+    use crate::contracts::{Pool, Tickmap};
 
     #[ink(storage)]
+    #[derive(Default)]
     pub struct Flipper {
         value: u128,
+        tickmap: Tickmap,
+        pool: Pool,
+        token_amount: TokenAmount,
     }
 
     impl Flipper {
         #[ink(constructor)]
         pub fn new() -> Self {
-            Self { value: 0 }
+            Self::default()
         }
 
         #[ink(message)]

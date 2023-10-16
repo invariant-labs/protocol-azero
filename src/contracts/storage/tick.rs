@@ -3,13 +3,13 @@ use math::types::{
     sqrt_price::sqrt_price::calculate_sqrt_price, sqrt_price::sqrt_price::SqrtPrice,
 };
 
-use tracable_result::*;
+use traceable_result::*;
 
 use decimal::*;
 
 use super::Pool;
 
-#[derive(PartialEq, Debug, Clone, Copy)] // Default
+#[derive(PartialEq, Debug, Clone, Copy, scale::Decode, scale::Encode)] // Default
 pub struct Tick {
     pub index: i32,
     pub sign: bool,

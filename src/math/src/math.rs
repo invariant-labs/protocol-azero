@@ -1,6 +1,6 @@
 use crate::consts::*;
 use decimal::*;
-use tracable_result::*;
+use traceable_result::*;
 
 use crate::types::{liquidity::*, percentage::*, sqrt_price::sqrt_price::*, token_amount::*};
 
