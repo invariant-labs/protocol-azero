@@ -2251,6 +2251,8 @@ dependencies = [
  "openbrush",
  "parity-scale-codec",
  "scale-info",
+ "test_helpers",
+ "token",
  "tracable_result",
 ]
 
@@ -4824,6 +4826,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "test_helpers"
+version = "4.0.0-beta.1"
+
+[[package]]
 name = "thiserror"
 version = "1.0.49"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4915,6 +4921,15 @@ name = "tinyvec_macros"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
+
+[[package]]
+name = "token"
+version = "0.1.0"
+dependencies = [
+ "ink",
+ "openbrush",
+ "parity-scale-codec",
+]
 
 [[package]]
 name = "tokio"
