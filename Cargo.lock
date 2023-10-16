@@ -2253,7 +2253,7 @@ dependencies = [
  "scale-info",
  "test_helpers",
  "token",
- "tracable_result",
+ "traceable_result",
 ]
 
 [[package]]
@@ -2625,7 +2625,10 @@ name = "math"
 version = "0.1.0"
 dependencies = [
  "decimal",
- "tracable_result",
+ "ink",
+ "parity-scale-codec",
+ "scale-info",
+ "traceable_result",
 ]
 
 [[package]]
@@ -5036,7 +5039,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b6bc1c9ce2b5135ac7f93c72918fc37feb872bdc6a5533a8b85eb4b86bfdae52"
 
 [[package]]
-name = "tracable_result"
+name = "traceable_result"
 version = "0.1.0"
 
 [[package]]

@@ -12,9 +12,10 @@ use math::{
         token_amount::TokenAmount,
     },
 };
-use tracable_result::*;
+use traceable_result::*;
 
 #[derive(PartialEq, Clone, Debug)] // Default
+#[ink::storage_item]
 pub struct Pool {
     pub token_x: AccountId,
     pub token_y: AccountId,

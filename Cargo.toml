@@ -7,8 +7,8 @@ edition = "2021"
 [dependencies]
 # local
 decimal = { path = "src/decimal" }
-math = { path = "src/math" }
-tracable_result = { path = "src/tracable_result" }
+math = { path = "src/math", default-features = false }
+traceable_result = { path = "src/traceable_result" }
 
 # ink
 ink = { version = "4.2.0", default-features = false }
@@ -36,6 +36,6 @@ path = "src/lib.rs"
 
 [features]
 default = ["std"]
-std = ["ink/std", "scale/std", "scale-info/std", "openbrush/std"]
+std = ["ink/std", "scale/std", "scale-info/std", "openbrush/std", "math/std"]
 ink-as-dependency = []
 e2e-tests = []

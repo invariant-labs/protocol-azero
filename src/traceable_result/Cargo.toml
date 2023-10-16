@@ -1,5 +1,5 @@
 [package]
-name = "tracable_result"
+name = "traceable_result"
 version = "0.1.0"
 edition = "2021"
 

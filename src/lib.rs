@@ -16,19 +16,13 @@ pub enum ContractErrors {
 }
 
 #[ink::contract]
-pub mod contract {
-    use ink::{
-        prelude::{vec, vec::Vec},
-        storage::Mapping,
-    };
-    use openbrush::{
-        contracts::{reentrancy_guard::*, traits::psp22::PSP22Ref},
-        modifiers,
-    };
-
-    use crate::contracts::{logic::traits::pair::Pair, pair::pair::PairField};
+mod contract {
+    use crate::contracts::logic::traits::pair::Pair;
+    use crate::contracts::pair::pair::PairField;
     use crate::ContractErrors;
-
+    use ink::prelude::{vec, vec::Vec};
+    use ink::storage::Mapping;
+    use openbrush::contracts::traits::psp22::PSP22Ref;
     #[derive(Debug)]
     pub struct OrderPair {
         pub x: (AccountId, Balance),

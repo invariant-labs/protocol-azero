@@ -10,9 +10,9 @@ use math::{
         token_amount::TokenAmount,
     },
 };
-use tracable_result::*;
+use traceable_result::*;
 
-#[derive(PartialEq, Default, Debug)]
+#[derive(PartialEq, Default, Debug, scale::Decode, scale::Encode)]
 pub struct Position {
     pub liquidity: Liquidity,
     pub lower_tick_index: i32,
