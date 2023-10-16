@@ -12,7 +12,7 @@ use math::{
 };
 use tracable_result::*;
 
-#[derive(PartialEq, Default, Debug)]
+#[derive(PartialEq, Default, Debug, scale::Decode, scale::Encode)]
 pub struct Position {
     pub liquidity: Liquidity,
     pub lower_tick_index: i32,

@@ -6,16 +6,19 @@ pub mod contracts;
 
 #[ink::contract]
 mod contract {
+    use crate::contracts::Tickmap;
 
     #[ink(storage)]
+    #[derive(Default)]
     pub struct Flipper {
         value: u128,
+        tickmap: Tickmap,
     }
 
     impl Flipper {
         #[ink(constructor)]
         pub fn new() -> Self {
-            Self { value: 0 }
+            Self::default()
         }
 
         #[ink(message)]
