@@ -8,13 +8,17 @@ decimal = { path = "../decimal" }
 traceable_result = { path = "../traceable_result" }
 
 # ink
-ink = { version = "4.2.0", default-features = false }
-scale = { package = "parity-scale-codec", version = "3", default-features = false, features = [
+ink = { version = "4.3.0", default-features = false }
+scale = { package = "parity-scale-codec", version = "3.6.5", default-features = false, features = [
   "derive",
 ] }
-scale-info = { version = "2.6", default-features = false, features = [
+scale-info = { version = "2.9.0", default-features = false, features = [
   "derive",
 ], optional = true }
+
+[lib]
+name = "math"
+path = "./src/lib.rs"
 
 [features]
 default = ["std"]
