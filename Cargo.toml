@@ -7,7 +7,9 @@ edition = "2021"
 [dependencies]
 # local
 decimal = { path = "src/decimal" }
-math = { path = "src/math", default-features = false }
+math = { path = "src/math", default-features = false, features = [
+  "ink-as-dependency",
+] }
 traceable_result = { path = "src/traceable_result" }
 
 # ink
@@ -28,10 +30,11 @@ token = { path = "src/token", default-features = false, features = [
 ] }
 
 [dev-dependencies]
-ink_e2e = "4.2.0"
+ink_e2e = "4.3.0"
 test_helpers = { path = "src/test_helpers", default-features = false }
 
 [lib]
+name = "contract"
 path = "src/lib.rs"
 
 [features]
