@@ -1,5 +1,5 @@
+use crate::math::types::sqrt_price::sqrt_price::SqrtPrice;
 use ink::prelude::{vec, vec::Vec};
-use math::types::sqrt_price::sqrt_price::SqrtPrice;
 
 #[derive(Default, Debug, PartialEq, Clone)]
 #[ink::storage_item]

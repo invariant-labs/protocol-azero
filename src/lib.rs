@@ -3,7 +3,7 @@
 
 extern crate alloc;
 mod contracts;
-
+pub mod math;
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum ContractErrors {
@@ -23,6 +23,7 @@ pub mod contract {
     use ink::prelude::{vec, vec::Vec};
     use ink::storage::Mapping;
     use openbrush::contracts::traits::psp22::PSP22Ref;
+
     #[derive(Debug)]
     pub struct OrderPair {
         pub x: (AccountId, Balance),
@@ -439,13 +440,20 @@ pub mod contract {
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod e2e_tests {
 
-        use super::*;
-        use ink_e2e::build_message;
-        use ink_e2e::*;
-        use openbrush::contracts::psp22::psp22_external::PSP22;
-        use test_helpers::address_of;
+        // use super::*;
+        // use ink_e2e::build_message;
+        // use ink_e2e::*;
+        // use openbrush::contracts::psp22::psp22_external::PSP22;
+        // use test_helpers::address_of;
 
-        type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
+        /// A helper function used for calling contract messages.
+        use ink_e2e::build_message;
+
+        /// Imports all the definitions from the outer scope so we can use them here.
+        use super::*;
+
+        /// The End-to-End test `Result` type.
+        type E2EResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
         async fn constructor_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {

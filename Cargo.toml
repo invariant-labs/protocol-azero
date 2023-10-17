@@ -1,5 +1,5 @@
 [package]
-name = "invariant-math"
+name = "contract"
 version = "0.1.0"
 authors = ["Invariant Labs"]
 edition = "2021"
@@ -7,9 +7,9 @@ edition = "2021"
 [dependencies]
 # local
 decimal = { path = "src/decimal" }
-math = { path = "src/math", default-features = false, features = [
-  "ink-as-dependency",
-] }
+# math = { path = "src/math", default-features = false, features = [
+#   "ink-as-dependency",
+# ] }
 traceable_result = { path = "src/traceable_result" }
 
 # ink
@@ -39,6 +39,6 @@ path = "src/lib.rs"
 
 [features]
 default = ["std"]
-std = ["ink/std", "scale/std", "scale-info/std", "openbrush/std", "math/std"]
+std = ["ink/std", "scale/std", "scale-info/std", "openbrush/std"]
 ink-as-dependency = []
 e2e-tests = []
