@@ -17,12 +17,15 @@ pub enum ContractErrors {
 
 #[ink::contract]
 pub mod contract {
+    use crate::math::percentage::Percentage;
+    use crate::contracts::State;
     use crate::contracts::logic::traits::pair::Pair;
     use crate::contracts::pair::pair::PairField;
     use crate::ContractErrors;
     use ink::prelude::{vec, vec::Vec};
     use ink::storage::Mapping;
     use openbrush::contracts::traits::psp22::PSP22Ref;
+    use decimal::*;
 
     #[derive(Debug)]
     pub struct OrderPair {
@@ -198,12 +201,17 @@ pub mod contract {
         // (x, y, user), balance
         balances: Mapping<(AccountId, AccountId, AccountId), Balance>,
         positions: Positions,
+        state: State,
     }
 
     impl Contract {
         #[ink(constructor)]
-        pub fn new() -> Self {
-            Self::default()
+        pub fn new(protocol_fee: Percentage) -> Self {
+
+            Self {
+                state: State { admin: Self::env().caller(), protocol_fee },
+                ..Self::default()
+            }
         }
 
         #[ink(message)]
@@ -365,17 +373,18 @@ pub mod contract {
 
     #[cfg(test)]
     mod tests {
+        use decimal::*;
 
         use super::*;
 
         #[ink::test]
         fn initialize_works() {
-            let _ = Contract::new();
+            let _ = Contract::new(Percentage::new(0));
         }
 
         #[ink::test]
         fn create_new_pairs() {
-            let mut contract = Contract::new();
+            let mut contract = Contract::new(Percentage::new(0));
             let token_0 = AccountId::from([0x01; 32]);
             let token_1 = AccountId::from([0x02; 32]);
             let pair = contract.create_pair(token_0, token_1);
@@ -384,7 +393,7 @@ pub mod contract {
         }
         #[ink::test]
         fn test_mapping_length() {
-            let mut contract = Contract::new();
+            let mut contract = Contract::new(Percentage::new(0));
             let token_0 = AccountId::from([0x01; 32]);
             let token_1 = AccountId::from([0x02; 32]);
             let pair = contract.create_pair(token_0, token_1);
@@ -395,7 +404,7 @@ pub mod contract {
         }
         #[ink::test]
         fn test_positions() {
-            let mut contract = Contract::new();
+            let mut contract = Contract::new(Percentage::new(0));
             contract.add_position();
             contract.add_position();
             contract.add_position();
@@ -458,7 +467,7 @@ pub mod contract {
 
         #[ink_e2e::test]
         async fn constructor_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let constructor = ContractRef::new();
+            let constructor = ContractRef::new(Percentage::new(0));
             let _contract: AccountId = client
                 .instantiate("contract", &ink_e2e::alice(), constructor, 0, None)
                 .await
@@ -469,7 +478,7 @@ pub mod contract {
 
         #[ink_e2e::test]
         async fn test_positions(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let constructor = ContractRef::new();
+            let constructor = ContractRef::new(Percentage::new(0));
             let contract: AccountId = client
                 .instantiate("contract", &ink_e2e::alice(), constructor, 0, None)
                 .await
@@ -657,7 +666,7 @@ pub mod contract {
                 .expect("Instantiate failed")
                 .account_id;
 
-            let constructor = ContractRef::new();
+            let constructor = ContractRef::new(Percentage::new(0));
             let contract: AccountId = client
                 .instantiate("contract", &ink_e2e::alice(), constructor, 0, None)
                 .await
@@ -691,7 +700,7 @@ pub mod contract {
                 .expect("Instantiate failed")
                 .account_id;
 
-            let constructor = ContractRef::new();
+            let constructor = ContractRef::new(Percentage::new(0));
             let contract: AccountId = client
                 .instantiate("contract", &ink_e2e::alice(), constructor, 0, None)
                 .await
@@ -749,7 +758,7 @@ pub mod contract {
                 .expect("Instantiate failed")
                 .account_id;
 
-            let constructor = ContractRef::new();
+            let constructor = ContractRef::new(Percentage::new(0));
             let dex: AccountId = client
                 .instantiate("contract", &ink_e2e::alice(), constructor, 0, None)
                 .await
@@ -862,7 +871,7 @@ pub mod contract {
                 .expect("Instantiate failed")
                 .account_id;
 
-            let constructor = ContractRef::new();
+            let constructor = ContractRef::new(Percentage::new(0));
             let dex: AccountId = client
                 .instantiate("contract", &ink_e2e::alice(), constructor, 0, None)
                 .await
@@ -975,7 +984,7 @@ pub mod contract {
                 .expect("Instantiate failed")
                 .account_id;
 
-            let constructor = ContractRef::new();
+            let constructor = ContractRef::new(Percentage::new(0));
             let dex: AccountId = client
                 .instantiate("contract", &ink_e2e::alice(), constructor, 0, None)
                 .await
@@ -1120,7 +1129,7 @@ pub mod contract {
                 .expect("Instantiate failed")
                 .account_id;
 
-            let constructor = ContractRef::new();
+            let constructor = ContractRef::new(Percentage::new(0));
             let dex: AccountId = client
                 .instantiate("contract", &ink_e2e::alice(), constructor, 0, None)
                 .await
