@@ -33,6 +33,7 @@ pub mod contract {
         ContractErrors,
     };
 
+    use crate::contracts::Pool;
     use crate::contracts::State;
     use crate::contracts::{FeeTier, FeeTiers, PoolKey, Position, Positions, Ticks}; // Pools
     use crate::math::percentage::Percentage;
@@ -57,6 +58,7 @@ pub mod contract {
     #[ink(storage)]
     #[derive(Default)]
     pub struct Contract {
+        pools: Mapping<PoolKey, Pool>,
         pairs: Pairs,
         balances: Balances,
         positions: Positions,

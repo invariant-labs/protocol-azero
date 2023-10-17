@@ -14,8 +14,11 @@ use decimal::*;
 use ink::primitives::AccountId;
 use traceable_result::*;
 
-#[derive(PartialEq, Clone, Debug)] // Default
-#[ink::storage_item]
+#[derive(Debug, PartialEq, Clone, scale::Decode, scale::Encode)]
+#[cfg_attr(
+    feature = "std",
+    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+)]
 pub struct Pool {
     pub token_x: AccountId,
     pub token_y: AccountId,
