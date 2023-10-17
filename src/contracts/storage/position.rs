@@ -37,6 +37,7 @@ impl Position {
         liquidity_delta: Liquidity,
         add: bool,
         current_timestamp: u64,
+        tick_spacing: u16,
     ) -> TrackableResult<(TokenAmount, TokenAmount, bool)> {
         if !pool.liquidity.is_zero() {
             let _ = pool.update_seconds_per_liquidity_global(current_timestamp);
@@ -45,7 +46,7 @@ impl Position {
         }
 
         // calculate dynamically limit allows easy modification
-        let max_liquidity_per_tick = calculate_max_liquidity_per_tick(pool.tick_spacing);
+        let max_liquidity_per_tick = calculate_max_liquidity_per_tick(tick_spacing);
 
         // update initialized tick
         lower_tick.update(liquidity_delta, max_liquidity_per_tick, false, add)?;
@@ -140,6 +141,7 @@ impl Position {
         mut upper_tick: Tick,
         mut lower_tick: Tick,
         current_timestamp: u64,
+        tick_spacing: u16,
     ) -> (TokenAmount, TokenAmount) {
         unwrap!(self.modify(
             &mut pool,
@@ -148,6 +150,7 @@ impl Position {
             Liquidity::new(0),
             true,
             current_timestamp,
+            tick_spacing
         ));
 
         self.tokens_owed_x -= self.tokens_owed_x;
@@ -166,6 +169,7 @@ impl Position {
         slippage_limit_lower: SqrtPrice,
         slippage_limit_upper: SqrtPrice,
         block_number: u64,
+        tick_spacing: u16,
     ) -> (Self, TokenAmount, TokenAmount) {
         let price = pool.sqrt_price;
         assert!(price >= slippage_limit_lower, "Price limit reached");
@@ -198,6 +202,7 @@ impl Position {
             liquidity_delta,
             true,
             current_timestamp,
+            tick_spacing
         ));
 
         (position, required_x, required_y)
@@ -209,6 +214,7 @@ impl Position {
         current_timestamp: u64,
         lower_tick: &mut Tick,
         upper_tick: &mut Tick,
+        tick_spacing: u16,
     ) -> (TokenAmount, TokenAmount, bool, bool) {
         let liquidity_delta = self.liquidity;
         let (mut amount_x, mut amount_y, _) = unwrap!(self.modify(
@@ -218,6 +224,7 @@ impl Position {
             liquidity_delta,
             false,
             current_timestamp,
+            tick_spacing
         ));
 
         amount_x += self.tokens_owed_x;
@@ -422,7 +429,6 @@ mod tests {
                 current_tick_index: 0,
                 fee_growth_global_x: FeeGrowth::from_integer(20),
                 fee_growth_global_y: FeeGrowth::from_integer(20),
-                tick_spacing: 1,
                 ..Default::default()
             };
             let mut upper_tick = Tick {
@@ -451,6 +457,7 @@ mod tests {
                     liquidity_delta,
                     add,
                     current_timestamp,
+                    1,
                 )
                 .unwrap();
 
