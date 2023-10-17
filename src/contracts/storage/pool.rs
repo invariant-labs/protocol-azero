@@ -1,4 +1,4 @@
-use super::{Oracle, Tick}; // Tickmap
+use super::{FeeTier, Oracle, Tick}; // Tickmap
 use crate::math::{
     math::*,
     types::{
@@ -71,6 +71,16 @@ impl Default for Pool {
 }
 
 impl Pool {
+    pub fn create(token_x: AccountId, token_y: AccountId, fee_tier: FeeTier) -> Self {
+        Self {
+            token_x,
+            token_y,
+            fee: fee_tier.fee,
+            tick_spacing: fee_tier.tick_spacing,
+            ..Self::default()
+        }
+    }
+
     pub fn add_fee(&mut self, amount: TokenAmount, in_x: bool) -> TrackableResult<()> {
         let protocol_fee = amount.big_mul_up(self.protocol_fee);
 
@@ -278,6 +288,22 @@ mod tests {
     use decimal::Factories;
 
     use super::*;
+
+    #[test]
+    fn test_create() {
+        let account_1 = AccountId::from([0; 32]);
+        let account_2 = AccountId::from([1; 32]);
+        let fee = Percentage::new(1);
+        let tick_spacing = 1;
+
+        let pool = Pool::create(account_1, account_2, FeeTier { fee, tick_spacing });
+
+        assert_eq!(pool.token_x, account_1);
+        assert_eq!(pool.token_y, account_2);
+        assert_eq!(pool.fee, fee);
+        assert_eq!(pool.tick_spacing, tick_spacing);
+    }
+
     #[test]
     fn test_add_fee() {
         // fee is set to 20%
