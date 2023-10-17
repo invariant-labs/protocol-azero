@@ -3,15 +3,9 @@
 extern crate alloc;
 use decimal::*;
 
-#[decimal(12)]
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, scale::Decode, scale::Encode)]
-#[cfg_attr(
-    feature = "std",
-    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
-)]
-pub struct DecimalExample {
-    pub v: u128,
-}
+pub mod types;
+
+use types::decimal_example::DecimalExample;
 
 #[ink::contract]
 mod flipper {
