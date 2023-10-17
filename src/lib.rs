@@ -15,6 +15,8 @@ pub struct DecimalExample {
 
 #[ink::contract]
 mod flipper {
+    use math::liquidity::Liquidity;
+
     use super::*;
 
     #[ink(storage)]
@@ -26,8 +28,9 @@ mod flipper {
     impl Flipper {
         #[ink(constructor)]
         pub fn new() -> Self {
+            let l = Liquidity::new(1);
             Self {
-                value: 0,
+                value: l.get(),
                 example: DecimalExample::new(1),
             }
         }
