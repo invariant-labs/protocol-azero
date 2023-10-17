@@ -289,6 +289,21 @@ mod tests {
     use super::*;
 
     #[test]
+    fn create() {
+        let init_tick = 100;
+        let current_timestamp = 100;
+        let fee_receiver = AccountId::from([1; 32]);
+
+        let pool = Pool::create(init_tick, current_timestamp, fee_receiver);
+
+        assert_eq!(pool.sqrt_price, calculate_sqrt_price(init_tick).unwrap());
+        assert_eq!(pool.current_tick_index, init_tick);
+        assert_eq!(pool.start_timestamp, current_timestamp);
+        assert_eq!(pool.last_timestamp, current_timestamp);
+        assert_eq!(pool.fee_receiver, fee_receiver);
+    }
+
+    #[test]
     fn test_add_fee() {
         // fee is set to 20%
         let protocol_fee = Percentage::from_scale(2, 1);
