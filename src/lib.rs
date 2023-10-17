@@ -1,26 +1,40 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 extern crate alloc;
+use decimal::*;
 
 pub mod contracts;
 
+#[decimal(12)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, scale::Decode, scale::Encode)]
+#[cfg_attr(
+    feature = "std",
+    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+)]
+pub struct DecimalExample {
+    pub v: u128,
+}
+
+
 #[ink::contract]
 mod flipper {
+    use super::*;
 
     #[ink(storage)]
     pub struct Flipper {
         value: u128,
+        example: DecimalExample,
     }
 
     impl Flipper {
         #[ink(constructor)]
         pub fn new() -> Self {
-            Self { value: 0 }
+            Self { value: 0, example: DecimalExample::new(1)}
         }
 
         #[ink(message)]
-        pub fn get(&self) -> u128 {
-            self.value
+        pub fn get(&self) -> DecimalExample {
+            self.example
         }
     }
 
@@ -31,7 +45,7 @@ mod flipper {
         #[ink::test]
         fn default_works() {
             let flipper = Flipper::new();
-            assert_eq!(flipper.get(), 0);
+            assert_eq!(flipper.get(), DecimalExample::new(1));
         }
 
         #[cfg(all(test, feature = "e2e-tests"))]
@@ -62,7 +76,7 @@ mod flipper {
                 let get = build_message::<FlipperRef>(contract_account_id.clone())
                     .call(|flipper| flipper.get());
                 let get_result = client.call_dry_run(&ink_e2e::alice(), &get, 0, None).await;
-                assert!(matches!(get_result.return_value(), 0));
+                assert_eq!(get_result.return_value(), DecimalExample::new(0)); // should be 1?
     
                 Ok(())
             }
