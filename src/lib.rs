@@ -122,6 +122,7 @@ pub mod contract {
                 pool_key,
                 &Pool::create(init_tick, current_timestamp, self.state.admin),
             );
+            self.pool_keys.push(pool_key);
 
             Ok(pool_key)
         }
