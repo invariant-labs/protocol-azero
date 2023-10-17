@@ -16,6 +16,7 @@ pub enum ContractErrors {
     SwapFailed,
     NotAnAdmin,
     PoolAlreadyExist,
+    PoolNotFound,
 }
 #[ink::contract]
 pub mod contract {
@@ -106,7 +107,7 @@ pub mod contract {
             token_0: AccountId,
             token_1: AccountId,
             fee_tier: FeeTier,
-        ) -> Result<(), ContractErrors> {
+        ) -> Result<Pool, ContractErrors> {
             let pool_key = PoolKey::new(token_0, token_1, fee_tier);
 
             let pool_option = self.pools.get(pool_key);
@@ -117,7 +118,25 @@ pub mod contract {
 
             self.pools.insert(pool_key, &Pool::create(pool_key));
 
-            Ok(())
+            Ok(self.pools.get(pool_key).unwrap())
+        }
+
+        #[ink(message)]
+        pub fn get_pool(
+            &self,
+            token_0: AccountId,
+            token_1: AccountId,
+            fee_tier: FeeTier,
+        ) -> Result<Pool, ContractErrors> {
+            let pool_key = PoolKey::new(token_0, token_1, fee_tier);
+
+            let pool_option = self.pools.get(pool_key);
+
+            if pool_option.is_none() {
+                return Err(ContractErrors::PoolNotFound);
+            }
+
+            Ok(pool_option.unwrap())
         }
 
         #[ink(message)]
@@ -350,7 +369,7 @@ pub mod contract {
                     tick_spacing: 1,
                 },
             );
-            assert_eq!(result, Ok(()));
+            assert!(result.is_ok());
             let result = contract.create_pool(
                 token_1,
                 token_0,
@@ -360,6 +379,41 @@ pub mod contract {
                 },
             );
             assert_eq!(result, Err(ContractErrors::PoolAlreadyExist));
+        }
+
+        #[ink::test]
+        fn get_pool() {
+            let mut contract = Contract::new(Percentage::new(0));
+            let token_0 = AccountId::from([0x01; 32]);
+            let token_1 = AccountId::from([0x02; 32]);
+            let result = contract.get_pool(
+                token_1,
+                token_0,
+                FeeTier {
+                    fee: Percentage::new(1),
+                    tick_spacing: 1,
+                },
+            );
+            assert_eq!(result, Err(ContractErrors::PoolNotFound));
+            let result = contract.create_pool(
+                token_0,
+                token_1,
+                FeeTier {
+                    fee: Percentage::new(1),
+                    tick_spacing: 1,
+                },
+            );
+            assert!(result.is_ok());
+            let pool = result.unwrap();
+            let result = contract.get_pool(
+                token_1,
+                token_0,
+                FeeTier {
+                    fee: Percentage::new(1),
+                    tick_spacing: 1,
+                },
+            );
+            assert_eq!(result.unwrap(), pool);
         }
 
         #[ink::test]
