@@ -15,6 +15,7 @@ pub enum ContractErrors {
     BurnFailed,
     SwapFailed,
     NotAnAdmin,
+    PoolAlreadyExist,
 }
 #[ink::contract]
 pub mod contract {
@@ -63,7 +64,6 @@ pub mod contract {
         balances: Balances,
         positions: Positions,
         fee_tiers: FeeTiers,
-        // pools: Pools,
         ticks: Ticks,
         fee_tier_keys: Vec<FeeTierKey>,
         pool_keys: Vec<PoolKey>,
@@ -97,6 +97,26 @@ pub mod contract {
             }
 
             self.state.protocol_fee = protocol_fee;
+            Ok(())
+        }
+
+        #[ink(message)]
+        pub fn create_pool(
+            &mut self,
+            token_0: AccountId,
+            token_1: AccountId,
+            fee_tier: FeeTier,
+        ) -> Result<(), ContractErrors> {
+            let pool_key = PoolKey::new(token_0, token_1, fee_tier);
+
+            let pool_option = self.pools.get(pool_key);
+
+            if pool_option.is_some() {
+                return Err(ContractErrors::PoolAlreadyExist);
+            }
+
+            self.pools.insert(pool_key, &Pool::create(pool_key));
+
             Ok(())
         }
 

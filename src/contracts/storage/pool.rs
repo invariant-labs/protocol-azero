@@ -1,13 +1,16 @@
 use super::{FeeTier, Oracle, Tick}; // Tickmap
-use crate::math::{
-    math::*,
-    types::{
-        fee_growth::FeeGrowth,
-        liquidity::Liquidity,
-        percentage::Percentage,
-        seconds_per_liquidity::{calculate_seconds_per_liquidity_inside, SecondsPerLiquidity},
-        sqrt_price::{log::get_tick_at_sqrt_price, sqrt_price::SqrtPrice},
-        token_amount::TokenAmount,
+use crate::{
+    contracts::PoolKey,
+    math::{
+        math::*,
+        types::{
+            fee_growth::FeeGrowth,
+            liquidity::Liquidity,
+            percentage::Percentage,
+            seconds_per_liquidity::{calculate_seconds_per_liquidity_inside, SecondsPerLiquidity},
+            sqrt_price::{log::get_tick_at_sqrt_price, sqrt_price::SqrtPrice},
+            token_amount::TokenAmount,
+        },
     },
 };
 use decimal::*;
@@ -74,12 +77,12 @@ impl Default for Pool {
 }
 
 impl Pool {
-    pub fn create(token_x: AccountId, token_y: AccountId, fee_tier: FeeTier) -> Self {
+    pub fn create(pool_key: PoolKey) -> Self {
         Self {
-            token_x,
-            token_y,
-            fee: fee_tier.fee,
-            tick_spacing: fee_tier.tick_spacing,
+            token_x: pool_key.0,
+            token_y: pool_key.1,
+            fee: pool_key.2.fee,
+            tick_spacing: pool_key.2.tick_spacing,
             ..Self::default()
         }
     }
@@ -299,7 +302,7 @@ mod tests {
         let fee = Percentage::new(1);
         let tick_spacing = 1;
 
-        let pool = Pool::create(account_1, account_2, FeeTier { fee, tick_spacing });
+        let pool = Pool::create(PoolKey(account_1, account_2, FeeTier { fee, tick_spacing }));
 
         assert_eq!(pool.token_x, account_1);
         assert_eq!(pool.token_y, account_2);
