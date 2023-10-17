@@ -1,5 +1,5 @@
+use crate::math::types::percentage::Percentage;
 use ink::primitives::AccountId;
-use math::types::percentage::Percentage;
 
 #[derive(PartialEq, Debug, scale::Decode, scale::Encode)]
 pub struct State {

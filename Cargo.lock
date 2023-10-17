@@ -818,6 +818,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f7144d30dcf0fafbce74250a3963025d8d52177934239851c917d29f1df280c2"
 
 [[package]]
+name = "contract"
+version = "0.1.0"
+dependencies = [
+ "decimal",
+ "ink",
+ "ink_e2e",
+ "openbrush",
+ "parity-scale-codec",
+ "scale-info",
+ "test_helpers",
+ "token",
+ "traceable_result",
+]
+
+[[package]]
 name = "contract-build"
 version = "3.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2241,22 +2256,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f6f38a50a899dc47a6d0ed5508e7f601a2e34c3a85303514b5d137f3c10a0c75"
 
 [[package]]
-name = "invariant-math"
-version = "0.1.0"
-dependencies = [
- "decimal",
- "ink",
- "ink_e2e",
- "math",
- "openbrush",
- "parity-scale-codec",
- "scale-info",
- "test_helpers",
- "token",
- "traceable_result",
-]
-
-[[package]]
 name = "io-lifetimes"
 version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2618,17 +2617,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f099785f7595cc4b4553a174ce30dd7589ef93391ff414dbb67f62392b9e0ce1"
 dependencies = [
  "regex-automata 0.1.10",
-]
-
-[[package]]
-name = "math"
-version = "0.1.0"
-dependencies = [
- "decimal",
- "ink",
- "parity-scale-codec",
- "scale-info",
- "traceable_result",
 ]
 
 [[package]]

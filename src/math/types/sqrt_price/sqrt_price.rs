@@ -2,8 +2,8 @@ use crate::alloc::string::ToString;
 use decimal::*;
 use traceable_result::*;
 
-use crate::consts::*;
-use crate::types::{fixed_point::FixedPoint, token_amount::TokenAmount};
+use crate::math::consts::*;
+use crate::math::types::{fixed_point::FixedPoint, token_amount::TokenAmount};
 
 #[decimal(24)]
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, scale::Decode, scale::Encode)]

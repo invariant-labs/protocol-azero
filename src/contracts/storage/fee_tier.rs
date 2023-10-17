@@ -1,4 +1,4 @@
-use math::types::percentage::Percentage;
+use crate::math::types::percentage::Percentage;
 #[derive(PartialEq, Default, Debug)]
 #[ink::storage_item]
 pub struct FeeTier {

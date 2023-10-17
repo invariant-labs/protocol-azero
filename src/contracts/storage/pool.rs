@@ -1,7 +1,5 @@
 use super::{Oracle, Tick, Tickmap};
-use decimal::*;
-use ink::primitives::AccountId;
-use math::{
+use crate::math::{
     math::*,
     types::{
         fee_growth::FeeGrowth,
@@ -12,6 +10,8 @@ use math::{
         token_amount::TokenAmount,
     },
 };
+use decimal::*;
+use ink::primitives::AccountId;
 use traceable_result::*;
 
 #[derive(PartialEq, Clone, Debug)] // Default
