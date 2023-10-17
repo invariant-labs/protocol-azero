@@ -8,7 +8,6 @@ cd src
 # cargo build
 # cargo test
 
-cd ..
 # Build trackable result
 cd traceable_result
 cargo build
