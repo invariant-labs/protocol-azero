@@ -558,11 +558,11 @@ pub mod contract {
                 fee: Percentage::new(1),
                 tick_spacing: 50u16,
             };
-            let pool_key = PoolKey(
-                AccountId::from([0x0; 32]),
-                AccountId::from([0x0; 32]),
+            let pool_key = PoolKey {
+                token_x: AccountId::from([0x0; 32]),
+                token_y: AccountId::from([0x0; 32]),
                 fee_tier,
-            );
+            };
             let tick = Tick::default();
             let index = 10i32;
             contract.add_tick(pool_key, index, tick);
