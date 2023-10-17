@@ -15,6 +15,16 @@ use crate::contracts::Pool;
 // key (x: AccountId, y: AccountId, feeTier: FeeTier)
 pub struct PoolKey(pub AccountId, pub AccountId, pub FeeTier);
 
+impl PoolKey {
+    pub fn new(token_0: AccountId, token_1: AccountId, fee_tier: FeeTier) -> Self {
+        if token_1 > token_0 {
+            PoolKey(token_0, token_1, fee_tier)
+        } else {
+            PoolKey(token_1, token_0, fee_tier)
+        }
+    }
+}
+
 // #[ink::storage_item]
 // #[derive(Debug, Default)]
 // pub struct Pools {
