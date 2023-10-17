@@ -4,6 +4,7 @@
 extern crate alloc;
 mod contracts;
 pub mod math;
+
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum ContractErrors {
@@ -13,19 +14,20 @@ pub enum ContractErrors {
     MintFailed,
     BurnFailed,
     SwapFailed,
+    NotAnAdmin,
 }
 
 #[ink::contract]
 pub mod contract {
-    use crate::math::percentage::Percentage;
-    use crate::contracts::State;
     use crate::contracts::logic::traits::pair::Pair;
     use crate::contracts::pair::pair::PairField;
+    use crate::contracts::State;
+    use crate::math::percentage::Percentage;
     use crate::ContractErrors;
+    use decimal::*;
     use ink::prelude::{vec, vec::Vec};
     use ink::storage::Mapping;
     use openbrush::contracts::traits::psp22::PSP22Ref;
-    use decimal::*;
 
     #[derive(Debug)]
     pub struct OrderPair {
@@ -207,11 +209,31 @@ pub mod contract {
     impl Contract {
         #[ink(constructor)]
         pub fn new(protocol_fee: Percentage) -> Self {
-
             Self {
-                state: State { admin: Self::env().caller(), protocol_fee },
+                state: State {
+                    admin: Self::env().caller(),
+                    protocol_fee,
+                },
                 ..Self::default()
             }
+        }
+
+        #[ink(message)]
+        pub fn get_protocol_fee(&self) -> Percentage {
+            self.state.protocol_fee
+        }
+
+        #[ink(message)]
+        pub fn change_protocol_fee(
+            &mut self,
+            protocol_fee: Percentage,
+        ) -> Result<(), ContractErrors> {
+            if self.env().caller() != self.state.admin {
+                return Err(ContractErrors::NotAnAdmin);
+            }
+
+            self.state.protocol_fee = protocol_fee;
+            Ok(())
         }
 
         #[ink(message)]
@@ -474,6 +496,71 @@ pub mod contract {
                 .expect("Instantiate failed")
                 .account_id;
             Ok(())
+        }
+
+        #[ink_e2e::test]
+        async fn change_protocol_fee(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let constructor = ContractRef::new(Percentage::new(0));
+            let contract: AccountId = client
+                .instantiate("contract", &ink_e2e::alice(), constructor, 0, None)
+                .await
+                .expect("Instantiate failed")
+                .account_id;
+
+            let protocol_fee = {
+                let _msg = build_message::<ContractRef>(contract.clone())
+                    .call(|contract| contract.get_protocol_fee());
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("getting protocol fee failed")
+            }
+            .return_value();
+
+            assert_eq!(protocol_fee, Percentage::new(0));
+
+            let _result = {
+                let _msg = build_message::<ContractRef>(contract.clone())
+                    .call(|contract| contract.change_protocol_fee(Percentage::new(1)));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("changing protocol fee failed")
+            };
+
+            let protocol_fee = {
+                let _msg = build_message::<ContractRef>(contract.clone())
+                    .call(|contract| contract.get_protocol_fee());
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("getting protocol fee failed")
+            }
+            .return_value();
+
+            assert_eq!(protocol_fee, Percentage::new(1));
+
+            Ok(())
+        }
+
+        #[ink_e2e::test]
+        #[should_panic]
+        async fn change_protocol_fee_should_panic(mut client: ink_e2e::Client<C, E>) -> () {
+            let constructor = ContractRef::new(Percentage::new(0));
+            let contract: AccountId = client
+                .instantiate("contract", &ink_e2e::alice(), constructor, 0, None)
+                .await
+                .expect("Instantiate failed")
+                .account_id;
+
+            let result = {
+                let _msg = build_message::<ContractRef>(contract.clone())
+                    .call(|contract| contract.change_protocol_fee(Percentage::new(1)));
+                client
+                    .call(&ink_e2e::bob(), _msg, 0, None)
+                    .await
+                    .expect("changing protocol fee failed")
+            };
         }
 
         #[ink_e2e::test]
