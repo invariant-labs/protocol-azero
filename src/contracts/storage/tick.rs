@@ -9,7 +9,11 @@ use decimal::*;
 
 use super::Pool;
 
-#[derive(PartialEq, Debug, Clone, Copy, scale::Decode, scale::Encode)] // Default
+#[derive(Debug, scale::Decode, scale::Encode, PartialEq)]
+#[cfg_attr(
+    feature = "std",
+    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+)]
 pub struct Tick {
     pub index: i32,
     pub sign: bool,
