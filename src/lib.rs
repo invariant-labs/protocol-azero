@@ -338,6 +338,31 @@ pub mod contract {
         }
 
         #[ink::test]
+        fn create_pool() {
+            let mut contract = Contract::new(Percentage::new(0));
+            let token_0 = AccountId::from([0x01; 32]);
+            let token_1 = AccountId::from([0x02; 32]);
+            let result = contract.create_pool(
+                token_0,
+                token_1,
+                FeeTier {
+                    fee: Percentage::new(1),
+                    tick_spacing: 1,
+                },
+            );
+            assert_eq!(result, Ok(()));
+            let result = contract.create_pool(
+                token_1,
+                token_0,
+                FeeTier {
+                    fee: Percentage::new(1),
+                    tick_spacing: 1,
+                },
+            );
+            assert_eq!(result, Err(ContractErrors::PoolAlreadyExist));
+        }
+
+        #[ink::test]
         fn create_new_pairs() {
             let mut contract = Contract::new(Percentage::new(0));
             let token_0 = AccountId::from([0x01; 32]);
@@ -346,6 +371,7 @@ pub mod contract {
             assert_eq!(token_0, pair.token_x);
             assert_eq!(token_1, pair.token_y);
         }
+
         #[ink::test]
         fn test_mapping_length() {
             let mut contract = Contract::new(Percentage::new(0));
