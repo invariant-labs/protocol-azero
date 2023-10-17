@@ -42,3 +42,7 @@ default = ["std"]
 std = ["ink/std", "scale/std", "scale-info/std", "openbrush/std"]
 ink-as-dependency = []
 e2e-tests = []
+
+# comment this out for release build
+[profile.release]
+overflow-checks = false
