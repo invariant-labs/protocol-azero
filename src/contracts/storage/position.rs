@@ -1,6 +1,5 @@
 use super::{Pool, Tick, Tickmap};
-use decimal::*;
-use math::{
+use crate::math::{
     math::*,
     types::{
         fee_growth::{calculate_fee_growth_inside, FeeGrowth},
@@ -10,9 +9,10 @@ use math::{
         token_amount::TokenAmount,
     },
 };
-use tracable_result::*;
+use decimal::*;
+use traceable_result::*;
 
-#[derive(PartialEq, Default, Debug)]
+#[derive(PartialEq, Default, Debug, scale::Decode, scale::Encode)]
 pub struct Position {
     pub liquidity: Liquidity,
     pub lower_tick_index: i32,

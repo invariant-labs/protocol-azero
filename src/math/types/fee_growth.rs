@@ -1,14 +1,13 @@
-// use crate::alloc::string::ToString;
-use crate::types::{liquidity::*, token_amount::*};
-#[allow(unused_imports)]
-use alloc::string::ToString;
-// extern crate alloc;
-
+use crate::math::types::{liquidity::*, token_amount::*};
 use decimal::*;
-use tracable_result::*;
+use traceable_result::*;
 
 #[decimal(28)]
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, scale::Decode, scale::Encode)]
+#[cfg_attr(
+    feature = "std",
+    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+)]
 pub struct FeeGrowth {
     pub v: u128,
 }
@@ -104,9 +103,9 @@ pub fn calculate_fee_growth_inside(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::consts::MAX_TICK;
+    use crate::math::consts::MAX_TICK;
     // use crate::math::calculate_sqrt_price;
-    use crate::types::sqrt_price::sqrt_price::SqrtPrice;
+    use crate::math::types::sqrt_price::sqrt_price::SqrtPrice;
     // use decimal::{BetweenDecimals, Decimal, Factories};
 
     #[test]
@@ -362,7 +361,7 @@ mod tests {
             let (_format, cause, stack) = fee_growth.to_fee(liquidity).unwrap_err().get();
             assert_eq!(
                 cause,
-                "conversion to math::types::token_amount::TokenAmount type failed"
+                "conversion to contract::math::types::token_amount::TokenAmount type failed"
             );
             assert_eq!(stack.len(), 1);
         }

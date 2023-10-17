@@ -1,7 +1,5 @@
 use super::{Oracle, Tick, Tickmap};
-use decimal::*;
-use ink::primitives::AccountId;
-use math::{
+use crate::math::{
     math::*,
     types::{
         fee_growth::FeeGrowth,
@@ -12,9 +10,12 @@ use math::{
         token_amount::TokenAmount,
     },
 };
-use tracable_result::*;
+use decimal::*;
+use ink::primitives::AccountId;
+use traceable_result::*;
 
 #[derive(PartialEq, Clone, Debug)] // Default
+#[ink::storage_item]
 pub struct Pool {
     pub token_x: AccountId,
     pub token_y: AccountId,

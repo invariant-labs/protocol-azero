@@ -1,5 +1,5 @@
 [package]
-name = "invariant-math"
+name = "contract"
 version = "0.1.0"
 authors = ["Invariant Labs"]
 edition = "2021"
@@ -7,8 +7,10 @@ edition = "2021"
 [dependencies]
 # local
 decimal = { path = "src/decimal" }
-math = { path = "src/math" }
-tracable_result = { path = "src/tracable_result" }
+# math = { path = "src/math", default-features = false, features = [
+#   "ink-as-dependency",
+# ] }
+traceable_result = { path = "src/traceable_result" }
 
 # ink
 ink = { version = "4.2.0", default-features = false }
@@ -18,15 +20,25 @@ scale = { package = "parity-scale-codec", version = "3", default-features = fals
 scale-info = { version = "2.6", default-features = false, features = [
   "derive",
 ], optional = true }
+openbrush = { git = "https://github.com/Brushfam/openbrush-contracts", branch = "develop", default-features = false, features = [
+  "psp22",
+  "ownable",
+  "reentrancy_guard",
+] }
+token = { path = "src/token", default-features = false, features = [
+  "ink-as-dependency",
+] }
 
 [dev-dependencies]
-ink_e2e = "4.2.0"
+ink_e2e = "4.3.0"
+test_helpers = { path = "src/test_helpers", default-features = false }
 
 [lib]
+name = "contract"
 path = "src/lib.rs"
 
 [features]
 default = ["std"]
-std = ["ink/std", "scale/std", "scale-info/std"]
+std = ["ink/std", "scale/std", "scale-info/std", "openbrush/std"]
 ink-as-dependency = []
 e2e-tests = []

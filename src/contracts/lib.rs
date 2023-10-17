@@ -1,9 +1,9 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 #![feature(min_specialization)]
 
-extern crate alloc;
-mod contracts;
-pub mod math;
+pub mod logic;
+pub mod pair;
+
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum ContractErrors {
@@ -17,12 +17,16 @@ pub enum ContractErrors {
 
 #[ink::contract]
 pub mod contract {
-    use crate::contracts::logic::traits::pair::Pair;
-    use crate::contracts::pair::pair::PairField;
-    use crate::ContractErrors;
-    use ink::prelude::{vec, vec::Vec};
-    use ink::storage::Mapping;
-    use openbrush::contracts::traits::psp22::PSP22Ref;
+    use ink::{
+        prelude::{vec, vec::Vec},
+        storage::Mapping,
+    };
+    use openbrush::{
+        contracts::{reentrancy_guard::*, traits::psp22::PSP22Ref},
+        modifiers,
+    };
+
+    use crate::{logic::traits::pair::Pair, pair::pair::PairField, ContractErrors};
 
     #[derive(Debug)]
     pub struct OrderPair {
@@ -440,24 +444,25 @@ pub mod contract {
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod e2e_tests {
 
-        // use super::*;
-        // use ink_e2e::build_message;
-        // use ink_e2e::*;
-
-        /// A helper function used for calling contract messages.
         use ink_e2e::build_message;
-
-        /// Imports all the definitions from the outer scope so we can use them here.
-        use super::*;
-        /// The End-to-End test `Result` type.
-        type E2EResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;
-
         use openbrush::contracts::psp22::psp22_external::PSP22;
         use test_helpers::address_of;
         use token::TokenRef;
 
+        use super::*;
+        // use crate::token::TokenRef;
+
+        type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
+
         #[ink_e2e::test]
         async fn constructor_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let constructor = TokenRef::new(500);
+            let _token: AccountId = client
+                .instantiate("token", &ink_e2e::alice(), constructor, 0, None)
+                .await
+                .expect("Instantiate failed")
+                .account_id;
+
             let constructor = ContractRef::new();
             let _contract: AccountId = client
                 .instantiate("contract", &ink_e2e::alice(), constructor, 0, None)

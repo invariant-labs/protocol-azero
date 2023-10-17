@@ -1,15 +1,15 @@
-use math::types::{
+use crate::math::types::{
     fee_growth::FeeGrowth, liquidity::Liquidity, seconds_per_liquidity::SecondsPerLiquidity,
     sqrt_price::sqrt_price::calculate_sqrt_price, sqrt_price::sqrt_price::SqrtPrice,
 };
 
-use tracable_result::*;
+use traceable_result::*;
 
 use decimal::*;
 
 use super::Pool;
 
-#[derive(PartialEq, Debug, Clone, Copy)] // Default
+#[derive(PartialEq, Debug, Clone, Copy, scale::Decode, scale::Encode)] // Default
 pub struct Tick {
     pub index: i32,
     pub sign: bool,
@@ -170,7 +170,7 @@ impl Tick {
 mod tests {
     use decimal::{Decimal, Factories};
 
-    use math::math::calculate_max_liquidity_per_tick;
+    use crate::math::math::calculate_max_liquidity_per_tick;
 
     use super::*;
 
