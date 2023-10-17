@@ -26,9 +26,9 @@ pub mod contract {
     };
 
     use crate::contracts::State;
+    use crate::contracts::Tickmaps;
     use crate::contracts::{FeeTier, FeeTiers, PoolKey, Pools, Position, Positions, Ticks}; //
     use crate::math::percentage::Percentage;
-    // use contracts::Tickmaps;
     use decimal::*;
     use ink::prelude::vec::Vec;
     use openbrush::contracts::traits::psp22::PSP22Ref;
@@ -54,7 +54,7 @@ pub mod contract {
         positions: Positions,
         fee_tiers: FeeTiers,
         pools: Pools,
-        // tickmaps: Tickmaps,
+        tickmaps: Tickmaps,
         ticks: Ticks,
         fee_tier_keys: Vec<FeeTierKey>,
         pool_keys: Vec<PoolKey>,
