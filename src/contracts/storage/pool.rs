@@ -3,6 +3,7 @@ use crate::{
     contracts::PoolKey,
     math::{
         math::*,
+        sqrt_price::sqrt_price::calculate_sqrt_price,
         types::{
             fee_growth::FeeGrowth,
             liquidity::Liquidity,
@@ -61,8 +62,15 @@ impl Default for Pool {
 }
 
 impl Pool {
-    pub fn create(pool_key: PoolKey) -> Self {
-        Self { ..Self::default() }
+    pub fn create(init_tick: i32, current_timestamp: u64, fee_receiver: AccountId) -> Self {
+        Self {
+            sqrt_price: unwrap!(calculate_sqrt_price(init_tick)),
+            current_tick_index: init_tick,
+            start_timestamp: current_timestamp,
+            last_timestamp: current_timestamp,
+            fee_receiver,
+            ..Self::default()
+        }
     }
 
     pub fn add_fee(
@@ -279,16 +287,6 @@ mod tests {
     use decimal::Factories;
 
     use super::*;
-
-    #[test]
-    fn test_create() {
-        let account_1 = AccountId::from([0; 32]);
-        let account_2 = AccountId::from([1; 32]);
-        let fee = Percentage::new(1);
-        let tick_spacing = 1;
-
-        let _pool = Pool::create(PoolKey(account_1, account_2, FeeTier { fee, tick_spacing }));
-    }
 
     #[test]
     fn test_add_fee() {

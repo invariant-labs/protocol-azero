@@ -107,6 +107,7 @@ pub mod contract {
             token_0: AccountId,
             token_1: AccountId,
             fee_tier: FeeTier,
+            init_tick: i32,
         ) -> Result<Pool, ContractErrors> {
             let pool_key = PoolKey::new(token_0, token_1, fee_tier);
 
@@ -116,7 +117,11 @@ pub mod contract {
                 return Err(ContractErrors::PoolAlreadyExist);
             }
 
-            self.pools.insert(pool_key, &Pool::create(pool_key));
+            let current_timestamp = self.env().block_timestamp();
+            self.pools.insert(
+                pool_key,
+                &Pool::create(init_tick, current_timestamp, self.state.admin),
+            );
 
             Ok(self.pools.get(pool_key).unwrap())
         }
@@ -368,6 +373,7 @@ pub mod contract {
                     fee: Percentage::new(1),
                     tick_spacing: 1,
                 },
+                0,
             );
             assert!(result.is_ok());
             let result = contract.create_pool(
@@ -377,6 +383,7 @@ pub mod contract {
                     fee: Percentage::new(1),
                     tick_spacing: 1,
                 },
+                0,
             );
             assert_eq!(result, Err(ContractErrors::PoolAlreadyExist));
         }
@@ -402,6 +409,7 @@ pub mod contract {
                     fee: Percentage::new(1),
                     tick_spacing: 1,
                 },
+                0,
             );
             assert!(result.is_ok());
             let pool = result.unwrap();
