@@ -30,7 +30,6 @@ pub struct Pool {
     pub position_iterator: u128,
     pub tick_spacing: u16,
     pub fee: Percentage,
-    pub protocol_fee: Percentage,
     pub liquidity: Liquidity,
     pub sqrt_price: SqrtPrice,
     pub current_tick_index: i32, // nearest tick below the current sqrt_price
@@ -57,7 +56,6 @@ impl Default for Pool {
             position_iterator: u128::default(),
             tick_spacing: u16::default(),
             fee: Percentage::default(),
-            protocol_fee: Percentage::default(),
             liquidity: Liquidity::default(),
             sqrt_price: SqrtPrice::default(),
             current_tick_index: i32::default(), // nearest tick below the current sqrt_price
@@ -87,8 +85,13 @@ impl Pool {
         }
     }
 
-    pub fn add_fee(&mut self, amount: TokenAmount, in_x: bool) -> TrackableResult<()> {
-        let protocol_fee = amount.big_mul_up(self.protocol_fee);
+    pub fn add_fee(
+        &mut self,
+        amount: TokenAmount,
+        in_x: bool,
+        protocol_fee: Percentage,
+    ) -> TrackableResult<()> {
+        let protocol_fee = amount.big_mul_up(protocol_fee);
 
         let pool_fee = amount - protocol_fee;
 
@@ -196,6 +199,7 @@ impl Pool {
         x_to_y: bool,
         current_timestamp: u64,
         total_amount_in: &mut TokenAmount,
+        protocol_fee: Percentage,
     ) {
         if result.next_sqrt_price == swap_limit && limiting_tick.is_some() {
             let tick_index = limiting_tick.unwrap().0;
@@ -219,7 +223,8 @@ impl Pool {
                     let _ = tick.cross(self, current_timestamp);
                 } else if !remaining_amount.is_zero() {
                     if by_amount_in {
-                        self.add_fee(*remaining_amount, x_to_y).unwrap();
+                        self.add_fee(*remaining_amount, x_to_y, protocol_fee)
+                            .unwrap();
                         *total_amount_in += *remaining_amount
                     }
                     *remaining_amount = TokenAmount(0);
@@ -313,8 +318,8 @@ mod tests {
     #[test]
     fn test_add_fee() {
         // fee is set to 20%
+        let protocol_fee = Percentage::from_scale(2, 1);
         let pool = Pool {
-            protocol_fee: Percentage::from_scale(2, 1),
             liquidity: Liquidity::from_integer(10),
             ..Default::default()
         };
@@ -322,7 +327,7 @@ mod tests {
         {
             let mut pool = pool.clone();
             let amount = TokenAmount::from_integer(6);
-            pool.add_fee(amount, true).unwrap();
+            pool.add_fee(amount, true, protocol_fee).unwrap();
             assert_eq!({ pool.fee_growth_global_x }, FeeGrowth::from_scale(4, 1));
             assert_eq!({ pool.fee_growth_global_y }, FeeGrowth::from_integer(0));
             assert_eq!({ pool.fee_protocol_token_x }, TokenAmount(2));
@@ -332,7 +337,7 @@ mod tests {
         {
             let mut pool = pool.clone();
             let amount = TokenAmount::from_integer(200);
-            pool.add_fee(amount, false).unwrap();
+            pool.add_fee(amount, false, protocol_fee).unwrap();
             assert_eq!({ pool.fee_growth_global_x }, FeeGrowth::from_integer(0));
             assert_eq!({ pool.fee_growth_global_y }, FeeGrowth::from_scale(160, 1));
             assert_eq!({ pool.fee_protocol_token_x }, TokenAmount(0));
@@ -342,7 +347,7 @@ mod tests {
         {
             let mut pool = pool.clone();
             let amount = TokenAmount::new(1);
-            pool.add_fee(amount, true).unwrap();
+            pool.add_fee(amount, true, protocol_fee).unwrap();
             assert_eq!({ pool.fee_growth_global_x }, FeeGrowth::new(0));
             assert_eq!({ pool.fee_growth_global_y }, FeeGrowth::new(0));
             assert_eq!({ pool.fee_protocol_token_x }, TokenAmount(1));
@@ -353,17 +358,16 @@ mod tests {
         // let min_amount = TokenAmount(1);
         let max_liquidity = Liquidity::max_instance();
         // let min_liquidity = Liquidity::new(1);
-        let max_fee = Percentage::from_integer(1);
-        let min_fee = Percentage::from_integer(0);
+        let max_protocol_fee = Percentage::from_integer(1);
+        let min_protocol_fee = Percentage::from_integer(0);
 
         // max fee max amount max liquidity in x
         {
             let mut pool = Pool {
-                protocol_fee: max_fee,
                 liquidity: max_liquidity,
                 ..Default::default()
             };
-            pool.add_fee(max_amount, true).unwrap();
+            pool.add_fee(max_amount, true, max_protocol_fee).unwrap();
             assert_eq!({ pool.fee_growth_global_x }, FeeGrowth::from_integer(0));
             assert_eq!({ pool.fee_growth_global_y }, FeeGrowth::from_integer(0));
             assert_eq!(
@@ -375,11 +379,10 @@ mod tests {
         // max fee max amount max liquidity in y
         {
             let mut pool = Pool {
-                protocol_fee: max_fee,
                 liquidity: max_liquidity,
                 ..Default::default()
             };
-            pool.add_fee(max_amount, false).unwrap();
+            pool.add_fee(max_amount, false, max_protocol_fee).unwrap();
             assert_eq!({ pool.fee_growth_global_x }, FeeGrowth::from_integer(0));
             assert_eq!({ pool.fee_growth_global_y }, FeeGrowth::from_integer(0));
             assert_eq!({ pool.fee_protocol_token_x }, TokenAmount(0));
@@ -391,11 +394,10 @@ mod tests {
         // min fee max amount max liquidity in x
         {
             let mut pool = Pool {
-                protocol_fee: min_fee,
                 liquidity: max_liquidity,
                 ..Default::default()
             };
-            pool.add_fee(max_amount, true).unwrap();
+            pool.add_fee(max_amount, true, min_protocol_fee).unwrap();
             assert_eq!(
                 { pool.fee_growth_global_x },
                 FeeGrowth::from_scale(1_000_000, 0)
