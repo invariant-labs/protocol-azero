@@ -18,27 +18,19 @@ pub enum ContractErrors {
 }
 #[ink::contract]
 pub mod contract {
-    // modifiers,
-
     use crate::{
         contracts::logic::traits::pair::Pair,
         contracts::pair::pair::PairField,
-        contracts::storage::{
-            balances::Balances,
-            fee_tiers::FeeTierKey,
-            //        pool::Pool,
-            tick::Tick,
-            Pairs, // tickmap::Tickmap,
-        },
+        contracts::storage::{balances::Balances, fee_tiers::FeeTierKey, tick::Tick, Pairs},
         ContractErrors,
     };
 
     use crate::contracts::State;
-    use crate::contracts::{FeeTier, FeeTiers, PoolKey, Position, Positions, Ticks}; // Pools
+    use crate::contracts::{FeeTier, FeeTiers, PoolKey, Pools, Position, Positions, Ticks}; //
     use crate::math::percentage::Percentage;
+    // use contracts::Tickmaps;
     use decimal::*;
-    use ink::prelude::{vec, vec::Vec};
-    use ink::storage::Mapping;
+    use ink::prelude::vec::Vec;
     use openbrush::contracts::traits::psp22::PSP22Ref;
 
     #[derive(Debug)]
@@ -61,7 +53,8 @@ pub mod contract {
         balances: Balances,
         positions: Positions,
         fee_tiers: FeeTiers,
-        // pools: Pools,
+        pools: Pools,
+        // tickmaps: Tickmaps,
         ticks: Ticks,
         fee_tier_keys: Vec<FeeTierKey>,
         pool_keys: Vec<PoolKey>,
