@@ -3,12 +3,14 @@ use crate::math::{
     MAX_TICK,
 };
 use ink::storage::Mapping;
-
 pub const TICK_SEARCH_RANGE: i32 = 256;
 pub const CHUNK_SIZE: i32 = 64;
 
-#[derive(Debug)]
-#[ink::storage_item]
+#[derive(Debug, scale::Decode, scale::Encode, PartialEq)]
+#[cfg_attr(
+    feature = "std",
+    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+)]
 pub struct Tickmap {
     pub bitmap: Mapping<u16, u64>,
 }

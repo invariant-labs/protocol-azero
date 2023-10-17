@@ -16,14 +16,26 @@ pub enum ContractErrors {
     SwapFailed,
     NotAnAdmin,
 }
-
 #[ink::contract]
 pub mod contract {
-    use crate::contracts::logic::traits::pair::Pair;
-    use crate::contracts::pair::pair::PairField;
+    // modifiers,
+
+    use crate::{
+        contracts::logic::traits::pair::Pair,
+        contracts::pair::pair::PairField,
+        contracts::storage::{
+            balances::Balances,
+            fee_tiers::FeeTierKey,
+            //        pool::Pool,
+            tick::Tick,
+            Pairs, // tickmap::Tickmap,
+        },
+        ContractErrors,
+    };
+
     use crate::contracts::State;
+    use crate::contracts::{FeeTier, FeeTiers, PoolKey, Position, Positions, Ticks}; // Pools
     use crate::math::percentage::Percentage;
-    use crate::ContractErrors;
     use decimal::*;
     use ink::prelude::{vec, vec::Vec};
     use ink::storage::Mapping;
@@ -35,174 +47,24 @@ pub mod contract {
         pub y: (AccountId, Balance),
     }
 
-    #[ink::storage_item]
-    #[derive(Debug)]
-    pub struct Pairs {
-        pairs: Mapping<(AccountId, AccountId), PairField>,
-        token_pairs: TokenPairs,
-        length: u64,
-    }
-
     #[derive(scale::Decode, Default, scale::Encode, Clone, Debug)]
     #[cfg_attr(
         feature = "std",
         derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout,)
     )]
-    pub struct TokenPairs(Vec<(AccountId, AccountId)>);
-
-    impl Default for Pairs {
-        fn default() -> Self {
-            Pairs {
-                pairs: Default::default(),
-                length: Default::default(),
-                token_pairs: Default::default(),
-            }
-        }
-    }
-
-    impl Pairs {
-        fn _create_pair(&mut self, ordered_pair: OrderPair) -> PairField {
-            assert_ne!(ordered_pair.x.0, ordered_pair.y.0);
-            let pair = self.pairs.get((&ordered_pair.x.0, &ordered_pair.y.0));
-            match pair {
-                Some(pair) => pair,
-                None => {
-                    let pair_field = PairField {
-                        token_x: ordered_pair.x.0,
-                        token_y: ordered_pair.y.0,
-                        ..Default::default()
-                    };
-                    self.pairs
-                        .insert((ordered_pair.x.0, ordered_pair.y.0), &pair_field);
-                    self.length += 1;
-                    self.token_pairs
-                        .0
-                        .push((ordered_pair.x.0, ordered_pair.y.0));
-                    pair_field
-                }
-            }
-        }
-        fn _update_pair(&mut self, pair: PairField) {
-            self.pairs.insert((pair.token_x, pair.token_y), &pair);
-        }
-
-        fn _get_pair(&self, ordered_pair: &OrderPair) -> Option<PairField> {
-            self.pairs.get((ordered_pair.x.0, ordered_pair.y.0))
-        }
-
-        fn _order_tokens(
-            &self,
-            token_0: AccountId,
-            token_1: AccountId,
-            balance_0: Balance,
-            balance_1: Balance,
-        ) -> OrderPair {
-            match token_0.lt(&token_1) {
-                true => OrderPair {
-                    x: (token_0, balance_0),
-                    y: (token_1, balance_1),
-                },
-                false => OrderPair {
-                    x: (token_1, balance_1),
-                    y: (token_0, balance_0),
-                },
-            }
-        }
-    }
-
-    #[ink::storage_item]
-    #[derive(Debug)]
-    pub struct Positions {
-        positions: Mapping<AccountId, (u32, Vec<Position>)>,
-    }
-
-    #[derive(scale::Decode, scale::Encode, Debug, Copy, Clone, PartialEq)]
-    #[cfg_attr(
-        feature = "std",
-        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
-    )]
-    pub struct Position {
-        value: u8,
-        id: u8,
-    }
-
-    impl scale::EncodeLike<Vec<Position>> for Position {}
-
-    impl Default for Positions {
-        fn default() -> Positions {
-            Positions {
-                positions: Default::default(),
-            }
-        }
-    }
-
-    impl Positions {
-        pub fn add_position(&mut self, caller: AccountId) {
-            let positions_length = &self.get_length(caller);
-            match positions_length {
-                Some(_x) => {
-                    let mut current_positions = self.positions.get(caller).unwrap();
-                    let next_index = (current_positions.0 + 1) as u8;
-                    current_positions.0 += 1;
-                    current_positions.1.push(Position {
-                        value: next_index * 11,
-                        id: next_index,
-                    });
-                    self.positions.insert(caller, &current_positions);
-                }
-                None => {
-                    let new_position = (0, vec![Position { value: 0, id: 0 }]);
-                    self.positions.insert(caller, &new_position);
-                }
-            }
-        }
-        pub fn remove_position(&mut self, caller: AccountId, index: u32) {
-            let positions_length = self.get_length(caller);
-
-            if let Some(x) = positions_length {
-                if x >= index {
-                    let mut current_positions = self.positions.get(caller).unwrap();
-                    current_positions.0 -= 1;
-                    current_positions.1.remove(index as usize);
-                    self.positions.insert(caller, &current_positions);
-                }
-            }
-        }
-
-        pub fn get_all_positions(&self, caller: AccountId) -> Vec<Position> {
-            self.positions.get(&caller).unwrap_or_default().1
-        }
-
-        pub fn get_position(&mut self, caller: AccountId, index: u32) -> Option<Position> {
-            let positions_length = self.get_length(caller);
-            match positions_length {
-                Some(x) => {
-                    if index <= x {
-                        let positions = self.positions.get(caller).unwrap().1;
-                        positions.get(index as usize).cloned()
-                    } else {
-                        None
-                    }
-                }
-                None => None,
-            }
-        }
-        fn get_length(&mut self, caller: AccountId) -> Option<u32> {
-            let positions = self.positions.get(&caller);
-            match positions {
-                Some(x) => Some(x.0),
-                None => None,
-            }
-        }
-    }
+    pub struct TokenPairs(pub Vec<(AccountId, AccountId)>);
 
     #[ink(storage)]
     #[derive(Default)]
     pub struct Contract {
         pairs: Pairs,
-        // (x, y, user), balance
-        balances: Mapping<(AccountId, AccountId, AccountId), Balance>,
+        balances: Balances,
         positions: Positions,
+        fee_tiers: FeeTiers,
+        // pools: Pools,
+        ticks: Ticks,
+        fee_tier_keys: Vec<FeeTierKey>,
+        pool_keys: Vec<PoolKey>,
         state: State,
     }
 
@@ -271,10 +133,12 @@ pub mod contract {
                     Ok(lp) => {
                         let mut balance = self
                             .balances
+                            .v
                             .get((pair.token_x, pair.token_y, caller))
                             .unwrap_or_default();
                         balance += lp;
                         self.balances
+                            .v
                             .insert((pair.token_x, pair.token_y, caller), &balance);
                         self.pairs._update_pair(pair);
                         Ok(())
@@ -298,6 +162,7 @@ pub mod contract {
 
             let balance = self
                 .balances
+                .v
                 .get((ordered_pair.x.0, ordered_pair.y.0, caller))
                 .ok_or(ContractErrors::InsufficientLPLocked)?;
 
@@ -316,6 +181,7 @@ pub mod contract {
                 Ok(_) => {
                     let new_lp = balance - amount;
                     self.balances
+                        .v
                         .insert((pair.token_x, pair.token_y, caller), &new_lp);
                     self.pairs._update_pair(pair);
                     Ok(())
@@ -391,6 +257,48 @@ pub mod contract {
             let caller = self.env().caller();
             self.positions.get_all_positions(caller)
         }
+
+        // Fee tiers
+        #[ink(message)]
+        pub fn add_fee_tier(&mut self, key: FeeTierKey, value: FeeTier) {
+            self.fee_tiers.add_fee_tier(key, value);
+            self.fee_tier_keys.push(key);
+        }
+        #[ink(message)]
+        pub fn get_fee_tier(&self, key: FeeTierKey) -> Option<FeeTier> {
+            self.fee_tiers.get_fee_tier(key)
+        }
+        #[ink(message)]
+        pub fn remove_fee_tier(&mut self, key: FeeTierKey) {
+            self.fee_tiers.remove_fee_tier(key);
+            self.fee_tier_keys.retain(|&x| x != key);
+        }
+
+        // // Pools
+        // fn add_pool(&mut self, key: PoolKey, pool: Pool, tickmap: Tickmap) {
+        //     self.pools.add_pool(key, pool, tickmap);
+        //     self.pool_keys.push(key);
+        // }
+
+        // fn get_pool(&self, key: PoolKey) -> Option<(Pool, Tickmap)> {
+        //     self.pools.get_pool(key)
+        // }
+
+        // fn remove_pool(&mut self, key: PoolKey) {
+        //     self.pools.remove_pool(key);
+        //     self.pool_keys.retain(|&x| x != key);
+        // }
+
+        // Ticks
+        fn add_tick(&mut self, key: PoolKey, index: i32, tick: Tick) {
+            self.ticks.add_tick(key, index, tick);
+        }
+        fn get_tick(&self, key: PoolKey, index: i32) -> Option<Tick> {
+            self.ticks.get_tick(key, index)
+        }
+        fn remove_tick(&mut self, key: PoolKey, index: i32) {
+            self.ticks.remove_tick(key, index);
+        }
     }
 
     #[cfg(test)]
@@ -398,6 +306,9 @@ pub mod contract {
         use decimal::*;
 
         use super::*;
+        use decimal::*;
+
+        use crate::math::percentage::Percentage;
 
         #[ink::test]
         fn initialize_works() {
@@ -437,11 +348,21 @@ pub mod contract {
                 let positions = contract.get_all_positions();
                 assert_eq!(
                     vec![
-                        Position { value: 0, id: 0 },
-                        Position { value: 11, id: 1 },
-                        Position { value: 22, id: 2 },
-                        Position { value: 33, id: 3 },
-                        Position { value: 44, id: 4 }
+                        Position {
+                            ..Default::default()
+                        },
+                        Position {
+                            ..Default::default()
+                        },
+                        Position {
+                            ..Default::default()
+                        },
+                        Position {
+                            ..Default::default()
+                        },
+                        Position {
+                            ..Default::default()
+                        }
                     ],
                     positions
                 )
@@ -449,12 +370,22 @@ pub mod contract {
             // basic position operations
             {
                 let position = contract.get_position(2).unwrap();
-                assert_eq!(Position { value: 22, id: 2 }, position);
+                assert_eq!(
+                    Position {
+                        ..Default::default()
+                    },
+                    position
+                );
 
                 contract.remove_position(2);
 
                 let position = contract.get_position(2).unwrap();
-                assert_eq!(Position { value: 33, id: 3 }, position);
+                assert_eq!(
+                    Position {
+                        ..Default::default()
+                    },
+                    position
+                );
             }
             // get positions out of range
             {
@@ -466,30 +397,96 @@ pub mod contract {
                 contract.remove_position(99);
             }
         }
+
+        #[ink::test]
+        fn test_fee_tiers() {
+            let mut contract = Contract::new(Percentage::new(0));
+            let fee_tier_key = FeeTierKey(Percentage::new(1), 10u16);
+            let fee_tier_value = FeeTier {
+                fee: Percentage::new(1),
+                tick_spacing: 50u16,
+            };
+
+            contract.add_fee_tier(fee_tier_key, fee_tier_value);
+            assert_eq!(contract.fee_tier_keys.len(), 1);
+
+            let recieved_fee_tier = contract.get_fee_tier(fee_tier_key);
+            assert_eq!(Some(fee_tier_value), recieved_fee_tier);
+
+            contract.remove_fee_tier(fee_tier_key);
+            assert_eq!(contract.fee_tier_keys.len(), 0);
+        }
+
+        // #[ink::test]
+        // fn test_pools() {
+        //     let mut contract = Contract::new();
+        //     let fee_tier = FeeTier {
+        //         fee: Percentage::new(1),
+        //         tick_spacing: 50u16,
+        //     };
+        //     let pool_key = PoolKey(
+        //         AccountId::from([0x0; 32]),
+        //         AccountId::from([0x0; 32]),
+        //         fee_tier,
+        //     );
+        //     let pool = Pool::default();
+        //     let tickmap = Tickmap::default();
+        //     contract.add_pool(pool_key, pool, tickmap);
+        //     assert_eq!(contract.pool_keys.len(), 1);
+
+        //     let recieved_pool = contract.get_pool(pool_key);
+        //     assert_eq!(Some((pool, tickmap)), recieved_pool);
+
+        //     contract.remove_pool(pool_key);
+        //     assert_eq!(contract.pool_keys.len(), 0);
+        // }
+        #[ink::test]
+        fn test_ticks() {
+            let mut contract = Contract::new(Percentage::new(0));
+            let fee_tier = FeeTier {
+                fee: Percentage::new(1),
+                tick_spacing: 50u16,
+            };
+            let pool_key = PoolKey(
+                AccountId::from([0x0; 32]),
+                AccountId::from([0x0; 32]),
+                fee_tier,
+            );
+            let tick = Tick::default();
+            let index = 10i32;
+            contract.add_tick(pool_key, index, tick);
+            let recieved_tick = contract.get_tick(pool_key, index);
+            assert_eq!(Some(tick), recieved_tick);
+            contract.remove_tick(pool_key, index);
+            let recieved_tick = contract.get_tick(pool_key, index);
+            assert_eq!(None, recieved_tick);
+        }
     }
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod e2e_tests {
 
-        // use super::*;
-        // use ink_e2e::build_message;
-        // use ink_e2e::*;
-
-        /// A helper function used for calling contract messages.
         use ink_e2e::build_message;
-
-        /// Imports all the definitions from the outer scope so we can use them here.
-        use super::*;
-        /// The End-to-End test `Result` type.
-        type E2EResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;
-
         use openbrush::contracts::psp22::psp22_external::PSP22;
         use test_helpers::address_of;
         use token::TokenRef;
 
+        use super::*;
+        // use crate::token::TokenRef;
+
+        type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
+
         #[ink_e2e::test]
         async fn constructor_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let constructor = TokenRef::new(500);
+            let _token: AccountId = client
+                .instantiate("token", &ink_e2e::alice(), constructor, 0, None)
+                .await
+                .expect("Instantiate failed")
+                .account_id;
+
             let constructor = ContractRef::new(Percentage::new(0));
+
             let _contract: AccountId = client
                 .instantiate("contract", &ink_e2e::alice(), constructor, 0, None)
                 .await
@@ -622,9 +619,15 @@ pub mod contract {
             assert_eq!(
                 alice_positions,
                 vec![
-                    Position { value: 0, id: 0 },
-                    Position { value: 11, id: 1 },
-                    Position { value: 22, id: 2 },
+                    Position {
+                        ..Default::default()
+                    },
+                    Position {
+                        ..Default::default()
+                    },
+                    Position {
+                        ..Default::default()
+                    },
                 ]
             );
 
@@ -658,7 +661,14 @@ pub mod contract {
             .return_value();
             assert_eq!(
                 bob_positions,
-                vec![Position { value: 0, id: 0 }, Position { value: 11, id: 1 },]
+                vec![
+                    Position {
+                        ..Default::default()
+                    },
+                    Position {
+                        ..Default::default()
+                    },
+                ]
             );
 
             let alice_second_positions = {
@@ -672,7 +682,12 @@ pub mod contract {
             .return_value()
             .unwrap();
 
-            assert_eq!(Position { value: 11, id: 1 }, alice_second_positions);
+            assert_eq!(
+                Position {
+                    ..Default::default()
+                },
+                alice_second_positions
+            );
 
             let bob_first_position = {
                 let _msg = build_message::<ContractRef>(contract.clone())
@@ -685,7 +700,12 @@ pub mod contract {
             .return_value()
             .unwrap();
 
-            assert_eq!(Position { value: 0, id: 0 }, bob_first_position);
+            assert_eq!(
+                Position {
+                    ..Default::default()
+                },
+                bob_first_position
+            );
 
             // Alice removes second position
             {
@@ -705,7 +725,12 @@ pub mod contract {
             .return_value()
             .unwrap();
 
-            assert_eq!(Position { value: 22, id: 2 }, alice_second_positions);
+            assert_eq!(
+                Position {
+                    ..Default::default()
+                },
+                alice_second_positions
+            );
 
             // Bob tires to remove position out of range
             {
@@ -732,7 +757,12 @@ pub mod contract {
             .return_value()
             .unwrap();
 
-            assert_eq!(Position { value: 11, id: 1 }, bob_first_position);
+            assert_eq!(
+                Position {
+                    ..Default::default()
+                },
+                bob_first_position
+            );
 
             Ok(())
         }

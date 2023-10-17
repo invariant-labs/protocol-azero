@@ -1,4 +1,4 @@
-use super::{Oracle, Tick, Tickmap};
+use super::{Oracle, Tick}; // Tickmap
 use crate::math::{
     math::*,
     types::{
@@ -224,53 +224,53 @@ impl Pool {
         };
     }
 
-    pub fn swap_step(
-        &mut self,
-        remaining_amount: &mut TokenAmount,
-        tickmap: Tickmap,
-        sqrt_price_limit: SqrtPrice,
-        x_to_y: bool,
-        by_amount_in: bool,
-        total_amount_in: &mut TokenAmount,
-        total_amount_out: &mut TokenAmount,
-    ) -> Option<(i32, bool)> {
-        let (swap_limit, limiting_tick) = tickmap.get_closer_limit(
-            sqrt_price_limit,
-            x_to_y,
-            self.current_tick_index,
-            self.tick_spacing,
-        );
+    // pub fn swap_step(
+    //     &mut self,
+    //     remaining_amount: &mut TokenAmount,
+    //     // tickmap: Tickmap,
+    //     sqrt_price_limit: SqrtPrice,
+    //     x_to_y: bool,
+    //     by_amount_in: bool,
+    //     total_amount_in: &mut TokenAmount,
+    //     total_amount_out: &mut TokenAmount,
+    // ) -> Option<(i32, bool)> {
+    //     // let (swap_limit, limiting_tick) = tickmap.get_closer_limit(
+    //     //     sqrt_price_limit,
+    //     //     x_to_y,
+    //     //     self.current_tick_index,
+    //     //     self.tick_spacing,
+    //     // );
 
-        let result = unwrap!(compute_swap_step(
-            self.sqrt_price,
-            swap_limit,
-            self.liquidity,
-            *remaining_amount,
-            by_amount_in,
-            self.fee,
-        ));
+    //     // let result = unwrap!(compute_swap_step(
+    //     //     self.sqrt_price,
+    //     //     swap_limit,
+    //     //     self.liquidity,
+    //     //     *remaining_amount,
+    //     //     by_amount_in,
+    //     //     self.fee,
+    //     // ));
 
-        // make remaining amount smaller
-        if by_amount_in {
-            *remaining_amount -= result.amount_in + result.fee_amount;
-        } else {
-            *remaining_amount -= result.amount_out;
-        }
+    //     // // make remaining amount smaller
+    //     // if by_amount_in {
+    //     //     *remaining_amount -= result.amount_in + result.fee_amount;
+    //     // } else {
+    //     //     *remaining_amount -= result.amount_out;
+    //     // }
 
-        unwrap!(self.add_fee(result.fee_amount, x_to_y));
+    //     // unwrap!(self.add_fee(result.fee_amount, x_to_y));
 
-        self.sqrt_price = result.next_sqrt_price;
+    //     // self.sqrt_price = result.next_sqrt_price;
 
-        *total_amount_in += result.amount_in + result.fee_amount;
-        *total_amount_out += result.amount_out;
+    //     // *total_amount_in += result.amount_in + result.fee_amount;
+    //     // *total_amount_out += result.amount_out;
 
-        // Fail if price would go over swap limit
-        if { self.sqrt_price } == sqrt_price_limit && !remaining_amount.is_zero() {
-            panic!("PriceLimitReached");
-        }
+    //     // // Fail if price would go over swap limit
+    //     // if { self.sqrt_price } == sqrt_price_limit && !remaining_amount.is_zero() {
+    //     //     panic!("PriceLimitReached");
+    //     // }
 
-        limiting_tick
-    }
+    //     // limiting_tick
+    // }
 }
 
 #[cfg(test)]

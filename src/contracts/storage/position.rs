@@ -1,4 +1,4 @@
-use super::{Pool, Tick, Tickmap};
+use super::{Pool, Tick}; // Tickmap
 use crate::math::{
     math::*,
     types::{
@@ -11,8 +11,11 @@ use crate::math::{
 };
 use decimal::*;
 use traceable_result::*;
-
-#[derive(PartialEq, Default, Debug, scale::Decode, scale::Encode)]
+#[derive(PartialEq, Default, Debug, Copy, Clone, scale::Decode, scale::Encode)]
+#[cfg_attr(
+    feature = "std",
+    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+)]
 pub struct Position {
     pub liquidity: Liquidity,
     pub lower_tick_index: i32,
@@ -158,7 +161,7 @@ impl Position {
         lower_tick: &mut Tick,
         upper_tick: &mut Tick,
         current_timestamp: u64,
-        tickmap: &mut Tickmap,
+        // tickmap: &mut Tickmap,
         liquidity_delta: Liquidity,
         slippage_limit_lower: SqrtPrice,
         slippage_limit_upper: SqrtPrice,
@@ -168,12 +171,12 @@ impl Position {
         assert!(price >= slippage_limit_lower, "Price limit reached");
         assert!(price <= slippage_limit_upper, "Price limit reached");
 
-        if !tickmap.get(lower_tick.index, pool.tick_spacing) {
-            tickmap.flip(true, lower_tick.index, pool.tick_spacing)
-        }
-        if !tickmap.get(upper_tick.index, pool.tick_spacing) {
-            tickmap.flip(true, upper_tick.index, pool.tick_spacing)
-        }
+        // if !tickmap.get(lower_tick.index, pool.tick_spacing) {
+        //     tickmap.flip(true, lower_tick.index, pool.tick_spacing)
+        // }
+        // if !tickmap.get(upper_tick.index, pool.tick_spacing) {
+        //     tickmap.flip(true, upper_tick.index, pool.tick_spacing)
+        // }
 
         // init position
         let position = Position {
