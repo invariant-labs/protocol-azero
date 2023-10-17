@@ -108,8 +108,8 @@ pub mod contract {
             token_1: AccountId,
             fee_tier: FeeTier,
             init_tick: i32,
-        ) -> Result<Pool, ContractErrors> {
-            let pool_key = PoolKey::new(token_0, token_1, fee_tier);
+        ) -> Result<PoolKey, ContractErrors> {
+            let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
 
             let pool_option = self.pools.get(pool_key);
 
@@ -123,7 +123,7 @@ pub mod contract {
                 &Pool::create(init_tick, current_timestamp, self.state.admin),
             );
 
-            Ok(self.pools.get(pool_key).unwrap())
+            Ok(pool_key)
         }
 
         #[ink(message)]
@@ -412,16 +412,17 @@ pub mod contract {
                 0,
             );
             assert!(result.is_ok());
-            let pool = result.unwrap();
-            let result = contract.get_pool(
-                token_1,
-                token_0,
-                FeeTier {
-                    fee: Percentage::new(1),
-                    tick_spacing: 1,
-                },
+            assert_eq!(
+                result.unwrap(),
+                PoolKey::new(
+                    token_0,
+                    token_1,
+                    FeeTier {
+                        fee: Percentage::new(1),
+                        tick_spacing: 1
+                    }
+                )
             );
-            assert_eq!(result.unwrap(), pool);
         }
 
         #[ink::test]
