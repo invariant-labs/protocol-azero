@@ -24,13 +24,16 @@ pub mod contract {
         contracts::logic::traits::pair::Pair,
         contracts::pair::pair::PairField,
         contracts::storage::{
-            balances::Balances, fee_tiers::FeeTierKey, pool::Pool, tick::Tick, tickmap::Tickmap,
-            Pairs,
+            balances::Balances,
+            fee_tiers::FeeTierKey,
+            pool::Pool,
+            tick::Tick,
+            Pairs, // tickmap::Tickmap,
         },
         ContractErrors,
     };
 
-    use crate::contracts::{FeeTier, FeeTiers, PoolKey, Pools, Position, Positions, Ticks};
+    use crate::contracts::{FeeTier, FeeTiers, PoolKey, Position, Positions, Ticks}; // Pools
 
     #[derive(Debug)]
     pub struct OrderPair {
@@ -52,7 +55,7 @@ pub mod contract {
         balances: Balances,
         positions: Positions,
         fee_tiers: FeeTiers,
-        pools: Pools,
+        // pools: Pools,
         ticks: Ticks,
         fee_tier_keys: Vec<FeeTierKey>,
         pool_keys: Vec<PoolKey>,
@@ -240,20 +243,20 @@ pub mod contract {
             self.fee_tier_keys.retain(|&x| x != key);
         }
 
-        // Pools
-        fn add_pool(&mut self, key: PoolKey, pool: Pool, tickmap: Tickmap) {
-            self.pools.add_pool(key, pool, tickmap);
-            self.pool_keys.push(key);
-        }
+        // // Pools
+        // fn add_pool(&mut self, key: PoolKey, pool: Pool, tickmap: Tickmap) {
+        //     self.pools.add_pool(key, pool, tickmap);
+        //     self.pool_keys.push(key);
+        // }
 
-        fn get_pool(&self, key: PoolKey) -> Option<(Pool, Tickmap)> {
-            self.pools.get_pool(key)
-        }
+        // fn get_pool(&self, key: PoolKey) -> Option<(Pool, Tickmap)> {
+        //     self.pools.get_pool(key)
+        // }
 
-        fn remove_pool(&mut self, key: PoolKey) {
-            self.pools.remove_pool(key);
-            self.pool_keys.retain(|&x| x != key);
-        }
+        // fn remove_pool(&mut self, key: PoolKey) {
+        //     self.pools.remove_pool(key);
+        //     self.pool_keys.retain(|&x| x != key);
+        // }
 
         // Ticks
         fn add_tick(&mut self, key: PoolKey, index: i32, tick: Tick) {
@@ -271,6 +274,7 @@ pub mod contract {
     mod tests {
 
         use super::*;
+        use decimal::*;
 
         use crate::math::percentage::Percentage;
 
@@ -313,19 +317,19 @@ pub mod contract {
                 assert_eq!(
                     vec![
                         Position {
-                            ..Default::defulat()
+                            ..Default::default()
                         },
                         Position {
-                            ..Default::defulat()
+                            ..Default::default()
                         },
                         Position {
-                            ..Default::defulat()
+                            ..Default::default()
                         },
                         Position {
-                            ..Default::defulat()
+                            ..Default::default()
                         },
                         Position {
-                            ..Default::defulat()
+                            ..Default::default()
                         }
                     ],
                     positions
@@ -336,7 +340,7 @@ pub mod contract {
                 let position = contract.get_position(2).unwrap();
                 assert_eq!(
                     Position {
-                        ..Default::defulat()
+                        ..Default::default()
                     },
                     position
                 );
@@ -346,7 +350,7 @@ pub mod contract {
                 let position = contract.get_position(2).unwrap();
                 assert_eq!(
                     Position {
-                        ..Default::defulat()
+                        ..Default::default()
                     },
                     position
                 );
@@ -381,29 +385,29 @@ pub mod contract {
             assert_eq!(contract.fee_tier_keys.len(), 0);
         }
 
-        #[ink::test]
-        fn test_pools() {
-            let mut contract = Contract::new();
-            let fee_tier = FeeTier {
-                fee: Percentage::new(1),
-                tick_spacing: 50u16,
-            };
-            let pool_key = PoolKey(
-                AccountId::from([0x0; 32]),
-                AccountId::from([0x0; 32]),
-                fee_tier,
-            );
-            let pool = Pool::default();
-            let tickmap = Tickmap::default();
-            contract.add_pool(pool_key, pool, tickmap);
-            assert_eq!(contract.pool_keys.len(), 1);
+        // #[ink::test]
+        // fn test_pools() {
+        //     let mut contract = Contract::new();
+        //     let fee_tier = FeeTier {
+        //         fee: Percentage::new(1),
+        //         tick_spacing: 50u16,
+        //     };
+        //     let pool_key = PoolKey(
+        //         AccountId::from([0x0; 32]),
+        //         AccountId::from([0x0; 32]),
+        //         fee_tier,
+        //     );
+        //     let pool = Pool::default();
+        //     let tickmap = Tickmap::default();
+        //     contract.add_pool(pool_key, pool, tickmap);
+        //     assert_eq!(contract.pool_keys.len(), 1);
 
-            let recieved_pool = contract.get_pool(pool_key);
-            assert_eq!(Some((pool, tickmap)), recieved_pool);
+        //     let recieved_pool = contract.get_pool(pool_key);
+        //     assert_eq!(Some((pool, tickmap)), recieved_pool);
 
-            contract.remove_pool(pool_key);
-            assert_eq!(contract.pool_keys.len(), 0);
-        }
+        //     contract.remove_pool(pool_key);
+        //     assert_eq!(contract.pool_keys.len(), 0);
+        // }
         #[ink::test]
         fn test_ticks() {
             let mut contract = Contract::new();
@@ -517,9 +521,15 @@ pub mod contract {
             assert_eq!(
                 alice_positions,
                 vec![
-                    Position { value: 0, id: 0 },
-                    Position { value: 11, id: 1 },
-                    Position { value: 22, id: 2 },
+                    Position {
+                        ..Default::default()
+                    },
+                    Position {
+                        ..Default::default()
+                    },
+                    Position {
+                        ..Default::default()
+                    },
                 ]
             );
 
@@ -553,7 +563,14 @@ pub mod contract {
             .return_value();
             assert_eq!(
                 bob_positions,
-                vec![Position { value: 0, id: 0 }, Position { value: 11, id: 1 },]
+                vec![
+                    Position {
+                        ..Default::default()
+                    },
+                    Position {
+                        ..Default::default()
+                    },
+                ]
             );
 
             let alice_second_positions = {
@@ -567,7 +584,12 @@ pub mod contract {
             .return_value()
             .unwrap();
 
-            assert_eq!(Position { value: 11, id: 1 }, alice_second_positions);
+            assert_eq!(
+                Position {
+                    ..Default::default()
+                },
+                alice_second_positions
+            );
 
             let bob_first_position = {
                 let _msg = build_message::<ContractRef>(contract.clone())
@@ -580,7 +602,12 @@ pub mod contract {
             .return_value()
             .unwrap();
 
-            assert_eq!(Position { value: 0, id: 0 }, bob_first_position);
+            assert_eq!(
+                Position {
+                    ..Default::default()
+                },
+                bob_first_position
+            );
 
             // Alice removes second position
             {
@@ -600,7 +627,12 @@ pub mod contract {
             .return_value()
             .unwrap();
 
-            assert_eq!(Position { value: 22, id: 2 }, alice_second_positions);
+            assert_eq!(
+                Position {
+                    ..Default::default()
+                },
+                alice_second_positions
+            );
 
             // Bob tires to remove position out of range
             {
@@ -627,7 +659,12 @@ pub mod contract {
             .return_value()
             .unwrap();
 
-            assert_eq!(Position { value: 11, id: 1 }, bob_first_position);
+            assert_eq!(
+                Position {
+                    ..Default::default()
+                },
+                bob_first_position
+            );
 
             Ok(())
         }

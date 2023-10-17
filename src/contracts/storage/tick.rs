@@ -9,7 +9,7 @@ use decimal::*;
 
 use super::Pool;
 
-#[derive(Debug, scale::Decode, scale::Encode, PartialEq)]
+#[derive(Debug, Copy, Clone, scale::Decode, scale::Encode, PartialEq)]
 #[cfg_attr(
     feature = "std",
     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)

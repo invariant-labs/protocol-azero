@@ -10,9 +10,12 @@ use crate::math::{
     },
 };
 use decimal::*;
-use scale_info::TypeInfo;
 use traceable_result::*;
-#[derive(PartialEq, Default, Debug, Copy, Clone, TypeInfo, scale::Decode, scale::Encode)]
+#[derive(PartialEq, Default, Debug, Copy, Clone, scale::Decode, scale::Encode)]
+#[cfg_attr(
+    feature = "std",
+    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+)]
 pub struct Position {
     pub liquidity: Liquidity,
     pub lower_tick_index: i32,
