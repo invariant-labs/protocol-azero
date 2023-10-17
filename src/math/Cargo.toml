@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-decimal = { path = "../decimal" }
-tracable_result = { path = "../tracable_result" }
+decimal = { path = "../decimal"}
+tracable_result = { path = "../tracable_result"}
 
 # ink
 # ink = { version = "4.3.0", default-features = false }
@@ -16,9 +16,9 @@ tracable_result = { path = "../tracable_result" }
 #   "derive",
 # ], optional = true }
 
-# [lib]
-# name = "math"
-# path = "src/lib.rs"
+[lib]
+name = "math"
+path = "src/lib.rs"
 
 # [features]
 # default = ["std"]

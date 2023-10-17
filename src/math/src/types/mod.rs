@@ -1,3 +1,4 @@
+pub mod decimal_examplex;
 pub mod fee_growth;
 pub mod fixed_point;
 pub mod liquidity;
