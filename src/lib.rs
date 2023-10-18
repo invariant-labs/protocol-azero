@@ -393,8 +393,22 @@ pub mod contract {
                     upper_tick,
                     pool_key.fee_tier.tick_spacing,
                 );
-            if deinitialize_lower_tick {}
-            if deinitialize_upper_tick {}
+            if deinitialize_lower_tick {
+                self.tickmap.flip(
+                    false,
+                    lower_tick.index,
+                    pool_key.fee_tier.tick_spacing,
+                    pool_key,
+                );
+            }
+            if deinitialize_upper_tick {
+                self.tickmap.flip(
+                    false,
+                    lower_tick.index,
+                    pool_key.fee_tier.tick_spacing,
+                    pool_key,
+                );
+            }
             self.positions.remove_position(caller, index);
             Ok((amount_x, amount_y))
         }
