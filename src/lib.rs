@@ -112,17 +112,13 @@ pub mod contract {
                 return Err(ContractErrors::IndexNotDivisibleByTickSpacing);
             }
 
-            let pool_option = self.pools.get_pool(pool_key);
-            if pool_option.is_err() {
-                return Err(ContractErrors::PoolNotFound);
-            }
+            let pool = self.pools.get_pool(pool_key)?;
 
             let tick_option = self.ticks.get_tick(pool_key, index);
             if tick_option.is_some() {
                 return Err(ContractErrors::TickAlreadyExist);
             }
 
-            let pool = pool_option.unwrap();
             let current_timestamp = self.env().block_timestamp();
             let tick = Tick::create(index, &pool, current_timestamp);
             self.ticks.add_tick(pool_key, index, tick);

@@ -4,6 +4,7 @@ use openbrush::traits::AccountId;
 use crate::contracts::FeeTier;
 use crate::contracts::Pool;
 use crate::contracts::PoolKey;
+use crate::math::MAX_TICK;
 use crate::ContractErrors;
 
 #[ink::storage_item]
@@ -21,6 +22,10 @@ impl Pools {
         init_tick: i32,
     ) -> Result<(), ContractErrors> {
         let pool = self.pools.get(&key);
+
+        if init_tick < -MAX_TICK || init_tick > MAX_TICK {
+            return Err(ContractErrors::IndexOutOfRange);
+        }
 
         if pool.is_some() {
             return Err(ContractErrors::PoolAlreadyExist);
