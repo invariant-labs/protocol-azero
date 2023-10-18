@@ -104,11 +104,8 @@ pub mod contract {
 
         #[ink(message)]
         pub fn create_tick(&mut self, pool_key: PoolKey, index: i32) -> Result<(), ContractErrors> {
-            let tick_result = check_tick(index, pool_key.fee_tier.tick_spacing);
-
-            if tick_result.is_err() {
-                return Err(ContractErrors::InvalidTickIndexOrTickSpacing);
-            }
+            check_tick(index, pool_key.fee_tier.tick_spacing)
+                .map_err(|_| ContractErrors::InvalidTickIndexOrTickSpacing)?;
 
             let pool = self.pools.get_pool(pool_key)?;
 

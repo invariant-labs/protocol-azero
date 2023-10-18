@@ -24,11 +24,8 @@ impl Pools {
     ) -> Result<(), ContractErrors> {
         let pool = self.pools.get(&pool_key);
 
-        let tick_result = check_tick(init_tick, pool_key.fee_tier.tick_spacing);
-
-        if tick_result.is_err() {
-            return Err(ContractErrors::InvalidTickIndexOrTickSpacing);
-        }
+        check_tick(init_tick, pool_key.fee_tier.tick_spacing)
+            .map_err(|_| ContractErrors::InvalidTickIndexOrTickSpacing)?;
 
         if pool.is_some() {
             return Err(ContractErrors::PoolAlreadyExist);
