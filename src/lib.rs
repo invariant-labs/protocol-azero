@@ -271,12 +271,6 @@ pub mod contract {
         }
 
         #[ink(message)]
-        pub fn remove_position(&mut self, index: u32) {
-            let caller = self.env().caller();
-            self.positions.remove_position(caller, index)
-        }
-
-        #[ink(message)]
         pub fn get_position(&mut self, index: u32) -> Option<Position> {
             let caller = self.env().caller();
             self.positions.get_position(caller, index)
@@ -328,7 +322,6 @@ pub mod contract {
             &mut self,
             index: u32,
             pool_key: PoolKey,
-            fee_tier_key: FeeTierKey,
         ) -> Result<(TokenAmount, TokenAmount), ContractErrors> {
             let caller = self.env().caller();
             let mut position = self
@@ -350,26 +343,77 @@ pub mod contract {
 
             let pool = self.pools.get_pool(pool_key)?;
 
-            let fee_tier = self
-                .fee_tiers
-                .get_fee_tier(fee_tier_key)
-                .ok_or(ContractErrors::FeeTierNotFound)?;
-
             let (token_x, token_y) = position.claim_fee(
                 pool,
                 upper_tick,
                 lower_tick,
                 current_timestamp as u64,
-                fee_tier.tick_spacing,
+                pool_key.fee_tier.tick_spacing,
             );
             Ok((token_x, token_y))
         }
+
+        #[ink(message)]
+        pub fn remove_position(
+            &mut self,
+            index: u32,
+            pool_key: PoolKey,
+        ) -> Result<(TokenAmount, TokenAmount), ContractErrors> {
+            let caller = self.env().caller();
+            let current_timestamp = self.env().block_number();
+
+            let mut position = self
+                .positions
+                .get_position(caller, index)
+                .ok_or(ContractErrors::PositionNotFound)?;
+
+            let lower_tick = &mut self
+                .ticks
+                .get_tick(pool_key, position.lower_tick_index)
+                .ok_or(ContractErrors::TickNotFound)?;
+
+            let upper_tick = &mut self
+                .ticks
+                .get_tick(pool_key, position.upper_tick_index)
+                .ok_or(ContractErrors::TickNotFound)?;
+
+            let pool = &mut self.pools.get_pool(pool_key)?;
+
+            let (amount_x, amount_y, deinitialize_lower_tick, deinitialize_upper_tick) = position
+                .remove(
+                    pool,
+                    current_timestamp as u64,
+                    lower_tick,
+                    upper_tick,
+                    pool_key.fee_tier.tick_spacing,
+                );
+            if deinitialize_lower_tick {
+                self.tickmap.flip(
+                    false,
+                    lower_tick.index,
+                    pool_key.fee_tier.tick_spacing,
+                    pool_key,
+                );
+            }
+            if deinitialize_upper_tick {
+                self.tickmap.flip(
+                    false,
+                    lower_tick.index,
+                    pool_key.fee_tier.tick_spacing,
+                    pool_key,
+                );
+            }
+            self.positions.remove_position(caller, index);
+            Ok((amount_x, amount_y))
+        }
+
         // Fee tiers
         #[ink(message)]
         pub fn add_fee_tier(&mut self, key: FeeTierKey, value: FeeTier) {
             self.fee_tiers.add_fee_tier(key, value);
             self.fee_tier_keys.push(key);
         }
+
         #[ink(message)]
         pub fn get_fee_tier(&self, key: FeeTierKey) -> Option<FeeTier> {
             self.fee_tiers.get_fee_tier(key)
@@ -553,6 +597,16 @@ pub mod contract {
             contract.add_position();
             contract.add_position();
             // get all positions
+            let fee_tier = FeeTier {
+                fee: Percentage::new(1),
+                tick_spacing: 50u16,
+            };
+            let pool_key = PoolKey {
+                token_x: AccountId::from([0x01; 32]),
+                token_y: AccountId::from([0x02; 32]),
+                fee_tier,
+            };
+
             {
                 let positions = contract.get_all_positions();
                 assert_eq!(
@@ -586,7 +640,7 @@ pub mod contract {
                     position
                 );
 
-                contract.remove_position(2);
+                contract.remove_position(2, pool_key);
 
                 let position = contract.get_position(2).unwrap();
                 assert_eq!(
@@ -603,7 +657,7 @@ pub mod contract {
             }
             // remove positions out of range
             {
-                contract.remove_position(99);
+                contract.remove_position(99, pool_key);
             }
         }
 
@@ -748,6 +802,16 @@ pub mod contract {
 
         #[ink_e2e::test]
         async fn test_positions(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let fee_tier = FeeTier {
+                fee: Percentage::new(1),
+                tick_spacing: 50u16,
+            };
+            let pool_key = PoolKey {
+                token_x: AccountId::from([0x01; 32]),
+                token_y: AccountId::from([0x02; 32]),
+                fee_tier,
+            };
+
             let constructor = ContractRef::new(Percentage::new(0));
             let contract: AccountId = client
                 .instantiate("contract", &ink_e2e::alice(), constructor, 0, None)
@@ -896,7 +960,7 @@ pub mod contract {
             // Alice removes second position
             {
                 let _msg = build_message::<ContractRef>(contract.clone())
-                    .call(|contract| contract.remove_position(1));
+                    .call(|contract| contract.remove_position(1, pool_key));
                 client.call(&ink_e2e::alice(), _msg, 0, None).await;
             }
 
@@ -921,14 +985,14 @@ pub mod contract {
             // Bob tires to remove position out of range
             {
                 let _msg = build_message::<ContractRef>(contract.clone())
-                    .call(|contract| contract.remove_position(99));
+                    .call(|contract| contract.remove_position(99, pool_key));
                 client.call(&ink_e2e::bob(), _msg, 0, None).await;
             }
 
             // Bob removes position first position
             {
                 let _msg = build_message::<ContractRef>(contract.clone())
-                    .call(|contract| contract.remove_position(0));
+                    .call(|contract| contract.remove_position(0, pool_key));
                 client.call(&ink_e2e::bob(), _msg, 0, None).await;
             }
             // Bob's first position
