@@ -49,8 +49,6 @@ impl Tick {
         Self {
             index,
             sign: true,
-            liquidity_change: Liquidity::new(0),
-            liquidity_gross: Liquidity::new(0),
             sqrt_price: calculate_sqrt_price(index).unwrap(),
             fee_growth_outside_x: match below_current_tick {
                 true => pool.fee_growth_global_x,
@@ -68,6 +66,7 @@ impl Tick {
                 true => pool.seconds_per_liquidity_global,
                 false => SecondsPerLiquidity::new(0),
             },
+            ..Self::default()
         }
     }
 

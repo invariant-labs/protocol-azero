@@ -17,6 +17,8 @@ pub enum ContractErrors {
     NotAnAdmin,
     PoolAlreadyExist,
     PoolNotFound,
+    TickAlreadyExist,
+    InvalidTickIndexOrTickSpacing,
     PositionNotFound,
     TickNotFound,
 }
@@ -39,7 +41,9 @@ pub mod contract {
     use crate::contracts::Tick;
     use crate::contracts::Tickmap;
     use crate::contracts::{FeeTier, FeeTiers, PoolKey, Pools, Position, Positions, Ticks}; //
+    use crate::math::check_tick;
     use crate::math::percentage::Percentage;
+    use crate::math::MAX_TICK;
     use decimal::*;
     use ink::prelude::vec::Vec;
     use openbrush::contracts::traits::psp22::PSP22Ref;
@@ -99,6 +103,25 @@ pub mod contract {
             }
 
             self.state.protocol_fee = protocol_fee;
+            Ok(())
+        }
+
+        #[ink(message)]
+        pub fn create_tick(&mut self, pool_key: PoolKey, index: i32) -> Result<(), ContractErrors> {
+            check_tick(index, pool_key.fee_tier.tick_spacing)
+                .map_err(|_| ContractErrors::InvalidTickIndexOrTickSpacing)?;
+
+            let pool = self.pools.get_pool(pool_key)?;
+
+            let tick_option = self.ticks.get_tick(pool_key, index);
+            if tick_option.is_some() {
+                return Err(ContractErrors::TickAlreadyExist);
+            }
+
+            let current_timestamp = self.env().block_timestamp();
+            let tick = Tick::create(index, &pool, current_timestamp);
+            self.ticks.add_tick(pool_key, index, tick);
+
             Ok(())
         }
 
@@ -428,6 +451,32 @@ pub mod contract {
                 },
             );
             assert!(result.is_ok());
+        }
+
+        #[ink::test]
+        fn create_tick() {
+            let mut contract = Contract::new(Percentage::new(0));
+            let token_0 = AccountId::from([0x01; 32]);
+            let token_1 = AccountId::from([0x02; 32]);
+            let pool_key = PoolKey::new(
+                token_0,
+                token_1,
+                FeeTier {
+                    fee: Percentage::new(1),
+                    tick_spacing: 2,
+                },
+            );
+            let result = contract.create_tick(pool_key, MAX_TICK + 1);
+            assert_eq!(result, Err(ContractErrors::InvalidTickIndexOrTickSpacing));
+            let result = contract.create_tick(pool_key, 1);
+            assert_eq!(result, Err(ContractErrors::InvalidTickIndexOrTickSpacing));
+            let result = contract.create_tick(pool_key, 0);
+            assert_eq!(result, Err(ContractErrors::PoolNotFound));
+            let _ = contract.add_pool(pool_key.token_x, pool_key.token_y, pool_key.fee_tier, 0);
+            let result = contract.create_tick(pool_key, 0);
+            assert!(result.is_ok());
+            let result = contract.create_tick(pool_key, 0);
+            assert_eq!(result, Err(ContractErrors::TickAlreadyExist));
         }
 
         #[ink::test]
