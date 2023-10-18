@@ -237,3 +237,556 @@ impl Tickmap {
         );
     }
 }
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+    use crate::contracts::{pool, FeeTier};
+    use crate::math::percentage::Percentage;
+    use decimal::*;
+    use ink::primitives::AccountId;
+
+    pub const TICK_SEARCH_RANGE: i32 = 256;
+    pub const MAX_TICK: i32 = 221_818; // log(1.0001, sqrt(2^64-1))
+
+    /*#[ink::test]
+    fn test_price_limit() {
+        let contract = Contract::new();
+
+        // tick spacing equals 5 is threshold from which entire price range is available
+        let tick_spacing = 5;
+        let max_absolute_tick = (MAX_TICK / tick_spacing as i32) * tick_spacing as i32;
+        let (max_tick_byte, max_tick_bit) = tick_to_position(max_absolute_tick, tick_spacing);
+        let (min_tick_byte, min_tick_bit) = tick_to_position(-max_absolute_tick, tick_spacing);
+        let min_index = 64 * min_tick_byte as usize + min_tick_bit as usize;
+        let max_index = 64 * max_tick_byte as usize + max_tick_bit as usize;
+        let max_tick = (max_index as i32 - TICK_LIMIT) * tick_spacing as i32;
+        let min_tick = (min_index as i32 - TICK_LIMIT) * tick_spacing as i32;
+
+        // 88728 indexes
+        assert_eq!(min_index, 1);
+        assert_eq!(max_index, 88727);
+        // <-221_815, 221_815>
+        assert_eq!(max_tick, 221_815);
+        assert_eq!(min_tick, -221_815);
+        // try to access price edges
+        contract.tickmap.get(max_absolute_tick, tick_spacing);
+        contract.tickmap.get(-max_absolute_tick, tick_spacing);
+    }*/
+
+    #[ink::test]
+    fn test_get_closer_limit() {
+        let token_0: AccountId = AccountId::from([0x01; 32]);
+        let token_1: AccountId = AccountId::from([0x02; 32]);
+        let fee_tier: FeeTier = FeeTier {
+            fee: Percentage::new(1),
+            tick_spacing: 1,
+        };
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+
+        let tickmap = &mut Tickmap::default();
+        tickmap.flip(true, 0, 1, pool_key);
+        // tick limit closer
+        {
+            // let (result, from_tick) =
+            // let result = tickmap::Tickmap::get_closer_limit(
+            let _result =
+                tickmap.get_closer_limit(SqrtPrice::from_integer(5), true, 100, 1, pool_key);
+            // println!("Result: {:?}", result);
+
+            // let expected = Price::from_integer(5);
+            let _expected = SqrtPrice::from_integer(5);
+            // assert_eq!(result, expected);
+            // assert_eq!(from_tick, None);
+        }
+        // trade limit closer
+        {
+            let (result, from_tick) =
+                tickmap.get_closer_limit(SqrtPrice::from_scale(1, 1), true, 100, 1, pool_key);
+            let expected = SqrtPrice::from_integer(1);
+            assert_eq!(result, expected);
+            assert_eq!(from_tick, Some((0, true)));
+        }
+        // other direction
+        {
+            let (result, from_tick) =
+                tickmap.get_closer_limit(SqrtPrice::from_integer(2), false, -5, 1, pool_key);
+            let expected = SqrtPrice::from_integer(1);
+            assert_eq!(result, expected);
+            assert_eq!(from_tick, Some((0, true)));
+        }
+        // other direction
+        {
+            let (result, from_tick) =
+                tickmap.get_closer_limit(SqrtPrice::from_scale(1, 1), false, -100, 10, pool_key);
+            let expected = SqrtPrice::from_scale(1, 1);
+            assert_eq!(result, expected);
+            assert_eq!(from_tick, None);
+        }
+    }
+
+    #[ink::test]
+    fn test_flip() {
+        let token_0: AccountId = AccountId::from([0x01; 32]);
+        let token_1: AccountId = AccountId::from([0x02; 32]);
+        let fee_tier: FeeTier = FeeTier {
+            fee: Percentage::new(1),
+            tick_spacing: 1,
+        };
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+
+        let tickmap = &mut Tickmap::default();
+        //zero
+        {
+            let index = 0;
+
+            assert_eq!(tickmap.get(index, 1, pool_key), false);
+            tickmap.flip(true, index, 1, pool_key);
+            assert_eq!(tickmap.get(index, 1, pool_key), true);
+            tickmap.flip(false, index, 1, pool_key);
+            assert_eq!(tickmap.get(index, 1, pool_key), false);
+        }
+        // small
+        {
+            let index = 7;
+
+            assert_eq!(tickmap.get(index, 1, pool_key), false);
+            tickmap.flip(true, index, 1, pool_key);
+            assert_eq!(tickmap.get(index, 1, pool_key), true);
+            tickmap.flip(false, index, 1, pool_key);
+            assert_eq!(tickmap.get(index, 1, pool_key), false);
+        }
+        // big
+        {
+            let index = MAX_TICK - 1;
+
+            assert_eq!(tickmap.get(index, 1, pool_key), false);
+            tickmap.flip(true, index, 1, pool_key);
+            assert_eq!(tickmap.get(index, 1, pool_key), true);
+            tickmap.flip(false, index, 1, pool_key);
+            assert_eq!(tickmap.get(index, 1, pool_key), false);
+        }
+        // negative
+        {
+            let index = MAX_TICK - 40;
+
+            assert_eq!(tickmap.get(index, 1, pool_key), false);
+            tickmap.flip(true, index, 1, pool_key);
+            assert_eq!(tickmap.get(index, 1, pool_key), true);
+            tickmap.flip(false, index, 1, pool_key);
+            assert_eq!(tickmap.get(index, 1, pool_key), false);
+        }
+        // tick spacing
+        {
+            let index = 20000;
+            let tick_spacing = 1000;
+
+            assert_eq!(tickmap.get(index, tick_spacing, pool_key), false);
+            tickmap.flip(true, index, tick_spacing, pool_key);
+            assert_eq!(tickmap.get(index, tick_spacing, pool_key), true);
+            tickmap.flip(false, index, tick_spacing, pool_key);
+            assert_eq!(tickmap.get(index, tick_spacing, pool_key), false);
+        }
+    }
+
+    #[ink::test]
+    fn test_next_initialized_simple() {
+        let token_0: AccountId = AccountId::from([0x01; 32]);
+        let token_1: AccountId = AccountId::from([0x02; 32]);
+        let fee_tier: FeeTier = FeeTier {
+            fee: Percentage::new(1),
+            tick_spacing: 1,
+        };
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+
+        let tickmap = &mut Tickmap::default();
+        tickmap.flip(true, 5, 1, pool_key);
+        assert_eq!(tickmap.next_initialized(0, 1, pool_key), Some(5));
+    }
+
+    #[ink::test]
+    fn test_next_initialized_multiple() {
+        let token_0: AccountId = AccountId::from([0x01; 32]);
+        let token_1: AccountId = AccountId::from([0x02; 32]);
+        let fee_tier: FeeTier = FeeTier {
+            fee: Percentage::new(1),
+            tick_spacing: 1,
+        };
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+
+        let tickmap = &mut Tickmap::default();
+        tickmap.flip(true, 50, 10, pool_key);
+        tickmap.flip(true, 100, 10, pool_key);
+        assert_eq!(tickmap.next_initialized(0, 10, pool_key), Some(50));
+        assert_eq!(tickmap.next_initialized(50, 10, pool_key), Some(100));
+    }
+
+    #[ink::test]
+    fn test_next_initialized_current_is_last() {
+        let token_0: AccountId = AccountId::from([0x01; 32]);
+        let token_1: AccountId = AccountId::from([0x02; 32]);
+        let fee_tier: FeeTier = FeeTier {
+            fee: Percentage::new(1),
+            tick_spacing: 1,
+        };
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+
+        let tickmap = &mut Tickmap::default();
+        tickmap.flip(true, 0, 10, pool_key);
+        assert_eq!(tickmap.next_initialized(0, 10, pool_key), None);
+    }
+
+    #[ink::test]
+    fn test_next_initialized_just_below_limit() {
+        let token_0: AccountId = AccountId::from([0x01; 32]);
+        let token_1: AccountId = AccountId::from([0x02; 32]);
+        let fee_tier: FeeTier = FeeTier {
+            fee: Percentage::new(1),
+            tick_spacing: 1,
+        };
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+
+        let tickmap = &mut Tickmap::default();
+
+        tickmap.flip(true, 0, 1, pool_key);
+        assert_eq!(
+            tickmap.next_initialized(-TICK_SEARCH_RANGE, 1, pool_key),
+            Some(0)
+        );
+    }
+
+    #[ink::test]
+    fn test_next_initialized_at_limit() {
+        let token_0: AccountId = AccountId::from([0x01; 32]);
+        let token_1: AccountId = AccountId::from([0x02; 32]);
+        let fee_tier: FeeTier = FeeTier {
+            fee: Percentage::new(1),
+            tick_spacing: 1,
+        };
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+
+        let tickmap = &mut Tickmap::default();
+
+        tickmap.flip(true, 0, 1, pool_key);
+        assert_eq!(
+            tickmap.next_initialized(-TICK_SEARCH_RANGE - 1, 1, pool_key),
+            None
+        );
+    }
+
+    #[ink::test]
+    fn test_next_initialized_further_than_limit() {
+        let token_0: AccountId = AccountId::from([0x01; 32]);
+        let token_1: AccountId = AccountId::from([0x02; 32]);
+        let fee_tier: FeeTier = FeeTier {
+            fee: Percentage::new(1),
+            tick_spacing: 1,
+        };
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+
+        let tickmap = &mut Tickmap::default();
+
+        tickmap.flip(true, MAX_TICK - 10, 1, pool_key);
+        assert_eq!(tickmap.next_initialized(-MAX_TICK + 1, 1, pool_key), None);
+    }
+
+    #[ink::test]
+    fn test_next_initialized_hitting_the_limit() {
+        let token_0: AccountId = AccountId::from([0x01; 32]);
+        let token_1: AccountId = AccountId::from([0x02; 32]);
+        let fee_tier: FeeTier = FeeTier {
+            fee: Percentage::new(1),
+            tick_spacing: 1,
+        };
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+
+        let tickmap = &mut Tickmap::default();
+
+        assert_eq!(tickmap.next_initialized(MAX_TICK - 22, 4, pool_key), None);
+    }
+
+    #[ink::test]
+    fn test_next_initialized_already_at_limit() {
+        let token_0: AccountId = AccountId::from([0x01; 32]);
+        let token_1: AccountId = AccountId::from([0x02; 32]);
+        let fee_tier: FeeTier = FeeTier {
+            fee: Percentage::new(1),
+            tick_spacing: 1,
+        };
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+
+        let tickmap = &mut Tickmap::default();
+
+        assert_eq!(tickmap.next_initialized(MAX_TICK - 2, 4, pool_key), None);
+    }
+
+    #[ink::test]
+    fn test_next_initialized_at_pos_63() {
+        let token_0: AccountId = AccountId::from([0x01; 32]);
+        let token_1: AccountId = AccountId::from([0x02; 32]);
+        let fee_tier: FeeTier = FeeTier {
+            fee: Percentage::new(1),
+            tick_spacing: 1,
+        };
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+
+        let tickmap = &mut Tickmap::default();
+
+        tickmap.flip(true, MAX_TICK - 63, 1, pool_key);
+        assert_eq!(
+            tickmap.next_initialized(MAX_TICK - 128, 1, pool_key),
+            Some(MAX_TICK - 63)
+        );
+    }
+
+    #[ink::test]
+    fn test_prev_initialized_simple() {
+        let token_0: AccountId = AccountId::from([0x01; 32]);
+        let token_1: AccountId = AccountId::from([0x02; 32]);
+        let fee_tier: FeeTier = FeeTier {
+            fee: Percentage::new(1),
+            tick_spacing: 1,
+        };
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+
+        let tickmap = &mut Tickmap::default();
+
+        tickmap.flip(true, -5, 1, pool_key);
+        assert_eq!(tickmap.prev_initialized(0, 1, pool_key), Some(-5));
+    }
+
+    #[ink::test]
+    fn test_prev_initialized_multiple() {
+        let token_0: AccountId = AccountId::from([0x01; 32]);
+        let token_1: AccountId = AccountId::from([0x02; 32]);
+        let fee_tier: FeeTier = FeeTier {
+            fee: Percentage::new(1),
+            tick_spacing: 1,
+        };
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+
+        let tickmap = &mut Tickmap::default();
+
+        tickmap.flip(true, -50, 10, pool_key);
+        tickmap.flip(true, -100, 10, pool_key);
+        assert_eq!(tickmap.prev_initialized(0, 10, pool_key), Some(-50));
+        assert_eq!(tickmap.prev_initialized(-50, 10, pool_key), Some(-50));
+    }
+
+    #[ink::test]
+    fn test_prev_initialized_current_is_last() {
+        let token_0: AccountId = AccountId::from([0x01; 32]);
+        let token_1: AccountId = AccountId::from([0x02; 32]);
+        let fee_tier: FeeTier = FeeTier {
+            fee: Percentage::new(1),
+            tick_spacing: 1,
+        };
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+
+        let tickmap = &mut Tickmap::default();
+
+        tickmap.flip(true, 0, 10, pool_key);
+        assert_eq!(tickmap.prev_initialized(0, 10, pool_key), Some(0));
+    }
+
+    #[ink::test]
+    fn test_prev_initialized_next_is_last() {
+        let token_0: AccountId = AccountId::from([0x01; 32]);
+        let token_1: AccountId = AccountId::from([0x02; 32]);
+        let fee_tier: FeeTier = FeeTier {
+            fee: Percentage::new(1),
+            tick_spacing: 1,
+        };
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+
+        let tickmap = &mut Tickmap::default();
+
+        tickmap.flip(true, 10, 10, pool_key);
+        assert_eq!(tickmap.prev_initialized(0, 10, pool_key), None);
+    }
+
+    #[ink::test]
+    fn test_prev_initialized_just_below_limit() {
+        let token_0: AccountId = AccountId::from([0x01; 32]);
+        let token_1: AccountId = AccountId::from([0x02; 32]);
+        let fee_tier: FeeTier = FeeTier {
+            fee: Percentage::new(1),
+            tick_spacing: 1,
+        };
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+
+        let tickmap = &mut Tickmap::default();
+
+        tickmap.flip(true, 0, 1, pool_key);
+        assert_eq!(
+            tickmap.prev_initialized(TICK_SEARCH_RANGE, 1, pool_key),
+            Some(0)
+        );
+    }
+
+    #[ink::test]
+    fn test_prev_initialized_at_limit() {
+        let token_0: AccountId = AccountId::from([0x01; 32]);
+        let token_1: AccountId = AccountId::from([0x02; 32]);
+        let fee_tier: FeeTier = FeeTier {
+            fee: Percentage::new(1),
+            tick_spacing: 1,
+        };
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+
+        let tickmap = &mut Tickmap::default();
+
+        tickmap.flip(true, 0, 1, pool_key);
+        assert_eq!(
+            tickmap.prev_initialized(TICK_SEARCH_RANGE + 1, 1, pool_key),
+            None
+        );
+    }
+
+    #[ink::test]
+    fn test_prev_initialized_farther_than_limit() {
+        let token_0: AccountId = AccountId::from([0x01; 32]);
+        let token_1: AccountId = AccountId::from([0x02; 32]);
+        let fee_tier: FeeTier = FeeTier {
+            fee: Percentage::new(1),
+            tick_spacing: 1,
+        };
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+
+        let tickmap = &mut Tickmap::default();
+
+        tickmap.flip(true, -MAX_TICK + 1, 1, pool_key);
+        assert_eq!(tickmap.prev_initialized(MAX_TICK - 1, 1, pool_key), None);
+    }
+
+    #[ink::test]
+    fn test_prev_initialized_at_pos_63() {
+        let token_0: AccountId = AccountId::from([0x01; 32]);
+        let token_1: AccountId = AccountId::from([0x02; 32]);
+        let fee_tier: FeeTier = FeeTier {
+            fee: Percentage::new(1),
+            tick_spacing: 1,
+        };
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+
+        let tickmap = &mut Tickmap::default();
+
+        tickmap.flip(true, -MAX_TICK + 63, 1, pool_key);
+        assert_eq!(
+            tickmap.prev_initialized(-MAX_TICK + 128, 1, pool_key),
+            Some(-MAX_TICK + 63)
+        );
+    }
+
+    #[ink::test]
+    fn test_get_search_limit() {
+        // Simple up
+        {
+            let result = get_search_limit(0, 1, true);
+            assert_eq!(result, TICK_SEARCH_RANGE);
+        }
+        // Simple down
+        {
+            let result = get_search_limit(0, 1, false);
+            assert_eq!(result, -TICK_SEARCH_RANGE);
+        }
+        // Less simple up
+        {
+            let start = 60;
+            let step = 12;
+            let result = get_search_limit(start, step, true);
+            let expected = start + TICK_SEARCH_RANGE * step as i32;
+            assert_eq!(result, expected);
+        }
+        // Less simple down
+        {
+            let start = 60;
+            let step = 12;
+            let result = get_search_limit(start, step, false);
+            let expected = start - TICK_SEARCH_RANGE * step as i32;
+            assert_eq!(result, expected);
+        }
+        // Up to price limit
+        {
+            let step = 5u16;
+            let result = get_search_limit(MAX_TICK - 22, step, true);
+            let expected = MAX_TICK - 3;
+            assert_eq!(result, expected);
+        }
+        // At the price limit
+        {
+            let step = 5u16;
+            let result = get_search_limit(MAX_TICK - 3, step, true);
+            let expected = MAX_TICK - 3;
+            assert_eq!(result, expected);
+        }
+    }
+
+    #[ink::test]
+    fn test_next_and_prev_initialized() {
+        let token_0: AccountId = AccountId::from([0x01; 32]);
+        let token_1: AccountId = AccountId::from([0x02; 32]);
+        let fee_tier: FeeTier = FeeTier {
+            fee: Percentage::new(1),
+            tick_spacing: 1,
+        };
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+
+        // initalized edges
+        {
+            for spacing in 1..=10 {
+                //println!("spacing = {}", spacing);
+                let tickmap = &mut Tickmap::default();
+
+                let max_index = MAX_TICK - MAX_TICK % spacing;
+                let min_index = -max_index;
+                //println!("max_index = {}", max_index);
+                //println!("min_index = {}", min_index);
+
+                tickmap.flip(true, max_index, spacing as u16, pool_key);
+                tickmap.flip(true, min_index, spacing as u16, pool_key);
+
+                let tick_edge_diff = TICK_SEARCH_RANGE / spacing * spacing;
+
+                let prev =
+                    tickmap.prev_initialized(min_index + tick_edge_diff, spacing as u16, pool_key);
+                let next =
+                    tickmap.next_initialized(max_index - tick_edge_diff, spacing as u16, pool_key);
+
+                if prev.is_some() {
+                    //println!("found prev = {}", prev.unwrap());
+                }
+                if next.is_some() {
+                    //println!("found next = {}", next.unwrap());
+                }
+
+                // cleanup
+                {
+                    tickmap.flip(false, max_index, spacing as u16, pool_key);
+                    tickmap.flip(false, min_index, spacing as u16, pool_key);
+                }
+            }
+        }
+        // unintalized edges
+        for spacing in 1..=1000 {
+            // let mut contract = Contract::new();
+            let tickmap = &mut Tickmap::default();
+            let max_index = MAX_TICK - MAX_TICK % spacing;
+            let min_index = -max_index;
+            let tick_edge_diff = TICK_SEARCH_RANGE / spacing * spacing;
+
+            let prev =
+                tickmap.prev_initialized(min_index + tick_edge_diff, spacing as u16, pool_key);
+            let next =
+                tickmap.next_initialized(max_index - tick_edge_diff, spacing as u16, pool_key);
+
+            if prev.is_some() {
+                //println!("found prev = {}", prev.unwrap());
+            }
+            if next.is_some() {
+                //println!("found next = {}", next.unwrap());
+            }
+        }
+    }
+}
