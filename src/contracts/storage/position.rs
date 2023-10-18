@@ -1,4 +1,4 @@
-use super::{Pool, Tick}; // Tickmap
+use super::{Pool, PoolKey, Tick}; // Tickmap
 use crate::math::{
     math::*,
     types::{
@@ -9,8 +9,10 @@ use crate::math::{
         token_amount::TokenAmount,
     },
 };
-
 use decimal::*;
+use ink::prelude::vec;
+use ink::primitives::AccountId;
+use openbrush::contracts::traits::psp22::PSP22Ref;
 use traceable_result::*;
 #[derive(PartialEq, Default, Debug, Copy, Clone, scale::Decode, scale::Encode)]
 #[cfg_attr(
@@ -142,7 +144,9 @@ impl Position {
         mut upper_tick: Tick,
         mut lower_tick: Tick,
         current_timestamp: u64,
-        tick_spacing: u16,
+        pool_key: PoolKey,
+        contract: AccountId,
+        user: AccountId,
     ) -> (TokenAmount, TokenAmount) {
         unwrap!(self.modify(
             &mut pool,
@@ -151,11 +155,28 @@ impl Position {
             Liquidity::new(0),
             true,
             current_timestamp,
-            tick_spacing
+            pool_key.fee_tier.tick_spacing
         ));
 
         self.tokens_owed_x -= self.tokens_owed_x;
         self.tokens_owed_y -= self.tokens_owed_y;
+
+        PSP22Ref::transfer_from(
+            &pool_key.token_x,
+            contract,
+            user,
+            self.tokens_owed_x.0,
+            vec![],
+        )
+        .unwrap();
+        PSP22Ref::transfer_from(
+            &pool_key.token_x,
+            contract,
+            user,
+            self.tokens_owed_y.0,
+            vec![],
+        )
+        .unwrap();
 
         (self.tokens_owed_x, self.tokens_owed_y)
     }

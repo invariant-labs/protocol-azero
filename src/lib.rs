@@ -324,12 +324,13 @@ pub mod contract {
             pool_key: PoolKey,
         ) -> Result<(TokenAmount, TokenAmount), ContractErrors> {
             let caller = self.env().caller();
+            let contract = self.env().account_id();
+            let current_timestamp = self.env().block_number();
+
             let mut position = self
                 .positions
                 .get_position(caller, index)
                 .ok_or(ContractErrors::PositionNotFound)?;
-
-            let current_timestamp = self.env().block_number();
 
             let lower_tick = self
                 .ticks
@@ -348,7 +349,9 @@ pub mod contract {
                 upper_tick,
                 lower_tick,
                 current_timestamp as u64,
-                pool_key.fee_tier.tick_spacing,
+                pool_key,
+                contract,
+                caller,
             );
             Ok((token_x, token_y))
         }
