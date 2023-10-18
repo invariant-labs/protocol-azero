@@ -151,7 +151,7 @@ pub mod contract {
 
         #[ink(message)]
         pub fn create_tick(&mut self, pool_key: PoolKey, index: i32) -> Result<(), ContractErrors> {
-            if index < -MAX_TICK && index > MAX_TICK {
+            if index < -MAX_TICK || index > MAX_TICK {
                 return Err(ContractErrors::IndexOutOfRange);
             }
 
@@ -468,20 +468,16 @@ pub mod contract {
                 token_1,
                 FeeTier {
                     fee: Percentage::new(1),
-                    tick_spacing: 1,
+                    tick_spacing: 2,
                 },
             );
+            let result = contract.create_tick(pool_key, MAX_TICK + 1);
+            assert_eq!(result, Err(ContractErrors::IndexOutOfRange));
+            let result = contract.create_tick(pool_key, 1);
+            assert_eq!(result, Err(ContractErrors::IndexNotDivisibleByTickSpacing));
             let result = contract.create_tick(pool_key, 0);
             assert_eq!(result, Err(ContractErrors::PoolNotFound));
-            let _result = contract.create_pool(
-                token_1,
-                token_0,
-                FeeTier {
-                    fee: Percentage::new(1),
-                    tick_spacing: 1,
-                },
-                0,
-            );
+            let _ = contract.create_pool(pool_key.token_x, pool_key.token_y, pool_key.fee_tier, 0);
             let result = contract.create_tick(pool_key, 0);
             assert!(result.is_ok());
             let result = contract.create_tick(pool_key, 0);
