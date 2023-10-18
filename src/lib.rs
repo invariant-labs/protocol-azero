@@ -18,6 +18,8 @@ pub enum ContractErrors {
     PoolAlreadyExist,
     PoolNotFound,
     TickAlreadyExist,
+    IndexOutOfRange,
+    IndexNotDivisibleByTickSpacing,
 }
 #[ink::contract]
 pub mod contract {
@@ -40,6 +42,7 @@ pub mod contract {
     use crate::contracts::State;
     use crate::contracts::{FeeTier, FeeTiers, PoolKey, Position, Positions, Ticks}; // Pools
     use crate::math::percentage::Percentage;
+    use crate::math::MAX_TICK;
     use decimal::*;
     use ink::prelude::{vec, vec::Vec};
     use ink::storage::Mapping;
@@ -148,6 +151,14 @@ pub mod contract {
 
         #[ink(message)]
         pub fn create_tick(&mut self, pool_key: PoolKey, index: i32) -> Result<(), ContractErrors> {
+            if index < -MAX_TICK && index > MAX_TICK {
+                return Err(ContractErrors::IndexOutOfRange);
+            }
+
+            if index % pool_key.fee_tier.tick_spacing as i32 != 0 {
+                return Err(ContractErrors::IndexNotDivisibleByTickSpacing);
+            }
+
             let pool_option = self.pools.get(pool_key);
             if pool_option.is_none() {
                 return Err(ContractErrors::PoolNotFound);
