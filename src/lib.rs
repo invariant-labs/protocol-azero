@@ -322,7 +322,6 @@ pub mod contract {
             &mut self,
             index: u32,
             pool_key: PoolKey,
-            fee_tier_key: FeeTierKey,
         ) -> Result<(TokenAmount, TokenAmount), ContractErrors> {
             let caller = self.env().caller();
             let mut position = self
@@ -344,17 +343,12 @@ pub mod contract {
 
             let pool = self.pools.get_pool(pool_key)?;
 
-            let fee_tier = self
-                .fee_tiers
-                .get_fee_tier(fee_tier_key)
-                .ok_or(ContractErrors::FeeTierNotFound)?;
-
             let (token_x, token_y) = position.claim_fee(
                 pool,
                 upper_tick,
                 lower_tick,
                 current_timestamp as u64,
-                fee_tier.tick_spacing,
+                pool_key.fee_tier.tick_spacing,
             );
             Ok((token_x, token_y))
         }
