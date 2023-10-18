@@ -269,9 +269,10 @@ pub mod contract {
             pool_key: PoolKey,
         ) -> Result<(), ContractErrors> {
             let caller = self.env().caller();
-            let position = self.positions.get_position(caller, index);
-
-            let mut position = position.ok_or(ContractErrors::PositionNotFound)?;
+            let mut position = self
+                .positions
+                .get_position(caller, index)
+                .ok_or(ContractErrors::PositionNotFound)?;
 
             let current_timestamp = self.env().block_number();
 
@@ -279,10 +280,12 @@ pub mod contract {
                 .ticks
                 .get_tick(pool_key, position.lower_tick_index)
                 .ok_or(ContractErrors::TickNotFound)?;
+
             let upper_tick = self
                 .ticks
                 .get_tick(pool_key, position.upper_tick_index)
                 .ok_or(ContractErrors::TickNotFound)?;
+
             let pool = self.pools.get_pool(pool_key)?;
 
             position.update_seconds_per_liquidity(
