@@ -1,3 +1,4 @@
+use crate::contracts::PoolKey;
 use crate::math::{
     types::sqrt_price::sqrt_price::{calculate_sqrt_price, SqrtPrice},
     MAX_TICK,
@@ -6,13 +7,10 @@ use ink::storage::Mapping;
 pub const TICK_SEARCH_RANGE: i32 = 256;
 pub const CHUNK_SIZE: i32 = 64;
 
-#[derive(Debug, scale::Decode, scale::Encode, PartialEq)]
-#[cfg_attr(
-    feature = "std",
-    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
-)]
+#[derive(Debug)]
+#[ink::storage_item]
 pub struct Tickmap {
-    pub bitmap: Mapping<u16, u64>,
+    pub bitmap: Mapping<(u16, PoolKey), u64>,
 }
 
 impl Default for Tickmap {
@@ -75,7 +73,7 @@ pub fn get_search_limit(tick: i32, tick_spacing: u16, up: bool) -> i32 {
 }
 
 impl Tickmap {
-    pub fn next_initialized(&self, tick: i32, tick_spacing: u16) -> Option<i32> {
+    pub fn next_initialized(&self, tick: i32, tick_spacing: u16, pool_key: PoolKey) -> Option<i32> {
         let limit = get_search_limit(tick, tick_spacing, true);
 
         if tick + tick_spacing as i32 > MAX_TICK {
@@ -88,7 +86,7 @@ impl Tickmap {
         let (limiting_chunk, limiting_bit) = tick_to_position(limit, tick_spacing);
 
         while chunk < limiting_chunk || (chunk == limiting_chunk && bit <= limiting_bit) {
-            let mut shifted = self.bitmap.get(chunk).unwrap_or(0) >> bit;
+            let mut shifted = self.bitmap.get((chunk, pool_key)).unwrap_or(0) >> bit;
 
             if shifted != 0 {
                 while shifted.checked_rem(2)? == 0 {
@@ -125,7 +123,7 @@ impl Tickmap {
     }
 
     // tick_spacing - spacing already scaled by tick_spacing
-    pub fn prev_initialized(&self, tick: i32, tick_spacing: u16) -> Option<i32> {
+    pub fn prev_initialized(&self, tick: i32, tick_spacing: u16, pool_key: PoolKey) -> Option<i32> {
         // don't subtract 1 to check the current tick
         let limit = get_search_limit(tick, tick_spacing, false); // limit scaled by tick_spacing
         let (mut chunk, mut bit) = tick_to_position(tick as i32, tick_spacing);
@@ -134,7 +132,7 @@ impl Tickmap {
         while chunk > limiting_chunk || (chunk == limiting_chunk && bit >= limiting_bit) {
             // always safe due to limitated domain of bit variable
             let mut mask = 1u128 << bit; // left = MSB direction (increase value)
-            let value = self.bitmap.get(chunk).unwrap_or(0) as u128;
+            let value = self.bitmap.get((chunk, pool_key)).unwrap_or(0) as u128;
 
             // enter if some of previous bits are initialized in current chunk
             if value.checked_rem(mask.checked_shl(1)?)? > 0 {
@@ -181,11 +179,12 @@ impl Tickmap {
         x_to_y: bool,
         current_tick: i32,
         tick_spacing: u16,
+        pool_key: PoolKey,
     ) -> (SqrtPrice, Option<(i32, bool)>) {
         let closes_tick_index = if x_to_y {
-            self.prev_initialized(current_tick, tick_spacing)
+            self.prev_initialized(current_tick, tick_spacing, pool_key)
         } else {
-            self.next_initialized(current_tick, tick_spacing)
+            self.next_initialized(current_tick, tick_spacing, pool_key)
         };
 
         match closes_tick_index {
@@ -216,15 +215,15 @@ impl Tickmap {
         }
     }
 
-    pub fn get(&self, tick: i32, tick_spacing: u16) -> bool {
+    pub fn get(&self, tick: i32, tick_spacing: u16, pool_key: PoolKey) -> bool {
         let (chunk, bit) = tick_to_position(tick, tick_spacing);
-        let returned_chunk = self.bitmap.get(chunk).unwrap_or(0);
+        let returned_chunk = self.bitmap.get((chunk, pool_key)).unwrap_or(0);
         get_bit_at_position(returned_chunk, bit) == 1
     }
 
-    pub fn flip(&mut self, value: bool, tick: i32, tick_spacing: u16) {
+    pub fn flip(&mut self, value: bool, tick: i32, tick_spacing: u16, pool_key: PoolKey) {
         let (chunk, bit) = tick_to_position(tick, tick_spacing);
-        let returned_chunk = self.bitmap.get(chunk).unwrap_or(0);
+        let returned_chunk = self.bitmap.get((chunk, pool_key)).unwrap_or(0);
 
         assert_eq!(
             get_bit_at_position(returned_chunk, bit) == 0,
@@ -232,7 +231,9 @@ impl Tickmap {
             "tick initialize tick again"
         );
 
-        self.bitmap
-            .insert(chunk, &flip_bit_at_position(returned_chunk, bit));
+        self.bitmap.insert(
+            (chunk, pool_key),
+            &flip_bit_at_position(returned_chunk, bit),
+        );
     }
 }

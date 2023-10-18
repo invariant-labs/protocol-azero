@@ -20,28 +20,24 @@ pub enum ContractErrors {
 }
 #[ink::contract]
 pub mod contract {
-    // modifiers,
-
     use crate::{
         contracts::logic::traits::pair::Pair,
         contracts::pair::pair::PairField,
-        contracts::storage::{
-            balances::Balances,
-            fee_tiers::FeeTierKey,
-            //        pool::Pool,
-            tick::Tick,
-            Pairs, // tickmap::Tickmap,
-        },
+        // contracts::storage::{balances::Balances, fee_tiers::FeeTierKey, tick::Tick, Pairs},
         ContractErrors,
     };
 
+    use crate::contracts::state::State;
+    use crate::contracts::Balances;
+    use crate::contracts::FeeTierKey;
+    use crate::contracts::Pairs;
     use crate::contracts::Pool;
-    use crate::contracts::State;
-    use crate::contracts::{FeeTier, FeeTiers, PoolKey, Position, Positions, Ticks}; // Pools
+    use crate::contracts::Tick;
+    use crate::contracts::Tickmap;
+    use crate::contracts::{FeeTier, FeeTiers, PoolKey, Pools, Position, Positions, Ticks}; //
     use crate::math::percentage::Percentage;
     use decimal::*;
-    use ink::prelude::{vec, vec::Vec};
-    use ink::storage::Mapping;
+    use ink::prelude::vec::Vec;
     use openbrush::contracts::traits::psp22::PSP22Ref;
 
     #[derive(Debug)]
@@ -60,11 +56,12 @@ pub mod contract {
     #[ink(storage)]
     #[derive(Default)]
     pub struct Contract {
-        pools: Mapping<PoolKey, Pool>,
         pairs: Pairs,
         balances: Balances,
         positions: Positions,
         fee_tiers: FeeTiers,
+        pools: Pools,
+        tickmap: Tickmap,
         ticks: Ticks,
         fee_tier_keys: Vec<FeeTierKey>,
         pool_keys: Vec<PoolKey>,
@@ -99,50 +96,6 @@ pub mod contract {
 
             self.state.protocol_fee = protocol_fee;
             Ok(())
-        }
-
-        #[ink(message)]
-        pub fn create_pool(
-            &mut self,
-            token_0: AccountId,
-            token_1: AccountId,
-            fee_tier: FeeTier,
-            init_tick: i32,
-        ) -> Result<PoolKey, ContractErrors> {
-            let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
-
-            let pool_option = self.pools.get(pool_key);
-
-            if pool_option.is_some() {
-                return Err(ContractErrors::PoolAlreadyExist);
-            }
-
-            let current_timestamp = self.env().block_timestamp();
-            self.pools.insert(
-                pool_key,
-                &Pool::create(init_tick, current_timestamp, self.state.admin),
-            );
-            self.pool_keys.push(pool_key);
-
-            Ok(pool_key)
-        }
-
-        #[ink(message)]
-        pub fn get_pool(
-            &self,
-            token_0: AccountId,
-            token_1: AccountId,
-            fee_tier: FeeTier,
-        ) -> Result<Pool, ContractErrors> {
-            let pool_key = PoolKey::new(token_0, token_1, fee_tier);
-
-            let pool_option = self.pools.get(pool_key);
-
-            if pool_option.is_none() {
-                return Err(ContractErrors::PoolNotFound);
-            }
-
-            Ok(pool_option.unwrap())
         }
 
         #[ink(message)]
@@ -321,20 +274,36 @@ pub mod contract {
             self.fee_tier_keys.retain(|&x| x != key);
         }
 
-        // // Pools
-        // fn add_pool(&mut self, key: PoolKey, pool: Pool, tickmap: Tickmap) {
-        //     self.pools.add_pool(key, pool, tickmap);
-        //     self.pool_keys.push(key);
-        // }
+        // Pools
+        fn add_pool(
+            &mut self,
+            token_0: AccountId,
+            token_1: AccountId,
+            fee_tier: FeeTier,
+            init_tick: i32,
+        ) -> Result<(), ContractErrors> {
+            let current_timestamp = self.env().block_timestamp();
+            let key = PoolKey::new(token_0, token_1, fee_tier);
+            self.pool_keys.push(key);
+            self.pools
+                .add_pool(key, current_timestamp, self.state.admin, init_tick)
+        }
 
-        // fn get_pool(&self, key: PoolKey) -> Option<(Pool, Tickmap)> {
-        //     self.pools.get_pool(key)
-        // }
+        #[ink(message)]
+        pub fn get_pool(
+            &self,
+            token_0: AccountId,
+            token_1: AccountId,
+            fee_tier: FeeTier,
+        ) -> Result<Pool, ContractErrors> {
+            let key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+            self.pools.get_pool(key)
+        }
 
-        // fn remove_pool(&mut self, key: PoolKey) {
-        //     self.pools.remove_pool(key);
-        //     self.pool_keys.retain(|&x| x != key);
-        // }
+        fn remove_pool(&mut self, key: PoolKey) {
+            self.pools.remove_pool(key);
+            self.pool_keys.retain(|&x| x != key);
+        }
 
         // Ticks
         fn add_tick(&mut self, key: PoolKey, index: i32, tick: Tick) {
@@ -350,10 +319,8 @@ pub mod contract {
 
     #[cfg(test)]
     mod tests {
-        use decimal::*;
 
         use super::*;
-        use decimal::*;
 
         use crate::math::percentage::Percentage;
 
@@ -363,11 +330,11 @@ pub mod contract {
         }
 
         #[ink::test]
-        fn create_pool() {
+        fn test_add_pool() {
             let mut contract = Contract::new(Percentage::new(0));
             let token_0 = AccountId::from([0x01; 32]);
             let token_1 = AccountId::from([0x02; 32]);
-            let result = contract.create_pool(
+            let result = contract.add_pool(
                 token_0,
                 token_1,
                 FeeTier {
@@ -377,7 +344,7 @@ pub mod contract {
                 0,
             );
             assert!(result.is_ok());
-            let result = contract.create_pool(
+            let result = contract.add_pool(
                 token_1,
                 token_0,
                 FeeTier {
@@ -390,7 +357,7 @@ pub mod contract {
         }
 
         #[ink::test]
-        fn get_pool() {
+        fn test_get_pool() {
             let mut contract = Contract::new(Percentage::new(0));
             let token_0 = AccountId::from([0x01; 32]);
             let token_1 = AccountId::from([0x02; 32]);
@@ -403,7 +370,7 @@ pub mod contract {
                 },
             );
             assert_eq!(result, Err(ContractErrors::PoolNotFound));
-            let result = contract.create_pool(
+            let result = contract.add_pool(
                 token_0,
                 token_1,
                 FeeTier {
@@ -413,17 +380,15 @@ pub mod contract {
                 0,
             );
             assert!(result.is_ok());
-            assert_eq!(
-                result.unwrap(),
-                PoolKey::new(
-                    token_0,
-                    token_1,
-                    FeeTier {
-                        fee: Percentage::new(1),
-                        tick_spacing: 1
-                    }
-                )
+            let result = contract.get_pool(
+                token_1,
+                token_0,
+                FeeTier {
+                    fee: Percentage::new(1),
+                    tick_spacing: 1,
+                },
             );
+            assert!(result.is_ok());
         }
 
         #[ink::test]
@@ -529,29 +494,6 @@ pub mod contract {
             assert_eq!(contract.fee_tier_keys.len(), 0);
         }
 
-        // #[ink::test]
-        // fn test_pools() {
-        //     let mut contract = Contract::new();
-        //     let fee_tier = FeeTier {
-        //         fee: Percentage::new(1),
-        //         tick_spacing: 50u16,
-        //     };
-        //     let pool_key = PoolKey(
-        //         AccountId::from([0x0; 32]),
-        //         AccountId::from([0x0; 32]),
-        //         fee_tier,
-        //     );
-        //     let pool = Pool::default();
-        //     let tickmap = Tickmap::default();
-        //     contract.add_pool(pool_key, pool, tickmap);
-        //     assert_eq!(contract.pool_keys.len(), 1);
-
-        //     let recieved_pool = contract.get_pool(pool_key);
-        //     assert_eq!(Some((pool, tickmap)), recieved_pool);
-
-        //     contract.remove_pool(pool_key);
-        //     assert_eq!(contract.pool_keys.len(), 0);
-        // }
         #[ink::test]
         fn test_ticks() {
             let mut contract = Contract::new(Percentage::new(0));
