@@ -181,7 +181,6 @@ impl Position {
         (self.tokens_owed_x, self.tokens_owed_y)
     }
     pub fn create(
-        &mut self,
         pool: &mut Pool,
         lower_tick: &mut Tick,
         upper_tick: &mut Tick,
@@ -205,7 +204,7 @@ impl Position {
         // }
 
         // init position
-        let position = Position {
+        let mut position = Position {
             liquidity: Liquidity::new(0),
             lower_tick_index: lower_tick.index,
             upper_tick_index: upper_tick.index,
@@ -217,7 +216,7 @@ impl Position {
             tokens_owed_y: TokenAmount::new(0),
         };
 
-        let (required_x, required_y, _) = unwrap!(self.modify(
+        let (required_x, required_y, _) = unwrap!(position.modify(
             pool,
             upper_tick,
             lower_tick,

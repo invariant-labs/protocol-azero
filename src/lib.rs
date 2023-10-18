@@ -44,9 +44,12 @@ pub mod contract {
     use crate::contracts::{FeeTier, FeeTiers, PoolKey, Pools, Position, Positions, Ticks}; //
     use crate::math::check_tick;
     use crate::math::percentage::Percentage;
+    use crate::math::sqrt_price::sqrt_price::SqrtPrice;
     use crate::math::token_amount::TokenAmount;
+    use crate::math::types::liquidity::Liquidity;
     use crate::math::MAX_TICK;
     use decimal::*;
+    use ink::prelude::vec;
     use ink::prelude::vec::Vec;
     use openbrush::contracts::traits::psp22::PSP22Ref;
 
@@ -123,6 +126,62 @@ pub mod contract {
             let current_timestamp = self.env().block_timestamp();
             let tick = Tick::create(index, &pool, current_timestamp);
             self.ticks.add_tick(pool_key, index, tick);
+
+            Ok(())
+        }
+
+        #[ink(message)]
+        pub fn create_position(
+            &self,
+            pool_key: PoolKey,
+            lower_tick: i32,
+            upper_tick: i32,
+            liquidity_delta: Liquidity,
+            slippage_limit_lower: SqrtPrice,
+            slippage_limit_upper: SqrtPrice,
+        ) -> Result<(), ContractErrors> {
+            let mut pool = self.pools.get_pool(pool_key)?;
+
+            let mut lower_tick = self
+                .ticks
+                .get_tick(pool_key, lower_tick)
+                .ok_or(ContractErrors::TickNotFound)?;
+            let mut upper_tick = self
+                .ticks
+                .get_tick(pool_key, upper_tick)
+                .ok_or(ContractErrors::TickNotFound)?;
+
+            let current_timestamp = self.env().block_timestamp();
+            let current_block_number = self.env().block_number() as u64;
+
+            let (position, x, y) = Position::create(
+                &mut pool,
+                &mut lower_tick,
+                &mut upper_tick,
+                current_timestamp,
+                liquidity_delta,
+                slippage_limit_lower,
+                slippage_limit_upper,
+                current_block_number,
+                pool_key.fee_tier.tick_spacing,
+            );
+
+            PSP22Ref::transfer_from(
+                &pool_key.token_x,
+                self.env().caller(),
+                self.env().account_id(),
+                x.get(),
+                vec![],
+            )
+            .ok();
+            PSP22Ref::transfer_from(
+                &pool_key.token_y,
+                self.env().caller(),
+                self.env().account_id(),
+                y.get(),
+                vec![],
+            )
+            .ok();
 
             Ok(())
         }
@@ -428,7 +487,8 @@ pub mod contract {
         }
 
         // Pools
-        fn add_pool(
+        #[ink(message)]
+        pub fn add_pool(
             &mut self,
             token_0: AccountId,
             token_1: AccountId,
@@ -708,7 +768,8 @@ pub mod contract {
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod e2e_tests {
-
+        use ink::prelude::vec;
+        use ink::prelude::vec::Vec;
         use ink_e2e::build_message;
         use openbrush::contracts::psp22::psp22_external::PSP22;
         use test_helpers::address_of;
@@ -801,6 +862,101 @@ pub mod contract {
                     .await
                     .expect("changing protocol fee failed")
             };
+        }
+
+        #[ink_e2e::test]
+        async fn create_position(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let constructor = TokenRef::new(500);
+            let token_x: AccountId = client
+                .instantiate("token", &ink_e2e::alice(), constructor, 0, None)
+                .await
+                .expect("instantiate failed")
+                .account_id;
+
+            let constructor = TokenRef::new(500);
+            let token_y: AccountId = client
+                .instantiate("token", &ink_e2e::alice(), constructor, 0, None)
+                .await
+                .expect("instantiate failed")
+                .account_id;
+
+            let constructor = ContractRef::new(Percentage::new(0));
+            let contract_address: AccountId = client
+                .instantiate("contract", &ink_e2e::alice(), constructor, 0, None)
+                .await
+                .expect("instantiate failed")
+                .account_id;
+
+            let fee_tier = FeeTier {
+                fee: Percentage::new(0),
+                tick_spacing: 1,
+            };
+
+            {
+                let _msg = build_message::<ContractRef>(contract_address.clone())
+                    .call(|contract| contract.add_pool(token_x, token_y, fee_tier, 0));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("add pool failed")
+            };
+
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier);
+
+            {
+                let _msg = build_message::<ContractRef>(contract_address.clone())
+                    .call(|contract| contract.create_tick(pool_key, -10));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("create tick failed")
+            };
+
+            {
+                let _msg = build_message::<ContractRef>(contract_address.clone())
+                    .call(|contract| contract.create_tick(pool_key, 10));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("create tick failed")
+            };
+
+            {
+                let _msg = build_message::<TokenRef>(token_x.clone())
+                    .call(|sc| sc.increase_allowance(contract_address.clone(), 500));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("increaase allowance failed")
+            };
+            {
+                let _msg = build_message::<TokenRef>(token_y.clone())
+                    .call(|sc| sc.increase_allowance(contract_address.clone(), 500));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("increaase allowance failed")
+            };
+
+            {
+                let _msg =
+                    build_message::<ContractRef>(contract_address.clone()).call(|contract| {
+                        contract.create_position(
+                            pool_key,
+                            -10,
+                            10,
+                            Liquidity::new(10),
+                            SqrtPrice::new(0),
+                            SqrtPrice::max_instance(),
+                        )
+                    });
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("create position failed")
+            };
+
+            Ok(())
         }
 
         #[ink_e2e::test]
