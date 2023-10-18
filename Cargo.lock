@@ -827,6 +827,7 @@ dependencies = [
  "openbrush",
  "parity-scale-codec",
  "scale-info",
+ "serde",
  "test_helpers",
  "token",
  "traceable_result",
