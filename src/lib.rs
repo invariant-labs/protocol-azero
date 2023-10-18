@@ -270,15 +270,13 @@ pub mod contract {
             let caller = self.env().caller();
             let position = self.positions.get_position(caller, index);
 
-            if position.is_none() {
-                return Err(ContractErrors::PositionNotFound);
-            }
+            let mut position = position.ok_or(ContractErrors::PositionNotFound)?;
 
             let lower_tick = &mut lower_tick.clone();
             let upper_tick = &mut upper_tick.clone();
             let current_timestamp = self.env().block_number();
 
-            position.unwrap().update_seconds_per_liquidity(
+            position.update_seconds_per_liquidity(
                 pool,
                 lower_tick,
                 upper_tick,
