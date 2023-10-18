@@ -19,6 +19,8 @@ pub enum ContractErrors {
     PoolNotFound,
     TickAlreadyExist,
     InvalidTickIndexOrTickSpacing,
+    PositionNotFound,
+    TickNotFound,
 }
 #[ink::contract]
 pub mod contract {
@@ -28,6 +30,8 @@ pub mod contract {
         // contracts::storage::{balances::Balances, fee_tiers::FeeTierKey, tick::Tick, Pairs},
         ContractErrors,
     };
+
+    use traceable_result::unwrap;
 
     use crate::contracts::state::State;
     use crate::contracts::Balances;
@@ -279,6 +283,41 @@ pub mod contract {
         pub fn get_all_positions(&mut self) -> Vec<Position> {
             let caller = self.env().caller();
             self.positions.get_all_positions(caller)
+        }
+
+        #[ink(message)]
+        pub fn update_position_seconds_per_liquidity(
+            &mut self,
+            index: u32,
+            pool_key: PoolKey,
+        ) -> Result<(), ContractErrors> {
+            let caller = self.env().caller();
+            let mut position = self
+                .positions
+                .get_position(caller, index)
+                .ok_or(ContractErrors::PositionNotFound)?;
+
+            let current_timestamp = self.env().block_number();
+
+            let lower_tick = self
+                .ticks
+                .get_tick(pool_key, position.lower_tick_index)
+                .ok_or(ContractErrors::TickNotFound)?;
+
+            let upper_tick = self
+                .ticks
+                .get_tick(pool_key, position.upper_tick_index)
+                .ok_or(ContractErrors::TickNotFound)?;
+
+            let pool = self.pools.get_pool(pool_key)?;
+
+            position.update_seconds_per_liquidity(
+                pool,
+                lower_tick,
+                upper_tick,
+                current_timestamp as u64,
+            );
+            Ok(())
         }
 
         // Fee tiers

@@ -4,11 +4,12 @@ use crate::math::{
     types::{
         fee_growth::{calculate_fee_growth_inside, FeeGrowth},
         liquidity::Liquidity,
-        seconds_per_liquidity::SecondsPerLiquidity,
+        seconds_per_liquidity::{calculate_seconds_per_liquidity_inside, SecondsPerLiquidity},
         sqrt_price::sqrt_price::SqrtPrice,
         token_amount::TokenAmount,
     },
 };
+
 use decimal::*;
 use traceable_result::*;
 #[derive(PartialEq, Default, Debug, Copy, Clone, scale::Decode, scale::Encode)]
@@ -239,6 +240,24 @@ impl Position {
             deinitialize_lower_tick,
             deinitialize_upper_tick,
         )
+    }
+
+    pub fn update_seconds_per_liquidity(
+        &mut self,
+        pool: Pool,
+        lower_tick: Tick,
+        upper_tick: Tick,
+        current_timestamp: u64,
+    ) {
+        self.seconds_per_liquidity_inside = unwrap!(calculate_seconds_per_liquidity_inside(
+            lower_tick.index,
+            upper_tick.index,
+            pool.current_tick_index,
+            lower_tick.seconds_per_liquidity_outside,
+            upper_tick.seconds_per_liquidity_outside,
+            pool.seconds_per_liquidity_global,
+        ));
+        self.last_block_number = current_timestamp;
     }
 }
 

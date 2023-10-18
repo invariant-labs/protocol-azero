@@ -38,15 +38,10 @@ impl Pools {
 
         Ok(())
     }
-
     pub fn get_pool(&self, pool_key: PoolKey) -> Result<Pool, ContractErrors> {
         let pool_option = self.pools.get(pool_key);
-
-        if pool_option.is_none() {
-            return Err(ContractErrors::PoolNotFound);
-        }
-
-        Ok(pool_option.unwrap())
+        let pool = pool_option.ok_or(ContractErrors::PoolNotFound)?;
+        Ok(pool)
     }
 
     pub fn remove_pool(&mut self, pool_key: PoolKey) {
