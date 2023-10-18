@@ -245,8 +245,8 @@ impl Position {
     pub fn update_seconds_per_liquidity(
         &mut self,
         pool: Pool,
-        lower_tick: &mut Tick,
-        upper_tick: &mut Tick,
+        lower_tick: Tick,
+        upper_tick: Tick,
         current_timestamp: u64,
     ) {
         self.seconds_per_liquidity_inside = unwrap!(calculate_seconds_per_liquidity_inside(
