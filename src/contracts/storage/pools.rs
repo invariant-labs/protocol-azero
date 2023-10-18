@@ -1,19 +1,10 @@
 use ink::storage::Mapping;
-// use ink::primitives::AccountId;
 use openbrush::traits::AccountId;
 
 use crate::contracts::FeeTier;
 use crate::contracts::Pool;
-// use crate::types::{pool::Pool, tickmap::Tickmap};
-// use crate::contracts::Tickmap;
-
-#[derive(scale::Decode, scale::Encode, Debug, Copy, Clone, PartialEq)]
-#[cfg_attr(
-    feature = "std",
-    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
-)]
-// key (x: AccountId, y: AccountId, feeTier: FeeTier)
-pub struct PoolKey(pub AccountId, pub AccountId, pub FeeTier);
+use crate::contracts::PoolKey;
+use crate::ContractErrors;
 
 #[ink::storage_item]
 #[derive(Debug, Default)]
@@ -22,11 +13,32 @@ pub struct Pools {
 }
 
 impl Pools {
-    pub fn get_pool(&self, key: PoolKey) -> Option<Pool> {
-        self.pools.get(&key)
+    pub fn add_pool(
+        &mut self,
+        key: PoolKey,
+        timestamp: u64,
+        admin: AccountId,
+        init_tick: i32,
+    ) -> Result<(), ContractErrors> {
+        let pool = self.pools.get(&key);
+
+        if pool.is_some() {
+            return Err(ContractErrors::PoolAlreadyExist);
+        }
+
+        self.pools
+            .insert(key, &Pool::create(init_tick, timestamp, admin));
+
+        Ok(())
     }
-    pub fn add_pool(&mut self, key: PoolKey, pool: Pool) {
-        self.pools.insert(&key, &pool);
+    pub fn get_pool(&self, key: PoolKey) -> Result<Pool, ContractErrors> {
+        let pool_option = self.pools.get(key);
+
+        if pool_option.is_none() {
+            return Err(ContractErrors::PoolNotFound);
+        }
+
+        Ok(pool_option.unwrap())
     }
     pub fn remove_pool(&mut self, key: PoolKey) {
         self.pools.remove(&key);

@@ -15,20 +15,24 @@ pub enum ContractErrors {
     BurnFailed,
     SwapFailed,
     NotAnAdmin,
+    PoolAlreadyExist,
+    PoolNotFound,
 }
 #[ink::contract]
 pub mod contract {
     use crate::{
         contracts::logic::traits::pair::Pair,
         contracts::pair::pair::PairField,
-        contracts::storage::{balances::Balances, fee_tiers::FeeTierKey, tick::Tick, Pairs},
+        // contracts::storage::{balances::Balances, fee_tiers::FeeTierKey, tick::Tick, Pairs},
         ContractErrors,
     };
 
-    use ink::storage::Mapping;
-
+    use crate::contracts::state::State;
+    use crate::contracts::Balances;
+    use crate::contracts::FeeTierKey;
+    use crate::contracts::Pairs;
     use crate::contracts::Pool;
-    use crate::contracts::State;
+    use crate::contracts::Tick;
     use crate::contracts::Tickmap;
     use crate::contracts::{FeeTier, FeeTiers, PoolKey, Pools, Position, Positions, Ticks}; //
     use crate::math::percentage::Percentage;
@@ -271,12 +275,28 @@ pub mod contract {
         }
 
         // Pools
-        fn add_pool(&mut self, key: PoolKey, pool: Pool) {
-            self.pools.add_pool(key, pool);
+        fn add_pool(
+            &mut self,
+            token_0: AccountId,
+            token_1: AccountId,
+            fee_tier: FeeTier,
+            init_tick: i32,
+        ) -> Result<(), ContractErrors> {
+            let current_timestamp = self.env().block_timestamp();
+            let key = PoolKey::new(token_0, token_1, fee_tier);
             self.pool_keys.push(key);
+            self.pools
+                .add_pool(key, current_timestamp, self.state.admin, init_tick)
         }
 
-        fn get_pool(&self, key: PoolKey) -> Option<Pool> {
+        #[ink(message)]
+        pub fn get_pool(
+            &self,
+            token_0: AccountId,
+            token_1: AccountId,
+            fee_tier: FeeTier,
+        ) -> Result<Pool, ContractErrors> {
+            let key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
             self.pools.get_pool(key)
         }
 
@@ -310,6 +330,68 @@ pub mod contract {
         }
 
         #[ink::test]
+        fn test_add_pool() {
+            let mut contract = Contract::new(Percentage::new(0));
+            let token_0 = AccountId::from([0x01; 32]);
+            let token_1 = AccountId::from([0x02; 32]);
+            let result = contract.add_pool(
+                token_0,
+                token_1,
+                FeeTier {
+                    fee: Percentage::new(1),
+                    tick_spacing: 1,
+                },
+                0,
+            );
+            assert!(result.is_ok());
+            let result = contract.add_pool(
+                token_1,
+                token_0,
+                FeeTier {
+                    fee: Percentage::new(1),
+                    tick_spacing: 1,
+                },
+                0,
+            );
+            assert_eq!(result, Err(ContractErrors::PoolAlreadyExist));
+        }
+
+        #[ink::test]
+        fn test_get_pool() {
+            let mut contract = Contract::new(Percentage::new(0));
+            let token_0 = AccountId::from([0x01; 32]);
+            let token_1 = AccountId::from([0x02; 32]);
+            let result = contract.get_pool(
+                token_1,
+                token_0,
+                FeeTier {
+                    fee: Percentage::new(1),
+                    tick_spacing: 1,
+                },
+            );
+            assert_eq!(result, Err(ContractErrors::PoolNotFound));
+            let result = contract.add_pool(
+                token_0,
+                token_1,
+                FeeTier {
+                    fee: Percentage::new(1),
+                    tick_spacing: 1,
+                },
+                0,
+            );
+            assert!(result.is_ok());
+            let result = contract.get_pool(
+                token_1,
+                token_0,
+                FeeTier {
+                    fee: Percentage::new(1),
+                    tick_spacing: 1,
+                },
+            );
+            assert!(result.is_ok());
+        }
+
+        #[ink::test]
         fn create_new_pairs() {
             let mut contract = Contract::new(Percentage::new(0));
             let token_0 = AccountId::from([0x01; 32]);
@@ -318,6 +400,7 @@ pub mod contract {
             assert_eq!(token_0, pair.token_x);
             assert_eq!(token_1, pair.token_y);
         }
+
         #[ink::test]
         fn test_mapping_length() {
             let mut contract = Contract::new(Percentage::new(0));
@@ -412,40 +495,17 @@ pub mod contract {
         }
 
         #[ink::test]
-        fn test_pools() {
-            let mut contract = Contract::new(Percentage::new(0));
-            let fee_tier = FeeTier {
-                fee: Percentage::new(1),
-                tick_spacing: 50u16,
-            };
-            let pool_key = PoolKey(
-                AccountId::from([0x0; 32]),
-                AccountId::from([0x0; 32]),
-                fee_tier,
-            );
-            let pool = Pool::default();
-
-            contract.add_pool(pool_key, pool.clone());
-            assert_eq!(contract.pool_keys.len(), 1);
-
-            let recieved_pool = contract.get_pool(pool_key);
-            assert_eq!(Some(pool), recieved_pool);
-
-            contract.remove_pool(pool_key);
-            assert_eq!(contract.pool_keys.len(), 0);
-        }
-        #[ink::test]
         fn test_ticks() {
             let mut contract = Contract::new(Percentage::new(0));
             let fee_tier = FeeTier {
                 fee: Percentage::new(1),
                 tick_spacing: 50u16,
             };
-            let pool_key = PoolKey(
-                AccountId::from([0x0; 32]),
-                AccountId::from([0x0; 32]),
+            let pool_key = PoolKey {
+                token_x: AccountId::from([0x0; 32]),
+                token_y: AccountId::from([0x0; 32]),
                 fee_tier,
-            );
+            };
             let tick = Tick::default();
             let index = 10i32;
             contract.add_tick(pool_key, index, tick);

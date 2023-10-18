@@ -20,9 +20,7 @@ cargo build
 cd ../..
 # Build and test parent module
 
-cargo build
 cargo test --features e2e-tests
-
 
 # build contract
 cargo contract build
