@@ -18,8 +18,7 @@ pub enum ContractErrors {
     PoolAlreadyExist,
     PoolNotFound,
     TickAlreadyExist,
-    IndexOutOfRange,
-    IndexNotDivisibleByTickSpacing,
+    InvalidTickIndexOrTickSpacing,
 }
 #[ink::contract]
 pub mod contract {
@@ -38,6 +37,7 @@ pub mod contract {
     use crate::contracts::Tick;
     use crate::contracts::Tickmap;
     use crate::contracts::{FeeTier, FeeTiers, PoolKey, Pools, Position, Positions, Ticks}; //
+    use crate::math::check_tick;
     use crate::math::percentage::Percentage;
     use crate::math::MAX_TICK;
     use decimal::*;
@@ -104,12 +104,10 @@ pub mod contract {
 
         #[ink(message)]
         pub fn create_tick(&mut self, pool_key: PoolKey, index: i32) -> Result<(), ContractErrors> {
-            if index < -MAX_TICK || index > MAX_TICK {
-                return Err(ContractErrors::IndexOutOfRange);
-            }
+            let tick_result = check_tick(index, pool_key.fee_tier.tick_spacing);
 
-            if index % pool_key.fee_tier.tick_spacing as i32 != 0 {
-                return Err(ContractErrors::IndexNotDivisibleByTickSpacing);
+            if tick_result.is_err() {
+                return Err(ContractErrors::InvalidTickIndexOrTickSpacing);
             }
 
             let pool = self.pools.get_pool(pool_key)?;
@@ -433,9 +431,9 @@ pub mod contract {
                 },
             );
             let result = contract.create_tick(pool_key, MAX_TICK + 1);
-            assert_eq!(result, Err(ContractErrors::IndexOutOfRange));
+            assert_eq!(result, Err(ContractErrors::InvalidTickIndexOrTickSpacing));
             let result = contract.create_tick(pool_key, 1);
-            assert_eq!(result, Err(ContractErrors::IndexNotDivisibleByTickSpacing));
+            assert_eq!(result, Err(ContractErrors::InvalidTickIndexOrTickSpacing));
             let result = contract.create_tick(pool_key, 0);
             assert_eq!(result, Err(ContractErrors::PoolNotFound));
             let _ = contract.add_pool(pool_key.token_x, pool_key.token_y, pool_key.fee_tier, 0);
