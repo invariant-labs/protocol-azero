@@ -10,7 +10,6 @@ pub mod positions;
 pub mod state;
 pub mod tick;
 pub mod tickmap;
-pub mod tickmaps;
 pub mod ticks;
 
 pub use balances::*;
@@ -25,5 +24,4 @@ pub use positions::*;
 pub use state::*;
 pub use tick::*;
 pub use tickmap::*;
-pub use tickmaps::*;
 pub use ticks::*;

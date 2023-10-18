@@ -25,8 +25,11 @@ pub mod contract {
         ContractErrors,
     };
 
+    use ink::storage::Mapping;
+
+    use crate::contracts::Pool;
     use crate::contracts::State;
-    use crate::contracts::Tickmaps;
+    use crate::contracts::Tickmap;
     use crate::contracts::{FeeTier, FeeTiers, PoolKey, Pools, Position, Positions, Ticks}; //
     use crate::math::percentage::Percentage;
     use decimal::*;
@@ -54,7 +57,7 @@ pub mod contract {
         positions: Positions,
         fee_tiers: FeeTiers,
         pools: Pools,
-        tickmaps: Tickmaps,
+        tickmap: Tickmap,
         ticks: Ticks,
         fee_tier_keys: Vec<FeeTierKey>,
         pool_keys: Vec<PoolKey>,
@@ -267,20 +270,20 @@ pub mod contract {
             self.fee_tier_keys.retain(|&x| x != key);
         }
 
-        // // Pools
-        // fn add_pool(&mut self, key: PoolKey, pool: Pool, tickmap: Tickmap) {
-        //     self.pools.add_pool(key, pool, tickmap);
-        //     self.pool_keys.push(key);
-        // }
+        // Pools
+        fn add_pool(&mut self, key: PoolKey, pool: Pool) {
+            self.pools.add_pool(key, pool);
+            self.pool_keys.push(key);
+        }
 
-        // fn get_pool(&self, key: PoolKey) -> Option<(Pool, Tickmap)> {
-        //     self.pools.get_pool(key)
-        // }
+        fn get_pool(&self, key: PoolKey) -> Option<Pool> {
+            self.pools.get_pool(key)
+        }
 
-        // fn remove_pool(&mut self, key: PoolKey) {
-        //     self.pools.remove_pool(key);
-        //     self.pool_keys.retain(|&x| x != key);
-        // }
+        fn remove_pool(&mut self, key: PoolKey) {
+            self.pools.remove_pool(key);
+            self.pool_keys.retain(|&x| x != key);
+        }
 
         // Ticks
         fn add_tick(&mut self, key: PoolKey, index: i32, tick: Tick) {
@@ -296,10 +299,8 @@ pub mod contract {
 
     #[cfg(test)]
     mod tests {
-        use decimal::*;
 
         use super::*;
-        use decimal::*;
 
         use crate::math::percentage::Percentage;
 
@@ -410,29 +411,29 @@ pub mod contract {
             assert_eq!(contract.fee_tier_keys.len(), 0);
         }
 
-        // #[ink::test]
-        // fn test_pools() {
-        //     let mut contract = Contract::new();
-        //     let fee_tier = FeeTier {
-        //         fee: Percentage::new(1),
-        //         tick_spacing: 50u16,
-        //     };
-        //     let pool_key = PoolKey(
-        //         AccountId::from([0x0; 32]),
-        //         AccountId::from([0x0; 32]),
-        //         fee_tier,
-        //     );
-        //     let pool = Pool::default();
-        //     let tickmap = Tickmap::default();
-        //     contract.add_pool(pool_key, pool, tickmap);
-        //     assert_eq!(contract.pool_keys.len(), 1);
+        #[ink::test]
+        fn test_pools() {
+            let mut contract = Contract::new(Percentage::new(0));
+            let fee_tier = FeeTier {
+                fee: Percentage::new(1),
+                tick_spacing: 50u16,
+            };
+            let pool_key = PoolKey(
+                AccountId::from([0x0; 32]),
+                AccountId::from([0x0; 32]),
+                fee_tier,
+            );
+            let pool = Pool::default();
 
-        //     let recieved_pool = contract.get_pool(pool_key);
-        //     assert_eq!(Some((pool, tickmap)), recieved_pool);
+            contract.add_pool(pool_key, pool.clone());
+            assert_eq!(contract.pool_keys.len(), 1);
 
-        //     contract.remove_pool(pool_key);
-        //     assert_eq!(contract.pool_keys.len(), 0);
-        // }
+            let recieved_pool = contract.get_pool(pool_key);
+            assert_eq!(Some(pool), recieved_pool);
+
+            contract.remove_pool(pool_key);
+            assert_eq!(contract.pool_keys.len(), 0);
+        }
         #[ink::test]
         fn test_ticks() {
             let mut contract = Contract::new(Percentage::new(0));

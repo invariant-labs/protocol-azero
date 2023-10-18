@@ -18,15 +18,17 @@ pub struct PoolKey(pub AccountId, pub AccountId, pub FeeTier);
 #[ink::storage_item]
 #[derive(Debug, Default)]
 pub struct Pools {
-    pools: Mapping<PoolKey, (Pool, u64)>, //
+    pools: Mapping<PoolKey, Pool>, //
 }
 
 impl Pools {
-    pub fn get_pool(&self, key: PoolKey) -> Option<(Pool, u64)> {
+    pub fn get_pool(&self, key: PoolKey) -> Option<Pool> {
         self.pools.get(&key)
     }
-    pub fn add_pool(&mut self, key: PoolKey, pool: Pool, tickmap_index: u64) {
-        self.pools.insert(&key, &(pool, tickmap_index));
+    pub fn add_pool(&mut self, key: PoolKey, pool: Pool) {
+        self.pools.insert(&key, &pool);
     }
-    pub fn remove_pool(&mut self, key: PoolKey) {}
+    pub fn remove_pool(&mut self, key: PoolKey) {
+        self.pools.remove(&key);
+    }
 }
