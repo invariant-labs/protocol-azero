@@ -170,7 +170,7 @@ impl Position {
         )
         .unwrap();
         PSP22Ref::transfer_from(
-            &pool_key.token_x,
+            &pool_key.token_y,
             contract,
             user,
             self.tokens_owed_y.0,
