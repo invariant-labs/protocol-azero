@@ -40,7 +40,6 @@ pub mod contract {
     use crate::contracts::State;
     use crate::contracts::{FeeTier, FeeTiers, PoolKey, Position, Positions, Ticks}; // Pools
     use crate::math::percentage::Percentage;
-    use contracts::Ticks;
     use decimal::*;
     use ink::prelude::{vec, vec::Vec};
     use ink::storage::Mapping;
@@ -446,6 +445,36 @@ pub mod contract {
                     }
                 )
             );
+        }
+
+        #[ink::test]
+        fn create_tick() {
+            let mut contract = Contract::new(Percentage::new(0));
+            let token_0 = AccountId::from([0x01; 32]);
+            let token_1 = AccountId::from([0x02; 32]);
+            let pool_key = PoolKey::new(
+                token_0,
+                token_1,
+                FeeTier {
+                    fee: Percentage::new(1),
+                    tick_spacing: 1,
+                },
+            );
+            let result = contract.create_tick(pool_key, 0);
+            assert_eq!(result, Err(ContractErrors::PoolNotFound));
+            let _result = contract.create_pool(
+                token_1,
+                token_0,
+                FeeTier {
+                    fee: Percentage::new(1),
+                    tick_spacing: 1,
+                },
+                0,
+            );
+            let result = contract.create_tick(pool_key, 0);
+            assert!(result.is_ok());
+            let result = contract.create_tick(pool_key, 0);
+            assert_eq!(result, Err(ContractErrors::TickAlreadyExist));
         }
 
         #[ink::test]
