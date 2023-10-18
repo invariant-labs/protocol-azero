@@ -21,6 +21,7 @@ pub enum ContractErrors {
     InvalidTickIndexOrTickSpacing,
     PositionNotFound,
     TickNotFound,
+    FeeTierNotFound,
 }
 #[ink::contract]
 pub mod contract {
@@ -43,6 +44,7 @@ pub mod contract {
     use crate::contracts::{FeeTier, FeeTiers, PoolKey, Pools, Position, Positions, Ticks}; //
     use crate::math::check_tick;
     use crate::math::percentage::Percentage;
+    use crate::math::token_amount::TokenAmount;
     use crate::math::MAX_TICK;
     use decimal::*;
     use ink::prelude::vec::Vec;
@@ -292,6 +294,7 @@ pub mod contract {
             pool_key: PoolKey,
         ) -> Result<(), ContractErrors> {
             let caller = self.env().caller();
+
             let mut position = self
                 .positions
                 .get_position(caller, index)
@@ -320,6 +323,47 @@ pub mod contract {
             Ok(())
         }
 
+        #[ink(message)]
+        pub fn position_claim_fee(
+            &mut self,
+            index: u32,
+            pool_key: PoolKey,
+            fee_tier_key: FeeTierKey,
+        ) -> Result<(TokenAmount, TokenAmount), ContractErrors> {
+            let caller = self.env().caller();
+            let mut position = self
+                .positions
+                .get_position(caller, index)
+                .ok_or(ContractErrors::PositionNotFound)?;
+
+            let current_timestamp = self.env().block_number();
+
+            let lower_tick = self
+                .ticks
+                .get_tick(pool_key, position.lower_tick_index)
+                .ok_or(ContractErrors::TickNotFound)?;
+
+            let upper_tick = self
+                .ticks
+                .get_tick(pool_key, position.upper_tick_index)
+                .ok_or(ContractErrors::TickNotFound)?;
+
+            let pool = self.pools.get_pool(pool_key)?;
+
+            let fee_tier = self
+                .fee_tiers
+                .get_fee_tier(fee_tier_key)
+                .ok_or(ContractErrors::FeeTierNotFound)?;
+
+            let (token_x, token_y) = position.claim_fee(
+                pool,
+                upper_tick,
+                lower_tick,
+                current_timestamp as u64,
+                fee_tier.tick_spacing,
+            );
+            Ok((token_x, token_y))
+        }
         // Fee tiers
         #[ink(message)]
         pub fn add_fee_tier(&mut self, key: FeeTierKey, value: FeeTier) {
