@@ -43,6 +43,8 @@ pub mod contract {
     use crate::contracts::{FeeTier, FeeTiers, PoolKey, Pools, Position, Positions, Ticks}; //
     use crate::math::check_tick;
     use crate::math::percentage::Percentage;
+    use crate::math::sqrt_price::sqrt_price::SqrtPrice;
+    use crate::math::types::liquidity::Liquidity;
     use crate::math::MAX_TICK;
     use decimal::*;
     use ink::prelude::vec::Vec;
@@ -121,6 +123,61 @@ pub mod contract {
             let current_timestamp = self.env().block_timestamp();
             let tick = Tick::create(index, &pool, current_timestamp);
             self.ticks.add_tick(pool_key, index, tick);
+
+            Ok(())
+        }
+
+        #[ink(message)]
+        pub fn create_position(
+            &self,
+            pool_key: PoolKey,
+            lower_tick: i32,
+            upper_tick: i32,
+            slippage_limit_lower: SqrtPrice,
+            slippage_limit_upper: SqrtPrice,
+        ) -> Result<(), ContractErrors> {
+            let mut pool = self.pools.get_pool(pool_key)?;
+
+            let mut lower_tick = self
+                .ticks
+                .get_tick(pool_key, lower_tick)
+                .ok_or(ContractErrors::TickNotFound)?;
+            let mut upper_tick = self
+                .ticks
+                .get_tick(pool_key, upper_tick)
+                .ok_or(ContractErrors::TickNotFound)?;
+
+            let current_timestamp = self.env().block_timestamp();
+            let current_block_number = self.env().block_number() as u64;
+
+            let (position, x, y) = Position::create(
+                &mut pool,
+                &mut lower_tick,
+                &mut upper_tick,
+                current_timestamp,
+                Liquidity::new(0),
+                slippage_limit_lower,
+                slippage_limit_upper,
+                current_block_number,
+                pool_key.fee_tier.tick_spacing,
+            );
+
+            PSP22Ref::transfer_from(
+                &pool_key.token_x,
+                self.env().caller(),
+                self.env().account_id(),
+                x.get(),
+                vec![],
+            )
+            .ok();
+            PSP22Ref::transfer_from(
+                &pool_key.token_y,
+                self.env().caller(),
+                self.env().account_id(),
+                y.get(),
+                vec![],
+            )
+            .ok();
 
             Ok(())
         }
@@ -337,7 +394,8 @@ pub mod contract {
         }
 
         // Pools
-        fn add_pool(
+        #[ink(message)]
+        pub fn add_pool(
             &mut self,
             token_0: AccountId,
             token_1: AccountId,
