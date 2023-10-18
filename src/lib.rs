@@ -17,6 +17,7 @@ pub enum ContractErrors {
     NotAnAdmin,
     PoolAlreadyExist,
     PoolNotFound,
+    TickAlreadyExist,
 }
 #[ink::contract]
 pub mod contract {
@@ -39,6 +40,7 @@ pub mod contract {
     use crate::contracts::State;
     use crate::contracts::{FeeTier, FeeTiers, PoolKey, Position, Positions, Ticks}; // Pools
     use crate::math::percentage::Percentage;
+    use contracts::Ticks;
     use decimal::*;
     use ink::prelude::{vec, vec::Vec};
     use ink::storage::Mapping;
@@ -143,6 +145,26 @@ pub mod contract {
             }
 
             Ok(pool_option.unwrap())
+        }
+
+        #[ink(message)]
+        pub fn create_tick(&mut self, pool_key: PoolKey, index: i32) -> Result<(), ContractErrors> {
+            let pool_option = self.pools.get(pool_key);
+            if pool_option.is_none() {
+                return Err(ContractErrors::PoolNotFound);
+            }
+
+            let tick_option = self.ticks.get_tick(pool_key, index);
+            if tick_option.is_some() {
+                return Err(ContractErrors::TickAlreadyExist);
+            }
+
+            let pool = pool_option.unwrap();
+            let current_timestamp = self.env().block_timestamp();
+            let tick = Tick::create(index, &pool, current_timestamp);
+            self.ticks.add_tick(pool_key, index, tick);
+
+            Ok(())
         }
 
         #[ink(message)]
