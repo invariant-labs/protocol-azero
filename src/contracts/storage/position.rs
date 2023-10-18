@@ -20,6 +20,7 @@ use traceable_result::*;
     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
 )]
 pub struct Position {
+    pub pool_key: PoolKey,
     pub liquidity: Liquidity,
     pub lower_tick_index: i32,
     pub upper_tick_index: i32,
@@ -182,6 +183,7 @@ impl Position {
     }
     pub fn create(
         pool: &mut Pool,
+        pool_key: PoolKey,
         lower_tick: &mut Tick,
         upper_tick: &mut Tick,
         current_timestamp: u64,
@@ -205,6 +207,7 @@ impl Position {
 
         // init position
         let mut position = Position {
+            pool_key,
             liquidity: Liquidity::new(0),
             lower_tick_index: lower_tick.index,
             upper_tick_index: upper_tick.index,
