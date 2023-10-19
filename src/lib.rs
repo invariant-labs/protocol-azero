@@ -713,7 +713,8 @@ pub mod contract {
         use openbrush::contracts::psp22::psp22_external::PSP22;
         use openbrush::traits::Balance;
         use test_helpers::{
-            address_of, approve, balance_of, create_dex, create_pair, create_tokens, dex_balance,
+            address_of, approve, balance_of, create_dex, create_pair, create_tokens,
+            create_tokens_and_pair, dex_balance,
         };
         use token::TokenRef;
 
@@ -1009,9 +1010,8 @@ pub mod contract {
 
         #[ink_e2e::test]
         async fn create_pair_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let (token_x, token_y) = create_tokens!(client, TokenRef, TokenRef, 100, 100);
             let contract = create_dex!(client, ContractRef, Percentage::new(0));
-            create_pair!(client, token_x, token_y, ContractRef, contract);
+            create_tokens_and_pair!(client, TokenRef, TokenRef, 100, 100, ContractRef, contract);
             Ok(())
         }
 
@@ -1042,10 +1042,9 @@ pub mod contract {
 
         #[ink_e2e::test]
         async fn token_mint_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let (token_x, token_y) = create_tokens!(client, TokenRef, TokenRef, 500, 500);
             let dex = create_dex!(client, ContractRef, Percentage::new(0));
-
-            create_pair!(client, token_x, token_y, ContractRef, dex);
+            let (token_x, token_y, xy) =
+                create_tokens_and_pair!(client, TokenRef, TokenRef, 500, 500, ContractRef, dex);
 
             let amount_x = Balance::from(50u128);
             let amount_y = Balance::from(25u128);
@@ -1081,11 +1080,10 @@ pub mod contract {
 
         #[ink_e2e::test]
         async fn single_token_mint_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let (token_x, token_y) = create_tokens!(client, TokenRef, TokenRef, 500, 500);
             let dex = create_dex!(client, ContractRef, Percentage::new(0));
 
-            // Pair x/y created
-            create_pair!(client, token_x, token_y, ContractRef, dex);
+            let (token_x, token_y, xy) =
+                create_tokens_and_pair!(client, TokenRef, TokenRef, 500, 500, ContractRef, dex);
 
             let amount_x = Balance::from(50u128);
             let amount_y = Balance::from(0u128);
@@ -1121,11 +1119,10 @@ pub mod contract {
 
         #[ink_e2e::test]
         async fn token_burn_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let (token_x, token_y) = create_tokens!(client, TokenRef, TokenRef, 500, 500);
             let dex = create_dex!(client, ContractRef, Percentage::new(0));
 
-            // Pair x/y created
-            create_pair!(client, token_x, token_y, ContractRef, dex);
+            let (token_x, token_y, xy) =
+                create_tokens_and_pair!(client, TokenRef, TokenRef, 500, 500, ContractRef, dex);
 
             let amount_x = Balance::from(50u128);
             let amount_y = Balance::from(50u128);
@@ -1179,11 +1176,10 @@ pub mod contract {
 
         #[ink_e2e::test]
         async fn token_swap_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let (token_x, token_y) = create_tokens!(client, TokenRef, TokenRef, 500, 500);
             let dex = create_dex!(client, ContractRef, Percentage::new(0));
 
-            // Pair x/y created
-            create_pair!(client, token_x, token_y, ContractRef, dex);
+            let (token_x, token_y, xy) =
+                create_tokens_and_pair!(client, TokenRef, TokenRef, 500, 500, ContractRef, dex);
 
             let amount_x = Balance::from(50u128);
             let amount_y = Balance::from(50u128);
