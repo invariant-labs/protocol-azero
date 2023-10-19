@@ -818,6 +818,7 @@ pub mod contract {
         use test_helpers::{
             address_of, approve, balance_of, create_dex, create_fee_tier, create_pair,
             create_standard_fee_tiers, create_tokens, create_tokens_and_pair, dex_balance,
+            get_fee_tier,
         };
         use token::TokenRef;
 
@@ -1445,36 +1446,22 @@ pub mod contract {
         async fn create_fee_tier_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let dex = create_dex!(client, ContractRef, Percentage::new(0));
             create_fee_tier!(client, ContractRef, dex, Percentage::new(0), 10u16);
-
-            let key = FeeTierKey(Percentage::new(0), 10u16);
-            let result = {
-                let _msg = build_message::<ContractRef>(dex.clone())
-                    .call(|contract| contract.get_fee_tier(key));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("Getting fee_tier failed")
-            }
-            .return_value();
-            assert_eq!(Some(()), result);
+            let fee_tier = get_fee_tier!(client, ContractRef, dex, Percentage::new(0), 10u16);
+            assert!(fee_tier.is_some());
             Ok(())
         }
         #[ink_e2e::test]
         async fn create_standard_fee_tier_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let dex = create_dex!(client, ContractRef, Percentage::new(0));
             create_standard_fee_tiers!(client, ContractRef, dex);
-
-            let key = FeeTierKey(Percentage::from_scale(5, 2), 100u16);
-            let result = {
-                let _msg = build_message::<ContractRef>(dex.clone())
-                    .call(|contract| contract.get_fee_tier(key));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("Getting fee_tier failed")
-            }
-            .return_value();
-            assert_eq!(Some(()), result);
+            let fee_tier = get_fee_tier!(
+                client,
+                ContractRef,
+                dex,
+                Percentage::from_scale(5, 2),
+                100u16
+            );
+            assert!(fee_tier.is_some());
             Ok(())
         }
     }
