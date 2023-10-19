@@ -145,15 +145,15 @@ pub mod contract {
         ) -> Result<Position, ContractErrors> {
             let mut pool = self.pools.get_pool(pool_key)?;
 
-            let mut lower_tick = match self.ticks.get_tick(pool_key, lower_tick) {
-                Some(tick) => tick,
-                None => self.create_tick(pool_key, lower_tick)?,
-            };
+            let mut lower_tick = self
+                .ticks
+                .get_tick(pool_key, lower_tick)
+                .unwrap_or(self.create_tick(pool_key, lower_tick)?);
 
-            let mut upper_tick = match self.ticks.get_tick(pool_key, upper_tick) {
-                Some(tick) => tick,
-                None => self.create_tick(pool_key, upper_tick)?,
-            };
+            let mut upper_tick = self
+                .ticks
+                .get_tick(pool_key, upper_tick)
+                .unwrap_or(self.create_tick(pool_key, upper_tick)?);
 
             let current_timestamp = self.env().block_timestamp();
             let current_block_number = self.env().block_number() as u64;
