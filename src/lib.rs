@@ -270,7 +270,7 @@ pub mod contract {
                 // TODO: refactor
                 let mut _tick = Tick::default();
 
-                let updated_limiting_tick = limiting_tick.map(|(index, bool)| {
+                let update_limiting_tick = limiting_tick.map(|(index, bool)| {
                     if bool {
                         _tick = self.ticks.get_tick(pool_key, index).unwrap();
                         (index, Some(&mut _tick))
@@ -282,7 +282,7 @@ pub mod contract {
                 pool.cross_tick(
                     result,
                     swap_limit,
-                    updated_limiting_tick,
+                    update_limiting_tick,
                     &mut remaining_amount,
                     by_amount_in,
                     x_to_y,
