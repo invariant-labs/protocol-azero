@@ -179,9 +179,8 @@ impl Pool {
     pub fn cross_tick(
         &mut self,
         result: SwapResult,
-        tick: &mut Tick,
         swap_limit: SqrtPrice,
-        limiting_tick: Option<(i32, Option<Tick>)>,
+        limiting_tick: Option<(i32, Option<&mut Tick>)>,
         remaining_amount: &mut TokenAmount,
         by_amount_in: bool,
         x_to_y: bool,
@@ -192,11 +191,7 @@ impl Pool {
         tick_spacing: u16,
     ) {
         if result.next_sqrt_price == swap_limit && limiting_tick.is_some() {
-            let tick_index = limiting_tick.unwrap().0;
-            let initialized = match limiting_tick.unwrap().1 {
-                Some(_) => true,
-                None => false,
-            };
+            let (tick_index, tick) = limiting_tick.unwrap();
 
             let is_enough_amount_to_cross = unwrap!(is_enough_amount_to_push_price(
                 *remaining_amount,
@@ -208,9 +203,9 @@ impl Pool {
             ));
 
             // crossing tick
-            if initialized {
+            if tick.is_some() {
                 if !x_to_y || is_enough_amount_to_cross {
-                    let _ = tick.cross(self, current_timestamp);
+                    let _ = tick.unwrap().cross(self, current_timestamp);
                 } else if !remaining_amount.is_zero() {
                     if by_amount_in {
                         self.add_fee(*remaining_amount, x_to_y, protocol_fee)

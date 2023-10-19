@@ -22,6 +22,10 @@ pub enum ContractErrors {
     PositionNotFound,
     TickNotFound,
     FeeTierNotFound,
+    AmountIsZero,
+    WrongLimit,
+    PriceLimitReached,
+    NoGainSwap,
 }
 #[ink::contract]
 pub mod contract {
@@ -48,6 +52,7 @@ pub mod contract {
     use crate::math::token_amount::TokenAmount;
     use crate::math::types::liquidity::Liquidity;
     use crate::math::MAX_TICK;
+    use crate::math::{compute_swap_step, MAX_SQRT_PRICE, MIN_SQRT_PRICE};
     use decimal::*;
     use ink::prelude::vec;
     use ink::prelude::vec::Vec;
@@ -189,6 +194,143 @@ pub mod contract {
             .ok();
 
             Ok(position)
+        }
+
+        #[ink(message)]
+        pub fn swap(
+            &mut self,
+            pool_key: PoolKey,
+            x_to_y: bool,
+            amount: TokenAmount,
+            by_amount_in: bool,
+            sqrt_price_limit: SqrtPrice,
+        ) -> Result<(), ContractErrors> {
+            if amount.is_zero() {
+                return Err(ContractErrors::AmountIsZero);
+            }
+
+            let mut pool = self.pools.get_pool(pool_key)?;
+            let current_timestamp = self.env().block_timestamp();
+
+            if x_to_y {
+                if pool.sqrt_price > sqrt_price_limit
+                    && sqrt_price_limit <= SqrtPrice::new(MAX_SQRT_PRICE)
+                {
+                    return Err(ContractErrors::WrongLimit);
+                }
+            } else {
+                if pool.sqrt_price > sqrt_price_limit
+                    && sqrt_price_limit <= SqrtPrice::new(MIN_SQRT_PRICE)
+                {
+                    return Err(ContractErrors::WrongLimit);
+                }
+            }
+
+            let mut remaining_amount = amount;
+
+            let mut total_amount_in = TokenAmount(0);
+            let mut total_amount_out = TokenAmount(0);
+
+            while !remaining_amount.is_zero() {
+                let (swap_limit, limiting_tick) = self.tickmap.get_closer_limit(
+                    sqrt_price_limit,
+                    x_to_y,
+                    pool.current_tick_index,
+                    pool_key.fee_tier.tick_spacing,
+                    pool_key,
+                );
+
+                let result = unwrap!(compute_swap_step(
+                    pool.sqrt_price,
+                    swap_limit,
+                    pool.liquidity,
+                    remaining_amount,
+                    by_amount_in,
+                    pool_key.fee_tier.fee,
+                ));
+                // make remaining amount smaller
+                if by_amount_in {
+                    remaining_amount -= result.amount_in + result.fee_amount;
+                } else {
+                    remaining_amount -= result.amount_out;
+                }
+
+                pool.sqrt_price = result.next_sqrt_price;
+
+                total_amount_in += result.amount_in + result.fee_amount;
+                total_amount_out += result.amount_out;
+
+                // Fail if price would go over swap limit
+                if pool.sqrt_price == sqrt_price_limit && !remaining_amount.is_zero() {
+                    return Err(ContractErrors::PriceLimitReached);
+                }
+
+                let mut tick_ref = Tick::default();
+                let mut tick = None;
+
+                let (index, initialized) = limiting_tick.unwrap();
+
+                if initialized {
+                    tick_ref = self.ticks.get_tick(pool_key, index).unwrap();
+                    tick = Some(&mut tick_ref);
+                }
+
+                let limiting_tick = Some((index, tick));
+
+                pool.cross_tick(
+                    result,
+                    swap_limit,
+                    limiting_tick,
+                    &mut remaining_amount,
+                    by_amount_in,
+                    x_to_y,
+                    current_timestamp,
+                    &mut total_amount_in,
+                    self.state.protocol_fee,
+                    pool_key.fee_tier.fee,
+                    pool_key.fee_tier.tick_spacing,
+                );
+            }
+
+            if total_amount_out.get() == 0 {
+                return Err(ContractErrors::NoGainSwap);
+            }
+
+            if x_to_y {
+                PSP22Ref::transfer_from(
+                    &pool_key.token_x,
+                    self.env().caller(),
+                    self.env().account_id(),
+                    total_amount_in.get(),
+                    vec![],
+                )
+                .ok();
+                PSP22Ref::transfer(
+                    &pool_key.token_y,
+                    self.env().caller(),
+                    total_amount_out.get(),
+                    vec![],
+                )
+                .ok();
+            } else {
+                PSP22Ref::transfer_from(
+                    &pool_key.token_y,
+                    self.env().caller(),
+                    self.env().account_id(),
+                    total_amount_in.get(),
+                    vec![],
+                )
+                .ok();
+                PSP22Ref::transfer(
+                    &pool_key.token_x,
+                    self.env().caller(),
+                    total_amount_out.get(),
+                    vec![],
+                )
+                .ok();
+            }
+
+            Ok(())
         }
 
         #[ink(message)]
