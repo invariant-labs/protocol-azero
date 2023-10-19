@@ -18,6 +18,18 @@ macro_rules! balance_of {
 }
 
 #[macro_export]
+macro_rules! dex_balance {
+    ($contract_type:ty, $client:ident, $address:ident, $account:ident) => {{
+        let _msg = build_message::<$contract_type>($address.clone())
+            .call(|contract| contract.balance_of($account));
+        $client
+            .call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
+            .await
+            .return_value()
+    }};
+}
+
+#[macro_export]
 macro_rules! owner_of {
     ($contract_type:ty, $client:ident, $address:ident, $id:expr) => {{
         let _msg = build_message::<$contract_type>($address.clone())
@@ -224,3 +236,91 @@ macro_rules! method_call_dry_run {
             .return_value()
     }};
 }
+#[macro_export]
+macro_rules! create_tokens {
+    ($client:ident, $x:ty, $y:ty, $supply_x:expr, $supply_y:expr) => {{
+        // ink_e2e client
+        // x:ty  || y:ty => x token ref => TokenRef
+        // supply_x:expr || supply_y:expr => amount of initial supply x => 100
+        let constructor_x = <$x>::new($supply_x);
+        let constructor_y = <$y>::new($supply_y);
+        let x = $client
+            .instantiate("token", &ink_e2e::alice(), constructor_x, 0, None)
+            .await
+            .expect("instantiate failed")
+            .account_id;
+        let y = $client
+            .instantiate("token", &ink_e2e::alice(), constructor_y, 0, None)
+            .await
+            .expect("instantiate failed")
+            .account_id;
+        (x, y)
+    }};
+}
+
+#[macro_export]
+macro_rules! create_dex {
+    ($client:ident,  $dex:ty, $dex_fee:expr) => {{
+        // ink_e2e client
+        // dex:ty => dex ref => ContractRef
+        // dex_fee:exp => protocol_fee => Percentage::new(..)
+        let constructor_dex = <$dex>::new($dex_fee);
+        let dex = $client
+            .instantiate("contract", &ink_e2e::alice(), constructor_dex, 0, None)
+            .await
+            .expect("instantiate failed")
+            .account_id;
+        dex
+    }};
+}
+
+#[macro_export]
+macro_rules! create_tokens_and_pair {
+    ($client:ident, $x:ty, $y:ty, $supply_x:expr, $supply_y:expr, $dex:ty, $dex_address:expr) => {{
+        // ink_e2e client
+        // x:ty  || y:ty => x token ref => TokenRef
+        // supply_x:expr || supply_y:expr => amount of initial supply x => 100
+        // dex:ty => ContractRef
+        // dex_address:expr => Address of contract
+        let (x, y) = create_tokens!($client, $x, $y, $supply_x, $supply_y);
+        let xy = create_pair!($client, x, y, $dex, $dex_address);
+        (x, y, xy)
+    }};
+}
+
+#[macro_export]
+macro_rules! create_pair {
+    ($client:ident, $x:ident ,$y:ident, $dex:ty, $dex_address:expr) => {{
+        // client => ink_e2e_client
+        // x:ident || y:ident => Addresses of x and y tokens
+        // dex:ty => ContractRef
+        // dex_address:expr => Address of contract
+        let _msg = build_message::<$dex>($dex_address.clone())
+            .call(|contract| contract.create_pair($x, $y));
+        $client
+            .call(&ink_e2e::alice(), _msg, 0, None)
+            .await
+            .expect("Pair ceration failed")
+            .return_value()
+    }};
+}
+
+#[macro_export]
+macro_rules! approve {
+    ($client:ident, $token:ty ,$token_address:expr, $dex_address:expr, $amount:expr) => {{
+        // client => ink_e2e_client
+        // token:ty => TokenRef
+        // token_address:expr => Addres of token
+        // dex_address:expr => Address of contract
+        // amount:expr => Amount of tokens that contract will get allowance
+
+        let _msg = build_message::<$token>($token_address.clone())
+            .call(|sc| sc.increase_allowance($dex_address.clone(), $amount));
+        $client
+            .call(&ink_e2e::alice(), _msg, 0, None)
+            .await
+            .expect("Approval failed")
+    }};
+}
+
+// increase allowances
