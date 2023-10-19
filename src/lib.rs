@@ -497,16 +497,21 @@ pub mod contract {
         #[ink(message)]
         pub fn add_fee_tier(
             &mut self,
-            key: FeeTierKey,
             fee: Percentage,
             tick_spacing: u16,
         ) -> Result<(), ContractErrors> {
+            if self.env().caller() != self.state.admin {
+                return Err(ContractErrors::NotAnAdmin);
+            }
+
             if tick_spacing == 0 {
                 return Err(ContractErrors::InvalidTickSpacing);
             }
+
+            let fee_tier_key = FeeTierKey(fee, tick_spacing);
             let fee_tier = FeeTier { fee, tick_spacing };
-            self.fee_tiers.add_fee_tier(key, fee_tier);
-            self.fee_tier_keys.push(key);
+            self.fee_tiers.add_fee_tier(fee_tier_key, fee_tier);
+            self.fee_tier_keys.push(fee_tier_key);
             Ok(())
         }
 
