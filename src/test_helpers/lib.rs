@@ -347,8 +347,7 @@ macro_rules! create_fee_tier {
         // x:ident || y:ident => Addresses of x and y tokens
         // dex:ty => ContractRef
         // dex_address:expr => Address of contract
-        // fee:expr => Percentage::new(..)
-        // fee:expr => Percentage::new(..)
+        // fee:expr => u64
         // spacing:expr => tick_spacing as u16
         let _msg = build_message::<$dex>($dex_address.clone())
             .call(|contract| contract.add_fee_tier($fee, $spacing));
