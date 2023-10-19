@@ -22,6 +22,8 @@ pub enum ContractErrors {
     PositionNotFound,
     TickNotFound,
     FeeTierNotFound,
+    InvalidTickSpacing,
+    FeeTierAlreadyAdded,
 }
 #[ink::contract]
 pub mod contract {
@@ -494,13 +496,32 @@ pub mod contract {
 
         // Fee tiers
         #[ink(message)]
-        pub fn add_fee_tier(&mut self, key: FeeTierKey, value: FeeTier) {
-            self.fee_tiers.add_fee_tier(key, value);
-            self.fee_tier_keys.push(key);
+        pub fn add_fee_tier(
+            &mut self,
+            fee: Percentage,
+            tick_spacing: u16,
+        ) -> Result<(), ContractErrors> {
+            if self.env().caller() != self.state.admin {
+                return Err(ContractErrors::NotAnAdmin);
+            }
+
+            if tick_spacing == 0 {
+                return Err(ContractErrors::InvalidTickSpacing);
+            }
+
+            let fee_tier_key = FeeTierKey(fee, tick_spacing);
+
+            if self.fee_tiers.get_fee_tier(fee_tier_key).is_some() {
+                return Err(ContractErrors::FeeTierAlreadyAdded);
+            } else {
+                self.fee_tiers.add_fee_tier(fee_tier_key);
+                self.fee_tier_keys.push(fee_tier_key);
+                Ok(())
+            }
         }
 
         #[ink(message)]
-        pub fn get_fee_tier(&self, key: FeeTierKey) -> Option<FeeTier> {
+        pub fn get_fee_tier(&self, key: FeeTierKey) -> Option<()> {
             self.fee_tiers.get_fee_tier(key)
         }
         #[ink(message)]
@@ -753,15 +774,14 @@ pub mod contract {
             let fee_tier_key = FeeTierKey(Percentage::new(1), 10u16);
             let fee_tier_value = FeeTier {
                 fee: Percentage::new(1),
-                tick_spacing: 50u16,
+                tick_spacing: 10u16,
             };
 
-            contract.add_fee_tier(fee_tier_key, fee_tier_value);
+            contract.add_fee_tier(Percentage::new(1), 10u16).unwrap();
             assert_eq!(contract.fee_tier_keys.len(), 1);
-
-            let recieved_fee_tier = contract.get_fee_tier(fee_tier_key);
-            assert_eq!(Some(fee_tier_value), recieved_fee_tier);
-
+            contract
+                .add_fee_tier(Percentage::new(1), 10u16)
+                .unwrap_err();
             contract.remove_fee_tier(fee_tier_key);
             assert_eq!(contract.fee_tier_keys.len(), 0);
         }
