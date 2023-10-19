@@ -118,6 +118,23 @@ pub mod contract {
             Ok(())
         }
 
+        #[ink(message)]
+        pub fn change_fee_receiver(
+            &mut self,
+            pool_key: PoolKey,
+            fee_receiver: AccountId,
+        ) -> Result<(), ContractErrors> {
+            let caller = self.env().caller();
+
+            if caller != self.state.admin {
+                return Err(ContractErrors::NotAnAdmin);
+            }
+
+            self.pools.change_fee_receiver(pool_key, fee_receiver)?;
+
+            Ok(())
+        }
+
         pub fn create_tick(
             &mut self,
             pool_key: PoolKey,
