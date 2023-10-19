@@ -327,18 +327,19 @@ pub mod contract {
         #[ink(message)]
         pub fn add_position(&mut self) {
             let caller = self.env().caller();
-            self.positions.add_position(caller)
+            self.positions.add(caller, Position::default())
         }
 
         #[ink(message)]
         pub fn get_position(&mut self, index: u32) -> Option<Position> {
             let caller = self.env().caller();
-            self.positions.get_position(caller, index)
+            self.positions.get(caller, index)
         }
+
         #[ink(message)]
         pub fn get_all_positions(&mut self) -> Vec<Position> {
             let caller = self.env().caller();
-            self.positions.get_all_positions(caller)
+            self.positions.get_all(caller)
         }
 
         #[ink(message)]
@@ -351,7 +352,7 @@ pub mod contract {
 
             let mut position = self
                 .positions
-                .get_position(caller, index)
+                .get(caller, index)
                 .ok_or(ContractErrors::PositionNotFound)?;
 
             let current_timestamp = self.env().block_number();
@@ -389,7 +390,7 @@ pub mod contract {
 
             let mut position = self
                 .positions
-                .get_position(caller, index)
+                .get(caller, index)
                 .ok_or(ContractErrors::PositionNotFound)?;
 
             let lower_tick = self
@@ -426,7 +427,7 @@ pub mod contract {
 
             let mut position = self
                 .positions
-                .get_position(caller, index)
+                .get(caller, index)
                 .ok_or(ContractErrors::PositionNotFound)?;
 
             let lower_tick = &mut self
@@ -465,7 +466,7 @@ pub mod contract {
                     position.pool_key,
                 );
             }
-            self.positions.remove_position(caller, index);
+            self.positions.remove(caller, index);
 
             PSP22Ref::transfer_from(
                 &position.pool_key.token_x,
