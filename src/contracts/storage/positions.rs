@@ -1,4 +1,4 @@
-use crate::contracts::Position;
+use crate::{contracts::Position, ContractErrors};
 use ink::{
     prelude::{vec, vec::Vec},
     storage::Mapping,
@@ -27,15 +27,35 @@ impl Positions {
         }
     }
 
-    pub fn remove(&mut self, account_id: AccountId, index: u32) {
+    pub fn remove(
+        &mut self,
+        account_id: AccountId,
+        index: u32,
+    ) -> Result<Position, ContractErrors> {
         let (mut positions_length, mut positions) = self.get_value(account_id);
 
         if index < positions_length {
+            let position = *positions.get(index as usize).unwrap();
             positions_length -= 1;
             positions.remove(index as usize);
             self.positions
                 .insert(account_id, &(positions_length, positions));
+            Ok(position)
+        } else {
+            Err(ContractErrors::PositionNotFound)
         }
+    }
+
+    pub fn transfer(
+        &mut self,
+        account_id: AccountId,
+        index: u32,
+        receiver: AccountId,
+    ) -> Result<(), ContractErrors> {
+        let position = self.remove(account_id, index)?;
+        self.add(receiver, position);
+
+        Ok(())
     }
 
     pub fn get_all(&self, account_id: AccountId) -> Vec<Position> {
