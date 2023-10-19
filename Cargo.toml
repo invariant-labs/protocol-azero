@@ -28,7 +28,6 @@ openbrush = { git = "https://github.com/Brushfam/openbrush-contracts", branch = 
 token = { path = "src/token", default-features = false, features = [
   "ink-as-dependency",
 ] }
-serde = { version = "1.0", features = ["derive"] }
 
 [dev-dependencies]
 ink_e2e = "4.3.0"

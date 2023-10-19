@@ -224,3 +224,27 @@ macro_rules! method_call_dry_run {
             .return_value()
     }};
 }
+#[macro_export]
+macro_rules! create_tokens {
+    ($client:ident, $x:ty,$y:ty, $dex:ty, $supply_x:expr, $supply_y:expr, $dex_fee:expr) => {{
+        let constructor_x = <$x>::new($supply_x);
+        let constructor_y = <$y>::new($supply_y);
+        let constructor_dex = <$dex>::new($dex_fee);
+        let x = $client
+            .instantiate("token", &ink_e2e::alice(), constructor_x, 0, None)
+            .await
+            .expect("instantiate failed")
+            .account_id;
+        let y = $client
+            .instantiate("token", &ink_e2e::alice(), constructor_y, 0, None)
+            .await
+            .expect("instantiate failed")
+            .account_id;
+        let dex = $client
+            .instantiate("contract", &ink_e2e::alice(), constructor_dex, 0, None)
+            .await
+            .expect("instantiate failed")
+            .account_id;
+        (x, y, dex)
+    }};
+}

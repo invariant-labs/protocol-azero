@@ -711,80 +711,26 @@ pub mod contract {
 
         use ink_e2e::build_message;
         use openbrush::contracts::psp22::psp22_external::PSP22;
-        use test_helpers::address_of;
+        use openbrush::traits::Balance;
+        use std::process::Termination;
+        use test_helpers::{address_of, create_tokens};
         use token::TokenRef;
 
         use super::*;
-        use crate::contracts::util::e2e::*;
-        // use crate::token::TokenRef;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
-        use alloc::fmt::Debug;
-        use ink_e2e::sr25519;
-        use ink_e2e::subxt::config::extrinsic_params::ExtrinsicParams;
-        use ink_e2e::subxt::Config;
-
-        // UTIL TEMPLATE
-        // Passed compilcation without using client
-        // pub async fn constructor_test<C, E>(mut client: ink_e2e::Client<C, E>) -> E2EResult<bool>
-        // where
-        //     C: ink_e2e::subxt::Config,
-        //     E: ink::env::Environment,
-        // {
-        //     Ok(false)
-        // }
-
-        pub async fn get_contracts<C, E>(
-            mut client: ink_e2e::Client<C, E>,
-            supply_x: Balance,
-            supply_y: Balance,
-            protocol_fee: Percentage,
-        ) -> E2EResult<()>
-        // -> Option<(AccountId, AccountId, AccountId)>
-        where
-            C: ink_e2e::subxt::Config,
-            C::AccountId:
-                From<sr25519::PublicKey> + scale::Codec + serde::de::DeserializeOwned + Debug,
-            C::Address: From<sr25519::PublicKey>,
-            C::Signature: From<sr25519::Signature>,
-            <C::ExtrinsicParams as ExtrinsicParams<C::Hash>>::OtherParams: Default,
-            // <<C as Config>::ExtrinsicParams as ExtrinsicParams<<C as Config>::Hash>>::OtherParams:
-            //     std::default::Default,
-            E: ink::env::Environment,
-            E::AccountId: Debug,
-            E::Balance: Debug + scale::HasCompact + serde::Serialize,
-            E::Hash: Debug + scale::Encode,
-        {
-            let constructor = TokenRef::new(supply_x);
-            let token_x = client
-                .instantiate("token", &ink_e2e::alice(), constructor, 0, None)
-                .await
-                .expect("Instantiate failed");
-
-            let constructor = TokenRef::new(supply_y);
-            let token_y = client
-                .instantiate("token", &ink_e2e::alice(), constructor, 0, None)
-                .await
-                .expect("Instantiate failed");
-
-            let constructor = ContractRef::new(protocol_fee);
-            let contract = client
-                .instantiate("contract", &ink_e2e::alice(), constructor, 0, None)
-                .await
-                .expect("Instantiate failed");
-
-            println!(
-                "Contract = {:?} | x = {:?} | y = {:?}",
-                contract, token_x, token_y
+        #[ink_e2e::test]
+        async fn macro_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let (x, y, dex) = create_tokens!(
+                client,
+                TokenRef,
+                TokenRef,
+                ContractRef,
+                100,
+                100,
+                Percentage::new(0)
             );
-
-            // Some((
-            //     AccountId::from([0x0; 32]),
-            //     AccountId::from([0x0; 32]),
-            //     AccountId::from([0x0; 32]),
-            // ))
-            // Ok((contract, token_x, token_y))
             Ok(())
         }
 
@@ -809,12 +755,15 @@ pub mod contract {
 
         #[ink_e2e::test]
         async fn change_protocol_fee(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let constructor = ContractRef::new(Percentage::new(0));
-            let contract: AccountId = client
-                .instantiate("contract", &ink_e2e::alice(), constructor, 0, None)
-                .await
-                .expect("Instantiate failed")
-                .account_id;
+            let (_, _, contract) = create_tokens!(
+                client,
+                TokenRef,
+                TokenRef,
+                ContractRef,
+                100,
+                100,
+                Percentage::new(0)
+            );
 
             let protocol_fee = {
                 let _msg = build_message::<ContractRef>(contract.clone())
@@ -852,883 +801,823 @@ pub mod contract {
             Ok(())
         }
 
-        // #[ink_e2e::test]
-        // #[should_panic]
-        // async fn change_protocol_fee_should_panic(mut client: ink_e2e::Client<C, E>) -> () {
-        //     let constructor = ContractRef::new(Percentage::new(0));
-        //     let contract: AccountId = client
-        //         .instantiate("contract", &ink_e2e::alice(), constructor, 0, None)
-        //         .await
-        //         .expect("Instantiate failed")
-        //         .account_id;
-
-        //     let result = {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.change_protocol_fee(Percentage::new(1)));
-        //         client
-        //             .call(&ink_e2e::bob(), _msg, 0, None)
-        //             .await
-        //             .expect("changing protocol fee failed")
-        //     };
-        // }
-
-        // #[ink_e2e::test]
-        // async fn test_positions(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-        //     let fee_tier = FeeTier {
-        //         fee: Percentage::new(1),
-        //         tick_spacing: 50u16,
-        //     };
-        //     let pool_key = PoolKey {
-        //         token_x: AccountId::from([0x01; 32]),
-        //         token_y: AccountId::from([0x02; 32]),
-        //         fee_tier,
-        //     };
-
-        //     let constructor = ContractRef::new(Percentage::new(0));
-        //     let contract: AccountId = client
-        //         .instantiate("contract", &ink_e2e::alice(), constructor, 0, None)
-        //         .await
-        //         .expect("Instantiate failed")
-        //         .account_id;
-
-        //     // Get all Alice positions - should be empty
-        //     let alice_positions = {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.get_all_positions());
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("getting posisitons failed")
-        //     }
-        //     .return_value();
-        //     assert_eq!(alice_positions, vec![]);
-
-        //     // Alice is adding 3 positions
-        //     {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.add_position());
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("added position failed")
-        //     };
-        //     {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.add_position());
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("added position failed")
-        //     };
-        //     {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.add_position());
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("added position failed")
-        //     };
-        //     // Get all Alice positions
-        //     let alice_positions = {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.get_all_positions());
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("getting posisitons failed")
-        //     }
-        //     .return_value();
-        //     assert_eq!(
-        //         alice_positions,
-        //         vec![
-        //             Position {
-        //                 ..Default::default()
-        //             },
-        //             Position {
-        //                 ..Default::default()
-        //             },
-        //             Position {
-        //                 ..Default::default()
-        //             },
-        //         ]
-        //     );
-
-        //     // Bob adds 2 positions
-        //     {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.add_position());
-        //         client
-        //             .call(&ink_e2e::bob(), _msg, 0, None)
-        //             .await
-        //             .expect("added position failed")
-        //     };
-        //     {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.add_position());
-        //         client
-        //             .call(&ink_e2e::bob(), _msg, 0, None)
-        //             .await
-        //             .expect("added position failed")
-        //     };
-
-        //     // Get all Alice positions
-        //     let bob_positions = {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.get_all_positions());
-        //         client
-        //             .call(&ink_e2e::bob(), _msg, 0, None)
-        //             .await
-        //             .expect("getting posisitons failed")
-        //     }
-        //     .return_value();
-        //     assert_eq!(
-        //         bob_positions,
-        //         vec![
-        //             Position {
-        //                 ..Default::default()
-        //             },
-        //             Position {
-        //                 ..Default::default()
-        //             },
-        //         ]
-        //     );
-
-        //     let alice_second_positions = {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.get_position(1));
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("Position recieving failed")
-        //     }
-        //     .return_value()
-        //     .unwrap();
-
-        //     assert_eq!(
-        //         Position {
-        //             ..Default::default()
-        //         },
-        //         alice_second_positions
-        //     );
-
-        //     let bob_first_position = {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.get_position(0));
-        //         client
-        //             .call(&ink_e2e::bob(), _msg, 0, None)
-        //             .await
-        //             .expect("Position recieving failed")
-        //     }
-        //     .return_value()
-        //     .unwrap();
-
-        //     assert_eq!(
-        //         Position {
-        //             ..Default::default()
-        //         },
-        //         bob_first_position
-        //     );
-
-        //     // Alice removes second position
-        //     {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.remove_position(1, pool_key));
-        //         client.call(&ink_e2e::alice(), _msg, 0, None).await;
-        //     }
-
-        //     let alice_second_positions = {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.get_position(1));
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("Position recieving failed")
-        //     }
-        //     .return_value()
-        //     .unwrap();
-
-        //     assert_eq!(
-        //         Position {
-        //             ..Default::default()
-        //         },
-        //         alice_second_positions
-        //     );
-
-        //     // Bob tires to remove position out of range
-        //     {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.remove_position(99, pool_key));
-        //         client.call(&ink_e2e::bob(), _msg, 0, None).await;
-        //     }
-
-        //     // Bob removes position first position
-        //     {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.remove_position(0, pool_key));
-        //         client.call(&ink_e2e::bob(), _msg, 0, None).await;
-        //     }
-        //     // Bob's first position
-        //     let bob_first_position = {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.get_position(0));
-        //         client
-        //             .call(&ink_e2e::bob(), _msg, 0, None)
-        //             .await
-        //             .expect("Position recieving failed")
-        //     }
-        //     .return_value()
-        //     .unwrap();
-
-        //     assert_eq!(
-        //         Position {
-        //             ..Default::default()
-        //         },
-        //         bob_first_position
-        //     );
-
-        //     Ok(())
-        // }
-
-        // #[ink_e2e::test]
-        // async fn create_pair_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-        //     let constructor = TokenRef::new(500);
-        //     let token_x: AccountId = client
-        //         .instantiate("token", &ink_e2e::alice(), constructor, 0, None)
-        //         .await
-        //         .expect("Instantiate failed")
-        //         .account_id;
-
-        //     let constructor = TokenRef::new(500);
-        //     let token_y: AccountId = client
-        //         .instantiate("token", &ink_e2e::alice(), constructor, 0, None)
-        //         .await
-        //         .expect("Instantiate failed")
-        //         .account_id;
-
-        //     let constructor = ContractRef::new(Percentage::new(0));
-        //     let contract: AccountId = client
-        //         .instantiate("contract", &ink_e2e::alice(), constructor, 0, None)
-        //         .await
-        //         .expect("Instantiate failed")
-        //         .account_id;
-
-        //     {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.create_pair(token_x, token_y));
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("Create pair failed")
-        //     };
-        //     Ok(())
-        // }
-
-        // #[ink_e2e::test]
-        // async fn create_xy_and_yx(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-        //     let constructor = TokenRef::new(500);
-        //     let token_x: AccountId = client
-        //         .instantiate("token", &ink_e2e::alice(), constructor, 0, None)
-        //         .await
-        //         .expect("Instantiate failed")
-        //         .account_id;
-
-        //     let constructor = TokenRef::new(500);
-        //     let token_y: AccountId = client
-        //         .instantiate("token", &ink_e2e::alice(), constructor, 0, None)
-        //         .await
-        //         .expect("Instantiate failed")
-        //         .account_id;
-
-        //     let constructor = ContractRef::new(Percentage::new(0));
-        //     let contract: AccountId = client
-        //         .instantiate("contract", &ink_e2e::alice(), constructor, 0, None)
-        //         .await
-        //         .expect("Instantiate failed")
-        //         .account_id;
-
-        //     let xy = {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.create_pair(token_x, token_y));
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("Create pair failed")
-        //     }
-        //     .return_value();
-        //     let yx = {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.create_pair(token_y, token_x));
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("Create pair failed")
-        //     }
-        //     .return_value();
-
-        //     let all_pairs_length = {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.all_pairs_length());
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("Create pair failed")
-        //     }
-        //     .return_value();
-
-        //     assert_eq!(all_pairs_length, 1);
-        //     assert_eq!(xy.token_x, yx.token_x);
-        //     assert_eq!(xy.token_y, yx.token_y);
-        //     Ok(())
-        // }
-
-        // #[ink_e2e::test]
-        // async fn token_mint_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-        //     let constructor = TokenRef::new(500);
-        //     let token_x: AccountId = client
-        //         .instantiate("token", &ink_e2e::alice(), constructor, 0, None)
-        //         .await
-        //         .expect("Instantiate failed")
-        //         .account_id;
-
-        //     let constructor = TokenRef::new(500);
-        //     let token_y: AccountId = client
-        //         .instantiate("token", &ink_e2e::alice(), constructor, 0, None)
-        //         .await
-        //         .expect("Instantiate failed")
-        //         .account_id;
-
-        //     let constructor = ContractRef::new(Percentage::new(0));
-        //     let dex: AccountId = client
-        //         .instantiate("contract", &ink_e2e::alice(), constructor, 0, None)
-        //         .await
-        //         .expect("Instantiate failed")
-        //         .account_id;
-
-        //     // Pair x/y created
-        //     {
-        //         let _msg = build_message::<ContractRef>(dex.clone())
-        //             .call(|contract| contract.create_pair(token_x, token_y));
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("Create pair failed");
-        //     };
-
-        //     let amount_x = Balance::from(50u128);
-        //     let amount_y = Balance::from(25u128);
-
-        //     // approve token x
-        //     let _result = {
-        //         let _msg = build_message::<TokenRef>(token_x.clone())
-        //             .call(|sc| sc.increase_allowance(dex.clone(), 100));
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("Approval failed")
-        //     };
-        //     // approve token y
-        //     let _result = {
-        //         let _msg = build_message::<TokenRef>(token_y.clone())
-        //             .call(|contract| contract.increase_allowance(dex.clone(), 100));
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("Approval failed")
-        //     };
-
-        //     {
-        //         let _msg = build_message::<ContractRef>(dex.clone())
-        //             .call(|contract| contract.mint_to(token_x, token_y, amount_x, amount_y));
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("Mint failed");
-        //     };
-
-        //     // Verify if users and contract has correct amount of tokens
-        //     {
-        //         let alice_token_x = {
-        //             let _msg = build_message::<TokenRef>(token_x.clone())
-        //                 .call(|contract| contract.balance_of(address_of!(Alice)));
-        //             client
-        //                 .call(&ink_e2e::alice(), _msg, 0, None)
-        //                 .await
-        //                 .expect("Balance of failed")
-        //         }
-        //         .return_value();
-        //         let alice_token_y = {
-        //             let _msg = build_message::<TokenRef>(token_y.clone())
-        //                 .call(|contract| contract.balance_of(address_of!(Alice)));
-        //             client
-        //                 .call(&ink_e2e::alice(), _msg, 0, None)
-        //                 .await
-        //                 .expect("Balance of failed")
-        //         }
-        //         .return_value();
-
-        //         assert_eq!(450, alice_token_x);
-        //         assert_eq!(475, alice_token_y);
-
-        //         let dex_token_x = {
-        //             let _msg = build_message::<TokenRef>(token_x.clone())
-        //                 .call(|contract| contract.balance_of(dex.clone()));
-        //             client
-        //                 .call(&ink_e2e::alice(), _msg, 0, None)
-        //                 .await
-        //                 .expect("Balance of failed")
-        //         }
-        //         .return_value();
-        //         let dex_token_y = {
-        //             let _msg = build_message::<TokenRef>(token_y.clone())
-        //                 .call(|contract| contract.balance_of(dex.clone()));
-        //             client
-        //                 .call(&ink_e2e::alice(), _msg, 0, None)
-        //                 .await
-        //                 .expect("Balance of failed")
-        //         }
-        //         .return_value();
-
-        //         assert_eq!(50, dex_token_x);
-        //         assert_eq!(25, dex_token_y);
-        //     }
-        //     Ok(())
-        // }
-
-        // #[ink_e2e::test]
-        // async fn single_token_mint_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-        //     let constructor = TokenRef::new(500);
-        //     let token_x: AccountId = client
-        //         .instantiate("token", &ink_e2e::alice(), constructor, 0, None)
-        //         .await
-        //         .expect("Instantiate failed")
-        //         .account_id;
-
-        //     let constructor = TokenRef::new(500);
-        //     let token_y: AccountId = client
-        //         .instantiate("token", &ink_e2e::alice(), constructor, 0, None)
-        //         .await
-        //         .expect("Instantiate failed")
-        //         .account_id;
-
-        //     let constructor = ContractRef::new(Percentage::new(0));
-        //     let dex: AccountId = client
-        //         .instantiate("contract", &ink_e2e::alice(), constructor, 0, None)
-        //         .await
-        //         .expect("Instantiate failed")
-        //         .account_id;
-
-        //     // Pair x/y created
-        //     {
-        //         let _msg = build_message::<ContractRef>(dex.clone())
-        //             .call(|contract| contract.create_pair(token_x, token_y));
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("Create pair failed");
-        //     };
-
-        //     let amount_x = Balance::from(50u128);
-        //     let amount_y = Balance::from(0u128);
-
-        //     // approve token x
-        //     let _result = {
-        //         let _msg = build_message::<TokenRef>(token_x.clone())
-        //             .call(|sc| sc.increase_allowance(dex.clone(), 100));
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("Approval failed")
-        //     };
-        //     // approve token y
-        //     let _result = {
-        //         let _msg = build_message::<TokenRef>(token_y.clone())
-        //             .call(|contract| contract.increase_allowance(dex.clone(), 100));
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("Approval failed")
-        //     };
-
-        //     {
-        //         let _msg = build_message::<ContractRef>(dex.clone())
-        //             .call(|contract| contract.mint_to(token_x, token_y, amount_x, amount_y));
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("Mint failed");
-        //     };
-
-        //     // Verify if users and contract has correct amount of tokens
-        //     {
-        //         let alice_token_x = {
-        //             let _msg = build_message::<TokenRef>(token_x.clone())
-        //                 .call(|contract| contract.balance_of(address_of!(Alice)));
-        //             client
-        //                 .call(&ink_e2e::alice(), _msg, 0, None)
-        //                 .await
-        //                 .expect("Balance of failed")
-        //         }
-        //         .return_value();
-        //         let alice_token_y = {
-        //             let _msg = build_message::<TokenRef>(token_y.clone())
-        //                 .call(|contract| contract.balance_of(address_of!(Alice)));
-        //             client
-        //                 .call(&ink_e2e::alice(), _msg, 0, None)
-        //                 .await
-        //                 .expect("Balance of failed")
-        //         }
-        //         .return_value();
-
-        //         assert_eq!(450, alice_token_x);
-        //         assert_eq!(500, alice_token_y);
-
-        //         let dex_token_x = {
-        //             let _msg = build_message::<TokenRef>(token_x.clone())
-        //                 .call(|contract| contract.balance_of(dex.clone()));
-        //             client
-        //                 .call(&ink_e2e::alice(), _msg, 0, None)
-        //                 .await
-        //                 .expect("Balance of failed")
-        //         }
-        //         .return_value();
-        //         let dex_token_y = {
-        //             let _msg = build_message::<TokenRef>(token_y.clone())
-        //                 .call(|contract| contract.balance_of(dex.clone()));
-        //             client
-        //                 .call(&ink_e2e::alice(), _msg, 0, None)
-        //                 .await
-        //                 .expect("Balance of failed")
-        //         }
-        //         .return_value();
-
-        //         assert_eq!(50, dex_token_x);
-        //         assert_eq!(0, dex_token_y);
-        //     }
-        //     Ok(())
-        // }
-
-        // #[ink_e2e::test]
-        // async fn token_burn_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-        //     let constructor = TokenRef::new(500);
-        //     let token_x: AccountId = client
-        //         .instantiate("token", &ink_e2e::alice(), constructor, 0, None)
-        //         .await
-        //         .expect("Instantiate failed")
-        //         .account_id;
-
-        //     let constructor = TokenRef::new(500);
-        //     let token_y: AccountId = client
-        //         .instantiate("token", &ink_e2e::alice(), constructor, 0, None)
-        //         .await
-        //         .expect("Instantiate failed")
-        //         .account_id;
-
-        //     let constructor = ContractRef::new(Percentage::new(0));
-        //     let dex: AccountId = client
-        //         .instantiate("contract", &ink_e2e::alice(), constructor, 0, None)
-        //         .await
-        //         .expect("Instantiate failed")
-        //         .account_id;
-
-        //     // Pair x/y created
-        //     {
-        //         let _msg = build_message::<ContractRef>(dex.clone())
-        //             .call(|contract| contract.create_pair(token_x, token_y));
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("Create pair failed");
-        //     };
-
-        //     let amount_x = Balance::from(50u128);
-        //     let amount_y = Balance::from(50u128);
-
-        //     // approve token x
-        //     let _result = {
-        //         let _msg = build_message::<TokenRef>(token_x.clone())
-        //             .call(|contract| contract.increase_allowance(dex.clone(), amount_x));
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("Approval failed")
-        //     };
-        //     // approve token y
-        //     let _result = {
-        //         let _msg = build_message::<TokenRef>(token_y.clone())
-        //             .call(|contract| contract.increase_allowance(dex.clone(), amount_y));
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("Approval failed")
-        //     };
-
-        //     // mint some
-        //     {
-        //         let _msg = build_message::<ContractRef>(dex.clone())
-        //             .call(|contract| contract.mint_to(token_x, token_y, amount_x, amount_y));
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("Mint failed");
-        //     };
-
-        //     let lp_amount = Balance::from(10u128);
-
-        //     // approve token x
-        //     let _result = {
-        //         let _msg = build_message::<TokenRef>(token_x.clone())
-        //             .call(|sc| sc.increase_allowance(dex.clone(), lp_amount));
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("Approval failed")
-        //     };
-        //     // approve token y
-        //     let _result = {
-        //         let _msg = build_message::<TokenRef>(token_y.clone())
-        //             .call(|contract| contract.increase_allowance(dex.clone(), lp_amount));
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("Approval failed")
-        //     };
-        //     // burn one
-        //     let result = {
-        //         let _msg = build_message::<ContractRef>(dex.clone())
-        //             .call(|contract| contract.burn_from(token_x, token_y, lp_amount));
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("burn failed");
-        //     };
-
-        //     // Verify if users and contract has correct amount of tokens
-        //     {
-        //         let alice_token_x = {
-        //             let _msg = build_message::<TokenRef>(token_x.clone())
-        //                 .call(|contract| contract.balance_of(address_of!(Alice)));
-        //             client
-        //                 .call(&ink_e2e::alice(), _msg, 0, None)
-        //                 .await
-        //                 .expect("Balance of failed")
-        //         }
-        //         .return_value();
-        //         let alice_token_y = {
-        //             let _msg = build_message::<TokenRef>(token_y.clone())
-        //                 .call(|contract| contract.balance_of(address_of!(Alice)));
-        //             client
-        //                 .call(&ink_e2e::alice(), _msg, 0, None)
-        //                 .await
-        //                 .expect("Balance of failed")
-        //         }
-        //         .return_value();
-
-        //         assert_eq!(450, alice_token_x);
-        //         assert_eq!(450, alice_token_y);
-
-        //         let dex_token_x = {
-        //             let _msg = build_message::<TokenRef>(token_x.clone())
-        //                 .call(|contract| contract.balance_of(dex.clone()));
-        //             client
-        //                 .call(&ink_e2e::alice(), _msg, 0, None)
-        //                 .await
-        //                 .expect("Balance of failed")
-        //         }
-        //         .return_value();
-        //         let dex_token_y = {
-        //             let _msg = build_message::<TokenRef>(token_y.clone())
-        //                 .call(|contract| contract.balance_of(dex.clone()));
-        //             client
-        //                 .call(&ink_e2e::alice(), _msg, 0, None)
-        //                 .await
-        //                 .expect("Balance of failed")
-        //         }
-        //         .return_value();
-
-        //         assert_eq!(50, dex_token_x);
-        //         assert_eq!(50, dex_token_y);
-        //     }
-
-        //     Ok(())
-        // }
-
-        // #[ink_e2e::test]
-        // async fn token_swap_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-        //     let constructor = TokenRef::new(500);
-        //     let token_x: AccountId = client
-        //         .instantiate("token", &ink_e2e::alice(), constructor, 0, None)
-        //         .await
-        //         .expect("Instantiate failed")
-        //         .account_id;
-
-        //     let constructor = TokenRef::new(500);
-        //     let token_y: AccountId = client
-        //         .instantiate("token", &ink_e2e::alice(), constructor, 0, None)
-        //         .await
-        //         .expect("Instantiate failed")
-        //         .account_id;
-
-        //     let constructor = ContractRef::new(Percentage::new(0));
-        //     let dex: AccountId = client
-        //         .instantiate("contract", &ink_e2e::alice(), constructor, 0, None)
-        //         .await
-        //         .expect("Instantiate failed")
-        //         .account_id;
-
-        //     // Pair x/y created
-        //     {
-        //         let _msg = build_message::<ContractRef>(dex.clone())
-        //             .call(|contract| contract.create_pair(token_x, token_y));
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("Create pair failed");
-        //     };
-
-        //     // approve token x
-        //     let amount_x = Balance::from(50u128);
-        //     let amount_y = Balance::from(50u128);
-
-        //     // approve token x
-        //     let _result = {
-        //         let _msg = build_message::<TokenRef>(token_x.clone())
-        //             .call(|contract| contract.increase_allowance(dex.clone(), amount_x));
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("Approval failed")
-        //     };
-        //     // approve token y
-        //     let _result = {
-        //         let _msg = build_message::<TokenRef>(token_y.clone())
-        //             .call(|contract| contract.increase_allowance(dex.clone(), amount_y));
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("Approval failed")
-        //     };
-
-        //     {
-        //         let _msg = build_message::<ContractRef>(dex.clone())
-        //             .call(|contract| contract.mint_to(token_x, token_y, amount_x, amount_y));
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("Mint failed");
-        //     };
-
-        //     // Check if contract recieved minted tokens
-        //     {
-        //         let dex_token_x = {
-        //             let _msg = build_message::<TokenRef>(token_x.clone())
-        //                 .call(|contract| contract.balance_of(dex.clone()));
-        //             client
-        //                 .call(&ink_e2e::alice(), _msg, 0, None)
-        //                 .await
-        //                 .expect("Balance of failed")
-        //         }
-        //         .return_value();
-        //         let dex_token_y = {
-        //             let _msg = build_message::<TokenRef>(token_y.clone())
-        //                 .call(|contract| contract.balance_of(dex.clone()));
-        //             client
-        //                 .call(&ink_e2e::alice(), _msg, 0, None)
-        //                 .await
-        //                 .expect("Balance of failed")
-        //         }
-        //         .return_value();
-
-        //         assert_eq!(dex_token_x, amount_x);
-        //         assert_eq!(dex_token_y, amount_y);
-        //     }
-
-        //     let amount_to_swap = Balance::from(10u128);
-
-        //     // approve token x
-        //     let _result = {
-        //         let _msg = build_message::<TokenRef>(token_x.clone())
-        //             .call(|contract| contract.increase_allowance(dex.clone(), amount_to_swap));
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("Approval failed")
-        //     };
-        //     // approve token y
-        //     let _result = {
-        //         let _msg = build_message::<TokenRef>(token_y.clone())
-        //             .call(|contract| contract.increase_allowance(dex.clone(), amount_to_swap));
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("Approval failed")
-        //     };
-
-        //     // swap x to y
-        //     {
-        //         let _msg = build_message::<ContractRef>(dex.clone())
-        //             .call(|contract| contract.swap_tokens(token_x, token_y, amount_to_swap, true));
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("Swap Failed");
-        //     };
-
-        //     {
-        //         let _msg = build_message::<ContractRef>(dex.clone())
-        //             .call(|contract| contract.swap_tokens(token_x, token_y, amount_to_swap, false));
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("Swap Failed");
-        //     };
-
-        //     // Verify if users and contract has correct amount of tokens
-        //     {
-        //         let alice_token_x = {
-        //             let _msg = build_message::<TokenRef>(token_x.clone())
-        //                 .call(|contract| contract.balance_of(address_of!(Alice)));
-        //             client
-        //                 .call(&ink_e2e::alice(), _msg, 0, None)
-        //                 .await
-        //                 .expect("Balance of failed")
-        //         }
-        //         .return_value();
-        //         let alice_token_y = {
-        //             let _msg = build_message::<TokenRef>(token_y.clone())
-        //                 .call(|contract| contract.balance_of(address_of!(Alice)));
-        //             client
-        //                 .call(&ink_e2e::alice(), _msg, 0, None)
-        //                 .await
-        //                 .expect("Balance of failed")
-        //         }
-        //         .return_value();
-
-        //         assert_eq!(450, alice_token_x);
-        //         assert_eq!(450, alice_token_y);
-
-        //         let dex_token_x = {
-        //             let _msg = build_message::<TokenRef>(token_x.clone())
-        //                 .call(|contract| contract.balance_of(dex.clone()));
-        //             client
-        //                 .call(&ink_e2e::alice(), _msg, 0, None)
-        //                 .await
-        //                 .expect("Balance of failed")
-        //         }
-        //         .return_value();
-        //         let dex_token_y = {
-        //             let _msg = build_message::<TokenRef>(token_y.clone())
-        //                 .call(|contract| contract.balance_of(dex.clone()));
-        //             client
-        //                 .call(&ink_e2e::alice(), _msg, 0, None)
-        //                 .await
-        //                 .expect("Balance of failed")
-        //         }
-        //         .return_value();
-
-        //         assert_eq!(50, dex_token_x);
-        //         assert_eq!(50, dex_token_y);
-        //     }
-        //     Ok(())
-        // }
+        #[ink_e2e::test]
+        #[should_panic]
+        async fn change_protocol_fee_should_panic(mut client: ink_e2e::Client<C, E>) -> () {
+            let (_, _, contract) = create_tokens!(
+                client,
+                TokenRef,
+                TokenRef,
+                ContractRef,
+                100,
+                100,
+                Percentage::new(0)
+            );
+
+            let result = {
+                let _msg = build_message::<ContractRef>(contract.clone())
+                    .call(|contract| contract.change_protocol_fee(Percentage::new(1)));
+                client
+                    .call(&ink_e2e::bob(), _msg, 0, None)
+                    .await
+                    .expect("changing protocol fee failed")
+            };
+        }
+
+        #[ink_e2e::test]
+        async fn test_positions(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let fee_tier = FeeTier {
+                fee: Percentage::new(1),
+                tick_spacing: 50u16,
+            };
+            let pool_key = PoolKey {
+                token_x: AccountId::from([0x01; 32]),
+                token_y: AccountId::from([0x02; 32]),
+                fee_tier,
+            };
+
+            let (_, _, contract) = create_tokens!(
+                client,
+                TokenRef,
+                TokenRef,
+                ContractRef,
+                100,
+                100,
+                Percentage::new(0)
+            );
+
+            // Get all Alice positions - should be empty
+            let alice_positions = {
+                let _msg = build_message::<ContractRef>(contract.clone())
+                    .call(|contract| contract.get_all_positions());
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("getting posisitons failed")
+            }
+            .return_value();
+            assert_eq!(alice_positions, vec![]);
+
+            // Alice is adding 3 positions
+            {
+                let _msg = build_message::<ContractRef>(contract.clone())
+                    .call(|contract| contract.add_position());
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("added position failed")
+            };
+            {
+                let _msg = build_message::<ContractRef>(contract.clone())
+                    .call(|contract| contract.add_position());
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("added position failed")
+            };
+            {
+                let _msg = build_message::<ContractRef>(contract.clone())
+                    .call(|contract| contract.add_position());
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("added position failed")
+            };
+            // Get all Alice positions
+            let alice_positions = {
+                let _msg = build_message::<ContractRef>(contract.clone())
+                    .call(|contract| contract.get_all_positions());
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("getting posisitons failed")
+            }
+            .return_value();
+            assert_eq!(
+                alice_positions,
+                vec![
+                    Position {
+                        ..Default::default()
+                    },
+                    Position {
+                        ..Default::default()
+                    },
+                    Position {
+                        ..Default::default()
+                    },
+                ]
+            );
+
+            // Bob adds 2 positions
+            {
+                let _msg = build_message::<ContractRef>(contract.clone())
+                    .call(|contract| contract.add_position());
+                client
+                    .call(&ink_e2e::bob(), _msg, 0, None)
+                    .await
+                    .expect("added position failed")
+            };
+            {
+                let _msg = build_message::<ContractRef>(contract.clone())
+                    .call(|contract| contract.add_position());
+                client
+                    .call(&ink_e2e::bob(), _msg, 0, None)
+                    .await
+                    .expect("added position failed")
+            };
+
+            // Get all Alice positions
+            let bob_positions = {
+                let _msg = build_message::<ContractRef>(contract.clone())
+                    .call(|contract| contract.get_all_positions());
+                client
+                    .call(&ink_e2e::bob(), _msg, 0, None)
+                    .await
+                    .expect("getting posisitons failed")
+            }
+            .return_value();
+            assert_eq!(
+                bob_positions,
+                vec![
+                    Position {
+                        ..Default::default()
+                    },
+                    Position {
+                        ..Default::default()
+                    },
+                ]
+            );
+
+            let alice_second_positions = {
+                let _msg = build_message::<ContractRef>(contract.clone())
+                    .call(|contract| contract.get_position(1));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("Position recieving failed")
+            }
+            .return_value()
+            .unwrap();
+
+            assert_eq!(
+                Position {
+                    ..Default::default()
+                },
+                alice_second_positions
+            );
+
+            let bob_first_position = {
+                let _msg = build_message::<ContractRef>(contract.clone())
+                    .call(|contract| contract.get_position(0));
+                client
+                    .call(&ink_e2e::bob(), _msg, 0, None)
+                    .await
+                    .expect("Position recieving failed")
+            }
+            .return_value()
+            .unwrap();
+
+            assert_eq!(
+                Position {
+                    ..Default::default()
+                },
+                bob_first_position
+            );
+
+            // Alice removes second position
+            {
+                let _msg = build_message::<ContractRef>(contract.clone())
+                    .call(|contract| contract.remove_position(1, pool_key));
+                client.call(&ink_e2e::alice(), _msg, 0, None).await;
+            }
+
+            let alice_second_positions = {
+                let _msg = build_message::<ContractRef>(contract.clone())
+                    .call(|contract| contract.get_position(1));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("Position recieving failed")
+            }
+            .return_value()
+            .unwrap();
+
+            assert_eq!(
+                Position {
+                    ..Default::default()
+                },
+                alice_second_positions
+            );
+
+            // Bob tires to remove position out of range
+            {
+                let _msg = build_message::<ContractRef>(contract.clone())
+                    .call(|contract| contract.remove_position(99, pool_key));
+                client.call(&ink_e2e::bob(), _msg, 0, None).await;
+            }
+
+            // Bob removes position first position
+            {
+                let _msg = build_message::<ContractRef>(contract.clone())
+                    .call(|contract| contract.remove_position(0, pool_key));
+                client.call(&ink_e2e::bob(), _msg, 0, None).await;
+            }
+            // Bob's first position
+            let bob_first_position = {
+                let _msg = build_message::<ContractRef>(contract.clone())
+                    .call(|contract| contract.get_position(0));
+                client
+                    .call(&ink_e2e::bob(), _msg, 0, None)
+                    .await
+                    .expect("Position recieving failed")
+            }
+            .return_value()
+            .unwrap();
+
+            assert_eq!(
+                Position {
+                    ..Default::default()
+                },
+                bob_first_position
+            );
+
+            Ok(())
+        }
+
+        #[ink_e2e::test]
+        async fn create_pair_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let (token_x, token_y, contract) = create_tokens!(
+                client,
+                TokenRef,
+                TokenRef,
+                ContractRef,
+                100,
+                100,
+                Percentage::new(0)
+            );
+
+            {
+                let _msg = build_message::<ContractRef>(contract.clone())
+                    .call(|contract| contract.create_pair(token_x, token_y));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("Create pair failed")
+            };
+            Ok(())
+        }
+
+        #[ink_e2e::test]
+        async fn create_xy_and_yx(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let (token_x, token_y, contract) = create_tokens!(
+                client,
+                TokenRef,
+                TokenRef,
+                ContractRef,
+                100,
+                100,
+                Percentage::new(0)
+            );
+
+            let xy = {
+                let _msg = build_message::<ContractRef>(contract.clone())
+                    .call(|contract| contract.create_pair(token_x, token_y));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("Create pair failed")
+            }
+            .return_value();
+            let yx = {
+                let _msg = build_message::<ContractRef>(contract.clone())
+                    .call(|contract| contract.create_pair(token_y, token_x));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("Create pair failed")
+            }
+            .return_value();
+
+            let all_pairs_length = {
+                let _msg = build_message::<ContractRef>(contract.clone())
+                    .call(|contract| contract.all_pairs_length());
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("Create pair failed")
+            }
+            .return_value();
+
+            assert_eq!(all_pairs_length, 1);
+            assert_eq!(xy.token_x, yx.token_x);
+            assert_eq!(xy.token_y, yx.token_y);
+            Ok(())
+        }
+
+        #[ink_e2e::test]
+        async fn token_mint_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let (token_x, token_y, dex) = create_tokens!(
+                client,
+                TokenRef,
+                TokenRef,
+                ContractRef,
+                500,
+                500,
+                Percentage::new(0)
+            );
+
+            // Pair x/y created
+            {
+                let _msg = build_message::<ContractRef>(dex.clone())
+                    .call(|contract| contract.create_pair(token_x, token_y));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("Create pair failed");
+            };
+
+            let amount_x = Balance::from(50u128);
+            let amount_y = Balance::from(25u128);
+
+            // approve token x
+            let _result = {
+                let _msg = build_message::<TokenRef>(token_x.clone())
+                    .call(|sc| sc.increase_allowance(dex.clone(), 100));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("Approval failed")
+            };
+            // approve token y
+            let _result = {
+                let _msg = build_message::<TokenRef>(token_y.clone())
+                    .call(|contract| contract.increase_allowance(dex.clone(), 100));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("Approval failed")
+            };
+
+            {
+                let _msg = build_message::<ContractRef>(dex.clone())
+                    .call(|contract| contract.mint_to(token_x, token_y, amount_x, amount_y));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("Mint failed");
+            };
+
+            // Verify if users and contract has correct amount of tokens
+            {
+                let alice_token_x = {
+                    let _msg = build_message::<TokenRef>(token_x.clone())
+                        .call(|contract| contract.balance_of(address_of!(Alice)));
+                    client
+                        .call(&ink_e2e::alice(), _msg, 0, None)
+                        .await
+                        .expect("Balance of failed")
+                }
+                .return_value();
+                let alice_token_y = {
+                    let _msg = build_message::<TokenRef>(token_y.clone())
+                        .call(|contract| contract.balance_of(address_of!(Alice)));
+                    client
+                        .call(&ink_e2e::alice(), _msg, 0, None)
+                        .await
+                        .expect("Balance of failed")
+                }
+                .return_value();
+
+                assert_eq!(450, alice_token_x);
+                assert_eq!(475, alice_token_y);
+
+                let dex_token_x = {
+                    let _msg = build_message::<TokenRef>(token_x.clone())
+                        .call(|contract| contract.balance_of(dex.clone()));
+                    client
+                        .call(&ink_e2e::alice(), _msg, 0, None)
+                        .await
+                        .expect("Balance of failed")
+                }
+                .return_value();
+                let dex_token_y = {
+                    let _msg = build_message::<TokenRef>(token_y.clone())
+                        .call(|contract| contract.balance_of(dex.clone()));
+                    client
+                        .call(&ink_e2e::alice(), _msg, 0, None)
+                        .await
+                        .expect("Balance of failed")
+                }
+                .return_value();
+
+                assert_eq!(50, dex_token_x);
+                assert_eq!(25, dex_token_y);
+            }
+            Ok(())
+        }
+
+        #[ink_e2e::test]
+        async fn single_token_mint_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let (token_x, token_y, dex) = create_tokens!(
+                client,
+                TokenRef,
+                TokenRef,
+                ContractRef,
+                500,
+                500,
+                Percentage::new(0)
+            );
+
+            // Pair x/y created
+            {
+                let _msg = build_message::<ContractRef>(dex.clone())
+                    .call(|contract| contract.create_pair(token_x, token_y));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("Create pair failed");
+            };
+
+            let amount_x = Balance::from(50u128);
+            let amount_y = Balance::from(0u128);
+
+            // approve token x
+            let _result = {
+                let _msg = build_message::<TokenRef>(token_x.clone())
+                    .call(|sc| sc.increase_allowance(dex.clone(), 100));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("Approval failed")
+            };
+            // approve token y
+            let _result = {
+                let _msg = build_message::<TokenRef>(token_y.clone())
+                    .call(|contract| contract.increase_allowance(dex.clone(), 100));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("Approval failed")
+            };
+
+            {
+                let _msg = build_message::<ContractRef>(dex.clone())
+                    .call(|contract| contract.mint_to(token_x, token_y, amount_x, amount_y));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("Mint failed");
+            };
+
+            // Verify if users and contract has correct amount of tokens
+            {
+                let alice_token_x = {
+                    let _msg = build_message::<TokenRef>(token_x.clone())
+                        .call(|contract| contract.balance_of(address_of!(Alice)));
+                    client
+                        .call(&ink_e2e::alice(), _msg, 0, None)
+                        .await
+                        .expect("Balance of failed")
+                }
+                .return_value();
+                let alice_token_y = {
+                    let _msg = build_message::<TokenRef>(token_y.clone())
+                        .call(|contract| contract.balance_of(address_of!(Alice)));
+                    client
+                        .call(&ink_e2e::alice(), _msg, 0, None)
+                        .await
+                        .expect("Balance of failed")
+                }
+                .return_value();
+
+                assert_eq!(450, alice_token_x);
+                assert_eq!(500, alice_token_y);
+
+                let dex_token_x = {
+                    let _msg = build_message::<TokenRef>(token_x.clone())
+                        .call(|contract| contract.balance_of(dex.clone()));
+                    client
+                        .call(&ink_e2e::alice(), _msg, 0, None)
+                        .await
+                        .expect("Balance of failed")
+                }
+                .return_value();
+                let dex_token_y = {
+                    let _msg = build_message::<TokenRef>(token_y.clone())
+                        .call(|contract| contract.balance_of(dex.clone()));
+                    client
+                        .call(&ink_e2e::alice(), _msg, 0, None)
+                        .await
+                        .expect("Balance of failed")
+                }
+                .return_value();
+
+                assert_eq!(50, dex_token_x);
+                assert_eq!(0, dex_token_y);
+            }
+            Ok(())
+        }
+
+        #[ink_e2e::test]
+        async fn token_burn_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let (token_x, token_y, dex) = create_tokens!(
+                client,
+                TokenRef,
+                TokenRef,
+                ContractRef,
+                500,
+                500,
+                Percentage::new(0)
+            );
+
+            // Pair x/y created
+            {
+                let _msg = build_message::<ContractRef>(dex.clone())
+                    .call(|contract| contract.create_pair(token_x, token_y));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("Create pair failed");
+            };
+
+            let amount_x = Balance::from(50u128);
+            let amount_y = Balance::from(50u128);
+
+            // approve token x
+            let _result = {
+                let _msg = build_message::<TokenRef>(token_x.clone())
+                    .call(|contract| contract.increase_allowance(dex.clone(), amount_x));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("Approval failed")
+            };
+            // approve token y
+            let _result = {
+                let _msg = build_message::<TokenRef>(token_y.clone())
+                    .call(|contract| contract.increase_allowance(dex.clone(), amount_y));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("Approval failed")
+            };
+
+            // mint some
+            {
+                let _msg = build_message::<ContractRef>(dex.clone())
+                    .call(|contract| contract.mint_to(token_x, token_y, amount_x, amount_y));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("Mint failed");
+            };
+
+            let lp_amount = Balance::from(10u128);
+
+            // approve token x
+            let _result = {
+                let _msg = build_message::<TokenRef>(token_x.clone())
+                    .call(|sc| sc.increase_allowance(dex.clone(), lp_amount));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("Approval failed")
+            };
+            // approve token y
+            let _result = {
+                let _msg = build_message::<TokenRef>(token_y.clone())
+                    .call(|contract| contract.increase_allowance(dex.clone(), lp_amount));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("Approval failed")
+            };
+            // burn one
+            let result = {
+                let _msg = build_message::<ContractRef>(dex.clone())
+                    .call(|contract| contract.burn_from(token_x, token_y, lp_amount));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("burn failed");
+            };
+
+            // Verify if users and contract has correct amount of tokens
+            {
+                let alice_token_x = {
+                    let _msg = build_message::<TokenRef>(token_x.clone())
+                        .call(|contract| contract.balance_of(address_of!(Alice)));
+                    client
+                        .call(&ink_e2e::alice(), _msg, 0, None)
+                        .await
+                        .expect("Balance of failed")
+                }
+                .return_value();
+                let alice_token_y = {
+                    let _msg = build_message::<TokenRef>(token_y.clone())
+                        .call(|contract| contract.balance_of(address_of!(Alice)));
+                    client
+                        .call(&ink_e2e::alice(), _msg, 0, None)
+                        .await
+                        .expect("Balance of failed")
+                }
+                .return_value();
+
+                assert_eq!(450, alice_token_x);
+                assert_eq!(450, alice_token_y);
+
+                let dex_token_x = {
+                    let _msg = build_message::<TokenRef>(token_x.clone())
+                        .call(|contract| contract.balance_of(dex.clone()));
+                    client
+                        .call(&ink_e2e::alice(), _msg, 0, None)
+                        .await
+                        .expect("Balance of failed")
+                }
+                .return_value();
+                let dex_token_y = {
+                    let _msg = build_message::<TokenRef>(token_y.clone())
+                        .call(|contract| contract.balance_of(dex.clone()));
+                    client
+                        .call(&ink_e2e::alice(), _msg, 0, None)
+                        .await
+                        .expect("Balance of failed")
+                }
+                .return_value();
+
+                assert_eq!(50, dex_token_x);
+                assert_eq!(50, dex_token_y);
+            }
+
+            Ok(())
+        }
+
+        #[ink_e2e::test]
+        async fn token_swap_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let (token_x, token_y, dex) = create_tokens!(
+                client,
+                TokenRef,
+                TokenRef,
+                ContractRef,
+                500,
+                500,
+                Percentage::new(0)
+            );
+
+            // Pair x/y created
+            {
+                let _msg = build_message::<ContractRef>(dex.clone())
+                    .call(|contract| contract.create_pair(token_x, token_y));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("Create pair failed");
+            };
+
+            // approve token x
+            let amount_x = Balance::from(50u128);
+            let amount_y = Balance::from(50u128);
+
+            // approve token x
+            let _result = {
+                let _msg = build_message::<TokenRef>(token_x.clone())
+                    .call(|contract| contract.increase_allowance(dex.clone(), amount_x));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("Approval failed")
+            };
+            // approve token y
+            let _result = {
+                let _msg = build_message::<TokenRef>(token_y.clone())
+                    .call(|contract| contract.increase_allowance(dex.clone(), amount_y));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("Approval failed")
+            };
+
+            {
+                let _msg = build_message::<ContractRef>(dex.clone())
+                    .call(|contract| contract.mint_to(token_x, token_y, amount_x, amount_y));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("Mint failed");
+            };
+
+            // Check if contract recieved minted tokens
+            {
+                let dex_token_x = {
+                    let _msg = build_message::<TokenRef>(token_x.clone())
+                        .call(|contract| contract.balance_of(dex.clone()));
+                    client
+                        .call(&ink_e2e::alice(), _msg, 0, None)
+                        .await
+                        .expect("Balance of failed")
+                }
+                .return_value();
+                let dex_token_y = {
+                    let _msg = build_message::<TokenRef>(token_y.clone())
+                        .call(|contract| contract.balance_of(dex.clone()));
+                    client
+                        .call(&ink_e2e::alice(), _msg, 0, None)
+                        .await
+                        .expect("Balance of failed")
+                }
+                .return_value();
+
+                assert_eq!(dex_token_x, amount_x);
+                assert_eq!(dex_token_y, amount_y);
+            }
+
+            let amount_to_swap = Balance::from(10u128);
+
+            // approve token x
+            let _result = {
+                let _msg = build_message::<TokenRef>(token_x.clone())
+                    .call(|contract| contract.increase_allowance(dex.clone(), amount_to_swap));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("Approval failed")
+            };
+            // approve token y
+            let _result = {
+                let _msg = build_message::<TokenRef>(token_y.clone())
+                    .call(|contract| contract.increase_allowance(dex.clone(), amount_to_swap));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("Approval failed")
+            };
+
+            // swap x to y
+            {
+                let _msg = build_message::<ContractRef>(dex.clone())
+                    .call(|contract| contract.swap_tokens(token_x, token_y, amount_to_swap, true));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("Swap Failed");
+            };
+
+            {
+                let _msg = build_message::<ContractRef>(dex.clone())
+                    .call(|contract| contract.swap_tokens(token_x, token_y, amount_to_swap, false));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("Swap Failed");
+            };
+
+            // Verify if users and contract has correct amount of tokens
+            {
+                let alice_token_x = {
+                    let _msg = build_message::<TokenRef>(token_x.clone())
+                        .call(|contract| contract.balance_of(address_of!(Alice)));
+                    client
+                        .call(&ink_e2e::alice(), _msg, 0, None)
+                        .await
+                        .expect("Balance of failed")
+                }
+                .return_value();
+                let alice_token_y = {
+                    let _msg = build_message::<TokenRef>(token_y.clone())
+                        .call(|contract| contract.balance_of(address_of!(Alice)));
+                    client
+                        .call(&ink_e2e::alice(), _msg, 0, None)
+                        .await
+                        .expect("Balance of failed")
+                }
+                .return_value();
+
+                assert_eq!(450, alice_token_x);
+                assert_eq!(450, alice_token_y);
+
+                let dex_token_x = {
+                    let _msg = build_message::<TokenRef>(token_x.clone())
+                        .call(|contract| contract.balance_of(dex.clone()));
+                    client
+                        .call(&ink_e2e::alice(), _msg, 0, None)
+                        .await
+                        .expect("Balance of failed")
+                }
+                .return_value();
+                let dex_token_y = {
+                    let _msg = build_message::<TokenRef>(token_y.clone())
+                        .call(|contract| contract.balance_of(dex.clone()));
+                    client
+                        .call(&ink_e2e::alice(), _msg, 0, None)
+                        .await
+                        .expect("Balance of failed")
+                }
+                .return_value();
+
+                assert_eq!(50, dex_token_x);
+                assert_eq!(50, dex_token_y);
+            }
+            Ok(())
+        }
     }
 }
