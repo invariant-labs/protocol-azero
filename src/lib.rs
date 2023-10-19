@@ -712,7 +712,9 @@ pub mod contract {
         use ink_e2e::build_message;
         use openbrush::contracts::psp22::psp22_external::PSP22;
         use openbrush::traits::Balance;
-        use test_helpers::{address_of, balance_of, create_tokens, dex_balance};
+        use test_helpers::{
+            address_of, approve, balance_of, create_pair, create_tokens, dex_balance,
+        };
         use token::TokenRef;
 
         use super::*;
@@ -730,6 +732,18 @@ pub mod contract {
                 100,
                 Percentage::new(0)
             );
+            create_pair!(client, x, y, ContractRef, dex);
+
+            // approve token x
+            // let _result = {
+            //     let _msg = build_message::<TokenRef>(token_x.clone())
+            //         .call(|sc| sc.increase_allowance(dex.clone(), 100));
+            //     client
+            //         .call(&ink_e2e::alice(), _msg, 0, None)
+            //         .await
+            //         .expect("Approval failed")
+            // };
+            approve!(client, TokenRef, x, dex, 100);
             Ok(())
         }
 
@@ -1054,15 +1068,7 @@ pub mod contract {
                 100,
                 Percentage::new(0)
             );
-
-            {
-                let _msg = build_message::<ContractRef>(contract.clone())
-                    .call(|contract| contract.create_pair(token_x, token_y));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("Create pair failed")
-            };
+            create_pair!(client, token_x, token_y, ContractRef, contract);
             Ok(())
         }
 
@@ -1078,24 +1084,9 @@ pub mod contract {
                 Percentage::new(0)
             );
 
-            let xy = {
-                let _msg = build_message::<ContractRef>(contract.clone())
-                    .call(|contract| contract.create_pair(token_x, token_y));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("Create pair failed")
-            }
-            .return_value();
-            let yx = {
-                let _msg = build_message::<ContractRef>(contract.clone())
-                    .call(|contract| contract.create_pair(token_y, token_x));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("Create pair failed")
-            }
-            .return_value();
+            let xy = create_pair!(client, token_x, token_y, ContractRef, contract);
+
+            let yx = create_pair!(client, token_x, token_y, ContractRef, contract);
 
             let all_pairs_length = {
                 let _msg = build_message::<ContractRef>(contract.clone())
@@ -1125,37 +1116,14 @@ pub mod contract {
                 Percentage::new(0)
             );
 
-            // Pair x/y created
-            {
-                let _msg = build_message::<ContractRef>(dex.clone())
-                    .call(|contract| contract.create_pair(token_x, token_y));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("Create pair failed");
-            };
+            create_pair!(client, token_x, token_y, ContractRef, dex);
 
             let amount_x = Balance::from(50u128);
             let amount_y = Balance::from(25u128);
-
             // approve token x
-            let _result = {
-                let _msg = build_message::<TokenRef>(token_x.clone())
-                    .call(|sc| sc.increase_allowance(dex.clone(), 100));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("Approval failed")
-            };
+            approve!(client, TokenRef, token_x, dex, amount_x);
             // approve token y
-            let _result = {
-                let _msg = build_message::<TokenRef>(token_y.clone())
-                    .call(|contract| contract.increase_allowance(dex.clone(), 100));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("Approval failed")
-            };
+            approve!(client, TokenRef, token_y, dex, amount_y);
 
             {
                 let _msg = build_message::<ContractRef>(dex.clone())
@@ -1168,50 +1136,17 @@ pub mod contract {
 
             // Verify if users and contract has correct amount of tokens
             {
-                let alice_token_x = {
-                    let _msg = build_message::<TokenRef>(token_x.clone())
-                        .call(|contract| contract.balance_of(address_of!(Alice)));
-                    client
-                        .call(&ink_e2e::alice(), _msg, 0, None)
-                        .await
-                        .expect("Balance of failed")
-                }
-                .return_value();
-                let alice_token_y = {
-                    let _msg = build_message::<TokenRef>(token_y.clone())
-                        .call(|contract| contract.balance_of(address_of!(Alice)));
-                    client
-                        .call(&ink_e2e::alice(), _msg, 0, None)
-                        .await
-                        .expect("Balance of failed")
-                }
-                .return_value();
-
+                let alice_token_x = balance_of!(TokenRef, client, token_x, Alice);
+                let alice_token_y = balance_of!(TokenRef, client, token_y, Alice);
                 assert_eq!(450, alice_token_x);
                 assert_eq!(475, alice_token_y);
 
-                let dex_token_x = {
-                    let _msg = build_message::<TokenRef>(token_x.clone())
-                        .call(|contract| contract.balance_of(dex.clone()));
-                    client
-                        .call(&ink_e2e::alice(), _msg, 0, None)
-                        .await
-                        .expect("Balance of failed")
-                }
-                .return_value();
-                let dex_token_y = {
-                    let _msg = build_message::<TokenRef>(token_y.clone())
-                        .call(|contract| contract.balance_of(dex.clone()));
-                    client
-                        .call(&ink_e2e::alice(), _msg, 0, None)
-                        .await
-                        .expect("Balance of failed")
-                }
-                .return_value();
-
+                let dex_token_x = dex_balance!(TokenRef, client, token_x, dex);
+                let dex_token_y = dex_balance!(TokenRef, client, token_y, dex);
                 assert_eq!(50, dex_token_x);
                 assert_eq!(25, dex_token_y);
             }
+
             Ok(())
         }
 
@@ -1228,36 +1163,15 @@ pub mod contract {
             );
 
             // Pair x/y created
-            {
-                let _msg = build_message::<ContractRef>(dex.clone())
-                    .call(|contract| contract.create_pair(token_x, token_y));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("Create pair failed");
-            };
+            create_pair!(client, token_x, token_y, ContractRef, dex);
 
             let amount_x = Balance::from(50u128);
             let amount_y = Balance::from(0u128);
 
             // approve token x
-            let _result = {
-                let _msg = build_message::<TokenRef>(token_x.clone())
-                    .call(|sc| sc.increase_allowance(dex.clone(), 100));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("Approval failed")
-            };
+            approve!(client, TokenRef, token_x, dex, amount_x);
             // approve token y
-            let _result = {
-                let _msg = build_message::<TokenRef>(token_y.clone())
-                    .call(|contract| contract.increase_allowance(dex.clone(), 100));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("Approval failed")
-            };
+            approve!(client, TokenRef, token_y, dex, amount_y);
 
             {
                 let _msg = build_message::<ContractRef>(dex.clone())
@@ -1296,36 +1210,15 @@ pub mod contract {
             );
 
             // Pair x/y created
-            {
-                let _msg = build_message::<ContractRef>(dex.clone())
-                    .call(|contract| contract.create_pair(token_x, token_y));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("Create pair failed");
-            };
+            create_pair!(client, token_x, token_y, ContractRef, dex);
 
             let amount_x = Balance::from(50u128);
             let amount_y = Balance::from(50u128);
 
             // approve token x
-            let _result = {
-                let _msg = build_message::<TokenRef>(token_x.clone())
-                    .call(|contract| contract.increase_allowance(dex.clone(), amount_x));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("Approval failed")
-            };
+            approve!(client, TokenRef, token_x, dex, amount_x);
             // approve token y
-            let _result = {
-                let _msg = build_message::<TokenRef>(token_y.clone())
-                    .call(|contract| contract.increase_allowance(dex.clone(), amount_y));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("Approval failed")
-            };
+            approve!(client, TokenRef, token_y, dex, amount_y);
 
             // mint some
             {
@@ -1340,23 +1233,10 @@ pub mod contract {
             let lp_amount = Balance::from(10u128);
 
             // approve token x
-            let _result = {
-                let _msg = build_message::<TokenRef>(token_x.clone())
-                    .call(|sc| sc.increase_allowance(dex.clone(), lp_amount));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("Approval failed")
-            };
+            approve!(client, TokenRef, token_x, dex, lp_amount);
             // approve token y
-            let _result = {
-                let _msg = build_message::<TokenRef>(token_y.clone())
-                    .call(|contract| contract.increase_allowance(dex.clone(), lp_amount));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("Approval failed")
-            };
+            approve!(client, TokenRef, token_y, dex, lp_amount);
+
             // burn one
             let result = {
                 let _msg = build_message::<ContractRef>(dex.clone())
@@ -1395,37 +1275,15 @@ pub mod contract {
             );
 
             // Pair x/y created
-            {
-                let _msg = build_message::<ContractRef>(dex.clone())
-                    .call(|contract| contract.create_pair(token_x, token_y));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("Create pair failed");
-            };
+            create_pair!(client, token_x, token_y, ContractRef, dex);
 
-            // approve token x
             let amount_x = Balance::from(50u128);
             let amount_y = Balance::from(50u128);
 
             // approve token x
-            let _result = {
-                let _msg = build_message::<TokenRef>(token_x.clone())
-                    .call(|contract| contract.increase_allowance(dex.clone(), amount_x));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("Approval failed")
-            };
+            approve!(client, TokenRef, token_x, dex, amount_x);
             // approve token y
-            let _result = {
-                let _msg = build_message::<TokenRef>(token_y.clone())
-                    .call(|contract| contract.increase_allowance(dex.clone(), amount_y));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("Approval failed")
-            };
+            approve!(client, TokenRef, token_y, dex, amount_y);
 
             {
                 let _msg = build_message::<ContractRef>(dex.clone())
@@ -1438,27 +1296,10 @@ pub mod contract {
 
             // Check if contract recieved minted tokens
             {
-                let dex_token_x = {
-                    let _msg = build_message::<TokenRef>(token_x.clone())
-                        .call(|contract| contract.balance_of(dex.clone()));
-                    client
-                        .call(&ink_e2e::alice(), _msg, 0, None)
-                        .await
-                        .expect("Balance of failed")
-                }
-                .return_value();
-                let dex_token_y = {
-                    let _msg = build_message::<TokenRef>(token_y.clone())
-                        .call(|contract| contract.balance_of(dex.clone()));
-                    client
-                        .call(&ink_e2e::alice(), _msg, 0, None)
-                        .await
-                        .expect("Balance of failed")
-                }
-                .return_value();
-
-                assert_eq!(dex_token_x, amount_x);
-                assert_eq!(dex_token_y, amount_y);
+                let dex_token_x = dex_balance!(TokenRef, client, token_x, dex);
+                let dex_token_y = dex_balance!(TokenRef, client, token_y, dex);
+                assert_eq!(amount_x, dex_token_x);
+                assert_eq!(amount_y, dex_token_y);
             }
 
             let amount_to_swap = Balance::from(10u128);
