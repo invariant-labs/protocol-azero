@@ -817,14 +817,22 @@ pub mod contract {
         use openbrush::contracts::psp22::psp22_external::PSP22;
         use openbrush::traits::Balance;
         use test_helpers::{
-            address_of, approve, balance_of, create_dex, create_pair, create_tokens,
-            create_tokens_and_pair, dex_balance,
+            address_of, approve, balance_of, create_dex, create_fee_tier, create_pair,
+            create_standard_fee_tiers, create_tokens, create_tokens_and_pair, dex_balance,
         };
         use token::TokenRef;
 
         use super::*;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
+
+        #[ink_e2e::test]
+        async fn create_fee_tier_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let dex = create_dex!(client, ContractRef, Percentage::new(0));
+            create_fee_tier!(client, ContractRef, Percentage::new(0), 10u16);
+
+            Ok(())
+        }
 
         #[ink_e2e::test]
         async fn constructor_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {

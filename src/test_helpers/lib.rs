@@ -323,4 +323,24 @@ macro_rules! approve {
     }};
 }
 
-// increase allowances
+#[macro_export]
+macro_rules! create_standard_fee_tiers {
+    ($client:ident, $token:ty ,$token_address:expr, $dex_address:expr, $amount:expr) => {{}};
+}
+
+#[macro_export]
+macro_rules! create_fee_tier {
+    ($client:ident, $dex:ty, $dex_address:expr, $fee:expr, $spacing:expr) => {{
+        // client => ink_e2e_client
+        // x:ident || y:ident => Addresses of x and y tokens
+        // dex:ty => ContractRef
+        // dex_address:expr => Address of contract
+        let _msg = build_message::<$dex>($dex_address.clone())
+            .call(|contract| contract.add_fee_tier($fee, $spacing));
+        $client
+            .call(&ink_e2e::alice(), _msg, 0, None)
+            .await
+            .expect("Fee Tier creation failed")
+            .return_value()
+    }};
+}
