@@ -330,8 +330,11 @@ macro_rules! create_standard_fee_tiers {
         // client => ink_e2e_client
         // dex:ty => ContractRef
         // dex_address:expr => Address of contract
+        // 1 * 10^(-4) = 0.0001 = 0.01%
         create_fee_tier!($client, $dex, $dex_address, Percentage::from_scale(1, 4), 1);
+        // 5 * 10^(-4) = 0.0005 = 0.05%
         create_fee_tier!($client, $dex, $dex_address, Percentage::from_scale(5, 4), 5);
+        // 1  * 10^(-3) = 0.001 = 0.1%
         create_fee_tier!(
             $client,
             $dex,
@@ -339,6 +342,7 @@ macro_rules! create_standard_fee_tiers {
             Percentage::from_scale(1, 3),
             10
         );
+        // 3 * 10(-3) = 0.003 = 0.3%
         create_fee_tier!(
             $client,
             $dex,
@@ -346,6 +350,7 @@ macro_rules! create_standard_fee_tiers {
             Percentage::from_scale(3, 3),
             30
         );
+        // 1 * 10^(-2) = 0.01 = 1%
         create_fee_tier!(
             $client,
             $dex,
@@ -353,6 +358,7 @@ macro_rules! create_standard_fee_tiers {
             Percentage::from_scale(1, 2),
             100
         );
+        // 5 * 10^(-2) = 0.05 = 5%
         create_fee_tier!(
             $client,
             $dex,
@@ -360,18 +366,20 @@ macro_rules! create_standard_fee_tiers {
             Percentage::from_scale(5, 2),
             100
         );
+        // 10 * 10^(-2) = 0.1 = 10%
         create_fee_tier!(
             $client,
             $dex,
             $dex_address,
-            Percentage::from_scale(10, 1),
+            Percentage::from_scale(10, 2),
             100
         );
+        // 50 * 10^(-2) = 0.5 = 50%
         create_fee_tier!(
             $client,
             $dex,
             $dex_address,
-            Percentage::from_scale(50, 1),
+            Percentage::from_scale(50, 2),
             100
         );
     }};
