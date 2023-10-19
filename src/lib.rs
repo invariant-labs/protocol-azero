@@ -23,6 +23,7 @@ pub enum ContractErrors {
     TickNotFound,
     FeeTierNotFound,
     InvalidTickSpacing,
+    FeeTierAlreadyAdded,
 }
 #[ink::contract]
 pub mod contract {
@@ -509,9 +510,14 @@ pub mod contract {
             }
 
             let fee_tier_key = FeeTierKey(fee, tick_spacing);
-            self.fee_tiers.add_fee_tier(fee_tier_key);
-            self.fee_tier_keys.push(fee_tier_key);
-            Ok(())
+
+            if self.fee_tiers.get_fee_tier(fee_tier_key).is_some() {
+                return Err(ContractErrors::FeeTierAlreadyAdded);
+            } else {
+                self.fee_tiers.add_fee_tier(fee_tier_key);
+                self.fee_tier_keys.push(fee_tier_key);
+                Ok(())
+            }
         }
 
         #[ink(message)]
@@ -771,9 +777,11 @@ pub mod contract {
                 tick_spacing: 10u16,
             };
 
-            contract.add_fee_tier(Percentage::new(1), 10u16);
+            contract.add_fee_tier(Percentage::new(1), 10u16).unwrap();
             assert_eq!(contract.fee_tier_keys.len(), 1);
-
+            contract
+                .add_fee_tier(Percentage::new(1), 10u16)
+                .unwrap_err();
             contract.remove_fee_tier(fee_tier_key);
             assert_eq!(contract.fee_tier_keys.len(), 0);
         }
