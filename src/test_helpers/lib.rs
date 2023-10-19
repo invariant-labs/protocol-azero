@@ -18,6 +18,18 @@ macro_rules! balance_of {
 }
 
 #[macro_export]
+macro_rules! dex_balance {
+    ($contract_type:ty, $client:ident, $address:ident, $account:ident) => {{
+        let _msg = build_message::<$contract_type>($address.clone())
+            .call(|contract| contract.balance_of($account));
+        $client
+            .call_dry_run(&ink_e2e::alice(), &_msg, 0, None)
+            .await
+            .return_value()
+    }};
+}
+
+#[macro_export]
 macro_rules! owner_of {
     ($contract_type:ty, $client:ident, $address:ident, $id:expr) => {{
         let _msg = build_message::<$contract_type>($address.clone())
@@ -248,3 +260,6 @@ macro_rules! create_tokens {
         (x, y, dex)
     }};
 }
+
+// create_pair
+// increase allowances

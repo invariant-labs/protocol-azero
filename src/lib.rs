@@ -712,8 +712,7 @@ pub mod contract {
         use ink_e2e::build_message;
         use openbrush::contracts::psp22::psp22_external::PSP22;
         use openbrush::traits::Balance;
-        use std::process::Termination;
-        use test_helpers::{address_of, create_tokens};
+        use test_helpers::{address_of, balance_of, create_tokens, dex_balance};
         use token::TokenRef;
 
         use super::*;
@@ -1271,47 +1270,13 @@ pub mod contract {
 
             // Verify if users and contract has correct amount of tokens
             {
-                let alice_token_x = {
-                    let _msg = build_message::<TokenRef>(token_x.clone())
-                        .call(|contract| contract.balance_of(address_of!(Alice)));
-                    client
-                        .call(&ink_e2e::alice(), _msg, 0, None)
-                        .await
-                        .expect("Balance of failed")
-                }
-                .return_value();
-                let alice_token_y = {
-                    let _msg = build_message::<TokenRef>(token_y.clone())
-                        .call(|contract| contract.balance_of(address_of!(Alice)));
-                    client
-                        .call(&ink_e2e::alice(), _msg, 0, None)
-                        .await
-                        .expect("Balance of failed")
-                }
-                .return_value();
-
+                let alice_token_x = balance_of!(TokenRef, client, token_x, Alice);
+                let alice_token_y = balance_of!(TokenRef, client, token_y, Alice);
                 assert_eq!(450, alice_token_x);
                 assert_eq!(500, alice_token_y);
 
-                let dex_token_x = {
-                    let _msg = build_message::<TokenRef>(token_x.clone())
-                        .call(|contract| contract.balance_of(dex.clone()));
-                    client
-                        .call(&ink_e2e::alice(), _msg, 0, None)
-                        .await
-                        .expect("Balance of failed")
-                }
-                .return_value();
-                let dex_token_y = {
-                    let _msg = build_message::<TokenRef>(token_y.clone())
-                        .call(|contract| contract.balance_of(dex.clone()));
-                    client
-                        .call(&ink_e2e::alice(), _msg, 0, None)
-                        .await
-                        .expect("Balance of failed")
-                }
-                .return_value();
-
+                let dex_token_x = dex_balance!(TokenRef, client, token_x, dex);
+                let dex_token_y = dex_balance!(TokenRef, client, token_y, dex);
                 assert_eq!(50, dex_token_x);
                 assert_eq!(0, dex_token_y);
             }
@@ -1404,51 +1369,16 @@ pub mod contract {
 
             // Verify if users and contract has correct amount of tokens
             {
-                let alice_token_x = {
-                    let _msg = build_message::<TokenRef>(token_x.clone())
-                        .call(|contract| contract.balance_of(address_of!(Alice)));
-                    client
-                        .call(&ink_e2e::alice(), _msg, 0, None)
-                        .await
-                        .expect("Balance of failed")
-                }
-                .return_value();
-                let alice_token_y = {
-                    let _msg = build_message::<TokenRef>(token_y.clone())
-                        .call(|contract| contract.balance_of(address_of!(Alice)));
-                    client
-                        .call(&ink_e2e::alice(), _msg, 0, None)
-                        .await
-                        .expect("Balance of failed")
-                }
-                .return_value();
-
+                let alice_token_x = balance_of!(TokenRef, client, token_x, Alice);
+                let alice_token_y = balance_of!(TokenRef, client, token_y, Alice);
                 assert_eq!(450, alice_token_x);
                 assert_eq!(450, alice_token_y);
 
-                let dex_token_x = {
-                    let _msg = build_message::<TokenRef>(token_x.clone())
-                        .call(|contract| contract.balance_of(dex.clone()));
-                    client
-                        .call(&ink_e2e::alice(), _msg, 0, None)
-                        .await
-                        .expect("Balance of failed")
-                }
-                .return_value();
-                let dex_token_y = {
-                    let _msg = build_message::<TokenRef>(token_y.clone())
-                        .call(|contract| contract.balance_of(dex.clone()));
-                    client
-                        .call(&ink_e2e::alice(), _msg, 0, None)
-                        .await
-                        .expect("Balance of failed")
-                }
-                .return_value();
-
+                let dex_token_x = dex_balance!(TokenRef, client, token_x, dex);
+                let dex_token_y = dex_balance!(TokenRef, client, token_y, dex);
                 assert_eq!(50, dex_token_x);
                 assert_eq!(50, dex_token_y);
             }
-
             Ok(())
         }
 
@@ -1570,53 +1500,19 @@ pub mod contract {
                     .await
                     .expect("Swap Failed");
             };
-
             // Verify if users and contract has correct amount of tokens
             {
-                let alice_token_x = {
-                    let _msg = build_message::<TokenRef>(token_x.clone())
-                        .call(|contract| contract.balance_of(address_of!(Alice)));
-                    client
-                        .call(&ink_e2e::alice(), _msg, 0, None)
-                        .await
-                        .expect("Balance of failed")
-                }
-                .return_value();
-                let alice_token_y = {
-                    let _msg = build_message::<TokenRef>(token_y.clone())
-                        .call(|contract| contract.balance_of(address_of!(Alice)));
-                    client
-                        .call(&ink_e2e::alice(), _msg, 0, None)
-                        .await
-                        .expect("Balance of failed")
-                }
-                .return_value();
-
+                let alice_token_x = balance_of!(TokenRef, client, token_x, Alice);
+                let alice_token_y = balance_of!(TokenRef, client, token_y, Alice);
                 assert_eq!(450, alice_token_x);
                 assert_eq!(450, alice_token_y);
 
-                let dex_token_x = {
-                    let _msg = build_message::<TokenRef>(token_x.clone())
-                        .call(|contract| contract.balance_of(dex.clone()));
-                    client
-                        .call(&ink_e2e::alice(), _msg, 0, None)
-                        .await
-                        .expect("Balance of failed")
-                }
-                .return_value();
-                let dex_token_y = {
-                    let _msg = build_message::<TokenRef>(token_y.clone())
-                        .call(|contract| contract.balance_of(dex.clone()));
-                    client
-                        .call(&ink_e2e::alice(), _msg, 0, None)
-                        .await
-                        .expect("Balance of failed")
-                }
-                .return_value();
-
+                let dex_token_x = dex_balance!(TokenRef, client, token_x, dex);
+                let dex_token_y = dex_balance!(TokenRef, client, token_y, dex);
                 assert_eq!(50, dex_token_x);
                 assert_eq!(50, dex_token_y);
             }
+
             Ok(())
         }
     }
