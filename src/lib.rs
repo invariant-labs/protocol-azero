@@ -111,8 +111,11 @@ pub mod contract {
             Ok(())
         }
 
-        #[ink(message)]
-        pub fn create_tick(&mut self, pool_key: PoolKey, index: i32) -> Result<(), ContractErrors> {
+        pub fn create_tick(
+            &mut self,
+            pool_key: PoolKey,
+            index: i32,
+        ) -> Result<Tick, ContractErrors> {
             check_tick(index, pool_key.fee_tier.tick_spacing)
                 .map_err(|_| ContractErrors::InvalidTickIndexOrTickSpacing)?;
 
@@ -127,29 +130,30 @@ pub mod contract {
             let tick = Tick::create(index, &pool, current_timestamp);
             self.ticks.add_tick(pool_key, index, tick);
 
-            Ok(())
+            Ok(tick)
         }
 
         #[ink(message)]
         pub fn create_position(
-            &self,
+            &mut self,
             pool_key: PoolKey,
             lower_tick: i32,
             upper_tick: i32,
             liquidity_delta: Liquidity,
             slippage_limit_lower: SqrtPrice,
             slippage_limit_upper: SqrtPrice,
-        ) -> Result<(), ContractErrors> {
+        ) -> Result<Position, ContractErrors> {
             let mut pool = self.pools.get_pool(pool_key)?;
 
             let mut lower_tick = self
                 .ticks
                 .get_tick(pool_key, lower_tick)
-                .ok_or(ContractErrors::TickNotFound)?;
+                .unwrap_or(self.create_tick(pool_key, lower_tick)?);
+
             let mut upper_tick = self
                 .ticks
                 .get_tick(pool_key, upper_tick)
-                .ok_or(ContractErrors::TickNotFound)?;
+                .unwrap_or(self.create_tick(pool_key, upper_tick)?);
 
             let current_timestamp = self.env().block_timestamp();
             let current_block_number = self.env().block_number() as u64;
@@ -184,7 +188,7 @@ pub mod contract {
             )
             .ok();
 
-            Ok(())
+            Ok(position)
         }
 
         #[ink(message)]
@@ -920,26 +924,6 @@ pub mod contract {
                     .expect("add pool failed")
             };
 
-            let pool_key = PoolKey::new(token_x, token_y, fee_tier);
-
-            {
-                let _msg = build_message::<ContractRef>(contract_address.clone())
-                    .call(|contract| contract.create_tick(pool_key, -10));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("create tick failed")
-            };
-
-            {
-                let _msg = build_message::<ContractRef>(contract_address.clone())
-                    .call(|contract| contract.create_tick(pool_key, 10));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("create tick failed")
-            };
-
             {
                 let _msg = build_message::<TokenRef>(token_x.clone())
                     .call(|sc| sc.increase_allowance(contract_address.clone(), 500));
@@ -956,6 +940,8 @@ pub mod contract {
                     .await
                     .expect("increaase allowance failed")
             };
+
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier);
 
             {
                 let _msg =
