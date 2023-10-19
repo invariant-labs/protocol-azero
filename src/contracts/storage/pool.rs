@@ -179,38 +179,32 @@ impl Pool {
     pub fn cross_tick(
         &mut self,
         result: SwapResult,
-        tick: &mut Tick,
         swap_limit: SqrtPrice,
-        limiting_tick: Option<(i32, Option<Tick>)>,
+        limiting_tick: Option<(i32, Option<&mut Tick>)>,
         remaining_amount: &mut TokenAmount,
         by_amount_in: bool,
         x_to_y: bool,
         current_timestamp: u64,
         total_amount_in: &mut TokenAmount,
         protocol_fee: Percentage,
-        fee: Percentage,
-        tick_spacing: u16,
+        fee_tier: FeeTier,
     ) {
         if result.next_sqrt_price == swap_limit && limiting_tick.is_some() {
-            let tick_index = limiting_tick.unwrap().0;
-            let initialized = match limiting_tick.unwrap().1 {
-                Some(_) => true,
-                None => false,
-            };
+            let (tick_index, tick) = limiting_tick.unwrap();
 
             let is_enough_amount_to_cross = unwrap!(is_enough_amount_to_push_price(
                 *remaining_amount,
                 result.next_sqrt_price,
                 self.liquidity,
-                fee,
+                fee_tier.fee,
                 by_amount_in,
                 x_to_y,
             ));
 
             // crossing tick
-            if initialized {
+            if tick.is_some() {
                 if !x_to_y || is_enough_amount_to_cross {
-                    let _ = tick.cross(self, current_timestamp);
+                    let _ = tick.unwrap().cross(self, current_timestamp);
                 } else if !remaining_amount.is_zero() {
                     if by_amount_in {
                         self.add_fee(*remaining_amount, x_to_y, protocol_fee)
@@ -223,13 +217,15 @@ impl Pool {
 
             // set tick to limit (below if price is going down, because current tick should always be below price)
             self.current_tick_index = if x_to_y && is_enough_amount_to_cross {
-                tick_index - tick_spacing as i32
+                tick_index - fee_tier.tick_spacing as i32
             } else {
                 tick_index
             };
         } else {
-            self.current_tick_index =
-                unwrap!(get_tick_at_sqrt_price(result.next_sqrt_price, tick_spacing));
+            self.current_tick_index = unwrap!(get_tick_at_sqrt_price(
+                result.next_sqrt_price,
+                fee_tier.tick_spacing
+            ));
         };
     }
 
