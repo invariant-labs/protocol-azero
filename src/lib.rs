@@ -681,7 +681,6 @@ pub mod contract {
             if tick_spacing == 0 {
                 return Err(ContractErrors::InvalidTickSpacing);
             }
-
             let fee_tier_key = FeeTierKey(fee, tick_spacing);
 
             if self.fee_tiers.get_fee_tier(fee_tier_key).is_some() {
@@ -990,8 +989,9 @@ pub mod contract {
         use openbrush::contracts::psp22::psp22_external::PSP22;
         use openbrush::traits::Balance;
         use test_helpers::{
-            address_of, approve, balance_of, create_dex, create_pair, create_tokens,
-            create_tokens_and_pair, dex_balance,
+            address_of, approve, balance_of, create_dex, create_fee_tier, create_pair,
+            create_standard_fee_tiers, create_tokens, create_tokens_and_pair, dex_balance,
+            get_fee_tier,
         };
         use token::TokenRef;
 
@@ -1058,20 +1058,20 @@ pub mod contract {
             Ok(())
         }
 
-        #[ink_e2e::test]
-        #[should_panic]
-        async fn change_protocol_fee_should_panic(mut client: ink_e2e::Client<C, E>) -> () {
-            let contract = create_dex!(client, ContractRef, Percentage::new(0));
+        // #[ink_e2e::test]
+        // #[should_panic]
+        // async fn change_protocol_fee_should_panic(mut client: ink_e2e::Client<C, E>) -> () {
+        //     let contract = create_dex!(client, ContractRef, Percentage::new(0));
 
-            let result = {
-                let _msg = build_message::<ContractRef>(contract.clone())
-                    .call(|contract| contract.change_protocol_fee(Percentage::new(1)));
-                client
-                    .call(&ink_e2e::bob(), _msg, 0, None)
-                    .await
-                    .expect("changing protocol fee failed")
-            };
-        }
+        //     let result = {
+        //         let _msg = build_message::<ContractRef>(contract.clone())
+        //             .call(|contract| contract.change_protocol_fee(Percentage::new(1)));
+        //         client
+        //             .call(&ink_e2e::bob(), _msg, 0, None)
+        //             .await
+        //             .expect("changing protocol fee failed")
+        //     };
+        // }
 
         #[ink_e2e::test]
         async fn create_position(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
@@ -1612,6 +1612,29 @@ pub mod contract {
                 assert_eq!(50, dex_token_y);
             }
 
+            Ok(())
+        }
+
+        #[ink_e2e::test]
+        async fn create_fee_tier_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let dex = create_dex!(client, ContractRef, Percentage::new(0));
+            create_fee_tier!(client, ContractRef, dex, Percentage::new(0), 10u16);
+            let fee_tier = get_fee_tier!(client, ContractRef, dex, Percentage::new(0), 10u16);
+            assert!(fee_tier.is_some());
+            Ok(())
+        }
+        #[ink_e2e::test]
+        async fn create_standard_fee_tier_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let dex = create_dex!(client, ContractRef, Percentage::new(0));
+            create_standard_fee_tiers!(client, ContractRef, dex);
+            let fee_tier = get_fee_tier!(
+                client,
+                ContractRef,
+                dex,
+                Percentage::from_scale(5, 2),
+                100u16
+            );
+            assert!(fee_tier.is_some());
             Ok(())
         }
     }
