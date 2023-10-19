@@ -178,6 +178,9 @@ pub mod contract {
                 pool_key.fee_tier.tick_spacing,
             );
 
+            let caller = self.env().caller();
+            self.positions.add(caller, position);
+
             PSP22Ref::transfer_from(
                 &pool_key.token_x,
                 self.env().caller(),
@@ -329,7 +332,19 @@ pub mod contract {
                     vec![],
                 )
                 .ok();
-            }
+            };
+
+            Ok(())
+        }
+
+        #[ink(message)]
+        pub fn transfer_position(
+            &mut self,
+            index: u32,
+            receiver: AccountId,
+        ) -> Result<(), ContractErrors> {
+            let caller = self.env().caller();
+            self.positions.transfer(caller, index, receiver)?;
 
             Ok(())
         }
@@ -474,7 +489,7 @@ pub mod contract {
         #[ink(message)]
         pub fn add_position(&mut self) {
             let caller = self.env().caller();
-            self.positions.add(caller, Position::default())
+            self.positions.add(caller, Position::default());
         }
 
         #[ink(message)]
