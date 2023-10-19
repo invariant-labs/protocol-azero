@@ -238,15 +238,12 @@ macro_rules! method_call_dry_run {
 }
 #[macro_export]
 macro_rules! create_tokens {
-    ($client:ident, $x:ty,$y:ty, $dex:ty, $supply_x:expr, $supply_y:expr, $dex_fee:expr) => {{
+    ($client:ident, $x:ty, $y:ty, $supply_x:expr, $supply_y:expr) => {{
         // ink_e2e client
         // x:ty  || y:ty => x token ref => TokenRef
-        // dex:ty => dex ref => ContractRef
         // supply_x:expr || supply_y:expr => amount of initial supply x => 100
-        // dex_fee:exp => protocol_fee => Percentage::new(..)
         let constructor_x = <$x>::new($supply_x);
         let constructor_y = <$y>::new($supply_y);
-        let constructor_dex = <$dex>::new($dex_fee);
         let x = $client
             .instantiate("token", &ink_e2e::alice(), constructor_x, 0, None)
             .await
@@ -257,12 +254,45 @@ macro_rules! create_tokens {
             .await
             .expect("instantiate failed")
             .account_id;
+        (x, y)
+    }};
+}
+
+#[macro_export]
+macro_rules! create_dex {
+    ($client:ident,  $dex:ty, $dex_fee:expr) => {{
+        // ink_e2e client
+        // dex:ty => dex ref => ContractRef
+        // dex_fee:exp => protocol_fee => Percentage::new(..)
+        let constructor_dex = <$dex>::new($dex_fee);
         let dex = $client
             .instantiate("contract", &ink_e2e::alice(), constructor_dex, 0, None)
             .await
             .expect("instantiate failed")
             .account_id;
-        (x, y, dex)
+        dex
+    }};
+}
+
+#[macro_export]
+macro_rules! create_tokens_and_pair {
+    ($client:ident, $x:ty, $y:ty, $supply_x:expr, $supply_y:expr) => {{
+        // ink_e2e client
+        // x:ty  || y:ty => x token ref => TokenRef
+        // supply_x:expr || supply_y:expr => amount of initial supply x => 100
+        let constructor_x = <$x>::new($supply_x);
+        let constructor_y = <$y>::new($supply_y);
+        let x = $client
+            .instantiate("token", &ink_e2e::alice(), constructor_x, 0, None)
+            .await
+            .expect("instantiate failed")
+            .account_id;
+        let y = $client
+            .instantiate("token", &ink_e2e::alice(), constructor_y, 0, None)
+            .await
+            .expect("instantiate failed")
+            .account_id;
+        (x, y)
     }};
 }
 
