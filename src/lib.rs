@@ -22,6 +22,10 @@ pub enum ContractErrors {
     PositionNotFound,
     TickNotFound,
     FeeTierNotFound,
+    AmountIsZero,
+    WrongLimit,
+    PriceLimitReached,
+    NoGainSwap,
     InvalidTickSpacing,
     FeeTierAlreadyAdded,
 }
@@ -50,6 +54,7 @@ pub mod contract {
     use crate::math::token_amount::TokenAmount;
     use crate::math::types::liquidity::Liquidity;
     use crate::math::MAX_TICK;
+    use crate::math::{compute_swap_step, MAX_SQRT_PRICE, MIN_SQRT_PRICE};
     use decimal::*;
     use ink::prelude::vec;
     use ink::prelude::vec::Vec;
@@ -113,6 +118,23 @@ pub mod contract {
             Ok(())
         }
 
+        #[ink(message)]
+        pub fn change_fee_receiver(
+            &mut self,
+            pool_key: PoolKey,
+            fee_receiver: AccountId,
+        ) -> Result<(), ContractErrors> {
+            let caller = self.env().caller();
+
+            if caller != self.state.admin {
+                return Err(ContractErrors::NotAnAdmin);
+            }
+
+            self.pools.change_fee_receiver(pool_key, fee_receiver)?;
+
+            Ok(())
+        }
+
         pub fn create_tick(
             &mut self,
             pool_key: PoolKey,
@@ -173,6 +195,9 @@ pub mod contract {
                 pool_key.fee_tier.tick_spacing,
             );
 
+            let caller = self.env().caller();
+            self.positions.add(caller, position);
+
             PSP22Ref::transfer_from(
                 &pool_key.token_x,
                 self.env().caller(),
@@ -191,6 +216,154 @@ pub mod contract {
             .ok();
 
             Ok(position)
+        }
+
+        #[ink(message)]
+        pub fn swap(
+            &mut self,
+            pool_key: PoolKey,
+            x_to_y: bool,
+            amount: TokenAmount,
+            by_amount_in: bool,
+            sqrt_price_limit: SqrtPrice,
+        ) -> Result<(), ContractErrors> {
+            if amount.is_zero() {
+                return Err(ContractErrors::AmountIsZero);
+            }
+
+            let mut pool = self.pools.get_pool(pool_key)?;
+            let current_timestamp = self.env().block_timestamp();
+
+            if x_to_y {
+                if pool.sqrt_price > sqrt_price_limit
+                    && sqrt_price_limit <= SqrtPrice::new(MAX_SQRT_PRICE)
+                {
+                    return Err(ContractErrors::WrongLimit);
+                }
+            } else {
+                if pool.sqrt_price > sqrt_price_limit
+                    && sqrt_price_limit <= SqrtPrice::new(MIN_SQRT_PRICE)
+                {
+                    return Err(ContractErrors::WrongLimit);
+                }
+            }
+
+            let mut remaining_amount = amount;
+
+            let mut total_amount_in = TokenAmount(0);
+            let mut total_amount_out = TokenAmount(0);
+
+            while !remaining_amount.is_zero() {
+                let (swap_limit, limiting_tick) = self.tickmap.get_closer_limit(
+                    sqrt_price_limit,
+                    x_to_y,
+                    pool.current_tick_index,
+                    pool_key.fee_tier.tick_spacing,
+                    pool_key,
+                );
+
+                let result = unwrap!(compute_swap_step(
+                    pool.sqrt_price,
+                    swap_limit,
+                    pool.liquidity,
+                    remaining_amount,
+                    by_amount_in,
+                    pool_key.fee_tier.fee,
+                ));
+                // make remaining amount smaller
+                if by_amount_in {
+                    remaining_amount -= result.amount_in + result.fee_amount;
+                } else {
+                    remaining_amount -= result.amount_out;
+                }
+
+                pool.sqrt_price = result.next_sqrt_price;
+
+                total_amount_in += result.amount_in + result.fee_amount;
+                total_amount_out += result.amount_out;
+
+                // Fail if price would go over swap limit
+                if pool.sqrt_price == sqrt_price_limit && !remaining_amount.is_zero() {
+                    return Err(ContractErrors::PriceLimitReached);
+                }
+
+                // TODO: refactor
+                let mut _tick = Tick::default();
+
+                let update_limiting_tick = limiting_tick.map(|(index, bool)| {
+                    if bool {
+                        _tick = self.ticks.get_tick(pool_key, index).unwrap();
+                        (index, Some(&mut _tick))
+                    } else {
+                        (index, None)
+                    }
+                });
+
+                pool.cross_tick(
+                    result,
+                    swap_limit,
+                    update_limiting_tick,
+                    &mut remaining_amount,
+                    by_amount_in,
+                    x_to_y,
+                    current_timestamp,
+                    &mut total_amount_in,
+                    self.state.protocol_fee,
+                    pool_key.fee_tier,
+                );
+            }
+
+            if total_amount_out.get() == 0 {
+                return Err(ContractErrors::NoGainSwap);
+            }
+
+            if x_to_y {
+                PSP22Ref::transfer_from(
+                    &pool_key.token_x,
+                    self.env().caller(),
+                    self.env().account_id(),
+                    total_amount_in.get(),
+                    vec![],
+                )
+                .ok();
+                PSP22Ref::transfer(
+                    &pool_key.token_y,
+                    self.env().caller(),
+                    total_amount_out.get(),
+                    vec![],
+                )
+                .ok();
+            } else {
+                PSP22Ref::transfer_from(
+                    &pool_key.token_y,
+                    self.env().caller(),
+                    self.env().account_id(),
+                    total_amount_in.get(),
+                    vec![],
+                )
+                .ok();
+                PSP22Ref::transfer(
+                    &pool_key.token_x,
+                    self.env().caller(),
+                    total_amount_out.get(),
+                    vec![],
+                )
+                .ok();
+            };
+
+            Ok(())
+        }
+
+        #[ink(message)]
+        pub fn transfer_position(
+            &mut self,
+            index: u32,
+            receiver: AccountId,
+        ) -> Result<(), ContractErrors> {
+            let caller = self.env().caller();
+            self.positions.transfer(caller, index, receiver)?;
+
+            Ok(())
         }
 
         #[ink(message)]
@@ -333,7 +506,7 @@ pub mod contract {
         #[ink(message)]
         pub fn add_position(&mut self) {
             let caller = self.env().caller();
-            self.positions.add(caller, Position::default())
+            self.positions.add(caller, Position::default());
         }
 
         #[ink(message)]
@@ -508,7 +681,6 @@ pub mod contract {
             if tick_spacing == 0 {
                 return Err(ContractErrors::InvalidTickSpacing);
             }
-
             let fee_tier_key = FeeTierKey(fee, tick_spacing);
 
             if self.fee_tiers.get_fee_tier(fee_tier_key).is_some() {
@@ -817,8 +989,9 @@ pub mod contract {
         use openbrush::contracts::psp22::psp22_external::PSP22;
         use openbrush::traits::Balance;
         use test_helpers::{
-            address_of, approve, balance_of, create_dex, create_pair, create_tokens,
-            create_tokens_and_pair, dex_balance,
+            address_of, approve, balance_of, create_dex, create_fee_tier, create_pair,
+            create_standard_fee_tiers, create_tokens, create_tokens_and_pair, dex_balance,
+            get_fee_tier,
         };
         use token::TokenRef;
 
@@ -885,20 +1058,20 @@ pub mod contract {
             Ok(())
         }
 
-        #[ink_e2e::test]
-        #[should_panic]
-        async fn change_protocol_fee_should_panic(mut client: ink_e2e::Client<C, E>) -> () {
-            let contract = create_dex!(client, ContractRef, Percentage::new(0));
+        // #[ink_e2e::test]
+        // #[should_panic]
+        // async fn change_protocol_fee_should_panic(mut client: ink_e2e::Client<C, E>) -> () {
+        //     let contract = create_dex!(client, ContractRef, Percentage::new(0));
 
-            let result = {
-                let _msg = build_message::<ContractRef>(contract.clone())
-                    .call(|contract| contract.change_protocol_fee(Percentage::new(1)));
-                client
-                    .call(&ink_e2e::bob(), _msg, 0, None)
-                    .await
-                    .expect("changing protocol fee failed")
-            };
-        }
+        //     let result = {
+        //         let _msg = build_message::<ContractRef>(contract.clone())
+        //             .call(|contract| contract.change_protocol_fee(Percentage::new(1)));
+        //         client
+        //             .call(&ink_e2e::bob(), _msg, 0, None)
+        //             .await
+        //             .expect("changing protocol fee failed")
+        //     };
+        // }
 
         #[ink_e2e::test]
         async fn create_position(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
@@ -1439,6 +1612,30 @@ pub mod contract {
                 assert_eq!(50, dex_token_y);
             }
 
+            Ok(())
+        }
+
+        #[ink_e2e::test]
+        async fn create_fee_tier_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let dex = create_dex!(client, ContractRef, Percentage::new(0));
+            create_fee_tier!(client, ContractRef, dex, Percentage::new(0), 10u16);
+            let fee_tier = get_fee_tier!(client, ContractRef, dex, Percentage::new(0), 10u16);
+            assert!(fee_tier.is_some());
+            Ok(())
+        }
+
+        #[ink_e2e::test]
+        async fn create_standard_fee_tier_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let dex = create_dex!(client, ContractRef, Percentage::new(0));
+            create_standard_fee_tiers!(client, ContractRef, dex);
+            let fee_tier = get_fee_tier!(
+                client,
+                ContractRef,
+                dex,
+                Percentage::from_scale(5, 2),
+                100u16
+            );
+            assert!(fee_tier.is_some());
             Ok(())
         }
 

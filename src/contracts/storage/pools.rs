@@ -1,6 +1,7 @@
 use ink::storage::Mapping;
 use openbrush::traits::AccountId;
 
+use crate::contract::Contract;
 use crate::contracts::FeeTier;
 use crate::contracts::Pool;
 use crate::contracts::PoolKey;
@@ -38,6 +39,7 @@ impl Pools {
 
         Ok(())
     }
+
     pub fn get_pool(&self, pool_key: PoolKey) -> Result<Pool, ContractErrors> {
         let pool_option = self.pools.get(pool_key);
         let pool = pool_option.ok_or(ContractErrors::PoolNotFound)?;
@@ -46,5 +48,21 @@ impl Pools {
 
     pub fn remove_pool(&mut self, pool_key: PoolKey) {
         self.pools.remove(&pool_key);
+    }
+
+    pub fn change_fee_receiver(
+        &mut self,
+        pool_key: PoolKey,
+        fee_receiver: AccountId,
+    ) -> Result<(), ContractErrors> {
+        let mut pool = self.get_pool(pool_key)?;
+        pool.fee_receiver = fee_receiver;
+        self.update_pool(pool_key, pool);
+
+        Ok(())
+    }
+
+    fn update_pool(&mut self, pool_key: PoolKey, pool: Pool) {
+        self.pools.insert(pool_key, &pool);
     }
 }
