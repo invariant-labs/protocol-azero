@@ -265,17 +265,16 @@ pub mod contract {
                     return Err(ContractErrors::PriceLimitReached);
                 }
 
-                let mut tick_ref = Tick::default();
-                let mut tick = None;
+                let mut _tick = Tick::default();
 
-                let (index, initialized) = limiting_tick.unwrap();
-
-                if initialized {
-                    tick_ref = self.ticks.get_tick(pool_key, index).unwrap();
-                    tick = Some(&mut tick_ref);
-                }
-
-                let limiting_tick = Some((index, tick));
+                let limiting_tick = limiting_tick.map(|(index, bool)| {
+                    if bool {
+                        _tick = self.ticks.get_tick(pool_key, index).unwrap();
+                        (index, Some(&mut _tick))
+                    } else {
+                        (index, None)
+                    }
+                });
 
                 pool.cross_tick(
                     result,
