@@ -323,4 +323,21 @@ macro_rules! approve {
     }};
 }
 
-// increase allowances
+#[macro_export]
+macro_rules! create_pool {
+    ($client:ident, $dex:ty, $dex_address:expr, $x:ident, $y:ident, $fee_tier:expr, $init_tick:expr) => {{
+        // client => ink_e2e_client
+        // x:ident || y:ident => Addresses of x and y tokens
+        // dex:ty => ContractRef
+        // dex_address:expr => Address of contract
+        // fee:expr => u64
+        // spacing:expr => tick_spacing as u16
+        let _msg = build_message::<$dex>($dex_address.clone())
+            .call(|contract| contract.add_pool($x, $y, $fee_tier, $init_tick));
+        $client
+            .call(&ink_e2e::alice(), _msg, 0, None)
+            .await
+            .expect("Pool creation failed")
+            .return_value()
+    }};
+}

@@ -1441,5 +1441,10 @@ pub mod contract {
 
             Ok(())
         }
+
+        #[ink_e2e::test]
+        async fn create_pool_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            Ok(())
+        }
     }
 }
