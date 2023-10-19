@@ -366,20 +366,20 @@ macro_rules! create_standard_fee_tiers {
             Percentage::from_scale(5, 2),
             100
         );
-        // 10 * 10^(-2) = 0.1 = 10%
+        // 1 * 10^(-1) = 0.1 = 10%
         create_fee_tier!(
             $client,
             $dex,
             $dex_address,
-            Percentage::from_scale(10, 2),
+            Percentage::from_scale(1, 1),
             100
         );
-        // 50 * 10^(-2) = 0.5 = 50%
+        // 5 * 10^(-1) = 0.5 = 50%
         create_fee_tier!(
             $client,
             $dex,
             $dex_address,
-            Percentage::from_scale(50, 2),
+            Percentage::from_scale(5, 1),
             100
         );
     }};
