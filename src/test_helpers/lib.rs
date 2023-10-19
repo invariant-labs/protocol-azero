@@ -1,3 +1,4 @@
+use decimal::*;
 #[macro_export]
 macro_rules! address_of {
     ($account:ident) => {
@@ -329,14 +330,50 @@ macro_rules! create_standard_fee_tiers {
         // client => ink_e2e_client
         // dex:ty => ContractRef
         // dex_address:expr => Address of contract
-        create_fee_tier!($client, $dex, $dex_address, 0.01 as u64, 1);
-        create_fee_tier!($client, $dex, $dex_address, 0.05 as u64, 5);
-        create_fee_tier!($client, $dex, $dex_address, 0.1 as u64, 10);
-        create_fee_tier!($client, $dex, $dex_address, 0.3 as u64, 30);
-        create_fee_tier!($client, $dex, $dex_address, 1 as u64, 100);
-        create_fee_tier!($client, $dex, $dex_address, 5 as u64, 100);
-        create_fee_tier!($client, $dex, $dex_address, 10 as u64, 100);
-        create_fee_tier!($client, $dex, $dex_address, 50 as u64, 100);
+        create_fee_tier!($client, $dex, $dex_address, Percentage::from_scale(1, 4), 1);
+        create_fee_tier!($client, $dex, $dex_address, Percentage::from_scale(5, 4), 5);
+        create_fee_tier!(
+            $client,
+            $dex,
+            $dex_address,
+            Percentage::from_scale(1, 3),
+            10
+        );
+        create_fee_tier!(
+            $client,
+            $dex,
+            $dex_address,
+            Percentage::from_scale(3, 3),
+            30
+        );
+        create_fee_tier!(
+            $client,
+            $dex,
+            $dex_address,
+            Percentage::from_scale(1, 2),
+            100
+        );
+        create_fee_tier!(
+            $client,
+            $dex,
+            $dex_address,
+            Percentage::from_scale(5, 2),
+            100
+        );
+        create_fee_tier!(
+            $client,
+            $dex,
+            $dex_address,
+            Percentage::from_scale(10, 1),
+            100
+        );
+        create_fee_tier!(
+            $client,
+            $dex,
+            $dex_address,
+            Percentage::from_scale(50, 1),
+            100
+        );
     }};
 }
 

@@ -496,7 +496,11 @@ pub mod contract {
 
         // Fee tiers
         #[ink(message)]
-        pub fn add_fee_tier(&mut self, fee: u64, tick_spacing: u16) -> Result<(), ContractErrors> {
+        pub fn add_fee_tier(
+            &mut self,
+            fee: Percentage,
+            tick_spacing: u16,
+        ) -> Result<(), ContractErrors> {
             if self.env().caller() != self.state.admin {
                 return Err(ContractErrors::NotAnAdmin);
             }
@@ -504,8 +508,6 @@ pub mod contract {
             if tick_spacing == 0 {
                 return Err(ContractErrors::InvalidTickSpacing);
             }
-            let fee = Percentage::from_integer(fee);
-
             let fee_tier_key = FeeTierKey(fee, tick_spacing);
 
             if self.fee_tiers.get_fee_tier(fee_tier_key).is_some() {
@@ -768,15 +770,17 @@ pub mod contract {
         #[ink::test]
         fn test_fee_tiers() {
             let mut contract = Contract::new(Percentage::new(0));
-            let fee_tier_key = FeeTierKey(Percentage::from_integer(1), 10u16);
+            let fee_tier_key = FeeTierKey(Percentage::new(1), 10u16);
             let fee_tier_value = FeeTier {
                 fee: Percentage::new(1),
                 tick_spacing: 10u16,
             };
 
-            contract.add_fee_tier(1, 10u16).unwrap();
+            contract.add_fee_tier(Percentage::new(1), 10u16).unwrap();
             assert_eq!(contract.fee_tier_keys.len(), 1);
-            contract.add_fee_tier(1, 10u16).unwrap_err();
+            contract
+                .add_fee_tier(Percentage::new(1), 10u16)
+                .unwrap_err();
             contract.remove_fee_tier(fee_tier_key);
             assert_eq!(contract.fee_tier_keys.len(), 0);
         }
@@ -1440,7 +1444,7 @@ pub mod contract {
         #[ink_e2e::test]
         async fn create_fee_tier_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let dex = create_dex!(client, ContractRef, Percentage::new(0));
-            create_fee_tier!(client, ContractRef, dex, 0, 10u16);
+            create_fee_tier!(client, ContractRef, dex, Percentage::new(0), 10u16);
 
             let key = FeeTierKey(Percentage::new(0), 10u16);
             let result = {
@@ -1460,7 +1464,7 @@ pub mod contract {
             let dex = create_dex!(client, ContractRef, Percentage::new(0));
             create_standard_fee_tiers!(client, ContractRef, dex);
 
-            let key = FeeTierKey(Percentage::from_integer(5), 100u16);
+            let key = FeeTierKey(Percentage::from_scale(5, 2), 100u16);
             let result = {
                 let _msg = build_message::<ContractRef>(dex.clone())
                     .call(|contract| contract.get_fee_tier(key));
