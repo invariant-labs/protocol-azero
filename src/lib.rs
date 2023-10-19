@@ -494,8 +494,9 @@ pub mod contract {
 
         // Fee tiers
         #[ink(message)]
-        pub fn add_fee_tier(&mut self, key: FeeTierKey, value: FeeTier) {
-            self.fee_tiers.add_fee_tier(key, value);
+        pub fn add_fee_tier(&mut self, key: FeeTierKey, fee: Percentage, tick_spacing: u16) {
+            let fee_tier = FeeTier { fee, tick_spacing };
+            self.fee_tiers.add_fee_tier(key, fee_tier);
             self.fee_tier_keys.push(key);
         }
 
@@ -756,7 +757,7 @@ pub mod contract {
                 tick_spacing: 50u16,
             };
 
-            contract.add_fee_tier(fee_tier_key, fee_tier_value);
+            contract.add_fee_tier(fee_tier_key, Percentage::new(1), 50u16);
             assert_eq!(contract.fee_tier_keys.len(), 1);
 
             let recieved_fee_tier = contract.get_fee_tier(fee_tier_key);
