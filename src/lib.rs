@@ -22,6 +22,7 @@ pub enum ContractErrors {
     PositionNotFound,
     TickNotFound,
     FeeTierNotFound,
+    InvalidTickSpacing,
 }
 #[ink::contract]
 pub mod contract {
@@ -494,10 +495,19 @@ pub mod contract {
 
         // Fee tiers
         #[ink(message)]
-        pub fn add_fee_tier(&mut self, key: FeeTierKey, fee: Percentage, tick_spacing: u16) {
+        pub fn add_fee_tier(
+            &mut self,
+            key: FeeTierKey,
+            fee: Percentage,
+            tick_spacing: u16,
+        ) -> Result<(), ContractErrors> {
+            if tick_spacing == 0 {
+                return Err(ContractErrors::InvalidTickSpacing);
+            }
             let fee_tier = FeeTier { fee, tick_spacing };
             self.fee_tiers.add_fee_tier(key, fee_tier);
             self.fee_tier_keys.push(key);
+            Ok(())
         }
 
         #[ink(message)]
