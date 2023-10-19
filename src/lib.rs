@@ -722,32 +722,6 @@ pub mod contract {
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
-        async fn macro_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let (x, y, dex) = create_tokens!(
-                client,
-                TokenRef,
-                TokenRef,
-                ContractRef,
-                100,
-                100,
-                Percentage::new(0)
-            );
-            create_pair!(client, x, y, ContractRef, dex);
-
-            // approve token x
-            // let _result = {
-            //     let _msg = build_message::<TokenRef>(token_x.clone())
-            //         .call(|sc| sc.increase_allowance(dex.clone(), 100));
-            //     client
-            //         .call(&ink_e2e::alice(), _msg, 0, None)
-            //         .await
-            //         .expect("Approval failed")
-            // };
-            approve!(client, TokenRef, x, dex, 100);
-            Ok(())
-        }
-
-        #[ink_e2e::test]
         async fn constructor_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = TokenRef::new(500);
             let _token: AccountId = client
