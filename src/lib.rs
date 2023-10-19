@@ -989,9 +989,9 @@ pub mod contract {
         use openbrush::contracts::psp22::psp22_external::PSP22;
         use openbrush::traits::Balance;
         use test_helpers::{
-            address_of, approve, balance_of, create_dex, create_fee_tier, create_pair,
+            address_of, approve, balance_of, create_dex, create_fee_tier, create_pair, create_pool,
             create_standard_fee_tiers, create_tokens, create_tokens_and_pair, dex_balance,
-            get_fee_tier,
+            get_fee_tier, get_pool,
         };
         use token::TokenRef;
 
@@ -1641,6 +1641,27 @@ pub mod contract {
 
         #[ink_e2e::test]
         async fn create_pool_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let dex = create_dex!(client, ContractRef, Percentage::new(0));
+            let (token_x, token_y) = create_tokens!(client, TokenRef, TokenRef, 500, 500);
+
+            let fee_tier = FeeTier {
+                fee: Percentage::from_scale(5, 1),
+                tick_spacing: 100,
+            };
+            let init_tick = 0;
+
+            let result = create_pool!(
+                client,
+                ContractRef,
+                dex,
+                token_x,
+                token_y,
+                fee_tier,
+                init_tick
+            );
+            assert!(result.is_ok());
+
+            let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
             Ok(())
         }
     }
