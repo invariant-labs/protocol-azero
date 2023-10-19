@@ -509,14 +509,13 @@ pub mod contract {
             }
 
             let fee_tier_key = FeeTierKey(fee, tick_spacing);
-            let fee_tier = FeeTier { fee, tick_spacing };
-            self.fee_tiers.add_fee_tier(fee_tier_key, fee_tier);
+            self.fee_tiers.add_fee_tier(fee_tier_key);
             self.fee_tier_keys.push(fee_tier_key);
             Ok(())
         }
 
         #[ink(message)]
-        pub fn get_fee_tier(&self, key: FeeTierKey) -> Option<FeeTier> {
+        pub fn get_fee_tier(&self, key: FeeTierKey) -> Option<()> {
             self.fee_tiers.get_fee_tier(key)
         }
         #[ink(message)]
