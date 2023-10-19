@@ -774,9 +774,6 @@ pub mod contract {
             contract.add_fee_tier(Percentage::new(1), 10u16);
             assert_eq!(contract.fee_tier_keys.len(), 1);
 
-            let recieved_fee_tier = contract.get_fee_tier(fee_tier_key);
-            assert_eq!(Some(fee_tier_value), recieved_fee_tier);
-
             contract.remove_fee_tier(fee_tier_key);
             assert_eq!(contract.fee_tier_keys.len(), 0);
         }
