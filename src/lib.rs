@@ -769,10 +769,10 @@ pub mod contract {
             let fee_tier_key = FeeTierKey(Percentage::new(1), 10u16);
             let fee_tier_value = FeeTier {
                 fee: Percentage::new(1),
-                tick_spacing: 50u16,
+                tick_spacing: 10u16,
             };
 
-            contract.add_fee_tier(fee_tier_key, Percentage::new(1), 50u16);
+            contract.add_fee_tier(Percentage::new(1), 10u16);
             assert_eq!(contract.fee_tier_keys.len(), 1);
 
             let recieved_fee_tier = contract.get_fee_tier(fee_tier_key);
