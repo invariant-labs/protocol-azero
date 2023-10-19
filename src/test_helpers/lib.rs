@@ -325,7 +325,19 @@ macro_rules! approve {
 
 #[macro_export]
 macro_rules! create_standard_fee_tiers {
-    ($client:ident, $token:ty ,$token_address:expr, $dex_address:expr, $amount:expr) => {{}};
+    ($client:ident, $dex:ty, $dex_address:expr) => {{
+        // client => ink_e2e_client
+        // dex:ty => ContractRef
+        // dex_address:expr => Address of contract
+        create_fee_tier!($client, $dex, $dex_address, 0.01 as u64, 1);
+        create_fee_tier!($client, $dex, $dex_address, 0.05 as u64, 5);
+        create_fee_tier!($client, $dex, $dex_address, 0.1 as u64, 10);
+        create_fee_tier!($client, $dex, $dex_address, 0.3 as u64, 30);
+        create_fee_tier!($client, $dex, $dex_address, 1 as u64, 100);
+        create_fee_tier!($client, $dex, $dex_address, 5 as u64, 100);
+        create_fee_tier!($client, $dex, $dex_address, 10 as u64, 100);
+        create_fee_tier!($client, $dex, $dex_address, 50 as u64, 100);
+    }};
 }
 
 #[macro_export]
@@ -335,6 +347,9 @@ macro_rules! create_fee_tier {
         // x:ident || y:ident => Addresses of x and y tokens
         // dex:ty => ContractRef
         // dex_address:expr => Address of contract
+        // fee:expr => Percentage::new(..)
+        // fee:expr => Percentage::new(..)
+        // spacing:expr => tick_spacing as u16
         let _msg = build_message::<$dex>($dex_address.clone())
             .call(|contract| contract.add_fee_tier($fee, $spacing));
         $client

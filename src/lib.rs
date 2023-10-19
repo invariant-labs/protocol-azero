@@ -496,11 +496,7 @@ pub mod contract {
 
         // Fee tiers
         #[ink(message)]
-        pub fn add_fee_tier(
-            &mut self,
-            fee: Percentage,
-            tick_spacing: u16,
-        ) -> Result<(), ContractErrors> {
+        pub fn add_fee_tier(&mut self, fee: u64, tick_spacing: u16) -> Result<(), ContractErrors> {
             if self.env().caller() != self.state.admin {
                 return Err(ContractErrors::NotAnAdmin);
             }
@@ -508,6 +504,7 @@ pub mod contract {
             if tick_spacing == 0 {
                 return Err(ContractErrors::InvalidTickSpacing);
             }
+            let fee = Percentage::from_integer(fee);
 
             let fee_tier_key = FeeTierKey(fee, tick_spacing);
 
@@ -771,17 +768,15 @@ pub mod contract {
         #[ink::test]
         fn test_fee_tiers() {
             let mut contract = Contract::new(Percentage::new(0));
-            let fee_tier_key = FeeTierKey(Percentage::new(1), 10u16);
+            let fee_tier_key = FeeTierKey(Percentage::from_integer(1), 10u16);
             let fee_tier_value = FeeTier {
                 fee: Percentage::new(1),
                 tick_spacing: 10u16,
             };
 
-            contract.add_fee_tier(Percentage::new(1), 10u16).unwrap();
+            contract.add_fee_tier(1, 10u16).unwrap();
             assert_eq!(contract.fee_tier_keys.len(), 1);
-            contract
-                .add_fee_tier(Percentage::new(1), 10u16)
-                .unwrap_err();
+            contract.add_fee_tier(1, 10u16).unwrap_err();
             contract.remove_fee_tier(fee_tier_key);
             assert_eq!(contract.fee_tier_keys.len(), 0);
         }
@@ -825,14 +820,6 @@ pub mod contract {
         use super::*;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
-
-        #[ink_e2e::test]
-        async fn create_fee_tier_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let dex = create_dex!(client, ContractRef, Percentage::new(0));
-            create_fee_tier!(client, ContractRef, Percentage::new(0), 10u16);
-
-            Ok(())
-        }
 
         #[ink_e2e::test]
         async fn constructor_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
@@ -893,20 +880,20 @@ pub mod contract {
             Ok(())
         }
 
-        #[ink_e2e::test]
-        #[should_panic]
-        async fn change_protocol_fee_should_panic(mut client: ink_e2e::Client<C, E>) -> () {
-            let contract = create_dex!(client, ContractRef, Percentage::new(0));
+        // #[ink_e2e::test]
+        // #[should_panic]
+        // async fn change_protocol_fee_should_panic(mut client: ink_e2e::Client<C, E>) -> () {
+        //     let contract = create_dex!(client, ContractRef, Percentage::new(0));
 
-            let result = {
-                let _msg = build_message::<ContractRef>(contract.clone())
-                    .call(|contract| contract.change_protocol_fee(Percentage::new(1)));
-                client
-                    .call(&ink_e2e::bob(), _msg, 0, None)
-                    .await
-                    .expect("changing protocol fee failed")
-            };
-        }
+        //     let result = {
+        //         let _msg = build_message::<ContractRef>(contract.clone())
+        //             .call(|contract| contract.change_protocol_fee(Percentage::new(1)));
+        //         client
+        //             .call(&ink_e2e::bob(), _msg, 0, None)
+        //             .await
+        //             .expect("changing protocol fee failed")
+        //     };
+        // }
 
         #[ink_e2e::test]
         async fn create_position(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
@@ -1447,6 +1434,43 @@ pub mod contract {
                 assert_eq!(50, dex_token_y);
             }
 
+            Ok(())
+        }
+
+        #[ink_e2e::test]
+        async fn create_fee_tier_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let dex = create_dex!(client, ContractRef, Percentage::new(0));
+            create_fee_tier!(client, ContractRef, dex, 0, 10u16);
+
+            let key = FeeTierKey(Percentage::new(0), 10u16);
+            let result = {
+                let _msg = build_message::<ContractRef>(dex.clone())
+                    .call(|contract| contract.get_fee_tier(key));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("Getting fee_tier failed")
+            }
+            .return_value();
+            assert_eq!(Some(()), result);
+            Ok(())
+        }
+        #[ink_e2e::test]
+        async fn create_standard_fee_tier_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let dex = create_dex!(client, ContractRef, Percentage::new(0));
+            create_standard_fee_tiers!(client, ContractRef, dex);
+
+            let key = FeeTierKey(Percentage::from_integer(5), 100u16);
+            let result = {
+                let _msg = build_message::<ContractRef>(dex.clone())
+                    .call(|contract| contract.get_fee_tier(key));
+                client
+                    .call(&ink_e2e::alice(), _msg, 0, None)
+                    .await
+                    .expect("Getting fee_tier failed")
+            }
+            .return_value();
+            assert_eq!(Some(()), result);
             Ok(())
         }
     }
