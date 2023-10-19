@@ -156,6 +156,7 @@ pub mod contract {
 
             let (position, x, y) = Position::create(
                 &mut pool,
+                pool_key,
                 &mut lower_tick,
                 &mut upper_tick,
                 current_timestamp,
@@ -326,18 +327,19 @@ pub mod contract {
         #[ink(message)]
         pub fn add_position(&mut self) {
             let caller = self.env().caller();
-            self.positions.add_position(caller)
+            self.positions.add(caller, Position::default())
         }
 
         #[ink(message)]
         pub fn get_position(&mut self, index: u32) -> Option<Position> {
             let caller = self.env().caller();
-            self.positions.get_position(caller, index)
+            self.positions.get(caller, index)
         }
+
         #[ink(message)]
         pub fn get_all_positions(&mut self) -> Vec<Position> {
             let caller = self.env().caller();
-            self.positions.get_all_positions(caller)
+            self.positions.get_all(caller)
         }
 
         #[ink(message)]
@@ -350,7 +352,7 @@ pub mod contract {
 
             let mut position = self
                 .positions
-                .get_position(caller, index)
+                .get(caller, index)
                 .ok_or(ContractErrors::PositionNotFound)?;
 
             let current_timestamp = self.env().block_number();
@@ -388,7 +390,7 @@ pub mod contract {
 
             let mut position = self
                 .positions
-                .get_position(caller, index)
+                .get(caller, index)
                 .ok_or(ContractErrors::PositionNotFound)?;
 
             let lower_tick = self
@@ -419,27 +421,26 @@ pub mod contract {
         pub fn remove_position(
             &mut self,
             index: u32,
-            pool_key: PoolKey,
         ) -> Result<(TokenAmount, TokenAmount), ContractErrors> {
             let caller = self.env().caller();
             let current_timestamp = self.env().block_number();
 
             let mut position = self
                 .positions
-                .get_position(caller, index)
+                .get(caller, index)
                 .ok_or(ContractErrors::PositionNotFound)?;
 
             let lower_tick = &mut self
                 .ticks
-                .get_tick(pool_key, position.lower_tick_index)
+                .get_tick(position.pool_key, position.lower_tick_index)
                 .ok_or(ContractErrors::TickNotFound)?;
 
             let upper_tick = &mut self
                 .ticks
-                .get_tick(pool_key, position.upper_tick_index)
+                .get_tick(position.pool_key, position.upper_tick_index)
                 .ok_or(ContractErrors::TickNotFound)?;
 
-            let pool = &mut self.pools.get_pool(pool_key)?;
+            let pool = &mut self.pools.get_pool(position.pool_key)?;
 
             let (amount_x, amount_y, deinitialize_lower_tick, deinitialize_upper_tick) = position
                 .remove(
@@ -447,25 +448,43 @@ pub mod contract {
                     current_timestamp as u64,
                     lower_tick,
                     upper_tick,
-                    pool_key.fee_tier.tick_spacing,
+                    position.pool_key.fee_tier.tick_spacing,
                 );
             if deinitialize_lower_tick {
                 self.tickmap.flip(
                     false,
                     lower_tick.index,
-                    pool_key.fee_tier.tick_spacing,
-                    pool_key,
+                    position.pool_key.fee_tier.tick_spacing,
+                    position.pool_key,
                 );
             }
             if deinitialize_upper_tick {
                 self.tickmap.flip(
                     false,
                     lower_tick.index,
-                    pool_key.fee_tier.tick_spacing,
-                    pool_key,
+                    position.pool_key.fee_tier.tick_spacing,
+                    position.pool_key,
                 );
             }
-            self.positions.remove_position(caller, index);
+            self.positions.remove(caller, index);
+
+            PSP22Ref::transfer_from(
+                &position.pool_key.token_x,
+                self.env().account_id(),
+                self.env().caller(),
+                amount_x.get(),
+                vec![],
+            )
+            .ok();
+            PSP22Ref::transfer_from(
+                &position.pool_key.token_y,
+                self.env().account_id(),
+                self.env().caller(),
+                amount_y.get(),
+                vec![],
+            )
+            .ok();
+
             Ok((amount_x, amount_y))
         }
 
@@ -703,7 +722,7 @@ pub mod contract {
                     position
                 );
 
-                contract.remove_position(2, pool_key);
+                contract.remove_position(2);
 
                 let position = contract.get_position(2).unwrap();
                 assert_eq!(
@@ -720,7 +739,7 @@ pub mod contract {
             }
             // remove positions out of range
             {
-                contract.remove_position(99, pool_key);
+                contract.remove_position(99);
             }
         }
 
@@ -1119,7 +1138,7 @@ pub mod contract {
             // Alice removes second position
             {
                 let _msg = build_message::<ContractRef>(contract.clone())
-                    .call(|contract| contract.remove_position(1, pool_key));
+                    .call(|contract| contract.remove_position(1));
                 client.call(&ink_e2e::alice(), _msg, 0, None).await;
             }
 
@@ -1144,14 +1163,14 @@ pub mod contract {
             // Bob tires to remove position out of range
             {
                 let _msg = build_message::<ContractRef>(contract.clone())
-                    .call(|contract| contract.remove_position(99, pool_key));
+                    .call(|contract| contract.remove_position(99));
                 client.call(&ink_e2e::bob(), _msg, 0, None).await;
             }
 
             // Bob removes position first position
             {
                 let _msg = build_message::<ContractRef>(contract.clone())
-                    .call(|contract| contract.remove_position(0, pool_key));
+                    .call(|contract| contract.remove_position(0));
                 client.call(&ink_e2e::bob(), _msg, 0, None).await;
             }
             // Bob's first position
