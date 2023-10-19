@@ -422,3 +422,40 @@ macro_rules! get_fee_tier {
             .return_value()
     }};
 }
+
+#[macro_export]
+macro_rules! create_pool {
+    ($client:ident, $dex:ty, $dex_address:expr, $x:ident, $y:ident, $fee_tier:expr, $init_tick:expr) => {{
+        // client => ink_e2e_client
+        // x:ident || y:ident => Addresses of x and y tokens
+        // dex:ty => ContractRef
+        // dex_address:expr => Address of contract
+        // fee_tier:expr => Pool fee tier
+        // init_tick:expr => init tick as i32
+        let _msg = build_message::<$dex>($dex_address.clone())
+            .call(|contract| contract.add_pool($x, $y, $fee_tier, $init_tick));
+        $client
+            .call(&ink_e2e::alice(), _msg, 0, None)
+            .await
+            .expect("Pool creation failed")
+            .return_value()
+    }};
+}
+
+#[macro_export]
+macro_rules! get_pool {
+    ($client:ident, $dex:ty, $dex_address:expr, $x:ident, $y:ident, $fee_tier:expr) => {{
+        // client => ink_e2e_client
+        // x:ident || y:ident => Addresses of x and y tokens
+        // dex:ty => ContractRef
+        // dex_address:expr => Address of contract
+        // fee_tier:expr => Pool fee tier
+        let _msg = build_message::<$dex>($dex_address.clone())
+            .call(|contract| contract.get_pool($x, $y, $fee_tier));
+        $client
+            .call(&ink_e2e::alice(), _msg, 0, None)
+            .await
+            .expect("Pool creation failed")
+            .return_value()
+    }};
+}
