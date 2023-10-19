@@ -62,7 +62,7 @@ impl Pools {
         Ok(())
     }
 
-    fn update_pool(&mut self, pool_key: PoolKey, pool: Pool) {
+    pub fn update_pool(&mut self, pool_key: PoolKey, pool: Pool) {
         self.pools.insert(pool_key, &pool);
     }
 }

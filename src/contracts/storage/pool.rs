@@ -15,10 +15,13 @@ use crate::{
     },
 };
 use decimal::*;
+use ink::prelude::vec;
+use ink::prelude::vec::Vec;
 use ink::primitives::AccountId;
+use openbrush::contracts::traits::psp22::PSP22Ref;
 use traceable_result::*;
 
-#[derive(Debug, PartialEq, Clone, scale::Decode, scale::Encode)]
+#[derive(PartialEq, Debug, Clone, scale::Decode, scale::Encode)]
 #[cfg_attr(
     feature = "std",
     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
@@ -27,7 +30,6 @@ pub struct Pool {
     pub liquidity: Liquidity,
     pub sqrt_price: SqrtPrice,
     pub current_tick_index: i32, // nearest tick below the current sqrt_price
-    pub tickmap: AccountId,
     pub fee_growth_global_x: FeeGrowth,
     pub fee_growth_global_y: FeeGrowth,
     pub fee_protocol_token_x: TokenAmount,
@@ -42,11 +44,10 @@ pub struct Pool {
 
 impl Default for Pool {
     fn default() -> Self {
-        Pool {
+        Self {
             liquidity: Liquidity::default(),
             sqrt_price: SqrtPrice::default(),
             current_tick_index: i32::default(), // nearest tick below the current sqrt_price
-            tickmap: AccountId::from([0x0; 32]),
             fee_growth_global_x: FeeGrowth::default(),
             fee_growth_global_y: FeeGrowth::default(),
             fee_protocol_token_x: TokenAmount(0u128),
@@ -227,6 +228,27 @@ impl Pool {
                 fee_tier.tick_spacing
             ));
         };
+    }
+
+    pub fn withdraw_protocol_fee(&mut self, pool_key: PoolKey) {
+        PSP22Ref::transfer(
+            &pool_key.token_x,
+            self.fee_receiver,
+            self.fee_protocol_token_x.get(),
+            vec![],
+        )
+        .ok();
+
+        PSP22Ref::transfer(
+            &pool_key.token_y,
+            self.fee_receiver,
+            self.fee_protocol_token_y.get(),
+            vec![],
+        )
+        .ok();
+
+        self.fee_protocol_token_x = TokenAmount(0);
+        self.fee_protocol_token_y = TokenAmount(0);
     }
 
     // pub fn swap_step(
