@@ -267,7 +267,7 @@ pub mod contract {
 
                 let mut _tick = Tick::default();
 
-                let limiting_tick = limiting_tick.map(|(index, bool)| {
+                let updated_limiting_tick = limiting_tick.map(|(index, bool)| {
                     if bool {
                         _tick = self.ticks.get_tick(pool_key, index).unwrap();
                         (index, Some(&mut _tick))
@@ -279,15 +279,14 @@ pub mod contract {
                 pool.cross_tick(
                     result,
                     swap_limit,
-                    limiting_tick,
+                    updated_limiting_tick,
                     &mut remaining_amount,
                     by_amount_in,
                     x_to_y,
                     current_timestamp,
                     &mut total_amount_in,
                     self.state.protocol_fee,
-                    pool_key.fee_tier.fee,
-                    pool_key.fee_tier.tick_spacing,
+                    pool_key.fee_tier,
                 );
             }
 
