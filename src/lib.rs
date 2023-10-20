@@ -28,6 +28,7 @@ pub enum ContractErrors {
     NoGainSwap,
     InvalidTickSpacing,
     FeeTierAlreadyAdded,
+    NotAFeeReceiver,
 }
 #[ink::contract]
 pub mod contract {
@@ -103,6 +104,37 @@ pub mod contract {
         #[ink(message)]
         pub fn get_protocol_fee(&self) -> Percentage {
             self.state.protocol_fee
+        }
+
+        #[ink(message)]
+        pub fn withdraw_protocol_fee(&mut self, pool_key: PoolKey) -> Result<(), ContractErrors> {
+            let mut pool = self.pools.get_pool(pool_key)?;
+            let caller = self.env().caller();
+
+            if pool.fee_receiver != caller {
+                return Err(ContractErrors::NotAFeeReceiver);
+            }
+
+            let (fee_protocol_token_x, fee_protocol_token_y) = pool.withdraw_protocol_fee(pool_key);
+            self.pools.update_pool(pool_key, &pool);
+
+            PSP22Ref::transfer(
+                &pool_key.token_x,
+                pool.fee_receiver,
+                fee_protocol_token_x.get(),
+                vec![],
+            )
+            .ok();
+
+            PSP22Ref::transfer(
+                &pool_key.token_y,
+                pool.fee_receiver,
+                fee_protocol_token_y.get(),
+                vec![],
+            )
+            .ok();
+
+            Ok(())
         }
 
         #[ink(message)]
