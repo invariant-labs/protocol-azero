@@ -115,8 +115,24 @@ pub mod contract {
                 return Err(ContractErrors::NotAFeeReceiver);
             }
 
-            pool.withdraw_protocol_fee(pool_key);
-            self.pools.update_pool(pool_key, pool);
+            let (fee_protocol_token_x, fee_protocol_token_y) = pool.withdraw_protocol_fee(pool_key);
+            self.pools.update_pool(pool_key, &pool);
+
+            PSP22Ref::transfer(
+                &pool_key.token_x,
+                pool.fee_receiver,
+                fee_protocol_token_x.get(),
+                vec![],
+            )
+            .ok();
+
+            PSP22Ref::transfer(
+                &pool_key.token_y,
+                pool.fee_receiver,
+                fee_protocol_token_y.get(),
+                vec![],
+            )
+            .ok();
 
             Ok(())
         }

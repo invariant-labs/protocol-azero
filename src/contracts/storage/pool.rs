@@ -230,25 +230,14 @@ impl Pool {
         };
     }
 
-    pub fn withdraw_protocol_fee(&mut self, pool_key: PoolKey) {
-        PSP22Ref::transfer(
-            &pool_key.token_x,
-            self.fee_receiver,
-            self.fee_protocol_token_x.get(),
-            vec![],
-        )
-        .ok();
-
-        PSP22Ref::transfer(
-            &pool_key.token_y,
-            self.fee_receiver,
-            self.fee_protocol_token_y.get(),
-            vec![],
-        )
-        .ok();
+    pub fn withdraw_protocol_fee(&mut self, pool_key: PoolKey) -> (TokenAmount, TokenAmount) {
+        let fee_protocol_token_x = self.fee_protocol_token_x;
+        let fee_protocol_token_y = self.fee_protocol_token_y;
 
         self.fee_protocol_token_x = TokenAmount(0);
         self.fee_protocol_token_y = TokenAmount(0);
+
+        (fee_protocol_token_x, fee_protocol_token_y)
     }
 
     // pub fn swap_step(
