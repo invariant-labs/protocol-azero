@@ -32,19 +32,12 @@ pub enum ContractErrors {
 }
 #[ink::contract]
 pub mod contract {
-    use crate::{
-        contracts::logic::traits::pair::Pair,
-        contracts::pair::pair::PairField,
-        // contracts::storage::{balances::Balances, fee_tiers::FeeTierKey, tick::Tick, Pairs},
-        ContractErrors,
-    };
-
+    use crate::ContractErrors;
     use traceable_result::unwrap;
 
     use crate::contracts::state::State;
     use crate::contracts::Balances;
     use crate::contracts::FeeTierKey;
-    use crate::contracts::Pairs;
     use crate::contracts::Pool;
     use crate::contracts::Tick;
     use crate::contracts::Tickmap;
@@ -77,7 +70,6 @@ pub mod contract {
     #[ink(storage)]
     #[derive(Default)]
     pub struct Contract {
-        pairs: Pairs,
         balances: Balances,
         positions: Positions,
         fee_tiers: FeeTiers,
@@ -399,12 +391,6 @@ pub mod contract {
         }
 
         #[ink(message)]
-        pub fn create_pair(&mut self, token_0: AccountId, token_1: AccountId) -> PairField {
-            let ordered_pair = self.pairs._order_tokens(token_0, token_1, 0, 0);
-            self.pairs._create_pair(ordered_pair)
-        }
-
-        #[ink(message)]
         pub fn mint_to(
             &mut self,
             token_0: AccountId,
@@ -412,15 +398,16 @@ pub mod contract {
             amount_0: Balance,
             amount_1: Balance,
         ) -> Result<(), ContractErrors> {
-            let ordered_pair = self
-                .pairs
-                ._order_tokens(token_0, token_1, amount_0, amount_1);
+            let ordered_pair = self._order_tokens(token_0, token_1, amount_0, amount_1);
 
             let caller = self.env().caller();
 
-            let mut pair = self
-                .get_pair(&ordered_pair)
-                .ok_or(ContractErrors::PairNotFound)?;
+            //TODO - Get pool data
+            // let key = PoolKey {
+            //     ..PoolKey::default()
+            // };
+            // // handle error
+            // let mut pool = self.pools.get_pool(key)?;
 
             let sender_balance_x = PSP22Ref::balance_of(&ordered_pair.x.0, caller);
             let sender_balance_y = PSP22Ref::balance_of(&ordered_pair.y.0, caller);
@@ -428,25 +415,44 @@ pub mod contract {
                 return Err(ContractErrors::InsufficientSenderBalance);
             } else {
                 let contract = Self::env().account_id();
-                let result = pair._mint(caller, contract, ordered_pair);
-                match result {
-                    Ok(lp) => {
-                        let mut balance = self
-                            .balances
-                            .v
-                            .get((pair.token_x, pair.token_y, caller))
-                            .unwrap_or_default();
-                        balance += lp;
-                        self.balances
-                            .v
-                            .insert((pair.token_x, pair.token_y, caller), &balance);
-                        self.pairs._update_pair(pair);
-                        Ok(())
-                    }
-                    _ => {
-                        return Err(ContractErrors::MintFailed);
-                    }
-                }
+                // self.supply_x += pair.x.1;
+                // self.supply_y += pair.y.1;
+                // Transfer error should be handled
+                PSP22Ref::transfer_from(
+                    &ordered_pair.x.0,
+                    caller,
+                    contract,
+                    ordered_pair.x.1,
+                    vec![],
+                )
+                .unwrap();
+                PSP22Ref::transfer_from(
+                    &ordered_pair.x.0,
+                    caller,
+                    contract,
+                    ordered_pair.y.1,
+                    vec![],
+                )
+                .unwrap();
+                // let result = pair._mint(caller, contract, ordered_pair);
+                // match result {
+                //     Ok(lp) => {
+                let mut balance = self
+                    .balances
+                    .v
+                    .get((ordered_pair.x.0, ordered_pair.y.0, caller))
+                    .unwrap_or_default();
+                balance += ordered_pair.x.1 + ordered_pair.y.1;
+                self.balances
+                    .v
+                    .insert((ordered_pair.x.0, ordered_pair.y.0, caller), &balance);
+                //         Ok(())
+                //     }
+                //     _ => {
+                //         return Err(ContractErrors::MintFailed);
+                //     }
+                // }
+                Ok(())
             }
         }
 
@@ -457,7 +463,7 @@ pub mod contract {
             token_1: AccountId,
             amount: Balance,
         ) -> Result<(), ContractErrors> {
-            let ordered_pair = self.pairs._order_tokens(token_0, token_1, amount, amount);
+            let ordered_pair = self._order_tokens(token_0, token_1, amount, amount);
             let caller = self.env().caller();
 
             let balance = self
@@ -470,26 +476,29 @@ pub mod contract {
                 return Err(ContractErrors::InsufficientLPLocked);
             }
 
-            let mut pair = self
-                .get_pair(&ordered_pair)
-                .ok_or(ContractErrors::PairNotFound)?;
+            //TODO
+            // let key = PoolKey {
+            // ..PoolKey::default()
+            // };
+            // Handle error
+            // let mut pool = self.pools.get_pool(key)?;
 
-            let contract = self.env().account_id();
-            let result = pair._burn(caller, contract, amount);
+            // let contract = self.env().account_id();
+            // let result = pair._burn(caller, contract, amount);
 
-            match result {
-                Ok(_) => {
-                    let new_lp = balance - amount;
-                    self.balances
-                        .v
-                        .insert((pair.token_x, pair.token_y, caller), &new_lp);
-                    self.pairs._update_pair(pair);
-                    Ok(())
-                }
-                _ => {
-                    return Err(ContractErrors::BurnFailed);
-                }
-            }
+            // match result {
+            //     Ok(_) => {
+            //         let new_lp = balance - amount;
+            //         self.balances
+            //             .v
+            //             .insert((pair.token_x, pair.token_y, caller), &new_lp);
+            //         Ok(())
+            //     }
+            //     _ => {
+            //         return Err(ContractErrors::BurnFailed);
+            //     }
+            // }
+            Ok(())
         }
 
         #[ink(message)]
@@ -500,38 +509,60 @@ pub mod contract {
             amount: Balance,
             in_token_0: bool,
         ) -> Result<(), ContractErrors> {
-            let ordered_pair = self.pairs._order_tokens(token_0, token_1, amount, amount);
+            let ordered_pair = self._order_tokens(token_0, token_1, amount, amount);
             let caller = self.env().caller();
-
-            let mut pair = self
-                .get_pair(&ordered_pair)
-                .ok_or(ContractErrors::PairNotFound)?;
-
             let contract = self.env().account_id();
-            let result = pair._swap(contract, caller, amount, in_token_0);
+            // get_pair => get_pool
 
-            match result {
-                Ok(_) => {
-                    self.pairs._update_pair(pair);
-                    Ok(())
-                }
-                _ => return Err(ContractErrors::SwapFailed),
+            //TODO
+            // let key = PoolKey {
+            //     ..PoolKey::default()
+            // };
+            // handle error
+            // let mut pool = self.pools.get_pool(key)?;
+
+            // let contract = self.env().account_id();
+            // let result = pair._swap(contract, caller, amount, in_token_0);
+
+            // match result {
+            //     Ok(_) => Ok(()),
+            //     _ => return Err(ContractErrors::SwapFailed),
+            // }
+            if in_token_0 {
+                // if self.supply_y < amount {
+                //     Err(PairError::InsufficientLiquidity)
+                // } else {
+                // let quote = self._quote(amount, self.supply_x, self.supply_y).unwrap();
+                // self.supply_x += amount;
+                // self.supply_y -= amount;
+
+                // transfer token_x from user to contract
+                PSP22Ref::transfer_from(&ordered_pair.x.0, caller, contract, amount, vec![])
+                    .unwrap();
+                // transfer token_y to user from contract
+                PSP22Ref::transfer(&ordered_pair.y.0, caller, amount, vec![]).unwrap();
+
+                // Ok((self.supply_x, self.supply_y))
+                // }
+            } else {
+                // if self.supply_x < amount {
+                //     Err(PairError::InsufficientLiquidity)
+                // } else {
+                // let quote = self._quote(amount, self.supply_x, self.supply_y).unwrap();
+                // self.supply_x -= amount;
+                // self.supply_y += amount;
+
+                // transfer token_y from user
+                PSP22Ref::transfer_from(&ordered_pair.y.0, caller, contract, amount, vec![])
+                    .unwrap();
+                // transfer token_x to user
+                PSP22Ref::transfer(&ordered_pair.x.0, caller, amount, vec![]).unwrap();
+
+                // Ok((self.supply_x, self.supply_y))
+                // }
             }
-        }
 
-        pub fn get_pair(&self, ordered_pair: &OrderPair) -> Option<PairField> {
-            self.pairs._get_pair(ordered_pair)
-        }
-
-        // Factory features
-        #[ink(message)]
-        pub fn all_pairs(&self) -> TokenPairs {
-            self.pairs.token_pairs.clone()
-        }
-
-        #[ink(message)]
-        pub fn all_pairs_length(&mut self) -> u64 {
-            self.pairs.length
+            Ok(())
         }
 
         // positions list features
@@ -776,6 +807,25 @@ pub mod contract {
         fn remove_tick(&mut self, key: PoolKey, index: i32) {
             self.ticks.remove_tick(key, index);
         }
+
+        fn _order_tokens(
+            &self,
+            token_0: AccountId,
+            token_1: AccountId,
+            balance_0: Balance,
+            balance_1: Balance,
+        ) -> OrderPair {
+            match token_0.lt(&token_1) {
+                true => OrderPair {
+                    x: (token_0, balance_0),
+                    y: (token_1, balance_1),
+                },
+                false => OrderPair {
+                    x: (token_1, balance_1),
+                    y: (token_0, balance_0),
+                },
+            }
+        }
     }
 
     #[cfg(test)]
@@ -878,27 +928,6 @@ pub mod contract {
             assert_eq!(result, Err(ContractErrors::TickAlreadyExist));
         }
 
-        #[ink::test]
-        fn create_new_pairs() {
-            let mut contract = Contract::new(Percentage::new(0));
-            let token_0 = AccountId::from([0x01; 32]);
-            let token_1 = AccountId::from([0x02; 32]);
-            let pair = contract.create_pair(token_0, token_1);
-            assert_eq!(token_0, pair.token_x);
-            assert_eq!(token_1, pair.token_y);
-        }
-
-        #[ink::test]
-        fn test_mapping_length() {
-            let mut contract = Contract::new(Percentage::new(0));
-            let token_0 = AccountId::from([0x01; 32]);
-            let token_1 = AccountId::from([0x02; 32]);
-            let pair = contract.create_pair(token_0, token_1);
-            assert_eq!(token_0, pair.token_x);
-            assert_eq!(token_1, pair.token_y);
-            let len = contract.all_pairs_length();
-            assert_eq!(len, 1);
-        }
         #[ink::test]
         fn test_positions() {
             let mut contract = Contract::new(Percentage::new(0));
@@ -1021,9 +1050,8 @@ pub mod contract {
         use openbrush::contracts::psp22::psp22_external::PSP22;
         use openbrush::traits::Balance;
         use test_helpers::{
-            address_of, approve, balance_of, create_dex, create_fee_tier, create_pair, create_pool,
-            create_standard_fee_tiers, create_tokens, create_tokens_and_pair, dex_balance,
-            get_fee_tier, get_pool,
+            address_of, approve, balance_of, create_dex, create_fee_tier, create_pool,
+            create_standard_fee_tiers, create_tokens, dex_balance, get_fee_tier, get_pool,
         };
         use token::TokenRef;
 
@@ -1395,42 +1423,9 @@ pub mod contract {
         }
 
         #[ink_e2e::test]
-        async fn create_pair_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let contract = create_dex!(client, ContractRef, Percentage::new(0));
-            create_tokens_and_pair!(client, TokenRef, TokenRef, 100, 100, ContractRef, contract);
-            Ok(())
-        }
-
-        #[ink_e2e::test]
-        async fn create_xy_and_yx(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let (token_x, token_y) = create_tokens!(client, TokenRef, TokenRef, 100, 100);
-            let contract = create_dex!(client, ContractRef, Percentage::new(0));
-
-            let xy = create_pair!(client, token_x, token_y, ContractRef, contract);
-
-            let yx = create_pair!(client, token_x, token_y, ContractRef, contract);
-
-            let all_pairs_length = {
-                let _msg = build_message::<ContractRef>(contract.clone())
-                    .call(|contract| contract.all_pairs_length());
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("Create pair failed")
-            }
-            .return_value();
-
-            assert_eq!(all_pairs_length, 1);
-            assert_eq!(xy.token_x, yx.token_x);
-            assert_eq!(xy.token_y, yx.token_y);
-            Ok(())
-        }
-
-        #[ink_e2e::test]
         async fn token_mint_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let dex = create_dex!(client, ContractRef, Percentage::new(0));
-            let (token_x, token_y, xy) =
-                create_tokens_and_pair!(client, TokenRef, TokenRef, 500, 500, ContractRef, dex);
+            let (token_x, token_y) = create_tokens!(client, TokenRef, TokenRef, 500, 500);
 
             let amount_x = Balance::from(50u128);
             let amount_y = Balance::from(25u128);
@@ -1468,8 +1463,7 @@ pub mod contract {
         async fn single_token_mint_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let dex = create_dex!(client, ContractRef, Percentage::new(0));
 
-            let (token_x, token_y, xy) =
-                create_tokens_and_pair!(client, TokenRef, TokenRef, 500, 500, ContractRef, dex);
+            let (token_x, token_y) = create_tokens!(client, TokenRef, TokenRef, 500, 500);
 
             let amount_x = Balance::from(50u128);
             let amount_y = Balance::from(0u128);
@@ -1506,9 +1500,7 @@ pub mod contract {
         #[ink_e2e::test]
         async fn token_burn_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let dex = create_dex!(client, ContractRef, Percentage::new(0));
-
-            let (token_x, token_y, xy) =
-                create_tokens_and_pair!(client, TokenRef, TokenRef, 500, 500, ContractRef, dex);
+            let (token_x, token_y) = create_tokens!(client, TokenRef, TokenRef, 500, 500);
 
             let amount_x = Balance::from(50u128);
             let amount_y = Balance::from(50u128);
@@ -1563,9 +1555,7 @@ pub mod contract {
         #[ink_e2e::test]
         async fn token_swap_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let dex = create_dex!(client, ContractRef, Percentage::new(0));
-
-            let (token_x, token_y, xy) =
-                create_tokens_and_pair!(client, TokenRef, TokenRef, 500, 500, ContractRef, dex);
+            let (token_x, token_y) = create_tokens!(client, TokenRef, TokenRef, 500, 500);
 
             let amount_x = Balance::from(50u128);
             let amount_y = Balance::from(50u128);
