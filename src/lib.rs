@@ -402,23 +402,13 @@ pub mod contract {
 
             let caller = self.env().caller();
 
-            //TODO - Get pool data
-            // let key = PoolKey {
-            //     ..PoolKey::default()
-            // };
-            // // handle error
-            // let mut pool = self.pools.get_pool(key)?;
-
             let sender_balance_x = PSP22Ref::balance_of(&ordered_pair.x.0, caller);
             let sender_balance_y = PSP22Ref::balance_of(&ordered_pair.y.0, caller);
             if sender_balance_x < ordered_pair.x.1 && sender_balance_y < ordered_pair.y.1 {
                 return Err(ContractErrors::InsufficientSenderBalance);
             } else {
                 let contract = Self::env().account_id();
-                // self.supply_x += pair.x.1;
-                // self.supply_y += pair.y.1;
-                // Transfer error should be handled
-
+                // TODO - get/update pool | call mitn logic
                 PSP22Ref::transfer_from(
                     &ordered_pair.x.0,
                     caller,
@@ -435,7 +425,6 @@ pub mod contract {
                     vec![],
                 )
                 .unwrap();
-
                 let mut balance = self
                     .balances
                     .v
@@ -469,29 +458,8 @@ pub mod contract {
             if balance < amount {
                 return Err(ContractErrors::InsufficientLPLocked);
             }
+            // TODO - get/update pool | call burn logic
 
-            //TODO
-            // let key = PoolKey {
-            // ..PoolKey::default()
-            // };
-            // Handle error
-            // let mut pool = self.pools.get_pool(key)?;
-
-            // let contract = self.env().account_id();
-            // let result = pair._burn(caller, contract, amount);
-
-            // match result {
-            //     Ok(_) => {
-            //         let new_lp = balance - amount;
-            //         self.balances
-            //             .v
-            //             .insert((pair.token_x, pair.token_y, caller), &new_lp);
-            //         Ok(())
-            //     }
-            //     _ => {
-            //         return Err(ContractErrors::BurnFailed);
-            //     }
-            // }
             Ok(())
         }
 
@@ -506,54 +474,17 @@ pub mod contract {
             let ordered_pair = self._order_tokens(token_0, token_1, amount, amount);
             let caller = self.env().caller();
             let contract = self.env().account_id();
-            // get_pair => get_pool
 
-            //TODO
-            // let key = PoolKey {g
-            //     ..PoolKey::default()
-            // };
-            // handle error
-            // let mut pool = self.pools.get_pool(key)?;
+            // TODO - get/update pool | call swap logic
 
-            // let contract = self.env().account_id();
-            // let result = pair._swap(contract, caller, amount, in_token_0);
-
-            // match result {
-            //     Ok(_) => Ok(()),
-            //     _ => return Err(ContractErrors::SwapFailed),
-            // }
             if in_token_0 {
-                // if self.supply_y < amount {
-                //     Err(PairError::InsufficientLiquidity)
-                // } else {
-                // let quote = self._quote(amount, self.supply_x, self.supply_y).unwrap();
-                // self.supply_x += amount;
-                // self.supply_y -= amount;
-
-                // transfer token_x from user to contract
                 PSP22Ref::transfer_from(&ordered_pair.x.0, caller, contract, amount, vec![])
                     .unwrap();
-                // transfer token_y to user from contract
                 PSP22Ref::transfer(&ordered_pair.y.0, caller, amount, vec![]).unwrap();
-
-                // Ok((self.supply_x, self.supply_y))
-                // }
             } else {
-                // if self.supply_x < amount {
-                //     Err(PairError::InsufficientLiquidity)
-                // } else {
-                // let quote = self._quote(amount, self.supply_x, self.supply_y).unwrap();
-                // self.supply_x -= amount;
-                // self.supply_y += amount;
-
-                // transfer token_y from user
                 PSP22Ref::transfer_from(&ordered_pair.y.0, caller, contract, amount, vec![])
                     .unwrap();
-                // transfer token_x to user
                 PSP22Ref::transfer(&ordered_pair.x.0, caller, amount, vec![]).unwrap();
-
-                // Ok((self.supply_x, self.supply_y))
-                // }
             }
 
             Ok(())
@@ -753,6 +684,7 @@ pub mod contract {
         pub fn get_fee_tier(&self, key: FeeTierKey) -> Option<()> {
             self.fee_tiers.get_fee_tier(key)
         }
+
         #[ink(message)]
         pub fn remove_fee_tier(&mut self, key: FeeTierKey) {
             self.fee_tiers.remove_fee_tier(key);
