@@ -162,7 +162,9 @@ pub mod contract {
                 return Err(ContractErrors::NotAnAdmin);
             }
 
-            self.pools.change_fee_receiver(pool_key, fee_receiver)?;
+            let mut pool = self.pools.get_pool(pool_key)?;
+            pool.fee_receiver = fee_receiver;
+            self.pools.update_pool(pool_key, &pool);
 
             Ok(())
         }
