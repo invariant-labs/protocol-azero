@@ -418,6 +418,7 @@ pub mod contract {
                 // self.supply_x += pair.x.1;
                 // self.supply_y += pair.y.1;
                 // Transfer error should be handled
+
                 PSP22Ref::transfer_from(
                     &ordered_pair.x.0,
                     caller,
@@ -427,16 +428,14 @@ pub mod contract {
                 )
                 .unwrap();
                 PSP22Ref::transfer_from(
-                    &ordered_pair.x.0,
+                    &ordered_pair.y.0,
                     caller,
                     contract,
                     ordered_pair.y.1,
                     vec![],
                 )
                 .unwrap();
-                // let result = pair._mint(caller, contract, ordered_pair);
-                // match result {
-                //     Ok(lp) => {
+
                 let mut balance = self
                     .balances
                     .v
@@ -446,12 +445,7 @@ pub mod contract {
                 self.balances
                     .v
                     .insert((ordered_pair.x.0, ordered_pair.y.0, caller), &balance);
-                //         Ok(())
-                //     }
-                //     _ => {
-                //         return Err(ContractErrors::MintFailed);
-                //     }
-                // }
+
                 Ok(())
             }
         }
@@ -515,7 +509,7 @@ pub mod contract {
             // get_pair => get_pool
 
             //TODO
-            // let key = PoolKey {
+            // let key = PoolKey {g
             //     ..PoolKey::default()
             // };
             // handle error
@@ -1429,6 +1423,7 @@ pub mod contract {
 
             let amount_x = Balance::from(50u128);
             let amount_y = Balance::from(25u128);
+
             // approve token x
             approve!(client, TokenRef, token_x, dex, amount_x);
             // approve token y
@@ -1441,7 +1436,7 @@ pub mod contract {
                     .call(&ink_e2e::alice(), _msg, 0, None)
                     .await
                     .expect("Mint failed");
-            };
+            }
 
             // Verify if users and contract has correct amount of tokens
             {
