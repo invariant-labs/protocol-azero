@@ -193,7 +193,7 @@ impl Pool {
         if result.next_sqrt_price == swap_limit && limiting_tick.is_some() {
             let (tick_index, tick) = limiting_tick.unwrap();
 
-            let is_enough_amount_to_cross = unwrap!(is_enough_amount_to_push_price(
+            let is_enough_amount_to_cross = unwrap!(is_enough_amount_to_change_price(
                 *remaining_amount,
                 result.next_sqrt_price,
                 self.liquidity,
