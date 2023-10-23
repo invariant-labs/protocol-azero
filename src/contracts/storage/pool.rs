@@ -15,10 +15,7 @@ use crate::{
     },
 };
 use decimal::*;
-use ink::prelude::vec;
-use ink::prelude::vec::Vec;
 use ink::primitives::AccountId;
-use openbrush::contracts::traits::psp22::PSP22Ref;
 use traceable_result::*;
 
 #[derive(PartialEq, Debug, Clone, scale::Decode, scale::Encode)]
@@ -230,7 +227,7 @@ impl Pool {
         };
     }
 
-    pub fn withdraw_protocol_fee(&mut self, pool_key: PoolKey) -> (TokenAmount, TokenAmount) {
+    pub fn withdraw_protocol_fee(&mut self, _pool_key: PoolKey) -> (TokenAmount, TokenAmount) {
         let fee_protocol_token_x = self.fee_protocol_token_x;
         let fee_protocol_token_y = self.fee_protocol_token_y;
 

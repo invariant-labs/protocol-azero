@@ -1,13 +1,8 @@
 use decimal::Decimal;
-use ink::storage::Mapping;
-// use ink::primitives::AccountId;
 use openbrush::traits::AccountId;
 
 use crate::contracts::FeeTier;
-use crate::contracts::Pool;
 use crate::math::percentage::Percentage;
-// use crate::types::{pool::Pool, tickmap::Tickmap};
-// use crate::contracts::Tickmap;
 
 #[derive(scale::Decode, scale::Encode, Debug, Copy, Clone, PartialEq)]
 #[cfg_attr(

@@ -1,12 +1,9 @@
 use ink::storage::Mapping;
 use openbrush::traits::AccountId;
 
-use crate::contract::Contract;
-use crate::contracts::FeeTier;
 use crate::contracts::Pool;
 use crate::contracts::PoolKey;
 use crate::math::check_tick;
-use crate::math::MAX_TICK;
 use crate::ContractErrors;
 
 #[ink::storage_item]

@@ -1,6 +1,5 @@
 use ink::storage::Mapping;
 
-use crate::contracts::FeeTier;
 use crate::math::types::percentage::Percentage;
 
 #[derive(scale::Decode, scale::Encode, Debug, Copy, Clone, PartialEq)]

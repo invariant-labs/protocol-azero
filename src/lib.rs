@@ -47,7 +47,6 @@ pub mod contract {
     use crate::math::sqrt_price::sqrt_price::SqrtPrice;
     use crate::math::token_amount::TokenAmount;
     use crate::math::types::liquidity::Liquidity;
-    use crate::math::MAX_TICK;
     use crate::math::{compute_swap_step, MAX_SQRT_PRICE, MIN_SQRT_PRICE};
     use decimal::*;
     use ink::prelude::vec;
@@ -390,106 +389,6 @@ pub mod contract {
             Ok(())
         }
 
-        #[ink(message)]
-        pub fn mint_to(
-            &mut self,
-            token_0: AccountId,
-            token_1: AccountId,
-            amount_0: Balance,
-            amount_1: Balance,
-        ) -> Result<(), ContractErrors> {
-            let ordered_pair = self._order_tokens(token_0, token_1, amount_0, amount_1);
-
-            let caller = self.env().caller();
-
-            let sender_balance_x = PSP22Ref::balance_of(&ordered_pair.x.0, caller);
-            let sender_balance_y = PSP22Ref::balance_of(&ordered_pair.y.0, caller);
-            if sender_balance_x < ordered_pair.x.1 && sender_balance_y < ordered_pair.y.1 {
-                return Err(ContractErrors::InsufficientSenderBalance);
-            } else {
-                let contract = Self::env().account_id();
-                // TODO - get/update pool | call mitn logic
-                PSP22Ref::transfer_from(
-                    &ordered_pair.x.0,
-                    caller,
-                    contract,
-                    ordered_pair.x.1,
-                    vec![],
-                )
-                .unwrap();
-                PSP22Ref::transfer_from(
-                    &ordered_pair.y.0,
-                    caller,
-                    contract,
-                    ordered_pair.y.1,
-                    vec![],
-                )
-                .unwrap();
-                let mut balance = self
-                    .balances
-                    .v
-                    .get((ordered_pair.x.0, ordered_pair.y.0, caller))
-                    .unwrap_or_default();
-                balance += ordered_pair.x.1 + ordered_pair.y.1;
-                self.balances
-                    .v
-                    .insert((ordered_pair.x.0, ordered_pair.y.0, caller), &balance);
-
-                Ok(())
-            }
-        }
-
-        #[ink(message)]
-        pub fn burn_from(
-            &mut self,
-            token_0: AccountId,
-            token_1: AccountId,
-            amount: Balance,
-        ) -> Result<(), ContractErrors> {
-            let ordered_pair = self._order_tokens(token_0, token_1, amount, amount);
-            let caller = self.env().caller();
-
-            let balance = self
-                .balances
-                .v
-                .get((ordered_pair.x.0, ordered_pair.y.0, caller))
-                .ok_or(ContractErrors::InsufficientLPLocked)?;
-
-            if balance < amount {
-                return Err(ContractErrors::InsufficientLPLocked);
-            }
-            // TODO - get/update pool | call burn logic
-
-            Ok(())
-        }
-
-        #[ink(message)]
-        pub fn swap_tokens(
-            &mut self,
-            token_0: AccountId,
-            token_1: AccountId,
-            amount: Balance,
-            in_token_0: bool,
-        ) -> Result<(), ContractErrors> {
-            let ordered_pair = self._order_tokens(token_0, token_1, amount, amount);
-            let caller = self.env().caller();
-            let contract = self.env().account_id();
-
-            // TODO - get/update pool | call swap logic
-
-            if in_token_0 {
-                PSP22Ref::transfer_from(&ordered_pair.x.0, caller, contract, amount, vec![])
-                    .unwrap();
-                PSP22Ref::transfer(&ordered_pair.y.0, caller, amount, vec![]).unwrap();
-            } else {
-                PSP22Ref::transfer_from(&ordered_pair.y.0, caller, contract, amount, vec![])
-                    .unwrap();
-                PSP22Ref::transfer(&ordered_pair.x.0, caller, amount, vec![]).unwrap();
-            }
-
-            Ok(())
-        }
-
         // positions list features
         #[ink(message)]
         pub fn add_position(&mut self) {
@@ -759,6 +658,7 @@ pub mod contract {
 
         use super::*;
 
+        use crate::math::consts::MAX_TICK;
         use crate::math::percentage::Percentage;
 
         #[ink::test]
@@ -1349,222 +1249,6 @@ pub mod contract {
         }
 
         #[ink_e2e::test]
-        async fn token_mint_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let dex = create_dex!(client, ContractRef, Percentage::new(0));
-            let (token_x, token_y) = create_tokens!(client, TokenRef, TokenRef, 500, 500);
-
-            let amount_x = Balance::from(50u128);
-            let amount_y = Balance::from(25u128);
-
-            // approve token x
-            approve!(client, TokenRef, token_x, dex, amount_x);
-            // approve token y
-            approve!(client, TokenRef, token_y, dex, amount_y);
-
-            {
-                let _msg = build_message::<ContractRef>(dex.clone())
-                    .call(|contract| contract.mint_to(token_x, token_y, amount_x, amount_y));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("Mint failed");
-            }
-
-            // Verify if users and contract has correct amount of tokens
-            {
-                let alice_token_x = balance_of!(TokenRef, client, token_x, Alice);
-                let alice_token_y = balance_of!(TokenRef, client, token_y, Alice);
-                assert_eq!(450, alice_token_x);
-                assert_eq!(475, alice_token_y);
-
-                let dex_token_x = dex_balance!(TokenRef, client, token_x, dex);
-                let dex_token_y = dex_balance!(TokenRef, client, token_y, dex);
-                assert_eq!(50, dex_token_x);
-                assert_eq!(25, dex_token_y);
-            }
-
-            Ok(())
-        }
-
-        #[ink_e2e::test]
-        async fn single_token_mint_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let dex = create_dex!(client, ContractRef, Percentage::new(0));
-
-            let (token_x, token_y) = create_tokens!(client, TokenRef, TokenRef, 500, 500);
-
-            let amount_x = Balance::from(50u128);
-            let amount_y = Balance::from(0u128);
-
-            // approve token x
-            approve!(client, TokenRef, token_x, dex, amount_x);
-            // approve token y
-            approve!(client, TokenRef, token_y, dex, amount_y);
-
-            {
-                let _msg = build_message::<ContractRef>(dex.clone())
-                    .call(|contract| contract.mint_to(token_x, token_y, amount_x, amount_y));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("Mint failed");
-            };
-
-            // Verify if users and contract has correct amount of tokens
-            {
-                let alice_token_x = balance_of!(TokenRef, client, token_x, Alice);
-                let alice_token_y = balance_of!(TokenRef, client, token_y, Alice);
-                assert_eq!(450, alice_token_x);
-                assert_eq!(500, alice_token_y);
-
-                let dex_token_x = dex_balance!(TokenRef, client, token_x, dex);
-                let dex_token_y = dex_balance!(TokenRef, client, token_y, dex);
-                assert_eq!(50, dex_token_x);
-                assert_eq!(0, dex_token_y);
-            }
-            Ok(())
-        }
-
-        #[ink_e2e::test]
-        async fn token_burn_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let dex = create_dex!(client, ContractRef, Percentage::new(0));
-            let (token_x, token_y) = create_tokens!(client, TokenRef, TokenRef, 500, 500);
-
-            let amount_x = Balance::from(50u128);
-            let amount_y = Balance::from(50u128);
-
-            // approve token x
-            approve!(client, TokenRef, token_x, dex, amount_x);
-            // approve token y
-            approve!(client, TokenRef, token_y, dex, amount_y);
-
-            // mint some
-            {
-                let _msg = build_message::<ContractRef>(dex.clone())
-                    .call(|contract| contract.mint_to(token_x, token_y, amount_x, amount_y));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("Mint failed");
-            };
-
-            let lp_amount = Balance::from(10u128);
-
-            // approve token x
-            approve!(client, TokenRef, token_x, dex, lp_amount);
-            // approve token y
-            approve!(client, TokenRef, token_y, dex, lp_amount);
-
-            // burn one
-            let result = {
-                let _msg = build_message::<ContractRef>(dex.clone())
-                    .call(|contract| contract.burn_from(token_x, token_y, lp_amount));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("burn failed");
-            };
-
-            // Verify if users and contract has correct amount of tokens
-            {
-                let alice_token_x = balance_of!(TokenRef, client, token_x, Alice);
-                let alice_token_y = balance_of!(TokenRef, client, token_y, Alice);
-                assert_eq!(450, alice_token_x);
-                assert_eq!(450, alice_token_y);
-
-                let dex_token_x = dex_balance!(TokenRef, client, token_x, dex);
-                let dex_token_y = dex_balance!(TokenRef, client, token_y, dex);
-                assert_eq!(50, dex_token_x);
-                assert_eq!(50, dex_token_y);
-            }
-            Ok(())
-        }
-
-        #[ink_e2e::test]
-        async fn token_swap_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let dex = create_dex!(client, ContractRef, Percentage::new(0));
-            let (token_x, token_y) = create_tokens!(client, TokenRef, TokenRef, 500, 500);
-
-            let amount_x = Balance::from(50u128);
-            let amount_y = Balance::from(50u128);
-
-            // approve token x
-            approve!(client, TokenRef, token_x, dex, amount_x);
-            // approve token y
-            approve!(client, TokenRef, token_y, dex, amount_y);
-
-            {
-                let _msg = build_message::<ContractRef>(dex.clone())
-                    .call(|contract| contract.mint_to(token_x, token_y, amount_x, amount_y));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("Mint failed");
-            };
-
-            // Check if contract recieved minted tokens
-            {
-                let dex_token_x = dex_balance!(TokenRef, client, token_x, dex);
-                let dex_token_y = dex_balance!(TokenRef, client, token_y, dex);
-                assert_eq!(amount_x, dex_token_x);
-                assert_eq!(amount_y, dex_token_y);
-            }
-
-            let amount_to_swap = Balance::from(10u128);
-
-            // approve token x
-            let _result = {
-                let _msg = build_message::<TokenRef>(token_x.clone())
-                    .call(|contract| contract.increase_allowance(dex.clone(), amount_to_swap));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("Approval failed")
-            };
-            // approve token y
-            let _result = {
-                let _msg = build_message::<TokenRef>(token_y.clone())
-                    .call(|contract| contract.increase_allowance(dex.clone(), amount_to_swap));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("Approval failed")
-            };
-
-            // swap x to y
-            {
-                let _msg = build_message::<ContractRef>(dex.clone())
-                    .call(|contract| contract.swap_tokens(token_x, token_y, amount_to_swap, true));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("Swap Failed");
-            };
-
-            {
-                let _msg = build_message::<ContractRef>(dex.clone())
-                    .call(|contract| contract.swap_tokens(token_x, token_y, amount_to_swap, false));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("Swap Failed");
-            };
-            // Verify if users and contract has correct amount of tokens
-            {
-                let alice_token_x = balance_of!(TokenRef, client, token_x, Alice);
-                let alice_token_y = balance_of!(TokenRef, client, token_y, Alice);
-                assert_eq!(450, alice_token_x);
-                assert_eq!(450, alice_token_y);
-
-                let dex_token_x = dex_balance!(TokenRef, client, token_x, dex);
-                let dex_token_y = dex_balance!(TokenRef, client, token_y, dex);
-                assert_eq!(50, dex_token_x);
-                assert_eq!(50, dex_token_y);
-            }
-
-            Ok(())
-        }
-
-        #[ink_e2e::test]
         async fn create_fee_tier_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let dex = create_dex!(client, ContractRef, Percentage::new(0));
             create_fee_tier!(client, ContractRef, dex, Percentage::new(0), 10u16);
@@ -1576,7 +1260,7 @@ pub mod contract {
         #[ink_e2e::test]
         async fn create_standard_fee_tier_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let dex = create_dex!(client, ContractRef, Percentage::new(0));
-            create_standard_fee_tiers!(client, ContractRef, dex);
+            create_standard_fee_tiers!(client, ContractRef, dex).unwrap();
             let fee_tier = get_fee_tier!(
                 client,
                 ContractRef,
