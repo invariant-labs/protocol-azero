@@ -14,10 +14,7 @@ pub mod token {
     use core::result::Result;
 
     // use ink::prelude::vec;
-    use openbrush::{
-        contracts::psp22::{psp22, PSP22Error, PSP22Impl},
-        modifiers,
-    };
+    use openbrush::contracts::psp22::{psp22, PSP22Error, PSP22Impl};
 
     use crate::*;
 
