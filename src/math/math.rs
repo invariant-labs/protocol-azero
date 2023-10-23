@@ -309,9 +309,9 @@ pub fn calculate_amount_delta(
     Ok((amount_x, amount_y, update_liquidity))
 }
 
-pub fn is_enough_amount_to_push_price(
+pub fn is_enough_amount_to_change_price(
     amount: TokenAmount,
-    current_sqrt_price: SqrtPrice,
+    starting_sqrt_price: SqrtPrice,
     liquidity: Liquidity,
     fee: Percentage,
     by_amount_in: bool,
@@ -323,12 +323,12 @@ pub fn is_enough_amount_to_push_price(
 
     let next_sqrt_price = ok_or_mark_trace!(if by_amount_in {
         let amount_after_fee = amount.big_mul(Percentage::from_integer(1) - fee);
-        get_next_sqrt_price_from_input(current_sqrt_price, liquidity, amount_after_fee, x_to_y)
+        get_next_sqrt_price_from_input(starting_sqrt_price, liquidity, amount_after_fee, x_to_y)
     } else {
-        get_next_sqrt_price_from_output(current_sqrt_price, liquidity, amount, x_to_y)
+        get_next_sqrt_price_from_output(starting_sqrt_price, liquidity, amount, x_to_y)
     })?;
 
-    Ok(current_sqrt_price.ne(&next_sqrt_price))
+    Ok(starting_sqrt_price.ne(&next_sqrt_price))
 }
 
 pub fn calculate_max_liquidity_per_tick(tick_spacing: u16) -> Liquidity {
@@ -1890,7 +1890,7 @@ mod tests {
         let max_sqrt_price = SqrtPrice::from_tick(MAX_TICK).unwrap();
         let min_fee = Percentage::from_integer(0);
         {
-            let (_, cause, stack) = is_enough_amount_to_push_price(
+            let (_, cause, stack) = is_enough_amount_to_change_price(
                 TokenAmount::max_instance(),
                 max_sqrt_price,
                 min_liquidity,
@@ -1918,7 +1918,7 @@ mod tests {
 
         // Percentage Max
         {
-            let (_, cause, stack) = is_enough_amount_to_push_price(
+            let (_, cause, stack) = is_enough_amount_to_change_price(
                 min_amount,
                 max_sqrt_price,
                 min_liquidity,
@@ -1935,7 +1935,7 @@ mod tests {
 
         // Liquidity is 0
         {
-            let result = is_enough_amount_to_push_price(
+            let result = is_enough_amount_to_change_price(
                 max_amount,
                 max_sqrt_price,
                 zero_liquidity,
@@ -1948,7 +1948,7 @@ mod tests {
         }
         // Amount Min
         {
-            let (_, cause, stack) = is_enough_amount_to_push_price(
+            let (_, cause, stack) = is_enough_amount_to_change_price(
                 min_amount,
                 max_sqrt_price,
                 min_liquidity,
@@ -1964,7 +1964,7 @@ mod tests {
         }
         // Amount Max
         {
-            let (_, cause, stack) = is_enough_amount_to_push_price(
+            let (_, cause, stack) = is_enough_amount_to_change_price(
                 max_amount,
                 max_sqrt_price,
                 min_liquidity,

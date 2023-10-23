@@ -153,7 +153,9 @@ pub mod contract {
                 return Err(ContractErrors::NotAnAdmin);
             }
 
-            self.pools.change_fee_receiver(pool_key, fee_receiver)?;
+            let mut pool = self.pools.get_pool(pool_key)?;
+            pool.fee_receiver = fee_receiver;
+            self.pools.update_pool(pool_key, &pool);
 
             Ok(())
         }
@@ -1260,7 +1262,7 @@ pub mod contract {
         #[ink_e2e::test]
         async fn create_standard_fee_tier_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let dex = create_dex!(client, ContractRef, Percentage::new(0));
-            create_standard_fee_tiers!(client, ContractRef, dex).unwrap();
+            create_standard_fee_tiers!(client, ContractRef, dex);
             let fee_tier = get_fee_tier!(
                 client,
                 ContractRef,

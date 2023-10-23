@@ -47,18 +47,6 @@ impl Pools {
         self.pools.remove(&pool_key);
     }
 
-    pub fn change_fee_receiver(
-        &mut self,
-        pool_key: PoolKey,
-        fee_receiver: AccountId,
-    ) -> Result<(), ContractErrors> {
-        let mut pool = self.get_pool(pool_key)?;
-        pool.fee_receiver = fee_receiver;
-        self.update_pool(pool_key, &pool);
-
-        Ok(())
-    }
-
     pub fn update_pool(&mut self, pool_key: PoolKey, pool: &Pool) {
         self.pools.insert(pool_key, pool);
     }
