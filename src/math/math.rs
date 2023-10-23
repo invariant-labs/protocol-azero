@@ -409,6 +409,18 @@ mod tests {
 
             assert_eq!(result, min_sqrt_price);
         }
+        // liquidity == 0
+        {
+            let result = get_next_sqrt_price_from_input(
+                min_sqrt_price,
+                Liquidity::new(0),
+                TokenAmount(20),
+                true,
+            )
+            .unwrap();
+
+            assert_eq!(result, SqrtPrice::new(0));
+        }
         // error handling
         {
             let (_, cause, stack) =
@@ -458,31 +470,37 @@ mod tests {
         }
         // amount == 0
         {
-            let result =
-                get_next_sqrt_price_from_input(min_sqrt_price, max_liquidity, TokenAmount(0), true)
-                    .unwrap();
+            let result = get_next_sqrt_price_from_output(
+                min_sqrt_price,
+                max_liquidity,
+                TokenAmount(0),
+                true,
+            )
+            .unwrap();
 
             assert_eq!(result, min_sqrt_price);
         }
         // liquidity == 0
         {
-            let result = get_next_sqrt_price_from_input(
+            let (_, cause, stack) = get_next_sqrt_price_from_output(
                 min_sqrt_price,
                 Liquidity::new(0),
                 TokenAmount(20),
                 true,
             )
-            .unwrap();
+            .unwrap_err()
+            .get();
 
-            assert_eq!(result, SqrtPrice::new(0));
+            assert_eq!(cause, "subtraction underflow");
+            assert_eq!(stack.len(), 3);
         }
         // error handling
         {
             let (_, cause, stack) =
-                get_next_sqrt_price_from_input(max_sqrt_price, min_liquidity, max_amount, false)
+                get_next_sqrt_price_from_output(max_sqrt_price, min_liquidity, max_amount, false)
                     .unwrap_err()
                     .get();
-            assert_eq!(cause, "multiplication overflow");
+            assert_eq!(cause, "big_liquidity -/+ sqrt_price * x");
             assert_eq!(stack.len(), 3);
         }
     }
