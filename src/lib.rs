@@ -534,7 +534,7 @@ pub mod contract {
                     position.pool_key,
                 );
             }
-            self.positions.remove(caller, index);
+            self.positions.remove(caller, index).unwrap();
 
             PSP22Ref::transfer_from(
                 &position.pool_key.token_x,
@@ -808,7 +808,7 @@ pub mod contract {
                     position
                 );
 
-                contract.remove_position(2);
+                let _ = contract.remove_position(2);
 
                 let position = contract.get_position(2).unwrap();
                 assert_eq!(
@@ -825,7 +825,7 @@ pub mod contract {
             }
             // remove positions out of range
             {
-                contract.remove_position(99);
+                let _ = contract.remove_position(99);
             }
         }
 
@@ -878,9 +878,9 @@ pub mod contract {
         use openbrush::contracts::psp22::psp22_external::PSP22;
         use openbrush::traits::Balance;
         use test_helpers::{
-            address_of, approve, balance_of, create_dex, create_fee_tier, create_pool,
-            create_position, create_standard_fee_tiers, create_tokens, dex_balance, get_fee_tier,
-            get_pool,
+            address_of, approve, balance_of, claim_fee, create_dex, create_fee_tier, create_pool,
+            create_position, create_standard_fee_tiers, create_tokens, dex_balance,
+            get_all_positions, get_fee_tier, get_pool, get_position, remove_position, swap,
         };
         use token::TokenRef;
 
@@ -975,10 +975,11 @@ pub mod contract {
             };
             let pool = create_pool!(client, ContractRef, dex, token_x, token_y, fee_tier, 10);
 
-            approve!(client, TokenRef, token_x, dex, 50);
-            approve!(client, TokenRef, token_y, dex, 50);
+            approve!(client, TokenRef, token_x, dex, 500);
+            approve!(client, TokenRef, token_y, dex, 500);
 
             let pool_key = PoolKey::new(token_x, token_y, fee_tier);
+            let alice = ink_e2e::alice();
 
             let position = create_position!(
                 client,
@@ -996,217 +997,136 @@ pub mod contract {
             Ok(())
         }
 
-        // #[ink_e2e::test]
-        // async fn test_positions(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-        //     let fee_tier = FeeTier {
-        //         fee: Percentage::new(1),
-        //         tick_spacing: 50u16,
-        //     };
-        //     let pool_key = PoolKey {
-        //         token_x: AccountId::from([0x01; 32]),
-        //         token_y: AccountId::from([0x02; 32]),
-        //         fee_tier,
-        //     };
+        #[ink_e2e::test]
+        async fn test_positions(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let dex = create_dex!(client, ContractRef, Percentage::new(0));
+            let (token_x, token_y) = create_tokens!(client, TokenRef, TokenRef, 500, 500);
 
-        //     let contract = create_dex!(client, ContractRef, Percentage::new(0));
+            let alice = ink_e2e::alice();
 
-        //     // Get all Alice positions - should be empty
-        //     let alice_positions = {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.get_all_positions());
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("getting posisitons failed")
-        //     }
-        //     .return_value();
-        //     assert_eq!(alice_positions, vec![]);
+            let fee_tier = FeeTier {
+                fee: Percentage::new(0),
+                tick_spacing: 1,
+            };
+            let pool = create_pool!(client, ContractRef, dex, token_x, token_y, fee_tier, 10);
 
-        //     // Alice is adding 3 positions
-        //     {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.add_position());
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("added position failed")
-        //     };
-        //     {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.add_position());
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("added position failed")
-        //     };
-        //     {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.add_position());
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("added position failed")
-        //     };
-        //     // Get all Alice positions
-        //     let alice_positions = {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.get_all_positions());
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("getting posisitons failed")
-        //     }
-        //     .return_value();
-        //     assert_eq!(
-        //         alice_positions,
-        //         vec![
-        //             Position {
-        //                 ..Default::default()
-        //             },
-        //             Position {
-        //                 ..Default::default()
-        //             },
-        //             Position {
-        //                 ..Default::default()
-        //             },
-        //         ]
-        //     );
+            approve!(client, TokenRef, token_x, dex, 50);
+            approve!(client, TokenRef, token_y, dex, 50);
 
-        //     // Bob adds 2 positions
-        //     {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.add_position());
-        //         client
-        //             .call(&ink_e2e::bob(), _msg, 0, None)
-        //             .await
-        //             .expect("added position failed")
-        //     };
-        //     {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.add_position());
-        //         client
-        //             .call(&ink_e2e::bob(), _msg, 0, None)
-        //             .await
-        //             .expect("added position failed")
-        //     };
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier);
 
-        //     // Get all Alice positions
-        //     let bob_positions = {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.get_all_positions());
-        //         client
-        //             .call(&ink_e2e::bob(), _msg, 0, None)
-        //             .await
-        //             .expect("getting posisitons failed")
-        //     }
-        //     .return_value();
-        //     assert_eq!(
-        //         bob_positions,
-        //         vec![
-        //             Position {
-        //                 ..Default::default()
-        //             },
-        //             Position {
-        //                 ..Default::default()
-        //             },
-        //         ]
-        //     );
+            // Get all Alice positions - should be empty
+            let alice_positions = get_all_positions!(client, ContractRef, dex, alice);
 
-        //     let alice_second_positions = {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.get_position(1));
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("Position recieving failed")
-        //     }
-        //     .return_value()
-        //     .unwrap();
+            assert_eq!(alice_positions, vec![]);
 
-        //     assert_eq!(
-        //         Position {
-        //             ..Default::default()
-        //         },
-        //         alice_second_positions
-        //     );
+            // // Alice adds 3 positions
 
-        //     let bob_first_position = {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.get_position(0));
-        //         client
-        //             .call(&ink_e2e::bob(), _msg, 0, None)
-        //             .await
-        //             .expect("Position recieving failed")
-        //     }
-        //     .return_value()
-        //     .unwrap();
+            let first_position = create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                -1,
+                1,
+                Liquidity::new(10),
+                SqrtPrice::new(0),
+                SqrtPrice::max_instance(),
+                alice
+            )
+            .unwrap();
 
-        //     assert_eq!(
-        //         Position {
-        //             ..Default::default()
-        //         },
-        //         bob_first_position
-        //     );
+            let second_position = create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                -2,
+                2,
+                Liquidity::new(10),
+                SqrtPrice::new(0),
+                SqrtPrice::max_instance(),
+                alice
+            )
+            .unwrap();
 
-        //     // Alice removes second position
-        //     {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.remove_position(1));
-        //         client.call(&ink_e2e::alice(), _msg, 0, None).await;
-        //     }
+            let third_position = create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                -3,
+                3,
+                Liquidity::new(10),
+                SqrtPrice::new(0),
+                SqrtPrice::max_instance(),
+                alice
+            )
+            .unwrap();
 
-        //     let alice_second_positions = {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.get_position(1));
-        //         client
-        //             .call(&ink_e2e::alice(), _msg, 0, None)
-        //             .await
-        //             .expect("Position recieving failed")
-        //     }
-        //     .return_value()
-        //     .unwrap();
+            // // Get all Alice positions
+            let alice_positions = get_all_positions!(client, ContractRef, dex, alice);
+            assert_eq!(alice_positions.len(), 3);
 
-        //     assert_eq!(
-        //         Position {
-        //             ..Default::default()
-        //         },
-        //         alice_second_positions
-        //     );
+            // // Bob adds 2 positions
+            let bob = ink_e2e::bob();
+            let first_position = create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                -4,
+                4,
+                Liquidity::new(10),
+                SqrtPrice::new(0),
+                SqrtPrice::max_instance(),
+                bob
+            )
+            .unwrap();
 
-        //     // Bob tires to remove position out of range
-        //     {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.remove_position(99));
-        //         client.call(&ink_e2e::bob(), _msg, 0, None).await;
-        //     }
+            let second_position = create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                -5,
+                5,
+                Liquidity::new(10),
+                SqrtPrice::new(0),
+                SqrtPrice::max_instance(),
+                bob
+            )
+            .unwrap();
 
-        //     // Bob removes position first position
-        //     {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.remove_position(0));
-        //         client.call(&ink_e2e::bob(), _msg, 0, None).await;
-        //     }
-        //     // Bob's first position
-        //     let bob_first_position = {
-        //         let _msg = build_message::<ContractRef>(contract.clone())
-        //             .call(|contract| contract.get_position(0));
-        //         client
-        //             .call(&ink_e2e::bob(), _msg, 0, None)
-        //             .await
-        //             .expect("Position recieving failed")
-        //     }
-        //     .return_value()
-        //     .unwrap();
+            // // Get all Bob positions
+            let bob_positions = get_all_positions!(client, ContractRef, dex, bob);
+            assert_eq!(bob_positions.len(), 2);
 
-        //     assert_eq!(
-        //         Position {
-        //             ..Default::default()
-        //         },
-        //         bob_first_position
-        //     );
+            let alice_second_position = get_position!(client, ContractRef, dex, 1, alice);
+            assert!(alice_second_position.is_some());
 
-        //     Ok(())
-        // }
+            let bob_first_position = get_position!(client, ContractRef, dex, 0, bob);
+            assert!(bob_first_position.is_some());
+
+            remove_position!(client, ContractRef, dex, 2, alice);
+
+            let alice_positions = get_all_positions!(client, ContractRef, dex, alice);
+            // println!("Alice positions = {:?}", alice_positions);
+
+            let alice_third_position = get_position!(client, ContractRef, dex, 2, alice);
+
+            // Bob tries to remove position out of range
+            remove_position!(client, ContractRef, dex, 9999, bob);
+            let bob_positions = get_all_positions!(client, ContractRef, dex, bob);
+            // assert_eq!(bob_positions.len(), 2);
+
+            // // Bob removes first position
+            remove_position!(client, ContractRef, dex, 1, bob);
+            // // Get all Bob positions
+            let bob_positions = get_all_positions!(client, ContractRef, dex, bob);
+            // // assert_eq!(bob_positions.len(), 1);
+            Ok(())
+        }
 
         #[ink_e2e::test]
         async fn create_fee_tier_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {

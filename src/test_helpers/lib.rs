@@ -440,8 +440,8 @@ macro_rules! create_position {
         // pool_key:expr => Pool key
         // lower_tick:ident || upper_tick:ident => index of lower tick
         // l => liquidity
-        // limit_loewr | limit_upper => price limit slippage
-        // caller => ink_e2e account to call the function
+        // limit_lower | limit_upper => price limit slippage
+        // caller => ink_e2e account to sign call
 
         let _msg = build_message::<$dex>($dex_address.clone()).call(|contract| {
             contract.create_position(
@@ -463,36 +463,49 @@ macro_rules! create_position {
 
 #[macro_export]
 macro_rules! remove_position {
-    ($client:ident, $dex:ty, $dex_address:expr, $x:ident, $y:ident, $fee_tier:expr) => {{
+    ($client:ident, $dex:ty, $dex_address:expr, $index:expr, $caller:ident) => {{
         // client => ink_e2e_client
-        // x:ident || y:ident => Addresses of x and y tokens
         // dex:ty => ContractRef
         // dex_address:expr => Address of contract
-        // fee_tier:expr => Pool fee tier
+        // index:expr => position index to remove
+        // caller => ink_e2e account to sign call
         let _msg = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.get_pool($x, $y, $fee_tier));
-        $client
-            .call(&ink_e2e::alice(), _msg, 0, None)
-            .await
-            .expect("Pool creation failed")
-            .return_value()
+            .call(|contract| contract.remove_position($index));
+        $client.call(&$caller, _msg, 0, None).await
     }};
 }
 
 #[macro_export]
 macro_rules! get_position {
-    ($client:ident, $dex:ty, $dex_address:expr, $x:ident, $y:ident, $fee_tier:expr) => {{
+    ($client:ident, $dex:ty, $dex_address:expr, $index:expr, $caller:ident) => {{
         // client => ink_e2e_client
         // x:ident || y:ident => Addresses of x and y tokens
         // dex:ty => ContractRef
         // dex_address:expr => Address of contract
         // fee_tier:expr => Pool fee tier
         let _msg = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.get_pool($x, $y, $fee_tier));
+            .call(|contract| contract.get_position($index));
         $client
-            .call(&ink_e2e::alice(), _msg, 0, None)
+            .call(&$caller, _msg, 0, None)
             .await
-            .expect("Pool creation failed")
+            .expect("Position recieving failed")
+            .return_value()
+    }};
+}
+
+#[macro_export]
+macro_rules! get_all_positions {
+    ($client:ident, $dex:ty, $dex_address:expr, $caller:ident) => {{
+        // client => ink_e2e_client
+        // dex:ty => ContractRef
+        // dex_address:expr => Address of contract
+        // caller:expr => ink_e2e::account to sign the call
+        let _msg = build_message::<$dex>($dex_address.clone())
+            .call(|contract| contract.get_all_positions());
+        $client
+            .call(&$caller, _msg, 0, None)
+            .await
+            .expect("getting posisitons failed")
             .return_value()
     }};
 }
