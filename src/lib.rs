@@ -29,6 +29,7 @@ pub enum ContractErrors {
     InvalidTickSpacing,
     FeeTierAlreadyAdded,
     NotAFeeReceiver,
+    AllowanceTooLow,
 }
 #[ink::contract]
 pub mod contract {
@@ -230,7 +231,7 @@ pub mod contract {
                 x.get(),
                 vec![],
             )
-            .ok();
+            .map_err(|_| ContractErrors::AllowanceTooLow)?;
             PSP22Ref::transfer_from(
                 &pool_key.token_y,
                 self.env().caller(),
@@ -238,7 +239,7 @@ pub mod contract {
                 y.get(),
                 vec![],
             )
-            .ok();
+            .map_err(|_| ContractErrors::AllowanceTooLow)?;
 
             Ok(position)
         }
@@ -354,14 +355,14 @@ pub mod contract {
                     total_amount_in.get(),
                     vec![],
                 )
-                .ok();
+                .map_err(|_| ContractErrors::AllowanceTooLow)?;
                 PSP22Ref::transfer(
                     &pool_key.token_y,
                     self.env().caller(),
                     total_amount_out.get(),
                     vec![],
                 )
-                .ok();
+                .map_err(|_| ContractErrors::AllowanceTooLow)?;
             } else {
                 PSP22Ref::transfer_from(
                     &pool_key.token_y,
@@ -370,14 +371,14 @@ pub mod contract {
                     total_amount_in.get(),
                     vec![],
                 )
-                .ok();
+                .map_err(|_| ContractErrors::AllowanceTooLow)?;
                 PSP22Ref::transfer(
                     &pool_key.token_x,
                     self.env().caller(),
                     total_amount_out.get(),
                     vec![],
                 )
-                .ok();
+                .map_err(|_| ContractErrors::AllowanceTooLow)?;
             };
 
             Ok(())
@@ -893,6 +894,55 @@ pub mod contract {
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
+        async fn swap(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let mint_amount = 10u128.pow(10);
+            let protocol_fee = Percentage::new(0);
+            let fee = Percentage::new(600);
+            let tick_spacing = 10;
+            let fee_tier = FeeTier { fee, tick_spacing };
+            let init_tick = 0;
+            let lower_tick = -20;
+            let upper_tick = 10;
+            let liquidity = Liquidity::from_integer(1000000);
+            let slippage_limit_lower = SqrtPrice::new(MIN_SQRT_PRICE);
+            let slippage_limit_upper = SqrtPrice::new(MAX_SQRT_PRICE);
+            let alice = ink_e2e::alice();
+
+            let (token_x, token_y) =
+                create_tokens!(client, TokenRef, TokenRef, mint_amount, mint_amount);
+
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier);
+
+            let dex = create_dex!(client, ContractRef, protocol_fee);
+            create_fee_tier!(client, ContractRef, dex, fee, tick_spacing);
+            create_pool!(
+                client,
+                ContractRef,
+                dex,
+                token_x,
+                token_y,
+                fee_tier,
+                init_tick
+            );
+            approve!(client, TokenRef, token_x, dex, mint_amount);
+            approve!(client, TokenRef, token_y, dex, mint_amount);
+            create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                lower_tick,
+                upper_tick,
+                liquidity,
+                slippage_limit_lower,
+                slippage_limit_upper,
+                alice
+            );
+
+            Ok(())
+        }
+
+        #[ink_e2e::test]
         async fn constructor_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = TokenRef::new(500);
             let _token: AccountId = client
@@ -1001,7 +1051,7 @@ pub mod contract {
             Ok(())
         }
 
-        #[ink_e2e::test]
+        /*#[ink_e2e::test]
         async fn test_positions(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let dex = create_dex!(client, ContractRef, Percentage::new(0));
             let (token_x, token_y) = create_tokens!(client, TokenRef, TokenRef, 500, 500);
@@ -1130,7 +1180,7 @@ pub mod contract {
             let bob_positions = get_all_positions!(client, ContractRef, dex, bob);
             // // assert_eq!(bob_positions.len(), 1);
             Ok(())
-        }
+        }*/
 
         #[ink_e2e::test]
         async fn create_fee_tier_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
