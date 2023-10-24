@@ -482,7 +482,8 @@ macro_rules! get_position {
         // x:ident || y:ident => Addresses of x and y tokens
         // dex:ty => ContractRef
         // dex_address:expr => Address of contract
-        // fee_tier:expr => Pool fee tier
+        // index:expr => position index to remove
+        // caller => ink_e2e account to sign call
         let _msg = build_message::<$dex>($dex_address.clone())
             .call(|contract| contract.get_position($index));
         $client
@@ -511,17 +512,18 @@ macro_rules! get_all_positions {
 }
 
 #[macro_export]
-macro_rules! swap {
-    ($client:ident, $dex:ty, $dex_address:expr, $x:ident, $y:ident, $fee_tier:expr) => {{
+macro_rules! claim_fee {
+    ($client:ident, $dex:ty, $dex_address:expr, $index:expr, $pool_key:expr, $caller:ident) => {{
         // client => ink_e2e_client
-        // x:ident || y:ident => Addresses of x and y tokens
         // dex:ty => ContractRef
         // dex_address:expr => Address of contract
-        // fee_tier:expr => Pool fee tier
+        // index:expr => u32
+        // pool_key:expr => pool_key
+        // $caller => signer from ink_e2e env
         let _msg = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.get_pool($x, $y, $fee_tier));
+            .call(|contract| contract.position_claim_fee($index, $pool_key));
         $client
-            .call(&ink_e2e::alice(), _msg, 0, None)
+            .call(&$caller, _msg, 0, None)
             .await
             .expect("Pool creation failed")
             .return_value()
@@ -529,17 +531,28 @@ macro_rules! swap {
 }
 
 #[macro_export]
-macro_rules! claim_fee {
-    ($client:ident, $dex:ty, $dex_address:expr, $x:ident, $y:ident, $fee_tier:expr) => {{
+macro_rules! swap {
+    ($client:ident, $dex:ty, $dex_address:expr, $pool_key:expr, $x_to_y:expr, $amount:expr, $by_amount_in:expr, $sqrt_price_limit:expr, $caller:ident) => {{
         // client => ink_e2e_client
-        // x:ident || y:ident => Addresses of x and y tokens
         // dex:ty => ContractRef
         // dex_address:expr => Address of contract
-        // fee_tier:expr => Pool fee tier
-        let _msg = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.get_pool($x, $y, $fee_tier));
+        // pool_key:expr => pool_key
+        // x_to_y:expr => bool
+        // amount:expr => TokenAmount to swap
+        // by_amount_in:expr => bool
+        // sqrt_price_limit:expr => price limit
+        // caller => signer from ink_e2e env
+        let _msg = build_message::<$dex>($dex_address.clone()).call(|contract| {
+            contract.swap(
+                $pool_key,
+                $x_to_y,
+                $amount,
+                $by_amount_in,
+                $sqrt_price_limit,
+            )
+        });
         $client
-            .call(&ink_e2e::alice(), _msg, 0, None)
+            .call(&$caller, _msg, 0, None)
             .await
             .expect("Pool creation failed")
             .return_value()
