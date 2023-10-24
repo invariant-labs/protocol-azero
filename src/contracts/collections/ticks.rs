@@ -16,7 +16,12 @@ impl Ticks {
     pub fn remove_tick(&mut self, key: PoolKey, index: i32) {
         self.ticks.remove(&(key, index));
     }
+
     pub fn add_tick(&mut self, key: PoolKey, index: i32, tick: Tick) {
         self.ticks.insert(&(key, index), &tick);
+    }
+
+    pub fn update_tick(&mut self, key: PoolKey, index: i32, tick: &Tick) {
+        self.ticks.insert((&key, index), tick);
     }
 }
