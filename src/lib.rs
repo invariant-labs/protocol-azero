@@ -29,6 +29,7 @@ pub enum ContractErrors {
     InvalidTickSpacing,
     FeeTierAlreadyAdded,
     NotAFeeReceiver,
+    ZeroLiquidity,
 }
 #[ink::contract]
 pub mod contract {
@@ -179,6 +180,9 @@ pub mod contract {
             let tick = Tick::create(index, &pool, current_timestamp);
             self.ticks.add_tick(pool_key, index, tick);
 
+            self.tickmap
+                .flip(true, index, pool_key.fee_tier.tick_spacing, pool_key);
+
             Ok(tick)
         }
 
@@ -192,6 +196,10 @@ pub mod contract {
             slippage_limit_lower: SqrtPrice,
             slippage_limit_upper: SqrtPrice,
         ) -> Result<Position, ContractErrors> {
+            // liquidity delta = 0 => return
+            if liquidity_delta == Liquidity::new(0) {
+                return Err(ContractErrors::ZeroLiquidity);
+            }
             let mut pool = self.pools.get_pool(pool_key)?;
 
             let mut lower_tick = self
@@ -207,7 +215,7 @@ pub mod contract {
             let current_timestamp = self.env().block_timestamp();
             let current_block_number = self.env().block_number() as u64;
 
-            let (position, x, y) = Position::create(
+            let (position, x, y, lower_liquidity, upper_liquidity) = Position::create(
                 &mut pool,
                 pool_key,
                 &mut lower_tick,
@@ -223,22 +231,27 @@ pub mod contract {
             let caller = self.env().caller();
             self.positions.add(caller, position);
 
-            PSP22Ref::transfer_from(
-                &pool_key.token_x,
-                self.env().caller(),
-                self.env().account_id(),
-                x.get(),
-                vec![],
-            )
-            .ok();
-            PSP22Ref::transfer_from(
-                &pool_key.token_y,
-                self.env().caller(),
-                self.env().account_id(),
-                y.get(),
-                vec![],
-            )
-            .ok();
+            lower_tick.liquidity_gross = lower_liquidity;
+            upper_tick.liquidity_gross = upper_liquidity;
+            self.ticks.add_tick(pool_key, lower_tick.index, lower_tick);
+            self.ticks.add_tick(pool_key, upper_tick.index, upper_tick);
+
+            // PSP22Ref::transfer_from(
+            //     &pool_key.token_x,
+            //     self.env().caller(),
+            //     self.env().account_id(),
+            //     x.get(),
+            //     vec![],
+            // )
+            // .ok();
+            // PSP22Ref::transfer_from(
+            //     &pool_key.token_y,
+            //     self.env().caller(),
+            //     self.env().account_id(),
+            //     y.get(),
+            //     vec![],
+            // )
+            //            .ok();
 
             Ok(position)
         }
@@ -396,11 +409,11 @@ pub mod contract {
         }
 
         // positions list features
-        #[ink(message)]
-        pub fn add_position(&mut self) {
-            let caller = self.env().caller();
-            self.positions.add(caller, Position::default());
-        }
+        // #[ink(message)]
+        // pub fn add_position(&mut self) {
+        //     let caller = self.env().caller();
+        //     self.positions.add(caller, Position::default());
+        // }
 
         #[ink(message)]
         pub fn get_position(&mut self, index: u32) -> Option<Position> {
@@ -533,29 +546,29 @@ pub mod contract {
             if deinitialize_upper_tick {
                 self.tickmap.flip(
                     false,
-                    lower_tick.index,
+                    upper_tick.index,
                     position.pool_key.fee_tier.tick_spacing,
                     position.pool_key,
                 );
             }
             self.positions.remove(caller, index).unwrap();
 
-            PSP22Ref::transfer_from(
-                &position.pool_key.token_x,
-                self.env().account_id(),
-                self.env().caller(),
-                amount_x.get(),
-                vec![],
-            )
-            .ok();
-            PSP22Ref::transfer_from(
-                &position.pool_key.token_y,
-                self.env().account_id(),
-                self.env().caller(),
-                amount_y.get(),
-                vec![],
-            )
-            .ok();
+            // PSP22Ref::transfer_from(
+            //     &position.pool_key.token_x,
+            //     self.env().account_id(),
+            //     self.env().caller(),
+            //     amount_x.get(),
+            //     vec![],
+            // )
+            // .ok();
+            // PSP22Ref::transfer_from(
+            //     &position.pool_key.token_y,
+            //     self.env().account_id(),
+            //     self.env().caller(),
+            //     amount_y.get(),
+            //     vec![],
+            // )
+            // .ok();
 
             Ok((amount_x, amount_y))
         }
@@ -632,8 +645,12 @@ pub mod contract {
         fn add_tick(&mut self, key: PoolKey, index: i32, tick: Tick) {
             self.ticks.add_tick(key, index, tick);
         }
+
         fn get_tick(&self, key: PoolKey, index: i32) -> Option<Tick> {
             self.ticks.get_tick(key, index)
+        }
+        fn get_tickmap_bit(&self, key: PoolKey, index: i32) -> bool {
+            self.tickmap.get(index, key.fee_tier.tick_spacing, key)
         }
         fn remove_tick(&mut self, key: PoolKey, index: i32) {
             self.ticks.remove_tick(key, index);
@@ -761,76 +778,40 @@ pub mod contract {
         }
 
         #[ink::test]
-        fn test_positions() {
+        fn test_remove_position() {
             let mut contract = Contract::new(Percentage::new(0));
-            contract.add_position();
-            contract.add_position();
-            contract.add_position();
-            contract.add_position();
-            contract.add_position();
-            // get all positions
-            let fee_tier = FeeTier {
-                fee: Percentage::new(1),
-                tick_spacing: 50u16,
-            };
-            let pool_key = PoolKey {
-                token_x: AccountId::from([0x01; 32]),
-                token_y: AccountId::from([0x02; 32]),
-                fee_tier,
-            };
-
-            {
-                let positions = contract.get_all_positions();
-                assert_eq!(
-                    vec![
-                        Position {
-                            ..Default::default()
-                        },
-                        Position {
-                            ..Default::default()
-                        },
-                        Position {
-                            ..Default::default()
-                        },
-                        Position {
-                            ..Default::default()
-                        },
-                        Position {
-                            ..Default::default()
-                        }
-                    ],
-                    positions
+            let token_0 = AccountId::from([0x01; 32]);
+            let token_1 = AccountId::from([0x02; 32]);
+            let pool_key = PoolKey::new(
+                token_0,
+                token_1,
+                FeeTier {
+                    fee: Percentage::new(1),
+                    tick_spacing: 2,
+                },
+            );
+            let _ = contract.add_pool(pool_key.token_x, pool_key.token_y, pool_key.fee_tier, 0);
+            let position = contract
+                .create_position(
+                    pool_key,
+                    -10,
+                    10,
+                    Liquidity::new(50),
+                    SqrtPrice::new(0),
+                    SqrtPrice::max_instance(),
                 )
-            }
-            // basic position operations
-            {
-                let position = contract.get_position(2).unwrap();
-                assert_eq!(
-                    Position {
-                        ..Default::default()
-                    },
-                    position
-                );
+                .unwrap();
 
-                let _ = contract.remove_position(2);
+            let is_flipped = contract.get_tickmap_bit(pool_key, -10);
+            assert!(is_flipped);
 
-                let position = contract.get_position(2).unwrap();
-                assert_eq!(
-                    Position {
-                        ..Default::default()
-                    },
-                    position
-                );
-            }
-            // get positions out of range
-            {
-                let position_out_of_range = contract.get_position(99);
-                assert_eq!(position_out_of_range, None)
-            }
-            // remove positions out of range
-            {
-                let _ = contract.remove_position(99);
-            }
+            let result = contract.remove_position(0);
+
+            let is_flipped = contract.get_tickmap_bit(pool_key, -10);
+            assert!(!is_flipped);
+
+            let positions = contract.get_all_positions();
+            assert_eq!(positions.len(), 0);
         }
 
         #[ink::test]

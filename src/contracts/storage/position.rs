@@ -42,7 +42,7 @@ impl Position {
         add: bool,
         current_timestamp: u64,
         tick_spacing: u16,
-    ) -> TrackableResult<(TokenAmount, TokenAmount, bool)> {
+    ) -> TrackableResult<(TokenAmount, TokenAmount, bool, Liquidity, Liquidity)> {
         if !pool.liquidity.is_zero() {
             let _ = pool.update_seconds_per_liquidity_global(current_timestamp);
         } else {
@@ -78,13 +78,20 @@ impl Position {
         )?;
 
         // calculate tokens amounts and update pool liquidity
-        ok_or_mark_trace!(calculate_amount_delta(
+        let (x, y, sign) = calculate_amount_delta(
             pool.current_tick_index,
             pool.sqrt_price,
             liquidity_delta,
             add,
             upper_tick.index,
             lower_tick.index,
+        )?;
+        Ok((
+            x,
+            y,
+            sign,
+            lower_tick.liquidity_gross,
+            upper_tick.liquidity_gross,
         ))
     }
 
@@ -193,7 +200,7 @@ impl Position {
         slippage_limit_upper: SqrtPrice,
         block_number: u64,
         tick_spacing: u16,
-    ) -> (Self, TokenAmount, TokenAmount) {
+    ) -> (Self, TokenAmount, TokenAmount, Liquidity, Liquidity) {
         let price = pool.sqrt_price;
         assert!(price >= slippage_limit_lower, "Price limit reached");
         assert!(price <= slippage_limit_upper, "Price limit reached");
@@ -219,17 +226,24 @@ impl Position {
             tokens_owed_y: TokenAmount::new(0),
         };
 
-        let (required_x, required_y, _) = unwrap!(position.modify(
-            pool,
-            upper_tick,
-            lower_tick,
-            liquidity_delta,
-            true,
-            current_timestamp,
-            tick_spacing
-        ));
+        let (required_x, required_y, _, lower_liquidity, upper_liquidity) = unwrap!(position
+            .modify(
+                pool,
+                upper_tick,
+                lower_tick,
+                liquidity_delta,
+                true,
+                current_timestamp,
+                tick_spacing
+            ));
 
-        (position, required_x, required_y)
+        (
+            position,
+            required_x,
+            required_y,
+            lower_liquidity,
+            upper_liquidity,
+        )
     }
 
     pub fn remove(
@@ -241,7 +255,7 @@ impl Position {
         tick_spacing: u16,
     ) -> (TokenAmount, TokenAmount, bool, bool) {
         let liquidity_delta = self.liquidity;
-        let (mut amount_x, mut amount_y, _) = unwrap!(self.modify(
+        let (mut amount_x, mut amount_y, _, _, _) = unwrap!(self.modify(
             pool,
             upper_tick,
             lower_tick,
