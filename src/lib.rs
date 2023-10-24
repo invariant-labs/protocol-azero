@@ -1181,5 +1181,46 @@ pub mod contract {
             let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
             Ok(())
         }
+
+        #[ink_e2e::test]
+        async fn position_spec_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let dex = create_dex!(client, ContractRef, Percentage::new(0));
+            let (token_x, token_y) = create_tokens!(client, TokenRef, TokenRef, 500, 500);
+
+            let alice = ink_e2e::alice();
+
+            let fee_tier = FeeTier {
+                fee: Percentage::from_scale(5, 1),
+                tick_spacing: 100,
+            };
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier);
+
+            let init_tick = -23028;
+
+            let result = create_pool!(
+                client,
+                ContractRef,
+                dex,
+                token_x,
+                token_y,
+                fee_tier,
+                init_tick
+            );
+
+            let second_position = create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                -22980,
+                0,
+                Liquidity::new(100),
+                SqrtPrice::new(0),
+                SqrtPrice::max_instance(),
+                alice
+            );
+
+            Ok(())
+        }
     }
 }
