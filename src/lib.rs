@@ -313,12 +313,12 @@ pub mod contract {
                 }
 
                 // TODO: refactor
-                let mut _tick = Tick::default();
+                let mut tick = Tick::default();
 
                 let update_limiting_tick = limiting_tick.map(|(index, bool)| {
                     if bool {
-                        _tick = self.ticks.get_tick(pool_key, index).unwrap();
-                        (index, Some(&mut _tick))
+                        tick = self.ticks.get_tick(pool_key, index).unwrap();
+                        (index, Some(&mut tick))
                     } else {
                         (index, None)
                     }
@@ -336,7 +336,11 @@ pub mod contract {
                     self.state.protocol_fee,
                     pool_key.fee_tier,
                 );
+
+                self.ticks.update_tick(pool_key, 0, &tick);
             }
+
+            self.pools.update_pool(pool_key, &pool);
 
             if total_amount_out.get() == 0 {
                 return Err(ContractErrors::NoGainSwap);
