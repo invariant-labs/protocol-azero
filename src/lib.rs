@@ -424,13 +424,14 @@ pub mod contract {
             amount: TokenAmount,
             by_amount_in: bool,
             sqrt_price_limit: SqrtPrice,
-        ) -> Result<(TokenAmount, TokenAmount), ContractErrors> {
+        ) -> Result<(TokenAmount, TokenAmount, SqrtPrice), ContractErrors> {
             let calculate_swap_result =
                 self.calculate_swap(pool_key, x_to_y, amount, by_amount_in, sqrt_price_limit)?;
 
             Ok((
                 calculate_swap_result.amount_in,
                 calculate_swap_result.amount_out,
+                calculate_swap_result.pool.sqrt_price,
             ))
         }
 
