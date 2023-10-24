@@ -404,6 +404,21 @@ pub mod contract {
         }
 
         #[ink(message)]
+        pub fn quote(
+            &self,
+            pool_key: PoolKey,
+            x_to_y: bool,
+            amount: TokenAmount,
+            by_amount_in: bool,
+            sqrt_price_limit: SqrtPrice,
+        ) -> Result<(TokenAmount, TokenAmount), ContractErrors> {
+            let (total_amount_in, total_amount_out, pool, ticks) =
+                self.calculate_swap(pool_key, x_to_y, amount, by_amount_in, sqrt_price_limit)?;
+
+            Ok((total_amount_in, total_amount_out))
+        }
+
+        #[ink(message)]
         pub fn transfer_position(
             &mut self,
             index: u32,
