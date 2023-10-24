@@ -59,6 +59,13 @@ pub mod contract {
         pub y: (AccountId, Balance),
     }
 
+    pub struct CalculateSwapResult {
+        pub amount_in: TokenAmount,
+        pub amount_out: TokenAmount,
+        pub pool: Pool,
+        pub ticks: Vec<Tick>,
+    }
+
     #[derive(scale::Decode, Default, scale::Encode, Clone, Debug)]
     #[cfg_attr(
         feature = "std",
@@ -243,18 +250,19 @@ pub mod contract {
             Ok(position)
         }
 
-        #[ink(message)]
-        pub fn swap(
-            &mut self,
+        pub fn calculate_swap(
+            &self,
             pool_key: PoolKey,
             x_to_y: bool,
             amount: TokenAmount,
             by_amount_in: bool,
             sqrt_price_limit: SqrtPrice,
-        ) -> Result<(), ContractErrors> {
+        ) -> Result<CalculateSwapResult, ContractErrors> {
             if amount.is_zero() {
                 return Err(ContractErrors::AmountIsZero);
             }
+
+            let mut ticks: Vec<Tick> = vec![];
 
             let mut pool = self.pools.get_pool(pool_key)?;
             let current_timestamp = self.env().block_timestamp();
@@ -337,28 +345,53 @@ pub mod contract {
                     pool_key.fee_tier,
                 );
 
-                self.ticks.update_tick(pool_key, 0, &tick);
+                ticks.push(tick);
             }
-
-            self.pools.update_pool(pool_key, &pool);
 
             if total_amount_out.get() == 0 {
                 return Err(ContractErrors::NoGainSwap);
             }
+
+            Ok(CalculateSwapResult {
+                amount_in: total_amount_in,
+                amount_out: total_amount_out,
+                pool,
+                ticks,
+            })
+        }
+
+        #[ink(message)]
+        pub fn swap(
+            &mut self,
+            pool_key: PoolKey,
+            x_to_y: bool,
+            amount: TokenAmount,
+            by_amount_in: bool,
+            sqrt_price_limit: SqrtPrice,
+        ) -> Result<(), ContractErrors> {
+            let calculate_swap_result =
+                self.calculate_swap(pool_key, x_to_y, amount, by_amount_in, sqrt_price_limit)?;
+
+            for tick in calculate_swap_result.ticks.iter() {
+                self.ticks.update_tick(pool_key, tick.index, tick);
+            }
+
+            self.pools
+                .update_pool(pool_key, &calculate_swap_result.pool);
 
             if x_to_y {
                 PSP22Ref::transfer_from(
                     &pool_key.token_x,
                     self.env().caller(),
                     self.env().account_id(),
-                    total_amount_in.get(),
+                    calculate_swap_result.amount_in.get(),
                     vec![],
                 )
                 .ok();
                 PSP22Ref::transfer(
                     &pool_key.token_y,
                     self.env().caller(),
-                    total_amount_out.get(),
+                    calculate_swap_result.amount_out.get(),
                     vec![],
                 )
                 .ok();
@@ -367,20 +400,39 @@ pub mod contract {
                     &pool_key.token_y,
                     self.env().caller(),
                     self.env().account_id(),
-                    total_amount_in.get(),
+                    calculate_swap_result.amount_in.get(),
                     vec![],
                 )
                 .ok();
                 PSP22Ref::transfer(
                     &pool_key.token_x,
                     self.env().caller(),
-                    total_amount_out.get(),
+                    calculate_swap_result.amount_out.get(),
                     vec![],
                 )
                 .ok();
             };
 
             Ok(())
+        }
+
+        #[ink(message)]
+        pub fn quote(
+            &self,
+            pool_key: PoolKey,
+            x_to_y: bool,
+            amount: TokenAmount,
+            by_amount_in: bool,
+            sqrt_price_limit: SqrtPrice,
+        ) -> Result<(TokenAmount, TokenAmount, SqrtPrice), ContractErrors> {
+            let calculate_swap_result =
+                self.calculate_swap(pool_key, x_to_y, amount, by_amount_in, sqrt_price_limit)?;
+
+            Ok((
+                calculate_swap_result.amount_in,
+                calculate_swap_result.amount_out,
+                calculate_swap_result.pool.sqrt_price,
+            ))
         }
 
         #[ink(message)]
