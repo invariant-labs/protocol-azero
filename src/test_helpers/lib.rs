@@ -558,3 +558,22 @@ macro_rules! swap {
             .return_value()
     }};
 }
+
+#[macro_export]
+macro_rules! get_tick {
+    ($client:ident, $dex:ty, $dex_address:expr, $index:expr, $pool_key:expr, $caller:ident) => {{
+        // client => ink_e2e_client
+        // dex:ty => ContractRef
+        // dex_address:expr => Address of contract
+        // index:expr => tick index
+        // pool_key:expr => pool_key
+        // caller => ink_e2e account to sign call
+        let _msg = build_message::<$dex>($dex_address.clone())
+            .call(|contract| contract.get_tick($pool_key, $index));
+        $client
+            .call(&$caller, _msg, 0, None)
+            .await
+            .expect("Tick recieving failed")
+            .return_value()
+    }};
+}
