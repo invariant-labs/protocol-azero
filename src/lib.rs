@@ -236,22 +236,22 @@ pub mod contract {
             self.ticks.add_tick(pool_key, lower_tick.index, lower_tick);
             self.ticks.add_tick(pool_key, upper_tick.index, upper_tick);
 
-            // PSP22Ref::transfer_from(
-            //     &pool_key.token_x,
-            //     self.env().caller(),
-            //     self.env().account_id(),
-            //     x.get(),
-            //     vec![],
-            // )
-            // .ok();
-            // PSP22Ref::transfer_from(
-            //     &pool_key.token_y,
-            //     self.env().caller(),
-            //     self.env().account_id(),
-            //     y.get(),
-            //     vec![],
-            // )
-            //            .ok();
+            PSP22Ref::transfer_from(
+                &pool_key.token_x,
+                self.env().caller(),
+                self.env().account_id(),
+                x.get(),
+                vec![],
+            )
+            .ok();
+            PSP22Ref::transfer_from(
+                &pool_key.token_y,
+                self.env().caller(),
+                self.env().account_id(),
+                y.get(),
+                vec![],
+            )
+            .ok();
 
             Ok(position)
         }
@@ -553,22 +553,22 @@ pub mod contract {
             }
             self.positions.remove(caller, index).unwrap();
 
-            // PSP22Ref::transfer_from(
-            //     &position.pool_key.token_x,
-            //     self.env().account_id(),
-            //     self.env().caller(),
-            //     amount_x.get(),
-            //     vec![],
-            // )
-            // .ok();
-            // PSP22Ref::transfer_from(
-            //     &position.pool_key.token_y,
-            //     self.env().account_id(),
-            //     self.env().caller(),
-            //     amount_y.get(),
-            //     vec![],
-            // )
-            // .ok();
+            PSP22Ref::transfer_from(
+                &position.pool_key.token_x,
+                self.env().account_id(),
+                self.env().caller(),
+                amount_x.get(),
+                vec![],
+            )
+            .ok();
+            PSP22Ref::transfer_from(
+                &position.pool_key.token_y,
+                self.env().account_id(),
+                self.env().caller(),
+                amount_y.get(),
+                vec![],
+            )
+            .ok();
 
             Ok((amount_x, amount_y))
         }
@@ -775,43 +775,6 @@ pub mod contract {
             assert!(result.is_ok());
             let result = contract.create_tick(pool_key, 0);
             assert_eq!(result, Err(ContractErrors::TickAlreadyExist));
-        }
-
-        #[ink::test]
-        fn test_remove_position() {
-            let mut contract = Contract::new(Percentage::new(0));
-            let token_0 = AccountId::from([0x01; 32]);
-            let token_1 = AccountId::from([0x02; 32]);
-            let pool_key = PoolKey::new(
-                token_0,
-                token_1,
-                FeeTier {
-                    fee: Percentage::new(1),
-                    tick_spacing: 2,
-                },
-            );
-            let _ = contract.add_pool(pool_key.token_x, pool_key.token_y, pool_key.fee_tier, 0);
-            let position = contract
-                .create_position(
-                    pool_key,
-                    -10,
-                    10,
-                    Liquidity::new(50),
-                    SqrtPrice::new(0),
-                    SqrtPrice::max_instance(),
-                )
-                .unwrap();
-
-            let is_flipped = contract.get_tickmap_bit(pool_key, -10);
-            assert!(is_flipped);
-
-            let result = contract.remove_position(0);
-
-            let is_flipped = contract.get_tickmap_bit(pool_key, -10);
-            assert!(!is_flipped);
-
-            let positions = contract.get_all_positions();
-            assert_eq!(positions.len(), 0);
         }
 
         #[ink::test]
@@ -1103,13 +1066,13 @@ pub mod contract {
             // Bob tries to remove position out of range
             remove_position!(client, ContractRef, dex, 9999, bob);
             let bob_positions = get_all_positions!(client, ContractRef, dex, bob);
-            // assert_eq!(bob_positions.len(), 2);
+            assert_eq!(bob_positions.len(), 2);
 
-            // // Bob removes first position
+            // Bob removes first position
             remove_position!(client, ContractRef, dex, 1, bob);
-            // // Get all Bob positions
+            // Get all Bob positions
             let bob_positions = get_all_positions!(client, ContractRef, dex, bob);
-            // // assert_eq!(bob_positions.len(), 1);
+            assert_eq!(bob_positions.len(), 1);
             Ok(())
         }
 
