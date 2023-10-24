@@ -215,7 +215,7 @@ pub mod contract {
             let current_timestamp = self.env().block_timestamp();
             let current_block_number = self.env().block_number() as u64;
 
-            let (position, x, y, lower_liquidity, upper_liquidity) = Position::create(
+            let (position, x, y) = Position::create(
                 &mut pool,
                 pool_key,
                 &mut lower_tick,
@@ -231,8 +231,6 @@ pub mod contract {
             let caller = self.env().caller();
             self.positions.add(caller, position);
 
-            lower_tick.liquidity_gross = lower_liquidity;
-            upper_tick.liquidity_gross = upper_liquidity;
             self.ticks.add_tick(pool_key, lower_tick.index, lower_tick);
             self.ticks.add_tick(pool_key, upper_tick.index, upper_tick);
 
