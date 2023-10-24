@@ -59,6 +59,13 @@ pub mod contract {
         pub y: (AccountId, Balance),
     }
 
+    pub struct CalculateSwapResult {
+        pub amount_in: TokenAmount,
+        pub amount_out: TokenAmount,
+        pub pool: Pool,
+        pub ticks: Vec<Tick>,
+    }
+
     #[derive(scale::Decode, Default, scale::Encode, Clone, Debug)]
     #[cfg_attr(
         feature = "std",
@@ -250,7 +257,7 @@ pub mod contract {
             amount: TokenAmount,
             by_amount_in: bool,
             sqrt_price_limit: SqrtPrice,
-        ) -> Result<(TokenAmount, TokenAmount, Pool, Vec<Tick>), ContractErrors> {
+        ) -> Result<CalculateSwapResult, ContractErrors> {
             if amount.is_zero() {
                 return Err(ContractErrors::AmountIsZero);
             }
@@ -345,7 +352,12 @@ pub mod contract {
                 return Err(ContractErrors::NoGainSwap);
             }
 
-            Ok((total_amount_in, total_amount_out, pool, ticks))
+            Ok(CalculateSwapResult {
+                amount_in: total_amount_in,
+                amount_out: total_amount_out,
+                pool,
+                ticks,
+            })
         }
 
         #[ink(message)]
@@ -357,28 +369,29 @@ pub mod contract {
             by_amount_in: bool,
             sqrt_price_limit: SqrtPrice,
         ) -> Result<(), ContractErrors> {
-            let (total_amount_in, total_amount_out, pool, ticks) =
+            let calculate_swap_result =
                 self.calculate_swap(pool_key, x_to_y, amount, by_amount_in, sqrt_price_limit)?;
 
-            for tick in ticks.iter() {
+            for tick in calculate_swap_result.ticks.iter() {
                 self.ticks.update_tick(pool_key, tick.index, tick);
             }
 
-            self.pools.update_pool(pool_key, &pool);
+            self.pools
+                .update_pool(pool_key, &calculate_swap_result.pool);
 
             if x_to_y {
                 PSP22Ref::transfer_from(
                     &pool_key.token_x,
                     self.env().caller(),
                     self.env().account_id(),
-                    total_amount_in.get(),
+                    calculate_swap_result.amount_in.get(),
                     vec![],
                 )
                 .ok();
                 PSP22Ref::transfer(
                     &pool_key.token_y,
                     self.env().caller(),
-                    total_amount_out.get(),
+                    calculate_swap_result.amount_out.get(),
                     vec![],
                 )
                 .ok();
@@ -387,14 +400,14 @@ pub mod contract {
                     &pool_key.token_y,
                     self.env().caller(),
                     self.env().account_id(),
-                    total_amount_in.get(),
+                    calculate_swap_result.amount_in.get(),
                     vec![],
                 )
                 .ok();
                 PSP22Ref::transfer(
                     &pool_key.token_x,
                     self.env().caller(),
-                    total_amount_out.get(),
+                    calculate_swap_result.amount_out.get(),
                     vec![],
                 )
                 .ok();
@@ -412,10 +425,13 @@ pub mod contract {
             by_amount_in: bool,
             sqrt_price_limit: SqrtPrice,
         ) -> Result<(TokenAmount, TokenAmount), ContractErrors> {
-            let (total_amount_in, total_amount_out, pool, ticks) =
+            let calculate_swap_result =
                 self.calculate_swap(pool_key, x_to_y, amount, by_amount_in, sqrt_price_limit)?;
 
-            Ok((total_amount_in, total_amount_out))
+            Ok((
+                calculate_swap_result.amount_in,
+                calculate_swap_result.amount_out,
+            ))
         }
 
         #[ink(message)]
