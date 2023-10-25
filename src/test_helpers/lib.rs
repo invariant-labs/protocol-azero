@@ -255,7 +255,11 @@ macro_rules! create_tokens {
             .await
             .expect("instantiate failed")
             .account_id;
-        (x, y)
+        if x > y {
+            (y, x)
+        } else {
+            (x, y)
+        }
     }};
 }
 
