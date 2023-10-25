@@ -637,3 +637,21 @@ macro_rules! tickmap_bit {
             .return_value()
     }};
 }
+
+#[macro_export]
+macro_rules! change_fee_receiver {
+    ($client:ident, $dex:ty, $dex_address:expr, $pool_key:expr, $account:expr, $caller:ident) => {{
+        // client => ink_e2e_client
+        // x:ident || y:ident => Addresses of x and y tokens
+        // dex:ty => ContractRef
+        // dex_address:expr => Address of contract
+        // fee_tier:expr => Pool fee tier
+        let _msg = build_message::<$dex>($dex_address.clone())
+            .call(|contract| contract.change_fee_receiver($pool_key, $account));
+        $client
+            .call(&$caller, _msg, 0, None)
+            .await
+            .expect("Changing fee reciever failed")
+            .return_value()
+    }};
+}
