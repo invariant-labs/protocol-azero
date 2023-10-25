@@ -277,7 +277,7 @@ macro_rules! create_dex {
 
 #[macro_export]
 macro_rules! approve {
-    ($client:ident, $token:ty ,$token_address:expr, $dex_address:expr, $amount:expr) => {{
+    ($client:ident, $token:ty ,$token_address:expr, $dex_address:expr, $amount:expr, $caller:ident) => {{
         // client => ink_e2e_client
         // token:ty => TokenRef
         // token_address:expr => Addres of token
@@ -287,7 +287,7 @@ macro_rules! approve {
         let _msg = build_message::<$token>($token_address.clone())
             .call(|sc| sc.increase_allowance($dex_address.clone(), $amount));
         $client
-            .call(&ink_e2e::alice(), _msg, 0, None)
+            .call(&$caller, _msg, 0, None)
             .await
             .expect("Approval failed")
     }};
