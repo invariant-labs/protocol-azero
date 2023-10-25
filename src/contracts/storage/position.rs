@@ -42,7 +42,7 @@ impl Position {
         add: bool,
         current_timestamp: u64,
         tick_spacing: u16,
-    ) -> TrackableResult<(TokenAmount, TokenAmount, bool)> {
+    ) -> TrackableResult<(TokenAmount, TokenAmount)> {
         if !pool.liquidity.is_zero() {
             let _ = pool.update_seconds_per_liquidity_global(current_timestamp);
         } else {
@@ -78,14 +78,18 @@ impl Position {
         )?;
 
         // calculate tokens amounts and update pool liquidity
-        ok_or_mark_trace!(calculate_amount_delta(
+        let (amount_x, amount_y, _) = ok_or_mark_trace!(calculate_amount_delta(
             pool.current_tick_index,
             pool.sqrt_price,
             liquidity_delta,
             add,
             upper_tick.index,
             lower_tick.index,
-        ))
+        ))?;
+
+        unwrap!(pool.update_liquidity(liquidity_delta, true, upper_tick.index, lower_tick.index));
+
+        Ok((amount_x, amount_y))
     }
 
     pub fn update(
@@ -219,7 +223,7 @@ impl Position {
             tokens_owed_y: TokenAmount::new(0),
         };
 
-        let (required_x, required_y, _) = unwrap!(position.modify(
+        let (required_x, required_y) = unwrap!(position.modify(
             pool,
             upper_tick,
             lower_tick,
@@ -228,8 +232,6 @@ impl Position {
             current_timestamp,
             tick_spacing
         ));
-
-        unwrap!(pool.update_liquidity(liquidity_delta, true, upper_tick.index, lower_tick.index));
 
         (position, required_x, required_y)
     }
@@ -243,7 +245,7 @@ impl Position {
         tick_spacing: u16,
     ) -> (TokenAmount, TokenAmount, bool, bool) {
         let liquidity_delta = self.liquidity;
-        let (mut amount_x, mut amount_y, _) = unwrap!(self.modify(
+        let (mut amount_x, mut amount_y) = unwrap!(self.modify(
             pool,
             upper_tick,
             lower_tick,

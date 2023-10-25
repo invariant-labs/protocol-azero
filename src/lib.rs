@@ -115,7 +115,7 @@ pub mod contract {
             }
 
             let (fee_protocol_token_x, fee_protocol_token_y) = pool.withdraw_protocol_fee(pool_key);
-            self.pools.update_pool(pool_key, &pool);
+            self.pools.update_pool(pool_key, &pool)?;
 
             PSP22Ref::transfer(
                 &pool_key.token_x,
@@ -163,7 +163,7 @@ pub mod contract {
 
             let mut pool = self.pools.get_pool(pool_key)?;
             pool.fee_receiver = fee_receiver;
-            self.pools.update_pool(pool_key, &pool);
+            self.pools.update_pool(pool_key, &pool)?;
 
             Ok(())
         }
@@ -235,7 +235,7 @@ pub mod contract {
                 pool_key.fee_tier.tick_spacing,
             );
 
-            self.pools.update_pool(pool_key, &pool);
+            self.pools.update_pool(pool_key, &pool)?;
 
             let caller = self.env().caller();
             self.positions.add(caller, position);
@@ -390,7 +390,7 @@ pub mod contract {
             }
 
             self.pools
-                .update_pool(pool_key, &calculate_swap_result.pool);
+                .update_pool(pool_key, &calculate_swap_result.pool)?;
 
             if x_to_y {
                 PSP22Ref::transfer_from(
@@ -627,19 +627,16 @@ pub mod contract {
 
         // Fee tiers
         #[ink(message)]
-        pub fn add_fee_tier(
-            &mut self,
-            fee: Percentage,
-            tick_spacing: u16,
-        ) -> Result<(), ContractErrors> {
+        pub fn add_fee_tier(&mut self, fee_tier: FeeTier) -> Result<(), ContractErrors> {
             if self.env().caller() != self.state.admin {
                 return Err(ContractErrors::NotAnAdmin);
             }
 
-            if tick_spacing == 0 {
+            if fee_tier.tick_spacing == 0 {
                 return Err(ContractErrors::InvalidTickSpacing);
             }
-            let fee_tier_key = FeeTierKey(fee, tick_spacing);
+
+            let fee_tier_key = FeeTierKey(fee_tier.fee, fee_tier.tick_spacing);
 
             if self.fee_tiers.get_fee_tier(fee_tier_key).is_some() {
                 return Err(ContractErrors::FeeTierAlreadyAdded);
@@ -761,9 +758,7 @@ pub mod contract {
                 tick_spacing: 1,
             };
 
-            contract
-                .add_fee_tier(fee_tier.fee, fee_tier.tick_spacing)
-                .unwrap();
+            contract.add_fee_tier(fee_tier).unwrap();
 
             let result = contract.add_pool(
                 token_0,
@@ -807,9 +802,7 @@ pub mod contract {
                 tick_spacing: 1,
             };
 
-            contract
-                .add_fee_tier(fee_tier.fee, fee_tier.tick_spacing)
-                .unwrap();
+            contract.add_fee_tier(fee_tier).unwrap();
 
             let result = contract.add_pool(token_0, token_1, fee_tier, 0);
             assert!(result.is_ok());
@@ -841,9 +834,7 @@ pub mod contract {
             let result = contract.create_tick(pool_key, 0);
             assert_eq!(result, Err(ContractErrors::PoolNotFound));
 
-            contract
-                .add_fee_tier(fee_tier.fee, fee_tier.tick_spacing)
-                .unwrap();
+            contract.add_fee_tier(fee_tier).unwrap();
             let _ = contract.add_pool(pool_key.token_x, pool_key.token_y, pool_key.fee_tier, 0);
             let result = contract.create_tick(pool_key, 0);
             assert!(result.is_ok());
@@ -860,11 +851,9 @@ pub mod contract {
                 tick_spacing: 10u16,
             };
 
-            contract.add_fee_tier(Percentage::new(1), 10u16).unwrap();
+            contract.add_fee_tier(fee_tier_value).unwrap();
             assert_eq!(contract.fee_tier_keys.len(), 1);
-            contract
-                .add_fee_tier(Percentage::new(1), 10u16)
-                .unwrap_err();
+            contract.add_fee_tier(fee_tier_value).unwrap_err();
             contract.remove_fee_tier(fee_tier_key);
             assert_eq!(contract.fee_tier_keys.len(), 0);
         }
@@ -999,13 +988,7 @@ pub mod contract {
                 tick_spacing: 1,
             };
 
-            create_fee_tier!(
-                client,
-                ContractRef,
-                dex,
-                fee_tier.fee,
-                fee_tier.tick_spacing
-            );
+            create_fee_tier!(client, ContractRef, dex, fee_tier);
 
             let pool = create_pool!(client, ContractRef, dex, token_x, token_y, fee_tier, 10);
 
@@ -1041,13 +1024,7 @@ pub mod contract {
                 fee: Percentage::new(0),
                 tick_spacing: 1,
             };
-            create_fee_tier!(
-                client,
-                ContractRef,
-                dex,
-                fee_tier.fee,
-                fee_tier.tick_spacing
-            );
+            create_fee_tier!(client, ContractRef, dex, fee_tier);
             let pool = create_pool!(client, ContractRef, dex, token_x, token_y, fee_tier, 10);
 
             approve!(client, TokenRef, token_x, dex, 50, alice);
@@ -1171,7 +1148,11 @@ pub mod contract {
         #[ink_e2e::test]
         async fn create_fee_tier_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let dex = create_dex!(client, ContractRef, Percentage::new(0));
-            create_fee_tier!(client, ContractRef, dex, Percentage::new(0), 10u16);
+            let fee_tier = FeeTier {
+                fee: Percentage::new(0),
+                tick_spacing: 10u16,
+            };
+            create_fee_tier!(client, ContractRef, dex, fee_tier);
             let fee_tier = get_fee_tier!(client, ContractRef, dex, Percentage::new(0), 10u16);
             assert!(fee_tier.is_some());
             Ok(())
@@ -1203,13 +1184,7 @@ pub mod contract {
             };
             let init_tick = 0;
 
-            create_fee_tier!(
-                client,
-                ContractRef,
-                dex,
-                fee_tier.fee,
-                fee_tier.tick_spacing
-            );
+            create_fee_tier!(client, ContractRef, dex, fee_tier);
 
             let result = create_pool!(
                 client,
@@ -1244,13 +1219,7 @@ pub mod contract {
                 tick_spacing: 4,
             };
 
-            create_fee_tier!(
-                client,
-                ContractRef,
-                dex,
-                fee_tier.fee,
-                fee_tier.tick_spacing
-            );
+            create_fee_tier!(client, ContractRef, dex, fee_tier);
 
             let pool = create_pool!(
                 client,
@@ -1355,13 +1324,7 @@ pub mod contract {
                 tick_spacing: 4,
             };
 
-            create_fee_tier!(
-                client,
-                ContractRef,
-                dex,
-                fee_tier.fee,
-                fee_tier.tick_spacing
-            );
+            create_fee_tier!(client, ContractRef, dex, fee_tier);
 
             let pool = create_pool!(
                 client,
@@ -1465,13 +1428,7 @@ pub mod contract {
                 tick_spacing: 4,
             };
 
-            create_fee_tier!(
-                client,
-                ContractRef,
-                dex,
-                fee_tier.fee,
-                fee_tier.tick_spacing
-            );
+            create_fee_tier!(client, ContractRef, dex, fee_tier);
 
             let pool = create_pool!(
                 client,
