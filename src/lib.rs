@@ -1129,7 +1129,8 @@ pub mod contract {
         #[ink_e2e::test]
         async fn create_fee_tier_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let dex = create_dex!(client, ContractRef, Percentage::new(0));
-            create_fee_tier!(client, ContractRef, dex, Percentage::new(0), 10u16);
+            let alice = ink_e2e::alice();
+            create_fee_tier!(client, ContractRef, dex, Percentage::new(0), 10u16, alice);
             let fee_tier = get_fee_tier!(client, ContractRef, dex, Percentage::new(0), 10u16);
             assert!(fee_tier.is_some());
             Ok(())
@@ -1174,6 +1175,38 @@ pub mod contract {
 
             let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
             Ok(())
+        }
+
+        #[ink_e2e::test]
+        async fn fee_tier_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let dex = create_dex!(client, ContractRef, Percentage::new(0));
+            let admin = ink_e2e::alice();
+            let fee = Percentage::from_scale(5, 1);
+            let spacing = 100;
+            let result = create_fee_tier!(client, ContractRef, dex, fee, spacing, admin);
+            assert!(result.is_ok());
+            Ok(())
+        }
+        #[ink_e2e::test]
+        #[should_panic]
+        async fn invalid_fee_tier_spacing_test(mut client: ink_e2e::Client<C, E>) -> () {
+            let dex = create_dex!(client, ContractRef, Percentage::new(0));
+            let admin = ink_e2e::alice();
+            // 0 tick spacing | should fail
+            let fee = Percentage::from_scale(5, 1);
+            let spacing = 0;
+            let result = create_fee_tier!(client, ContractRef, dex, fee, spacing, admin);
+        }
+
+        #[ink_e2e::test]
+        #[should_panic]
+        async fn invalid_fee_tier_caller_test(mut client: ink_e2e::Client<C, E>) -> () {
+            let dex = create_dex!(client, ContractRef, Percentage::new(0));
+            let user = ink_e2e::bob();
+            // not-admin
+            let fee = Percentage::from_scale(5, 1);
+            let spacing = 0;
+            let result = create_fee_tier!(client, ContractRef, dex, fee, spacing, user);
         }
     }
 }
