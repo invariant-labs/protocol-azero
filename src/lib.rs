@@ -1000,136 +1000,136 @@ pub mod contract {
             Ok(())
         }
 
-        // #[ink_e2e::test]
-        // async fn test_positions(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-        //     let dex = create_dex!(client, ContractRef, Percentage::new(0));
-        //     let (token_x, token_y) = create_tokens!(client, TokenRef, TokenRef, 500, 500);
+        #[ink_e2e::test]
+        async fn test_positions(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let dex = create_dex!(client, ContractRef, Percentage::new(0));
+            let (token_x, token_y) = create_tokens!(client, TokenRef, TokenRef, 500, 500);
 
-        //     let alice = ink_e2e::alice();
+            let alice = ink_e2e::alice();
 
-        //     let fee_tier = FeeTier {
-        //         fee: Percentage::new(0),
-        //         tick_spacing: 1,
-        //     };
-        //     let pool = create_pool!(client, ContractRef, dex, token_x, token_y, fee_tier, 10);
+            let fee_tier = FeeTier {
+                fee: Percentage::new(0),
+                tick_spacing: 1,
+            };
+            let pool = create_pool!(client, ContractRef, dex, token_x, token_y, fee_tier, 10);
 
-        //     approve!(client, TokenRef, token_x, dex, 50, alice);
-        //     approve!(client, TokenRef, token_y, dex, 50, alice);
+            approve!(client, TokenRef, token_x, dex, 50, alice);
+            approve!(client, TokenRef, token_y, dex, 50, alice);
 
-        //     let pool_key = PoolKey::new(token_x, token_y, fee_tier);
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier);
 
-        //     // Get all Alice positions - should be empty
-        //     let alice_positions = get_all_positions!(client, ContractRef, dex, alice);
+            // Get all Alice positions - should be empty
+            let alice_positions = get_all_positions!(client, ContractRef, dex, alice);
 
-        //     assert_eq!(alice_positions, vec![]);
+            assert_eq!(alice_positions, vec![]);
 
-        //     // // Alice adds 3 positions
+            // // Alice adds 3 positions
 
-        //     let first_position = create_position!(
-        //         client,
-        //         ContractRef,
-        //         dex,
-        //         pool_key,
-        //         -1,
-        //         1,
-        //         Liquidity::new(10),
-        //         SqrtPrice::new(0),
-        //         SqrtPrice::max_instance(),
-        //         alice
-        //     )
-        //     .unwrap();
+            let first_position = create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                -1,
+                1,
+                Liquidity::new(10),
+                SqrtPrice::new(0),
+                SqrtPrice::max_instance(),
+                alice
+            )
+            .unwrap();
 
-        //     let second_position = create_position!(
-        //         client,
-        //         ContractRef,
-        //         dex,
-        //         pool_key,
-        //         -2,
-        //         2,
-        //         Liquidity::new(10),
-        //         SqrtPrice::new(0),
-        //         SqrtPrice::max_instance(),
-        //         alice
-        //     )
-        //     .unwrap();
+            let second_position = create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                -2,
+                2,
+                Liquidity::new(10),
+                SqrtPrice::new(0),
+                SqrtPrice::max_instance(),
+                alice
+            )
+            .unwrap();
 
-        //     let third_position = create_position!(
-        //         client,
-        //         ContractRef,
-        //         dex,
-        //         pool_key,
-        //         -3,
-        //         3,
-        //         Liquidity::new(10),
-        //         SqrtPrice::new(0),
-        //         SqrtPrice::max_instance(),
-        //         alice
-        //     )
-        //     .unwrap();
+            let third_position = create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                -3,
+                3,
+                Liquidity::new(10),
+                SqrtPrice::new(0),
+                SqrtPrice::max_instance(),
+                alice
+            )
+            .unwrap();
 
-        //     // // Get all Alice positions
-        //     let alice_positions = get_all_positions!(client, ContractRef, dex, alice);
-        //     assert_eq!(alice_positions.len(), 3);
+            // // Get all Alice positions
+            let alice_positions = get_all_positions!(client, ContractRef, dex, alice);
+            assert_eq!(alice_positions.len(), 3);
 
-        //     // // Bob adds 2 positions
-        //     let bob = ink_e2e::bob();
-        //     let first_position = create_position!(
-        //         client,
-        //         ContractRef,
-        //         dex,
-        //         pool_key,
-        //         -4,
-        //         4,
-        //         Liquidity::new(10),
-        //         SqrtPrice::new(0),
-        //         SqrtPrice::max_instance(),
-        //         bob
-        //     )
-        //     .unwrap();
+            // // Bob adds 2 positions
+            let bob = ink_e2e::bob();
+            let first_position = create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                -4,
+                4,
+                Liquidity::new(10),
+                SqrtPrice::new(0),
+                SqrtPrice::max_instance(),
+                bob
+            )
+            .unwrap();
 
-        //     let second_position = create_position!(
-        //         client,
-        //         ContractRef,
-        //         dex,
-        //         pool_key,
-        //         -5,
-        //         5,
-        //         Liquidity::new(10),
-        //         SqrtPrice::new(0),
-        //         SqrtPrice::max_instance(),
-        //         bob
-        //     )
-        //     .unwrap();
+            let second_position = create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                -5,
+                5,
+                Liquidity::new(10),
+                SqrtPrice::new(0),
+                SqrtPrice::max_instance(),
+                bob
+            )
+            .unwrap();
 
-        //     // // Get all Bob positions
-        //     let bob_positions = get_all_positions!(client, ContractRef, dex, bob);
-        //     assert_eq!(bob_positions.len(), 2);
+            // // Get all Bob positions
+            let bob_positions = get_all_positions!(client, ContractRef, dex, bob);
+            assert_eq!(bob_positions.len(), 2);
 
-        //     let alice_second_position = get_position!(client, ContractRef, dex, 1, alice);
-        //     assert!(alice_second_position.is_some());
+            let alice_second_position = get_position!(client, ContractRef, dex, 1, alice);
+            assert!(alice_second_position.is_some());
 
-        //     let bob_first_position = get_position!(client, ContractRef, dex, 0, bob);
-        //     assert!(bob_first_position.is_some());
+            let bob_first_position = get_position!(client, ContractRef, dex, 0, bob);
+            assert!(bob_first_position.is_some());
 
-        //     remove_position!(client, ContractRef, dex, 2, alice);
+            remove_position!(client, ContractRef, dex, 2, alice);
 
-        //     let alice_positions = get_all_positions!(client, ContractRef, dex, alice);
-        //     // println!("Alice positions = {:?}", alice_positions);
+            let alice_positions = get_all_positions!(client, ContractRef, dex, alice);
+            // println!("Alice positions = {:?}", alice_positions);
 
-        //     let alice_third_position = get_position!(client, ContractRef, dex, 2, alice);
+            let alice_third_position = get_position!(client, ContractRef, dex, 2, alice);
 
-        //     // Bob tries to remove position out of range
-        //     remove_position!(client, ContractRef, dex, 9999, bob);
-        //     let bob_positions = get_all_positions!(client, ContractRef, dex, bob);
-        //     assert_eq!(bob_positions.len(), 2);
+            // Bob tries to remove position out of range
+            remove_position!(client, ContractRef, dex, 9999, bob);
+            let bob_positions = get_all_positions!(client, ContractRef, dex, bob);
+            assert_eq!(bob_positions.len(), 2);
 
-        //     // Bob removes first position
-        //     remove_position!(client, ContractRef, dex, 1, bob);
-        //     // Get all Bob positions
-        //     let bob_positions = get_all_positions!(client, ContractRef, dex, bob);
-        //     assert_eq!(bob_positions.len(), 1);
-        //     Ok(())
-        // }
+            // Bob removes first position
+            remove_position!(client, ContractRef, dex, 1, bob);
+            // Get all Bob positions
+            let bob_positions = get_all_positions!(client, ContractRef, dex, bob);
+            assert_eq!(bob_positions.len(), 1);
+            Ok(())
+        }
 
         #[ink_e2e::test]
         async fn create_fee_tier_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
