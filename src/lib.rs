@@ -876,8 +876,8 @@ pub mod contract {
         use openbrush::contracts::psp22::psp22_external::PSP22;
         use openbrush::traits::Balance;
         use test_helpers::{
-            address_of, approve, balance_of, create_dex, create_fee_tier, create_pool,
-            create_position, create_standard_fee_tiers, create_tokens, dex_balance,
+            address_of, approve, balance_of, change_fee_receiver, create_dex, create_fee_tier,
+            create_pool, create_position, create_standard_fee_tiers, create_tokens, dex_balance,
             get_all_positions, get_fee_tier, get_pool, get_position, remove_position,
         };
         use token::TokenRef;
@@ -1173,6 +1173,38 @@ pub mod contract {
             assert!(result.is_ok());
 
             let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+            Ok(())
+        }
+
+        #[ink_e2e::test]
+        async fn change_fee_reciever_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let dex = create_dex!(client, ContractRef, Percentage::new(0));
+            let (token_x, token_y) = create_tokens!(client, TokenRef, TokenRef, 500, 500);
+
+            let fee_tier = FeeTier {
+                fee: Percentage::from_scale(5, 1),
+                tick_spacing: 100,
+            };
+            let init_tick = 0;
+
+            let result = create_pool!(
+                client,
+                ContractRef,
+                dex,
+                token_x,
+                token_y,
+                fee_tier,
+                init_tick
+            );
+            assert!(result.is_ok());
+
+            let admin = ink_e2e::alice();
+            let alice = address_of!(Alice);
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier);
+            change_fee_receiver!(client, ContractRef, dex, pool_key, alice, admin);
+            let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+            assert_eq!(pool.fee_receiver, alice);
+
             Ok(())
         }
     }
