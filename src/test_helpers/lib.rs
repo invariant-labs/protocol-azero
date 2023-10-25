@@ -304,6 +304,7 @@ macro_rules! create_standard_fee_tiers {
         // dex:ty => ContractRef
         // dex_address:expr => Address of contract
         // 1 * 10^(-4) = 0.0001 = 0.01%
+        let caller = ink_e2e::alice();
         create_fee_tier!(
             $client,
             $dex,
@@ -311,7 +312,8 @@ macro_rules! create_standard_fee_tiers {
             FeeTier {
                 fee: Percentage::from_scale(1, 4),
                 tick_spacing: 1
-            }
+            },
+            caller
         );
         // 5 * 10^(-4) = 0.0005 = 0.05%
         create_fee_tier!(
@@ -321,7 +323,8 @@ macro_rules! create_standard_fee_tiers {
             FeeTier {
                 fee: Percentage::from_scale(5, 4),
                 tick_spacing: 5
-            }
+            },
+            caller
         );
         // 1  * 10^(-3) = 0.001 = 0.1%
         create_fee_tier!(
@@ -331,7 +334,8 @@ macro_rules! create_standard_fee_tiers {
             FeeTier {
                 fee: Percentage::from_scale(1, 3),
                 tick_spacing: 10
-            }
+            },
+            caller
         );
         // 3 * 10(-3) = 0.003 = 0.3%
         create_fee_tier!(
@@ -341,7 +345,8 @@ macro_rules! create_standard_fee_tiers {
             FeeTier {
                 fee: Percentage::from_scale(3, 3),
                 tick_spacing: 30
-            }
+            },
+            caller
         );
         // 1 * 10^(-2) = 0.01 = 1%
         create_fee_tier!(
@@ -351,7 +356,8 @@ macro_rules! create_standard_fee_tiers {
             FeeTier {
                 fee: Percentage::from_scale(1, 2),
                 tick_spacing: 100
-            }
+            },
+            caller
         );
         // 5 * 10^(-2) = 0.05 = 5%
         create_fee_tier!(
@@ -361,7 +367,8 @@ macro_rules! create_standard_fee_tiers {
             FeeTier {
                 fee: Percentage::from_scale(5, 2),
                 tick_spacing: 100
-            }
+            },
+            caller
         );
         // 1 * 10^(-1) = 0.1 = 10%
         create_fee_tier!(
@@ -371,7 +378,8 @@ macro_rules! create_standard_fee_tiers {
             FeeTier {
                 fee: Percentage::from_scale(1, 1),
                 tick_spacing: 100
-            }
+            },
+            caller
         );
         // 5 * 10^(-1) = 0.5 = 50%
         create_fee_tier!(
@@ -381,14 +389,15 @@ macro_rules! create_standard_fee_tiers {
             FeeTier {
                 fee: Percentage::from_scale(5, 1),
                 tick_spacing: 100
-            }
+            },
+            caller
         );
     }};
 }
 
 #[macro_export]
 macro_rules! create_fee_tier {
-    ($client:ident, $dex:ty, $dex_address:expr, $fee_tier:expr) => {{
+    ($client:ident, $dex:ty, $dex_address:expr, $fee_tier:expr, $caller:ident) => {{
         // client => ink_e2e_client
         // x:ident || y:ident => Addresses of x and y tokens
         // dex:ty => ContractRef
@@ -398,7 +407,7 @@ macro_rules! create_fee_tier {
         let _msg = build_message::<$dex>($dex_address.clone())
             .call(|contract| contract.add_fee_tier($fee_tier));
         $client
-            .call(&ink_e2e::alice(), _msg, 0, None)
+            .call(&$caller, _msg, 0, None)
             .await
             .expect("Fee Tier creation failed")
             .return_value()
