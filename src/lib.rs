@@ -1627,5 +1627,77 @@ pub mod contract {
             let pool_key = PoolKey::new(token_x, token_y, fee_tier);
             change_fee_receiver!(client, ContractRef, dex, pool_key, bob, user);
         }
+
+        #[ink_e2e::test]
+        async fn position_within_current_tick_test(
+            mut client: ink_e2e::Client<C, E>,
+        ) -> E2EResult<()> {
+            let alice = ink_e2e::alice();
+            let init_tick = 0;
+
+            let dex = create_dex!(client, ContractRef, Percentage::new(0));
+            let initial_balance = 100_000_000;
+
+            let (token_x, token_y) =
+                create_tokens!(client, TokenRef, TokenRef, initial_balance, initial_balance);
+
+            let fee_tier = FeeTier {
+                fee: Percentage::from_scale(6, 3),
+                tick_spacing: 10,
+            };
+
+            create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+
+            let pool = create_pool!(
+                client,
+                ContractRef,
+                dex,
+                token_x,
+                token_y,
+                fee_tier,
+                init_tick
+            );
+
+            approve!(client, TokenRef, token_x, dex, initial_balance, alice);
+            approve!(client, TokenRef, token_y, dex, initial_balance, alice);
+
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier);
+            let lower_tick_index = -20;
+            let upper_tick_index = 10;
+
+            let liquidity_delta = Liquidity::new(initial_balance);
+
+            create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                lower_tick_index,
+                upper_tick_index,
+                liquidity_delta,
+                calculate_sqrt_price(init_tick).unwrap(),
+                SqrtPrice::max_instance(),
+                alice
+            );
+
+            // Load states
+            let position_state = get_position!(client, ContractRef, dex, 0, alice).unwrap();
+            let pool_state =
+                get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+            let lower_tick =
+                get_tick!(client, ContractRef, dex, lower_tick_index, pool_key, alice).unwrap();
+            let upper_tick =
+                get_tick!(client, ContractRef, dex, upper_tick_index, pool_key, alice).unwrap();
+            let lower_tick_bit =
+                tickmap_bit!(client, ContractRef, dex, lower_tick_index, pool_key, alice);
+            let upper_tick_bit =
+                tickmap_bit!(client, ContractRef, dex, upper_tick_index, pool_key, alice);
+            let alice_x = balance_of!(TokenRef, client, token_x, Alice);
+            let alice_y = balance_of!(TokenRef, client, token_y, Alice);
+            let dex_x = dex_balance!(TokenRef, client, token_x, dex);
+            let dex_y = dex_balance!(TokenRef, client, token_y, dex);
+
+            Ok(())
+        }
     }
 }
