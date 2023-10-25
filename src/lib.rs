@@ -894,8 +894,8 @@ pub mod contract {
         use openbrush::contracts::psp22::psp22_external::PSP22;
         use openbrush::traits::Balance;
         use test_helpers::{
-            address_of, approve, balance_of, create_dex, create_fee_tier, create_pool,
-            create_position, create_standard_fee_tiers, create_tokens, dex_balance,
+            address_of, approve, balance_of, change_fee_receiver, create_dex, create_fee_tier,
+            create_pool, create_position, create_standard_fee_tiers, create_tokens, dex_balance,
             get_all_positions, get_fee_tier, get_pool, get_position, get_tick, mint,
             remove_position, swap, tickmap_bit, withdraw_protocol_fee,
         };
@@ -917,7 +917,8 @@ pub mod contract {
             let fee = Percentage::new(6000000000);
             let tick_spacing = 10;
             let fee_tier = FeeTier { fee, tick_spacing };
-            create_fee_tier!(client, ContractRef, dex, fee_tier);
+            let alice = ink_e2e::alice();
+            create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
 
             let init_tick = 0;
             create_pool!(
@@ -930,7 +931,6 @@ pub mod contract {
                 init_tick
             );
 
-            let alice = ink_e2e::alice();
             approve!(client, TokenRef, token_x, dex, mint_amount, alice);
             approve!(client, TokenRef, token_y, dex, mint_amount, alice);
 
@@ -1041,7 +1041,8 @@ pub mod contract {
             let fee = Percentage::new(6000000000);
             let tick_spacing = 10;
             let fee_tier = FeeTier { fee, tick_spacing };
-            create_fee_tier!(client, ContractRef, dex, fee_tier);
+            let alice = ink_e2e::alice();
+            create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
 
             let init_tick = 0;
             create_pool!(
@@ -1054,7 +1055,6 @@ pub mod contract {
                 init_tick
             );
 
-            let alice = ink_e2e::alice();
             approve!(client, TokenRef, token_x, dex, mint_amount, alice);
             approve!(client, TokenRef, token_y, dex, mint_amount, alice);
 
