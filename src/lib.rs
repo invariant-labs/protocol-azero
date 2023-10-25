@@ -751,99 +751,105 @@ pub mod contract {
             let _ = Contract::new(Percentage::new(0));
         }
 
-        // #[ink::test]
-        // fn test_add_pool() {
-        //     let mut contract = Contract::new(Percentage::new(0));
-        //     let token_0 = AccountId::from([0x01; 32]);
-        //     let token_1 = AccountId::from([0x02; 32]);
-        //     let fee_tier = FeeTier {
-        //         fee: Percentage::new(1),
-        //         tick_spacing: 1,
-        //     };
+        #[ink::test]
+        fn test_add_pool() {
+            let mut contract = Contract::new(Percentage::new(0));
+            let token_0 = AccountId::from([0x01; 32]);
+            let token_1 = AccountId::from([0x02; 32]);
+            let fee_tier = FeeTier {
+                fee: Percentage::new(1),
+                tick_spacing: 1,
+            };
 
-        //     let result = contract.add_pool(
-        //         token_0,
-        //         token_1,
-        //         FeeTier {
-        //             fee: Percentage::new(1),
-        //             tick_spacing: 1,
-        //         },
-        //         0,
-        //     );
-        //     assert!(result.is_ok());
-        //     let result = contract.add_pool(
-        //         token_1,
-        //         token_0,
-        //         FeeTier {
-        //             fee: Percentage::new(1),
-        //             tick_spacing: 1,
-        //         },
-        //         0,
-        //     );
-        //     assert_eq!(result, Err(ContractErrors::PoolAlreadyExist));
-        // }
+            contract
+                .add_fee_tier(fee_tier.fee, fee_tier.tick_spacing)
+                .unwrap();
 
-        // #[ink::test]
-        // fn test_get_pool() {
-        //     let mut contract = Contract::new(Percentage::new(0));
-        //     let token_0 = AccountId::from([0x01; 32]);
-        //     let token_1 = AccountId::from([0x02; 32]);
-        //     let result = contract.get_pool(
-        //         token_1,
-        //         token_0,
-        //         FeeTier {
-        //             fee: Percentage::new(1),
-        //             tick_spacing: 1,
-        //         },
-        //     );
-        //     assert_eq!(result, Err(ContractErrors::PoolNotFound));
-        //     let result = contract.add_pool(
-        //         token_0,
-        //         token_1,
-        //         FeeTier {
-        //             fee: Percentage::new(1),
-        //             tick_spacing: 1,
-        //         },
-        //         0,
-        //     );
-        //     assert!(result.is_ok());
-        //     let result = contract.get_pool(
-        //         token_1,
-        //         token_0,
-        //         FeeTier {
-        //             fee: Percentage::new(1),
-        //             tick_spacing: 1,
-        //         },
-        //     );
-        //     assert!(result.is_ok());
-        // }
+            let result = contract.add_pool(
+                token_0,
+                token_1,
+                FeeTier {
+                    fee: Percentage::new(1),
+                    tick_spacing: 1,
+                },
+                0,
+            );
+            assert!(result.is_ok());
+            let result = contract.add_pool(
+                token_1,
+                token_0,
+                FeeTier {
+                    fee: Percentage::new(1),
+                    tick_spacing: 1,
+                },
+                0,
+            );
+            assert_eq!(result, Err(ContractErrors::PoolAlreadyExist));
+        }
 
-        // #[ink::test]
-        // fn create_tick() {
-        //     let mut contract = Contract::new(Percentage::new(0));
-        //     let token_0 = AccountId::from([0x01; 32]);
-        //     let token_1 = AccountId::from([0x02; 32]);
-        //     let pool_key = PoolKey::new(
-        //         token_0,
-        //         token_1,
-        //         FeeTier {
-        //             fee: Percentage::new(1),
-        //             tick_spacing: 2,
-        //         },
-        //     );
-        //     let result = contract.create_tick(pool_key, MAX_TICK + 1);
-        //     assert_eq!(result, Err(ContractErrors::InvalidTickIndexOrTickSpacing));
-        //     let result = contract.create_tick(pool_key, 1);
-        //     assert_eq!(result, Err(ContractErrors::InvalidTickIndexOrTickSpacing));
-        //     let result = contract.create_tick(pool_key, 0);
-        //     assert_eq!(result, Err(ContractErrors::PoolNotFound));
+        #[ink::test]
+        fn test_get_pool() {
+            let mut contract = Contract::new(Percentage::new(0));
+            let token_0 = AccountId::from([0x01; 32]);
+            let token_1 = AccountId::from([0x02; 32]);
+            let result = contract.get_pool(
+                token_1,
+                token_0,
+                FeeTier {
+                    fee: Percentage::new(1),
+                    tick_spacing: 1,
+                },
+            );
+            assert_eq!(result, Err(ContractErrors::PoolNotFound));
 
-        //     let _ = contract.add_pool(pool_key.token_x, pool_key.token_y, pool_key.fee_tier, 0);
-        //     let result = contract.create_tick(pool_key, 0);
-        //     assert!(result.is_ok());
-        //     let result = contract.create_tick(pool_key, 0);
-        //     assert_eq!(result, Err(ContractErrors::TickAlreadyExist));
-        // }
+            let fee_tier = FeeTier {
+                fee: Percentage::new(1),
+                tick_spacing: 1,
+            };
+
+            contract
+                .add_fee_tier(fee_tier.fee, fee_tier.tick_spacing)
+                .unwrap();
+
+            let result = contract.add_pool(token_0, token_1, fee_tier, 0);
+            assert!(result.is_ok());
+            let result = contract.get_pool(
+                token_1,
+                token_0,
+                FeeTier {
+                    fee: Percentage::new(1),
+                    tick_spacing: 1,
+                },
+            );
+            assert!(result.is_ok());
+        }
+
+        #[ink::test]
+        fn create_tick() {
+            let mut contract = Contract::new(Percentage::new(0));
+            let token_0 = AccountId::from([0x01; 32]);
+            let token_1 = AccountId::from([0x02; 32]);
+            let fee_tier = FeeTier {
+                fee: Percentage::new(1),
+                tick_spacing: 2,
+            };
+            let pool_key = PoolKey::new(token_0, token_1, fee_tier);
+            let result = contract.create_tick(pool_key, MAX_TICK + 1);
+            assert_eq!(result, Err(ContractErrors::InvalidTickIndexOrTickSpacing));
+            let result = contract.create_tick(pool_key, 1);
+            assert_eq!(result, Err(ContractErrors::InvalidTickIndexOrTickSpacing));
+            let result = contract.create_tick(pool_key, 0);
+            assert_eq!(result, Err(ContractErrors::PoolNotFound));
+
+            contract
+                .add_fee_tier(fee_tier.fee, fee_tier.tick_spacing)
+                .unwrap();
+            let _ = contract.add_pool(pool_key.token_x, pool_key.token_y, pool_key.fee_tier, 0);
+            let result = contract.create_tick(pool_key, 0);
+            assert!(result.is_ok());
+            let result = contract.create_tick(pool_key, 0);
+            assert_eq!(result, Err(ContractErrors::TickAlreadyExist));
+        }
 
         #[ink::test]
         fn test_fee_tiers() {
