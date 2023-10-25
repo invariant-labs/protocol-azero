@@ -1207,5 +1207,34 @@ pub mod contract {
 
             Ok(())
         }
+
+        #[ink_e2e::test]
+        #[should_panic]
+        async fn not_admin_change_fee_reciever_test(mut client: ink_e2e::Client<C, E>) -> () {
+            let dex = create_dex!(client, ContractRef, Percentage::new(0));
+            let (token_x, token_y) = create_tokens!(client, TokenRef, TokenRef, 500, 500);
+
+            let fee_tier = FeeTier {
+                fee: Percentage::from_scale(5, 1),
+                tick_spacing: 100,
+            };
+            let init_tick = 0;
+
+            let result = create_pool!(
+                client,
+                ContractRef,
+                dex,
+                token_x,
+                token_y,
+                fee_tier,
+                init_tick
+            );
+            assert!(result.is_ok());
+
+            let user = ink_e2e::bob();
+            let bob = address_of!(Bob);
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier);
+            change_fee_receiver!(client, ContractRef, dex, pool_key, bob, user);
+        }
     }
 }
