@@ -628,3 +628,21 @@ macro_rules! tickmap_bit {
             .return_value()
     }};
 }
+
+#[macro_export]
+macro_rules! withdraw_protocol_fee {
+    ($client:ident, $dex:ty, $dex_address:expr, $pool_key:expr, $caller:ident) => {{
+        // client => ink_e2e_client
+        // dex:ty => ContractRef
+        // dex_address:expr => Address of contract
+        // pool_key:expr => pool_key
+        // caller => ink_e2e account to sign call
+        let _msg = build_message::<$dex>($dex_address.clone())
+            .call(|contract| contract.withdraw_protocol_fee($pool_key));
+        $client
+            .call(&$caller, _msg, 0, None)
+            .await
+            .expect("Tickmap byte failed")
+            .return_value()
+    }};
+}
