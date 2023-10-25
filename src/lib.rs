@@ -1211,96 +1211,99 @@ pub mod contract {
             approve!(client, TokenRef, token_y, dex, initial_balance, alice);
 
             let pool_key = PoolKey::new(token_x, token_y, fee_tier);
+            // Position above current tick
+            {
+                let lower_tick_index = -22980;
+                let upper_tick_index = 0;
+                let liquidity_delta = Liquidity::new(initial_balance);
 
-            let lower_tick = -22980;
-            let upper_tick = 0;
-            let liquidity_delta = Liquidity::new(initial_balance);
+                create_position!(
+                    client,
+                    ContractRef,
+                    dex,
+                    pool_key,
+                    lower_tick_index,
+                    upper_tick_index,
+                    liquidity_delta,
+                    calculate_sqrt_price(init_tick).unwrap(),
+                    SqrtPrice::max_instance(),
+                    alice
+                );
 
-            create_position!(
-                client,
-                ContractRef,
-                dex,
-                pool_key,
-                lower_tick,
-                upper_tick,
-                liquidity_delta,
-                calculate_sqrt_price(init_tick).unwrap(),
-                SqrtPrice::max_instance(),
-                alice
-            );
+                // Load states
+                let position_state = get_position!(client, ContractRef, dex, 0, alice).unwrap();
+                let pool_state =
+                    get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+                let lower_tick =
+                    get_tick!(client, ContractRef, dex, lower_tick_index, pool_key, alice).unwrap();
+                let upper_tick =
+                    get_tick!(client, ContractRef, dex, upper_tick_index, pool_key, alice).unwrap();
+                let lower_tick_bit =
+                    tickmap_bit!(client, ContractRef, dex, lower_tick_index, pool_key, alice);
+                let upper_tick_bit =
+                    tickmap_bit!(client, ContractRef, dex, upper_tick_index, pool_key, alice);
+                let zero_fee = FeeGrowth::new(0);
+                let alice_x = balance_of!(TokenRef, client, token_x, Alice);
+                let alice_y = balance_of!(TokenRef, client, token_y, Alice);
+                let dex_x = dex_balance!(TokenRef, client, token_x, dex);
+                let dex_y = dex_balance!(TokenRef, client, token_y, dex);
 
-            // Load states
-            let position_state = get_position!(client, ContractRef, dex, 0, alice).unwrap();
-            let pool_state =
-                get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
-            let tick_lower =
-                get_tick!(client, ContractRef, dex, lower_tick, pool_key, alice).unwrap();
-            let tick_upper =
-                get_tick!(client, ContractRef, dex, upper_tick, pool_key, alice).unwrap();
-            let lower_tick_bit =
-                tickmap_bit!(client, ContractRef, dex, lower_tick, pool_key, alice);
-            let upper_tick_bit =
-                tickmap_bit!(client, ContractRef, dex, upper_tick, pool_key, alice);
-            let zero_fee = FeeGrowth::new(0);
-            let alice_x = balance_of!(TokenRef, client, token_x, Alice);
-            let alice_y = balance_of!(TokenRef, client, token_y, Alice);
-            let dex_x = dex_balance!(TokenRef, client, token_x, dex);
-            let dex_y = dex_balance!(TokenRef, client, token_y, dex);
+                let expected_x_increase = 21549;
+                let expected_y_increase = 0;
 
-            let expected_x_increase = 21549;
-            let expected_y_increase = 0;
+                // {
+                //     // Display state's
+                //     println!("Position state = {:?}", position_state);
+                //     println!("Pool state = {:?}", pool_state);
+                //     println!(
+                //         "Tick lower = {:?} | Tick upper = {:?}",
+                //         tick_lower, tick_upper
+                //     );
+                //     println!(
+                //         "Lower flipped = {:?} | Upper flipped = {:?}",
+                //         lower_tick_bit, upper_tick_bit
+                //     );
+                // }
 
-            // {
-            //     // Display state's
-            //     println!("Position state = {:?}", position_state);
-            //     println!("Pool state = {:?}", pool_state);
-            //     println!(
-            //         "Tick lower = {:?} | Tick upper = {:?}",
-            //         tick_lower, tick_upper
-            //     );
-            //     println!(
-            //         "Lower flipped = {:?} | Upper flipped = {:?}",
-            //         lower_tick_bit, upper_tick_bit
-            //     );
-            // }
+                // println!("X = {:?} | Y = {:?}", alice_x, alice_y);
+                // println!("DEX = {:?} | {:?}", dex_x, dex_y);
 
-            // println!("X = {:?} | Y = {:?}", alice_x, alice_y);
-            // println!("DEX = {:?} | {:?}", dex_x, dex_y);
+                // Check ticks
+                assert!(lower_tick.index == lower_tick_index);
+                assert!(upper_tick.index == upper_tick_index);
+                assert_eq!(lower_tick.liquidity_gross, liquidity_delta);
+                assert_eq!(upper_tick.liquidity_gross, liquidity_delta);
+                assert_eq!(lower_tick.liquidity_change, liquidity_delta);
+                assert_eq!(upper_tick.liquidity_change, liquidity_delta);
+                assert!(lower_tick.sign);
+                assert!(!upper_tick.sign);
 
-            // Check ticks
-            assert!(tick_lower.index == lower_tick);
-            assert!(tick_upper.index == upper_tick);
-            assert_eq!(tick_lower.liquidity_gross, liquidity_delta);
-            assert_eq!(tick_upper.liquidity_gross, liquidity_delta);
-            assert_eq!(tick_lower.liquidity_change, liquidity_delta);
-            assert_eq!(tick_upper.liquidity_change, liquidity_delta);
-            assert!(tick_lower.sign);
-            assert!(!tick_upper.sign);
+                // Check pool
+                assert!(pool_state.liquidity == Liquidity::new(0));
+                assert!(pool_state.current_tick_index == init_tick);
 
-            // Check pool
-            assert!(pool_state.liquidity == Liquidity::new(0));
-            assert!(pool_state.current_tick_index == init_tick);
+                // Check position
+                assert!(position_state.pool_key == pool_key);
+                assert!(position_state.liquidity == liquidity_delta);
+                assert!(position_state.lower_tick_index == lower_tick_index);
+                assert!(position_state.upper_tick_index == upper_tick_index);
+                assert!(position_state.fee_growth_inside_x == zero_fee);
+                assert!(position_state.fee_growth_inside_y == zero_fee);
 
-            // Check position
-            assert!(position_state.pool_key == pool_key);
-            assert!(position_state.liquidity == liquidity_delta);
-            assert!(position_state.lower_tick_index == lower_tick);
-            assert!(position_state.upper_tick_index == upper_tick);
-            assert!(position_state.fee_growth_inside_x == zero_fee);
-            assert!(position_state.fee_growth_inside_y == zero_fee);
+                // Check balances
+                assert_eq!(alice_x, initial_balance - dex_x);
+                assert_eq!(alice_y, initial_balance - dex_y);
 
-            // Check balances
-            assert_eq!(alice_x, initial_balance - dex_x);
-            assert_eq!(alice_y, initial_balance - dex_y);
-
-            if token_x > token_y {
-                assert_eq!(dex_y, expected_x_increase);
-                assert_eq!(dex_x, expected_y_increase);
-            } else {
-                assert_eq!(dex_x, expected_x_increase);
-                assert_eq!(dex_y, expected_y_increase);
+                if token_x > token_y {
+                    assert_eq!(dex_y, expected_x_increase);
+                    assert_eq!(dex_x, expected_y_increase);
+                } else {
+                    assert_eq!(dex_x, expected_x_increase);
+                    assert_eq!(dex_y, expected_y_increase);
+                }
             }
-
+            // Position within current tick
+            {}
             Ok(())
         }
     }
