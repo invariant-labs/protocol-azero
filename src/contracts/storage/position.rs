@@ -78,18 +78,12 @@ impl Position {
         )?;
 
         // calculate tokens amounts and update pool liquidity
-        let (amount_x, amount_y, _) = ok_or_mark_trace!(calculate_amount_delta(
-            pool.current_tick_index,
-            pool.sqrt_price,
+        ok_or_mark_trace!(pool.update_liquidity(
             liquidity_delta,
-            add,
+            true,
             upper_tick.index,
-            lower_tick.index,
-        ))?;
-
-        unwrap!(pool.update_liquidity(liquidity_delta, true, upper_tick.index, lower_tick.index));
-
-        Ok((amount_x, amount_y))
+            lower_tick.index
+        ))
     }
 
     pub fn update(
