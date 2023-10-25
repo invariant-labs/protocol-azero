@@ -176,6 +176,9 @@ pub mod contract {
                 return Err(ContractErrors::TickAlreadyExist);
             }
 
+            self.tickmap
+                .flip(true, index, pool_key.fee_tier.tick_spacing, pool_key);
+
             let current_timestamp = self.env().block_timestamp();
             let tick = Tick::create(index, &pool, current_timestamp);
             self.ticks.add_tick(pool_key, index, tick);
@@ -885,7 +888,7 @@ pub mod contract {
         use test_helpers::{
             address_of, approve, balance_of, create_dex, create_fee_tier, create_pool,
             create_position, create_standard_fee_tiers, create_tokens, dex_balance,
-            get_all_positions, get_fee_tier, get_pool, get_position, remove_position,
+            get_all_positions, get_fee_tier, get_pool, get_position, remove_position, swap,
         };
         use token::TokenRef;
 
@@ -896,25 +899,18 @@ pub mod contract {
         #[ink_e2e::test]
         async fn swap(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let mint_amount = 10u128.pow(10);
-            let protocol_fee = Percentage::new(0);
-            let fee = Percentage::new(600);
-            let tick_spacing = 10;
-            let fee_tier = FeeTier { fee, tick_spacing };
-            let init_tick = 0;
-            let lower_tick = -20;
-            let upper_tick = 10;
-            let liquidity = Liquidity::from_integer(1000000);
-            let slippage_limit_lower = SqrtPrice::new(MIN_SQRT_PRICE);
-            let slippage_limit_upper = SqrtPrice::new(MAX_SQRT_PRICE);
-            let alice = ink_e2e::alice();
-
             let (token_x, token_y) =
                 create_tokens!(client, TokenRef, TokenRef, mint_amount, mint_amount);
 
-            let pool_key = PoolKey::new(token_x, token_y, fee_tier);
-
+            let protocol_fee = Percentage::new(0);
             let dex = create_dex!(client, ContractRef, protocol_fee);
+
+            let fee = Percentage::new(600);
+            let tick_spacing = 10;
             create_fee_tier!(client, ContractRef, dex, fee, tick_spacing);
+
+            let fee_tier = FeeTier { fee, tick_spacing };
+            let init_tick = 0;
             create_pool!(
                 client,
                 ContractRef,
@@ -924,8 +920,17 @@ pub mod contract {
                 fee_tier,
                 init_tick
             );
+
             approve!(client, TokenRef, token_x, dex, mint_amount);
             approve!(client, TokenRef, token_y, dex, mint_amount);
+
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier);
+            let lower_tick = -20;
+            let upper_tick = 10;
+            let liquidity = Liquidity::from_integer(1000000);
+            let slippage_limit_lower = SqrtPrice::new(MIN_SQRT_PRICE);
+            let slippage_limit_upper = SqrtPrice::new(MAX_SQRT_PRICE);
+            let alice = ink_e2e::alice();
             create_position!(
                 client,
                 ContractRef,
@@ -935,6 +940,19 @@ pub mod contract {
                 upper_tick,
                 liquidity,
                 slippage_limit_lower,
+                slippage_limit_upper,
+                alice
+            );
+
+            let swap_amount = TokenAmount::new(1000);
+            swap!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                true,
+                swap_amount,
+                true,
                 slippage_limit_upper,
                 alice
             );
