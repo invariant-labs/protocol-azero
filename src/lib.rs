@@ -1680,22 +1680,25 @@ pub mod contract {
                 alice
             );
 
-            // Load states
-            let position_state = get_position!(client, ContractRef, dex, 0, alice).unwrap();
-            let pool_state =
-                get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
-            let lower_tick =
-                get_tick!(client, ContractRef, dex, lower_tick_index, pool_key, alice).unwrap();
-            let upper_tick =
-                get_tick!(client, ContractRef, dex, upper_tick_index, pool_key, alice).unwrap();
-            let lower_tick_bit =
-                tickmap_bit!(client, ContractRef, dex, lower_tick_index, pool_key, alice);
-            let upper_tick_bit =
-                tickmap_bit!(client, ContractRef, dex, upper_tick_index, pool_key, alice);
-            let alice_x = balance_of!(TokenRef, client, token_x, Alice);
-            let alice_y = balance_of!(TokenRef, client, token_y, Alice);
-            let dex_x = dex_balance!(TokenRef, client, token_x, dex);
-            let dex_y = dex_balance!(TokenRef, client, token_y, dex);
+            // TODO
+            // add removing position  && states check
+
+            // // Load states
+            // let position_state = get_position!(client, ContractRef, dex, 0, alice).unwrap();
+            // let pool_state =
+            //     get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+            // let lower_tick =
+            //     get_tick!(client, ContractRef, dex, lower_tick_index, pool_key, alice).unwrap();
+            // let upper_tick =
+            //     get_tick!(client, ContractRef, dex, upper_tick_index, pool_key, alice).unwrap();
+            // let lower_tick_bit =
+            //     tickmap_bit!(client, ContractRef, dex, lower_tick_index, pool_key, alice);
+            // let upper_tick_bit =
+            //     tickmap_bit!(client, ContractRef, dex, upper_tick_index, pool_key, alice);
+            // let alice_x = balance_of!(TokenRef, client, token_x, Alice);
+            // let alice_y = balance_of!(TokenRef, client, token_y, Alice);
+            // let dex_x = dex_balance!(TokenRef, client, token_x, dex);
+            // let dex_y = dex_balance!(TokenRef, client, token_y, dex);
 
             Ok(())
         }
