@@ -1029,6 +1029,112 @@ pub mod contract {
         }
 
         #[ink_e2e::test]
+        #[should_panic]
+        async fn protocol_fee_should_panic(mut client: ink_e2e::Client<C, E>) -> () {
+            let mint_amount = 10u128.pow(10);
+            let (token_x, token_y) =
+                create_tokens!(client, TokenRef, TokenRef, mint_amount, mint_amount);
+
+            let protocol_fee = Percentage::new(100000000000);
+            let dex = create_dex!(client, ContractRef, protocol_fee);
+
+            let fee = Percentage::new(6000000000);
+            let tick_spacing = 10;
+            let fee_tier = FeeTier { fee, tick_spacing };
+            create_fee_tier!(client, ContractRef, dex, fee_tier);
+
+            let init_tick = 0;
+            create_pool!(
+                client,
+                ContractRef,
+                dex,
+                token_x,
+                token_y,
+                fee_tier,
+                init_tick
+            );
+
+            let alice = ink_e2e::alice();
+            approve!(client, TokenRef, token_x, dex, mint_amount, alice);
+            approve!(client, TokenRef, token_y, dex, mint_amount, alice);
+
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier);
+            let lower_tick = -20;
+            let upper_tick = 10;
+            let liquidity = Liquidity::from_integer(1000000);
+            let slippage_limit_lower = SqrtPrice::new(MIN_SQRT_PRICE);
+            let slippage_limit_upper = SqrtPrice::new(MAX_SQRT_PRICE);
+            create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                lower_tick,
+                upper_tick,
+                liquidity,
+                slippage_limit_lower,
+                slippage_limit_upper,
+                alice
+            );
+
+            let pool_before =
+                get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+            assert_eq!(pool_before.liquidity, liquidity);
+
+            let amount = 1000;
+            let bob = ink_e2e::bob();
+            mint!(TokenRef, client, token_x, Bob, amount);
+            let amount_x = balance_of!(TokenRef, client, token_x, Bob);
+            assert_eq!(amount_x, amount);
+            approve!(client, TokenRef, token_x, dex, amount, bob);
+
+            let amount_x = dex_balance!(TokenRef, client, token_x, dex);
+            let amount_y = dex_balance!(TokenRef, client, token_y, dex);
+            assert_eq!(amount_x, 500);
+            assert_eq!(amount_y, 1000);
+
+            let swap_amount = TokenAmount::new(amount);
+            swap!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                true,
+                swap_amount,
+                true,
+                slippage_limit_upper,
+                bob
+            );
+
+            let pool_after =
+                get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+            assert_eq!(pool_after.liquidity, pool_before.liquidity);
+            assert_eq!(pool_after.current_tick_index, upper_tick);
+            assert_ne!(pool_after.sqrt_price, pool_before.sqrt_price);
+
+            let amount_x = balance_of!(TokenRef, client, token_x, Bob);
+            let amount_y = balance_of!(TokenRef, client, token_y, Bob);
+            assert_eq!(amount_x, 0);
+            assert_eq!(amount_y, 993);
+
+            let amount_x = dex_balance!(TokenRef, client, token_x, dex);
+            let amount_y = dex_balance!(TokenRef, client, token_y, dex);
+            assert_eq!(amount_x, 1500);
+            assert_eq!(amount_y, 7);
+
+            assert_eq!(
+                pool_after.fee_growth_global_x,
+                FeeGrowth::new(50000000000000000000000)
+            );
+            assert_eq!(pool_after.fee_growth_global_y, FeeGrowth::new(0));
+
+            assert_eq!(pool_after.fee_protocol_token_x, TokenAmount::new(1));
+            assert_eq!(pool_after.fee_protocol_token_y, TokenAmount::new(0));
+
+            withdraw_protocol_fee!(client, ContractRef, dex, pool_key, bob);
+        }
+
+        #[ink_e2e::test]
         async fn constructor_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let constructor = TokenRef::new(500);
             let _token: AccountId = client
