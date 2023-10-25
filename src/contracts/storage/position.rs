@@ -219,7 +219,7 @@ impl Position {
             tokens_owed_y: TokenAmount::new(0),
         };
 
-        let (required_x, required_y, _) = unwrap!(position.modify(
+        let (required_x, required_y, add_liquidity) = unwrap!(position.modify(
             pool,
             upper_tick,
             lower_tick,
@@ -228,6 +228,15 @@ impl Position {
             current_timestamp,
             tick_spacing
         ));
+
+        if add_liquidity {
+            unwrap!(pool.update_liquidity(
+                liquidity_delta,
+                true,
+                upper_tick.index,
+                lower_tick.index
+            ));
+        }
 
         (position, required_x, required_y)
     }

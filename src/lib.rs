@@ -235,6 +235,8 @@ pub mod contract {
                 pool_key.fee_tier.tick_spacing,
             );
 
+            self.pools.update_pool(pool_key, &pool);
+
             let caller = self.env().caller();
             self.positions.add(caller, position);
 
@@ -1419,7 +1421,7 @@ pub mod contract {
             assert!(!upper_tick.sign);
 
             // Check pool
-            assert!(pool_state.liquidity == Liquidity::new(0));
+            assert!(pool_state.liquidity == liquidity_delta);
             assert!(pool_state.current_tick_index == init_tick);
 
             // Check position
