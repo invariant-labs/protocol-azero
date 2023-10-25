@@ -1449,6 +1449,9 @@ pub mod contract {
 
             let liquidity_delta = Liquidity::new(initial_balance);
 
+            let pool_state_before =
+                get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+
             create_position!(
                 client,
                 ContractRef,
@@ -1494,7 +1497,7 @@ pub mod contract {
             assert!(!upper_tick.sign);
 
             // Check pool
-            assert!(pool_state.liquidity == Liquidity::new(0));
+            assert!(pool_state.liquidity == pool_state_before.liquidity);
             assert!(pool_state.current_tick_index == init_tick);
 
             // Check position
