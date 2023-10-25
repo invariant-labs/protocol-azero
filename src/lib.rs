@@ -1205,7 +1205,7 @@ pub mod contract {
             let user = ink_e2e::bob();
             // not-admin
             let fee = Percentage::from_scale(5, 1);
-            let spacing = 0;
+            let spacing = 10;
             let result = create_fee_tier!(client, ContractRef, dex, fee, spacing, user);
         }
     }
