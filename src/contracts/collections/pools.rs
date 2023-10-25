@@ -47,7 +47,15 @@ impl Pools {
         self.pools.remove(&pool_key);
     }
 
-    pub fn update_pool(&mut self, pool_key: PoolKey, pool: &Pool) {
+    pub fn update_pool(&mut self, pool_key: PoolKey, pool: &Pool) -> Result<(), ContractErrors> {
+        let is_added = self.pools.get(&pool_key).is_some();
+
+        if !is_added {
+            return Err(ContractErrors::PoolNotFound);
+        }
+
         self.pools.insert(pool_key, pool);
+
+        Ok(())
     }
 }
