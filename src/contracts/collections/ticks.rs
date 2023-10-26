@@ -14,8 +14,13 @@ impl Ticks {
         self.ticks.get(&(key, index))
     }
     // pub fn update_tick(&mut self, key: PoolKey, index: i32, tick: Tick) {}
-    pub fn remove_tick(&mut self, key: PoolKey, index: i32) {
+    pub fn remove_tick(&mut self, key: PoolKey, index: i32) -> Result<(), ContractErrors> {
+        self.ticks
+            .get(&(key, index))
+            .ok_or(ContractErrors::TickNotFound)?;
+
         self.ticks.remove(&(key, index));
+        Ok(())
     }
 
     pub fn add_tick(&mut self, key: PoolKey, index: i32, tick: Tick) {
