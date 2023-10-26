@@ -30,7 +30,6 @@ pub enum ContractErrors {
     FeeTierAlreadyAdded,
     NotAFeeReceiver,
     ZeroLiquidity,
-    TransferFailed,
 }
 #[ink::contract]
 pub mod contract {
@@ -169,7 +168,6 @@ pub mod contract {
             Ok(())
         }
 
-        #[ink(message)]
         pub fn create_tick(
             &mut self,
             pool_key: PoolKey,
@@ -897,9 +895,9 @@ pub mod contract {
         use openbrush::traits::Balance;
         use test_helpers::{
             address_of, approve, balance_of, change_fee_receiver, create_dex, create_fee_tier,
-            create_pool, create_position, create_standard_fee_tiers, create_tick, create_tokens,
-            dex_balance, get_all_positions, get_fee_tier, get_pool, get_position, get_tick,
-            remove_position, tickmap_bit,
+            create_pool, create_position, create_standard_fee_tiers, create_tokens, dex_balance,
+            get_all_positions, get_fee_tier, get_pool, get_position, get_tick, remove_position,
+            tickmap_bit,
         };
         use token::TokenRef;
 
