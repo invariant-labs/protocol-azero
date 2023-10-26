@@ -288,8 +288,8 @@ pub mod contract {
                     return Err(ContractErrors::WrongLimit);
                 }
             } else {
-                if pool.sqrt_price <= sqrt_price_limit
-                    && sqrt_price_limit > SqrtPrice::new(MIN_SQRT_PRICE)
+                if pool.sqrt_price >= sqrt_price_limit
+                    && sqrt_price_limit < SqrtPrice::new(MIN_SQRT_PRICE)
                 {
                     return Err(ContractErrors::WrongLimit);
                 }
