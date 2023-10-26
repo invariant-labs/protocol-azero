@@ -775,7 +775,7 @@ macro_rules! init_basic_swap {
         let tick_spacing = 10;
         let fee_tier = FeeTier { fee, tick_spacing };
         let pool_key = PoolKey::new($token_x_address, $token_y_address, fee_tier);
-        let upper_tick = 10;
+        let lower_tick = -20;
 
         let amount = 1000;
         let bob = ink_e2e::bob();
@@ -800,7 +800,7 @@ macro_rules! init_basic_swap {
         .unwrap();
 
         let swap_amount = TokenAmount::new(amount);
-        let slippage = SqrtPrice::new(MAX_SQRT_PRICE);
+        let slippage = SqrtPrice::new(MIN_SQRT_PRICE);
         swap!(
             $client,
             $dex,
@@ -823,7 +823,7 @@ macro_rules! init_basic_swap {
         )
         .unwrap();
         assert_eq!(pool_after.liquidity, pool_before.liquidity);
-        assert_eq!(pool_after.current_tick_index, upper_tick);
+        assert_eq!(pool_after.current_tick_index, lower_tick);
         assert_ne!(pool_after.sqrt_price, pool_before.sqrt_price);
 
         let amount_x = balance_of!($token, $client, $token_x_address, Bob);

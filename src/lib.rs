@@ -282,14 +282,14 @@ pub mod contract {
             let current_timestamp = self.env().block_timestamp();
 
             if x_to_y {
-                if pool.sqrt_price > sqrt_price_limit
-                    && sqrt_price_limit <= SqrtPrice::new(MAX_SQRT_PRICE)
+                if pool.sqrt_price <= sqrt_price_limit
+                    && sqrt_price_limit > SqrtPrice::new(MAX_SQRT_PRICE)
                 {
                     return Err(ContractErrors::WrongLimit);
                 }
             } else {
-                if pool.sqrt_price > sqrt_price_limit
-                    && sqrt_price_limit <= SqrtPrice::new(MIN_SQRT_PRICE)
+                if pool.sqrt_price <= sqrt_price_limit
+                    && sqrt_price_limit > SqrtPrice::new(MIN_SQRT_PRICE)
                 {
                     return Err(ContractErrors::WrongLimit);
                 }
@@ -905,6 +905,15 @@ pub mod contract {
         use super::*;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
+
+        #[ink_e2e::test]
+        async fn swap(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let (dex, token_x, token_y) = init_dex_and_tokens!(client, ContractRef, TokenRef);
+            init_basic_position!(client, ContractRef, TokenRef, dex, token_x, token_y);
+            init_basic_swap!(client, ContractRef, TokenRef, dex, token_x, token_y);
+
+            Ok(())
+        }
 
         #[ink_e2e::test]
         async fn protocol_fee(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
