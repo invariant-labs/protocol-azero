@@ -193,8 +193,8 @@ impl Position {
         tick_spacing: u16,
     ) -> (Self, TokenAmount, TokenAmount) {
         let price = pool.sqrt_price;
-        assert!(price >= slippage_limit_lower, "Price limit reached");
-        assert!(price <= slippage_limit_upper, "Price limit reached");
+        assert!(price > slippage_limit_lower, "Price limit reached");
+        assert!(price < slippage_limit_upper, "Price limit reached");
 
         // if !tickmap.get(lower_tick.index, pool.tick_spacing) {
         //     tickmap.flip(true, lower_tick.index, pool.tick_spacing)

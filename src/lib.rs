@@ -1283,6 +1283,9 @@ pub mod contract {
             let upper_tick_index = 0;
             let liquidity_delta = Liquidity::new(initial_balance);
 
+            let pool_state =
+                get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+
             create_position!(
                 client,
                 ContractRef,
@@ -1291,7 +1294,7 @@ pub mod contract {
                 lower_tick_index,
                 upper_tick_index,
                 liquidity_delta,
-                calculate_sqrt_price(init_tick).unwrap(),
+                pool_state.sqrt_price - SqrtPrice::new(1),
                 SqrtPrice::max_instance(),
                 alice
             );
@@ -1389,6 +1392,9 @@ pub mod contract {
 
             let liquidity_delta = Liquidity::new(initial_balance);
 
+            let pool_state =
+                get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+
             create_position!(
                 client,
                 ContractRef,
@@ -1397,7 +1403,7 @@ pub mod contract {
                 lower_tick_index,
                 upper_tick_index,
                 liquidity_delta,
-                calculate_sqrt_price(init_tick).unwrap(),
+                pool_state.sqrt_price - SqrtPrice::new(1),
                 SqrtPrice::max_instance(),
                 alice
             );
@@ -1504,7 +1510,7 @@ pub mod contract {
                 lower_tick_index,
                 upper_tick_index,
                 liquidity_delta,
-                calculate_sqrt_price(init_tick).unwrap(),
+                pool_state_before.sqrt_price - SqrtPrice::new(1),
                 SqrtPrice::max_instance(),
                 alice
             );
@@ -1636,7 +1642,7 @@ pub mod contract {
             let alice = ink_e2e::alice();
             let init_tick = 0;
 
-            let dex = create_dex!(client, ContractRef, Percentage::new(0));
+            let dex = create_dex!(client, ContractRef, Percentage::from_scale(6, 3));
             let initial_balance = 100_000_000;
 
             let (token_x, token_y) =
@@ -1667,6 +1673,9 @@ pub mod contract {
             let upper_tick_index = 10;
             let liquidity_delta = Liquidity::from_integer(1_000_000);
 
+            let pool_state =
+                get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+
             create_position!(
                 client,
                 ContractRef,
@@ -1675,7 +1684,7 @@ pub mod contract {
                 lower_tick_index,
                 upper_tick_index,
                 liquidity_delta,
-                calculate_sqrt_price(init_tick).unwrap(),
+                pool_state.sqrt_price - SqrtPrice::new(1),
                 SqrtPrice::max_instance(),
                 alice
             );
