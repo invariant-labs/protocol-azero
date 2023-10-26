@@ -639,6 +639,24 @@ macro_rules! tickmap_bit {
 }
 
 #[macro_export]
+macro_rules! withdraw_protocol_fee {
+    ($client:ident, $dex:ty, $dex_address:expr, $pool_key:expr, $caller:ident) => {{
+        // client => ink_e2e_client
+        // dex:ty => ContractRef
+        // dex_address:expr => Address of contract
+        // pool_key:expr => pool_key
+        // caller => ink_e2e account to sign call
+        let _msg = build_message::<$dex>($dex_address.clone())
+            .call(|contract| contract.withdraw_protocol_fee($pool_key));
+        $client
+            .call(&$caller, _msg, 0, None)
+            .await
+            .expect("Tickmap byte failed")
+            .return_value()
+    }};
+}
+
+#[macro_export]
 macro_rules! change_fee_receiver {
     ($client:ident, $dex:ty, $dex_address:expr, $pool_key:expr, $account:expr, $caller:ident) => {{
         // client => ink_e2e_client
@@ -653,5 +671,178 @@ macro_rules! change_fee_receiver {
             .await
             .expect("Changing fee reciever failed")
             .return_value()
+    }};
+}
+
+#[macro_export]
+macro_rules! init_dex_and_tokens {
+    ($client:ident, $dex:ty, $token:ty) => {{
+        let mint_amount = 10u128.pow(10);
+        let (token_x, token_y) = create_tokens!($client, $token, $token, mint_amount, mint_amount);
+
+        let protocol_fee = Percentage::from_scale(1, 2);
+        let dex = create_dex!($client, $dex, protocol_fee);
+
+        (dex, token_x, token_y)
+    }};
+}
+
+#[macro_export]
+macro_rules! init_basic_position {
+    ($client:ident, $dex:ty, $token:ty, $dex_address:ident, $token_x_address:ident, $token_y_address:ident) => {{
+        let fee_tier = FeeTier {
+            fee: Percentage::from_scale(6, 3),
+            tick_spacing: 10,
+        };
+        let alice = ink_e2e::alice();
+        create_fee_tier!($client, $dex, $dex_address, fee_tier, alice);
+
+        let init_tick = 0;
+        create_pool!(
+            $client,
+            $dex,
+            $dex_address,
+            $token_x_address,
+            $token_y_address,
+            fee_tier,
+            init_tick
+        );
+
+        let mint_amount = 10u128.pow(10);
+        approve!(
+            $client,
+            $token,
+            $token_x_address,
+            $dex_address,
+            mint_amount,
+            alice
+        );
+        approve!(
+            $client,
+            $token,
+            $token_y_address,
+            $dex_address,
+            mint_amount,
+            alice
+        );
+
+        let pool_key = PoolKey::new($token_x_address, $token_y_address, fee_tier);
+        let lower_tick = -20;
+        let upper_tick = 10;
+        let liquidity = Liquidity::from_integer(1000000);
+        let pool_for_slippage = get_pool!(
+            $client,
+            $dex,
+            $dex_address,
+            $token_x_address,
+            $token_y_address,
+            fee_tier
+        )
+        .unwrap();
+        let slippage_limit_lower = pool_for_slippage.sqrt_price;
+        let slippage_limit_upper = pool_for_slippage.sqrt_price;
+        create_position!(
+            $client,
+            $dex,
+            $dex_address,
+            pool_key,
+            lower_tick,
+            upper_tick,
+            liquidity,
+            slippage_limit_lower,
+            slippage_limit_upper,
+            alice
+        );
+
+        let pool_before = get_pool!(
+            $client,
+            $dex,
+            $dex_address,
+            $token_x_address,
+            $token_y_address,
+            fee_tier
+        )
+        .unwrap();
+
+        assert_eq!(pool_before.liquidity, liquidity);
+    }};
+}
+
+#[macro_export]
+macro_rules! init_basic_swap {
+    ($client:ident, $dex:ty, $token:ty, $dex_address:ident, $token_x_address:ident, $token_y_address:ident) => {{
+        let fee = Percentage::from_scale(6, 3);
+        let tick_spacing = 10;
+        let fee_tier = FeeTier { fee, tick_spacing };
+        let pool_key = PoolKey::new($token_x_address, $token_y_address, fee_tier);
+        let upper_tick = 10;
+
+        let amount = 1000;
+        let bob = ink_e2e::bob();
+        mint!($token, $client, $token_x_address, Bob, amount);
+        let amount_x = balance_of!($token, $client, $token_x_address, Bob);
+        assert_eq!(amount_x, amount);
+        approve!($client, $token, $token_x_address, $dex_address, amount, bob);
+
+        let amount_x = dex_balance!($token, $client, $token_x_address, $dex_address);
+        let amount_y = dex_balance!($token, $client, $token_y_address, $dex_address);
+        assert_eq!(amount_x, 500);
+        assert_eq!(amount_y, 1000);
+
+        let pool_before = get_pool!(
+            $client,
+            $dex,
+            $dex_address,
+            $token_x_address,
+            $token_y_address,
+            pool_key.fee_tier
+        )
+        .unwrap();
+
+        let swap_amount = TokenAmount::new(amount);
+        let slippage = SqrtPrice::new(MAX_SQRT_PRICE);
+        swap!(
+            $client,
+            $dex,
+            $dex_address,
+            pool_key,
+            true,
+            swap_amount,
+            true,
+            slippage,
+            bob
+        );
+
+        let pool_after = get_pool!(
+            $client,
+            $dex,
+            $dex_address,
+            $token_x_address,
+            $token_y_address,
+            fee_tier
+        )
+        .unwrap();
+        assert_eq!(pool_after.liquidity, pool_before.liquidity);
+        assert_eq!(pool_after.current_tick_index, upper_tick);
+        assert_ne!(pool_after.sqrt_price, pool_before.sqrt_price);
+
+        let amount_x = balance_of!($token, $client, $token_x_address, Bob);
+        let amount_y = balance_of!($token, $client, $token_y_address, Bob);
+        assert_eq!(amount_x, 0);
+        assert_eq!(amount_y, 993);
+
+        let amount_x = dex_balance!($token, $client, $token_x_address, $dex_address);
+        let amount_y = dex_balance!($token, $client, $token_y_address, $dex_address);
+        assert_eq!(amount_x, 1500);
+        assert_eq!(amount_y, 7);
+
+        assert_eq!(
+            pool_after.fee_growth_global_x,
+            FeeGrowth::new(50000000000000000000000)
+        );
+        assert_eq!(pool_after.fee_growth_global_y, FeeGrowth::new(0));
+
+        assert_eq!(pool_after.fee_protocol_token_x, TokenAmount::new(1));
+        assert_eq!(pool_after.fee_protocol_token_y, TokenAmount::new(0));
     }};
 }

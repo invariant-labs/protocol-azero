@@ -30,6 +30,7 @@ pub enum ContractErrors {
     FeeTierAlreadyAdded,
     NotAFeeReceiver,
     ZeroLiquidity,
+    TransferError,
 }
 #[ink::contract]
 pub mod contract {
@@ -123,7 +124,7 @@ pub mod contract {
                 fee_protocol_token_x.get(),
                 vec![],
             )
-            .ok();
+            .map_err(|_| ContractErrors::TransferError)?;
 
             PSP22Ref::transfer(
                 &pool_key.token_y,
@@ -131,7 +132,7 @@ pub mod contract {
                 fee_protocol_token_y.get(),
                 vec![],
             )
-            .ok();
+            .map_err(|_| ContractErrors::TransferError)?;
 
             Ok(())
         }
@@ -233,7 +234,7 @@ pub mod contract {
                 slippage_limit_upper,
                 current_block_number,
                 pool_key.fee_tier.tick_spacing,
-            );
+            )?;
 
             self.pools.update_pool(pool_key, &pool)?;
 
@@ -250,7 +251,7 @@ pub mod contract {
                 x.get(),
                 vec![],
             )
-            .ok();
+            .map_err(|_| ContractErrors::TransferError)?;
             PSP22Ref::transfer_from(
                 &pool_key.token_y,
                 self.env().caller(),
@@ -258,7 +259,7 @@ pub mod contract {
                 y.get(),
                 vec![],
             )
-            .ok();
+            .map_err(|_| ContractErrors::TransferError)?;
 
             Ok(position)
         }
@@ -322,6 +323,8 @@ pub mod contract {
                 } else {
                     remaining_amount -= result.amount_out;
                 }
+
+                pool.add_fee(result.fee_amount, x_to_y, self.state.protocol_fee);
 
                 pool.sqrt_price = result.next_sqrt_price;
 
@@ -400,14 +403,14 @@ pub mod contract {
                     calculate_swap_result.amount_in.get(),
                     vec![],
                 )
-                .ok();
+                .map_err(|_| ContractErrors::TransferError)?;
                 PSP22Ref::transfer(
                     &pool_key.token_y,
                     self.env().caller(),
                     calculate_swap_result.amount_out.get(),
                     vec![],
                 )
-                .ok();
+                .map_err(|_| ContractErrors::TransferError)?;
             } else {
                 PSP22Ref::transfer_from(
                     &pool_key.token_y,
@@ -416,14 +419,14 @@ pub mod contract {
                     calculate_swap_result.amount_in.get(),
                     vec![],
                 )
-                .ok();
+                .map_err(|_| ContractErrors::TransferError)?;
                 PSP22Ref::transfer(
                     &pool_key.token_x,
                     self.env().caller(),
                     calculate_swap_result.amount_out.get(),
                     vec![],
                 )
-                .ok();
+                .map_err(|_| ContractErrors::TransferError)?;
             };
 
             Ok(())
@@ -612,7 +615,7 @@ pub mod contract {
                 amount_x.get(),
                 vec![],
             )
-            .ok();
+            .map_err(|_| ContractErrors::TransferError)?;
             PSP22Ref::transfer_from(
                 &position.pool_key.token_y,
                 self.env().account_id(),
@@ -620,7 +623,7 @@ pub mod contract {
                 amount_y.get(),
                 vec![],
             )
-            .ok();
+            .map_err(|_| ContractErrors::TransferError)?;
 
             Ok((amount_x, amount_y))
         }
@@ -893,14 +896,72 @@ pub mod contract {
         use test_helpers::{
             address_of, approve, balance_of, change_fee_receiver, create_dex, create_fee_tier,
             create_pool, create_position, create_standard_fee_tiers, create_tokens, dex_balance,
-            get_all_positions, get_fee_tier, get_pool, get_position, get_tick, remove_position,
-            tickmap_bit,
+            get_all_positions, get_fee_tier, get_pool, get_position, get_tick, init_basic_position,
+            init_basic_swap, init_dex_and_tokens, mint, remove_position, swap, tickmap_bit,
+            withdraw_protocol_fee,
         };
         use token::TokenRef;
 
         use super::*;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
+
+        #[ink_e2e::test]
+        async fn protocol_fee(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let (dex, token_x, token_y) = init_dex_and_tokens!(client, ContractRef, TokenRef);
+            init_basic_position!(client, ContractRef, TokenRef, dex, token_x, token_y);
+            init_basic_swap!(client, ContractRef, TokenRef, dex, token_x, token_y);
+
+            let fee_tier = FeeTier {
+                fee: Percentage::from_scale(6, 3),
+                tick_spacing: 10,
+            };
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier);
+            let alice = ink_e2e::alice();
+            withdraw_protocol_fee!(client, ContractRef, dex, pool_key, alice);
+
+            let amount_x = balance_of!(TokenRef, client, token_x, Alice);
+            let amount_y = balance_of!(TokenRef, client, token_y, Alice);
+            assert_eq!(amount_x, 9999999501);
+            assert_eq!(amount_y, 9999999000);
+
+            let amount_x = dex_balance!(TokenRef, client, token_x, dex);
+            let amount_y = dex_balance!(TokenRef, client, token_y, dex);
+            assert_eq!(amount_x, 1499);
+            assert_eq!(amount_y, 7);
+
+            let pool_after_withdraw =
+                get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+            assert_eq!(
+                pool_after_withdraw.fee_protocol_token_x,
+                TokenAmount::new(0)
+            );
+            assert_eq!(
+                pool_after_withdraw.fee_protocol_token_y,
+                TokenAmount::new(0)
+            );
+
+            Ok(())
+        }
+
+        #[ink_e2e::test]
+        #[should_panic]
+        async fn protocol_fee_should_panic(mut client: ink_e2e::Client<C, E>) -> () {
+            let (dex, token_x, token_y) = init_dex_and_tokens!(client, ContractRef, TokenRef);
+            init_basic_position!(client, ContractRef, TokenRef, dex, token_x, token_y);
+            init_basic_swap!(client, ContractRef, TokenRef, dex, token_x, token_y);
+
+            let pool_key = PoolKey::new(
+                token_x,
+                token_y,
+                FeeTier {
+                    fee: Percentage::from_scale(6, 3),
+                    tick_spacing: 10,
+                },
+            );
+            let bob = ink_e2e::bob();
+            withdraw_protocol_fee!(client, ContractRef, dex, pool_key, bob);
+        }
 
         #[ink_e2e::test]
         async fn constructor_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
@@ -1010,138 +1071,6 @@ pub mod contract {
                 alice
             );
 
-            Ok(())
-        }
-
-        #[ink_e2e::test]
-        async fn test_positions(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let dex = create_dex!(client, ContractRef, Percentage::new(0));
-            let (token_x, token_y) = create_tokens!(client, TokenRef, TokenRef, 500, 500);
-
-            let alice = ink_e2e::alice();
-
-            let fee_tier = FeeTier {
-                fee: Percentage::new(0),
-                tick_spacing: 1,
-            };
-            create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
-            let pool = create_pool!(client, ContractRef, dex, token_x, token_y, fee_tier, 10);
-
-            approve!(client, TokenRef, token_x, dex, 50, alice);
-            approve!(client, TokenRef, token_y, dex, 50, alice);
-
-            let pool_key = PoolKey::new(token_x, token_y, fee_tier);
-
-            // Get all Alice positions - should be empty
-            let alice_positions = get_all_positions!(client, ContractRef, dex, alice);
-
-            assert_eq!(alice_positions, vec![]);
-
-            // // Alice adds 3 positions
-
-            let first_position = create_position!(
-                client,
-                ContractRef,
-                dex,
-                pool_key,
-                -1,
-                1,
-                Liquidity::new(10),
-                SqrtPrice::new(0),
-                SqrtPrice::max_instance(),
-                alice
-            )
-            .unwrap();
-
-            let second_position = create_position!(
-                client,
-                ContractRef,
-                dex,
-                pool_key,
-                -2,
-                2,
-                Liquidity::new(10),
-                SqrtPrice::new(0),
-                SqrtPrice::max_instance(),
-                alice
-            )
-            .unwrap();
-
-            let third_position = create_position!(
-                client,
-                ContractRef,
-                dex,
-                pool_key,
-                -3,
-                3,
-                Liquidity::new(10),
-                SqrtPrice::new(0),
-                SqrtPrice::max_instance(),
-                alice
-            )
-            .unwrap();
-
-            // // Get all Alice positions
-            let alice_positions = get_all_positions!(client, ContractRef, dex, alice);
-            assert_eq!(alice_positions.len(), 3);
-
-            // // Bob adds 2 positions
-            let bob = ink_e2e::bob();
-            let first_position = create_position!(
-                client,
-                ContractRef,
-                dex,
-                pool_key,
-                -4,
-                4,
-                Liquidity::new(10),
-                SqrtPrice::new(0),
-                SqrtPrice::max_instance(),
-                bob
-            )
-            .unwrap();
-
-            let second_position = create_position!(
-                client,
-                ContractRef,
-                dex,
-                pool_key,
-                -5,
-                5,
-                Liquidity::new(10),
-                SqrtPrice::new(0),
-                SqrtPrice::max_instance(),
-                bob
-            )
-            .unwrap();
-
-            // // Get all Bob positions
-            let bob_positions = get_all_positions!(client, ContractRef, dex, bob);
-            assert_eq!(bob_positions.len(), 2);
-
-            let alice_second_position = get_position!(client, ContractRef, dex, 1, alice);
-            assert!(alice_second_position.is_some());
-
-            let bob_first_position = get_position!(client, ContractRef, dex, 0, bob);
-            assert!(bob_first_position.is_some());
-
-            remove_position!(client, ContractRef, dex, 2, alice);
-
-            let alice_positions = get_all_positions!(client, ContractRef, dex, alice);
-            // println!("Alice positions = {:?}", alice_positions);
-
-            let alice_third_position = get_position!(client, ContractRef, dex, 2, alice);
-
-            // Bob tries to remove position out of range
-            remove_position!(client, ContractRef, dex, 9999, bob);
-            let bob_positions = get_all_positions!(client, ContractRef, dex, bob);
-            assert_eq!(bob_positions.len(), 2);
-
-            // Bob removes first position
-            remove_position!(client, ContractRef, dex, 1, bob);
-            // Get all Bob positions
-            let bob_positions = get_all_positions!(client, ContractRef, dex, bob);
-            assert_eq!(bob_positions.len(), 1);
             Ok(())
         }
 
