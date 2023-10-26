@@ -135,6 +135,28 @@ macro_rules! mint {
 }
 
 #[macro_export]
+macro_rules! dex_mint {
+    ($contract_type:ty, $client:ident, $address:ident, $account:expr, $id:expr) => {{
+        let _msg = build_message::<$contract_type>($address.clone())
+            .call(|contract| contract.mint($account, $id));
+        $client
+            .call(&ink_e2e::alice(), _msg, 0, None)
+            .await
+            .expect("mint failed")
+            .return_value()
+    }};
+    ($contract_type:ty, $client:ident, $address:ident, $signer:ident, $account:ident, $id:expr) => {{
+        let _msg = build_message::<$contract_type>($address.clone())
+            .call(|contract| contract.mint($account, $id));
+        $client
+            .call(&ink_e2e::$signer(), _msg, 0, None)
+            .await
+            .expect("mint failed")
+            .return_value()
+    }};
+}
+
+#[macro_export]
 macro_rules! get_role_member_count {
     ($contract_type:ty, $client:ident, $address:ident, $role:expr) => {{
         let _msg = build_message::<$contract_type>($address.clone())
@@ -512,7 +534,11 @@ macro_rules! remove_position {
         // caller => ink_e2e account to sign call
         let _msg = build_message::<$dex>($dex_address.clone())
             .call(|contract| contract.remove_position($index));
-        $client.call(&$caller, _msg, 0, None).await
+        $client
+            .call(&$caller, _msg, 0, None)
+            .await
+            .expect("Remove position failed")
+            .return_value()
     }};
 }
 
