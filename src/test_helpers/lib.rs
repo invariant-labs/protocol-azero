@@ -655,3 +655,22 @@ macro_rules! change_fee_receiver {
             .return_value()
     }};
 }
+
+// Most liekly to remove because create_position already creates a tick
+#[macro_export]
+macro_rules! create_tick {
+    ($client:ident, $dex:ty, $dex_address:expr, $pool_key:expr, $index:expr, $caller:ident) => {{
+        // client => ink_e2e_client
+        // x:ident || y:ident => Addresses of x and y tokens
+        // dex:ty => ContractRef
+        // dex_address:expr => Address of contract
+        // fee_tier:expr => Pool fee tier
+        let _msg = build_message::<$dex>($dex_address.clone())
+            .call(|contract| contract.create_tick($pool_key, $index));
+        $client
+            .call(&$caller, _msg, 0, None)
+            .await
+            .expect("creating tick failed")
+            .return_value()
+    }};
+}
