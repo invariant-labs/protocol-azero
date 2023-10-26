@@ -233,7 +233,8 @@ pub mod contract {
                 slippage_limit_upper,
                 current_block_number,
                 pool_key.fee_tier.tick_spacing,
-            );
+            )
+            .unwrap();
 
             self.pools.update_pool(pool_key, &pool)?;
 

@@ -1,13 +1,16 @@
 use super::{Pool, PoolKey, Tick}; // Tickmap
-use crate::math::{
-    math::*,
-    types::{
-        fee_growth::{calculate_fee_growth_inside, FeeGrowth},
-        liquidity::Liquidity,
-        seconds_per_liquidity::{calculate_seconds_per_liquidity_inside, SecondsPerLiquidity},
-        sqrt_price::sqrt_price::SqrtPrice,
-        token_amount::TokenAmount,
+use crate::{
+    math::{
+        math::*,
+        types::{
+            fee_growth::{calculate_fee_growth_inside, FeeGrowth},
+            liquidity::Liquidity,
+            seconds_per_liquidity::{calculate_seconds_per_liquidity_inside, SecondsPerLiquidity},
+            sqrt_price::sqrt_price::SqrtPrice,
+            token_amount::TokenAmount,
+        },
     },
+    ContractErrors,
 };
 use decimal::*;
 use ink::prelude::vec;
@@ -191,10 +194,12 @@ impl Position {
         slippage_limit_upper: SqrtPrice,
         block_number: u64,
         tick_spacing: u16,
-    ) -> (Self, TokenAmount, TokenAmount) {
+    ) -> Result<(Self, TokenAmount, TokenAmount), ContractErrors> {
         let price = pool.sqrt_price;
-        assert!(price > slippage_limit_lower, "Price limit reached");
-        assert!(price < slippage_limit_upper, "Price limit reached");
+
+        if price < slippage_limit_lower || price > slippage_limit_upper {
+            return Err(ContractErrors::PriceLimitReached);
+        }
 
         // if !tickmap.get(lower_tick.index, pool.tick_spacing) {
         //     tickmap.flip(true, lower_tick.index, pool.tick_spacing)
@@ -227,7 +232,7 @@ impl Position {
             tick_spacing
         ));
 
-        (position, required_x, required_y)
+        Ok((position, required_x, required_y))
     }
 
     pub fn remove(
