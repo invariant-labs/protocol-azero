@@ -195,9 +195,7 @@ impl Position {
         block_number: u64,
         tick_spacing: u16,
     ) -> Result<(Self, TokenAmount, TokenAmount), ContractErrors> {
-        let price = pool.sqrt_price;
-
-        if price < slippage_limit_lower || price > slippage_limit_upper {
+        if pool.sqrt_price < slippage_limit_lower || pool.sqrt_price > slippage_limit_upper {
             return Err(ContractErrors::PriceLimitReached);
         }
 
