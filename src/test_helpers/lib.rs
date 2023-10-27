@@ -732,7 +732,7 @@ macro_rules! init_basic_position {
         let pool_key = PoolKey::new($token_x_address, $token_y_address, fee_tier);
         let lower_tick = -20;
         let upper_tick = 10;
-        let liquidity = Liquidity::new(1_000_000_000_000);
+        let liquidity = Liquidity::from_integer(1000000);
 
         // liquidityDelta = { v: new BN(1000000).mul(LIQUIDITY_DENOMINATOR) }
         // L_denominator = 10^6

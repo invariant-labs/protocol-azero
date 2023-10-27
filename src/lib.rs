@@ -1237,7 +1237,7 @@ pub mod contract {
                 lower_tick_index,
                 upper_tick_index,
                 liquidity_delta,
-                pool_state.sqrt_price - SqrtPrice::new(1),
+                pool_state.sqrt_price,
                 SqrtPrice::max_instance(),
                 alice
             );
@@ -1346,7 +1346,7 @@ pub mod contract {
                 lower_tick_index,
                 upper_tick_index,
                 liquidity_delta,
-                pool_state.sqrt_price - SqrtPrice::new(1),
+                pool_state.sqrt_price,
                 SqrtPrice::max_instance(),
                 alice
             );
@@ -1453,7 +1453,7 @@ pub mod contract {
                 lower_tick_index,
                 upper_tick_index,
                 liquidity_delta,
-                pool_state_before.sqrt_price - SqrtPrice::new(1),
+                pool_state_before.sqrt_price,
                 SqrtPrice::max_instance(),
                 alice
             );
