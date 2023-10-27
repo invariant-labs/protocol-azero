@@ -755,7 +755,11 @@ macro_rules! init_basic_position {
         let pool_key = PoolKey::new($token_x_address, $token_y_address, fee_tier);
         let lower_tick = -20;
         let upper_tick = 10;
-        let liquidity = Liquidity::from_integer(1000000);
+        let liquidity = Liquidity::new(1_000_000_000_000);
+
+        // liquidityDelta = { v: new BN(1000000).mul(LIQUIDITY_DENOMINATOR) }
+        // L_denominator = 10^6
+
         let pool_for_slippage = get_pool!(
             $client,
             $dex,
@@ -803,7 +807,7 @@ macro_rules! init_basic_swap {
         let pool_key = PoolKey::new($token_x_address, $token_y_address, fee_tier);
         let upper_tick = 10;
 
-        let amount = 500;
+        let amount = 1000;
         let bob = ink_e2e::bob();
         mint!($token, $client, $token_x_address, Bob, amount);
         let amount_x = balance_of!($token, $client, $token_x_address, Bob);
@@ -826,13 +830,18 @@ macro_rules! init_basic_swap {
         .unwrap();
 
         let swap_amount = TokenAmount::new(amount);
-        let slippage = SqrtPrice::new(15258932000000000000);
+        let slippage = SqrtPrice::new(1_000_000_000_0);
+        // x = 1 decimals = 2, denominator =  10^12
+        // 10 ^ 12 / 10^2 = 10^10
+        // export const toDecimal = (x: number, decimals: number = 0): Decimal => {
+        //     return { v: DENOMINATOR.muln(x).div(new BN(10).pow(new BN(decimals))) }
+        //   }
         swap!(
             $client,
             $dex,
             $dex_address,
             pool_key,
-            false,
+            true,
             swap_amount,
             true,
             slippage,

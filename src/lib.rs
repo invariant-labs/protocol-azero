@@ -288,8 +288,8 @@ pub mod contract {
                     return Err(ContractErrors::WrongLimit);
                 }
             } else {
-                if pool.sqrt_price < sqrt_price_limit
-                    && sqrt_price_limit >= SqrtPrice::new(MIN_SQRT_PRICE)
+                if pool.sqrt_price >= sqrt_price_limit
+                    && sqrt_price_limit < SqrtPrice::new(MIN_SQRT_PRICE)
                 {
                     return Err(ContractErrors::WrongLimit);
                 }
@@ -331,10 +331,10 @@ pub mod contract {
                 total_amount_in += result.amount_in + result.fee_amount;
                 total_amount_out += result.amount_out;
 
-                // // Fail if price would go over swap limit
-                // if pool.sqrt_price == sqrt_price_limit && !remaining_amount.is_zero() {
-                //     return Err(ContractErrors::PriceLimitReached);
-                // }
+                // Fail if price would go over swap limit
+                if pool.sqrt_price == sqrt_price_limit && !remaining_amount.is_zero() {
+                    return Err(ContractErrors::PriceLimitReached);
+                }
 
                 // TODO: refactor
                 let mut tick = Tick::default();
