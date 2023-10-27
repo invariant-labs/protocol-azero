@@ -317,6 +317,7 @@ pub mod contract {
                     by_amount_in,
                     pool_key.fee_tier.fee,
                 ));
+
                 // make remaining amount smaller
                 if by_amount_in {
                     remaining_amount -= result.amount_in + result.fee_amount;
@@ -570,12 +571,12 @@ pub mod contract {
                 .get(caller, index)
                 .ok_or(ContractErrors::PositionNotFound)?;
 
-            let lower_tick = &mut self
+            let mut lower_tick = self
                 .ticks
                 .get_tick(position.pool_key, position.lower_tick_index)
                 .ok_or(ContractErrors::TickNotFound)?;
 
-            let upper_tick = &mut self
+            let mut upper_tick = self
                 .ticks
                 .get_tick(position.pool_key, position.upper_tick_index)
                 .ok_or(ContractErrors::TickNotFound)?;
@@ -586,10 +587,13 @@ pub mod contract {
                 .remove(
                     pool,
                     current_timestamp as u64,
-                    lower_tick,
-                    upper_tick,
+                    &mut lower_tick,
+                    &mut upper_tick,
                     position.pool_key.fee_tier.tick_spacing,
                 );
+
+            self.pools.update_pool(position.pool_key, pool).unwrap();
+
             if deinitialize_lower_tick {
                 self.tickmap.flip(
                     false,
@@ -597,7 +601,15 @@ pub mod contract {
                     position.pool_key.fee_tier.tick_spacing,
                     position.pool_key,
                 );
+                self.ticks
+                    .remove_tick(position.pool_key, position.lower_tick_index)
+                    .unwrap();
+            } else {
+                self.ticks
+                    .update_tick(position.pool_key, position.lower_tick_index, &lower_tick)
+                    .unwrap();
             }
+
             if deinitialize_upper_tick {
                 self.tickmap.flip(
                     false,
@@ -605,25 +617,21 @@ pub mod contract {
                     position.pool_key.fee_tier.tick_spacing,
                     position.pool_key,
                 );
+                self.ticks
+                    .remove_tick(position.pool_key, position.upper_tick_index)
+                    .unwrap();
+            } else {
+                self.ticks
+                    .update_tick(position.pool_key, position.upper_tick_index, &upper_tick)
+                    .unwrap();
             }
+
             self.positions.remove(caller, index).unwrap();
 
-            PSP22Ref::transfer_from(
-                &position.pool_key.token_x,
-                self.env().account_id(),
-                self.env().caller(),
-                amount_x.get(),
-                vec![],
-            )
-            .map_err(|_| ContractErrors::TransferError)?;
-            PSP22Ref::transfer_from(
-                &position.pool_key.token_y,
-                self.env().account_id(),
-                self.env().caller(),
-                amount_y.get(),
-                vec![],
-            )
-            .map_err(|_| ContractErrors::TransferError)?;
+            PSP22Ref::transfer(&position.pool_key.token_x, caller, amount_x.get(), vec![])
+                .map_err(|_| ContractErrors::TransferError)?;
+            PSP22Ref::transfer(&position.pool_key.token_y, caller, amount_y.get(), vec![])
+                .map_err(|_| ContractErrors::TransferError)?;
 
             Ok((amount_x, amount_y))
         }
@@ -1218,6 +1226,9 @@ pub mod contract {
             let upper_tick_index = 0;
             let liquidity_delta = Liquidity::new(initial_balance);
 
+            let pool_state =
+                get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+
             create_position!(
                 client,
                 ContractRef,
@@ -1226,7 +1237,7 @@ pub mod contract {
                 lower_tick_index,
                 upper_tick_index,
                 liquidity_delta,
-                calculate_sqrt_price(init_tick).unwrap(),
+                pool_state.sqrt_price,
                 SqrtPrice::max_instance(),
                 alice
             );
@@ -1324,6 +1335,9 @@ pub mod contract {
 
             let liquidity_delta = Liquidity::new(initial_balance);
 
+            let pool_state =
+                get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+
             create_position!(
                 client,
                 ContractRef,
@@ -1332,7 +1346,7 @@ pub mod contract {
                 lower_tick_index,
                 upper_tick_index,
                 liquidity_delta,
-                calculate_sqrt_price(init_tick).unwrap(),
+                pool_state.sqrt_price,
                 SqrtPrice::max_instance(),
                 alice
             );
@@ -1439,7 +1453,7 @@ pub mod contract {
                 lower_tick_index,
                 upper_tick_index,
                 liquidity_delta,
-                calculate_sqrt_price(init_tick).unwrap(),
+                pool_state_before.sqrt_price,
                 SqrtPrice::max_instance(),
                 alice
             );
@@ -1564,6 +1578,184 @@ pub mod contract {
             let bob = address_of!(Bob);
             let pool_key = PoolKey::new(token_x, token_y, fee_tier);
             change_fee_receiver!(client, ContractRef, dex, pool_key, bob, user);
+        }
+
+        #[ink_e2e::test]
+        async fn remove_position_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let fee_tier = FeeTier {
+                fee: Percentage::from_scale(6, 3),
+                tick_spacing: 10,
+            };
+            let alice = ink_e2e::alice();
+            let bob = ink_e2e::bob();
+            let init_tick = 0;
+            let remove_position_index = 0;
+
+            let initial_mint = 10u128.pow(10);
+
+            let dex = create_dex!(client, ContractRef, Percentage::from_scale(1, 2));
+            let (token_x, token_y) =
+                create_tokens!(client, TokenRef, TokenRef, initial_mint, initial_mint);
+
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier);
+
+            create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+
+            let pool = create_pool!(
+                client,
+                ContractRef,
+                dex,
+                token_x,
+                token_y,
+                fee_tier,
+                init_tick
+            );
+
+            let lower_tick_index = -20;
+            let upper_tick_index = 10;
+            let liquidity_delta = Liquidity::from_integer(1_000_000);
+
+            approve!(client, TokenRef, token_x, dex, initial_mint, alice);
+            approve!(client, TokenRef, token_y, dex, initial_mint, alice);
+
+            let pool_state =
+                get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+
+            create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                lower_tick_index,
+                upper_tick_index,
+                liquidity_delta,
+                pool_state.sqrt_price,
+                pool_state.sqrt_price,
+                alice
+            );
+
+            let pool_state =
+                get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+
+            assert_eq!(pool_state.liquidity, liquidity_delta);
+
+            let liquidity_delta = Liquidity::new(liquidity_delta.get() * 1_000_000);
+            {
+                let position_state =
+                    get_position!(client, ContractRef, dex, remove_position_index, alice).unwrap();
+
+                let incorrect_lower_tick_index = position_state.lower_tick_index - 50;
+                let incorrect_upper_tick_index = position_state.upper_tick_index + 50;
+
+                approve!(client, TokenRef, token_x, dex, liquidity_delta.get(), alice);
+                approve!(client, TokenRef, token_y, dex, liquidity_delta.get(), alice);
+
+                create_position!(
+                    client,
+                    ContractRef,
+                    dex,
+                    pool_key,
+                    incorrect_lower_tick_index,
+                    incorrect_upper_tick_index,
+                    liquidity_delta,
+                    pool_state.sqrt_price,
+                    pool_state.sqrt_price,
+                    alice
+                );
+            }
+
+            let amount = 1000;
+            mint!(TokenRef, client, token_x, Bob, amount);
+            let amount_x = balance_of!(TokenRef, client, token_x, Bob);
+            assert_eq!(amount_x, amount);
+
+            approve!(client, TokenRef, token_x, dex, amount, bob);
+
+            let pool_state_before =
+                get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+
+            let swap_amount = TokenAmount::new(amount);
+            let slippage = SqrtPrice::new(MIN_SQRT_PRICE);
+            swap!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                true,
+                swap_amount,
+                true,
+                slippage,
+                bob
+            );
+
+            let pool_state_after =
+                get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+            assert_eq!(
+                pool_state_after.fee_growth_global_x,
+                FeeGrowth::new(49999950000049999)
+            );
+            assert_eq!(pool_state_after.fee_protocol_token_x, TokenAmount(1));
+            assert_eq!(pool_state_after.fee_protocol_token_y, TokenAmount(0));
+
+            assert!(pool_state_after
+                .sqrt_price
+                .lt(&pool_state_before.sqrt_price));
+
+            assert_eq!(pool_state_after.liquidity, pool_state_before.liquidity);
+            assert_eq!(pool_state_after.current_tick_index, -10);
+            assert_ne!(pool_state_after.sqrt_price, pool_state_before.sqrt_price);
+
+            let amount_x = balance_of!(TokenRef, client, token_x, Bob);
+            let amount_y = balance_of!(TokenRef, client, token_y, Bob);
+            assert_eq!(amount_x, 0);
+            assert_eq!(amount_y, 993);
+
+            // pre load dex balances
+            let dex_x_before_remove = dex_balance!(TokenRef, client, token_x, dex);
+            let dex_y_before_remove = dex_balance!(TokenRef, client, token_y, dex);
+
+            // Remove position
+            let remove_result =
+                remove_position!(client, ContractRef, dex, remove_position_index, alice);
+
+            // Load states
+            let position_state =
+                get_position!(client, ContractRef, dex, remove_position_index, alice);
+            let pool_state =
+                get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+            let lower_tick = get_tick!(client, ContractRef, dex, lower_tick_index, pool_key, alice);
+            let upper_tick = get_tick!(client, ContractRef, dex, upper_tick_index, pool_key, alice);
+            let lower_tick_bit =
+                tickmap_bit!(client, ContractRef, dex, lower_tick_index, pool_key, alice);
+            let upper_tick_bit =
+                tickmap_bit!(client, ContractRef, dex, upper_tick_index, pool_key, alice);
+            let alice_x = balance_of!(TokenRef, client, token_x, Alice);
+            let alice_y = balance_of!(TokenRef, client, token_y, Alice);
+            let dex_x = dex_balance!(TokenRef, client, token_x, dex);
+            let dex_y = dex_balance!(TokenRef, client, token_y, dex);
+            let expected_withdrawn_x = 499;
+            let expected_withdrawn_y = 999;
+            let expected_fee_x = 0;
+
+            assert_eq!(
+                dex_x_before_remove - dex_x,
+                expected_withdrawn_x + expected_fee_x
+            );
+            assert_eq!(dex_y_before_remove - dex_y, expected_withdrawn_y);
+
+            // Check ticks
+            assert_eq!(lower_tick, None);
+            assert_eq!(upper_tick, None);
+
+            // Check tickmap
+            assert!(!lower_tick_bit);
+            assert!(!upper_tick_bit);
+
+            // Check pool
+            assert!(pool_state.liquidity == liquidity_delta);
+            assert!(pool_state.current_tick_index == -10);
+
+            Ok(())
         }
     }
 }

@@ -255,10 +255,10 @@ macro_rules! create_tokens {
             .await
             .expect("instantiate failed")
             .account_id;
-        if x > y {
-            (y, x)
-        } else {
+        if x < y {
             (x, y)
+        } else {
+            (y, x)
         }
     }};
 }
@@ -512,7 +512,11 @@ macro_rules! remove_position {
         // caller => ink_e2e account to sign call
         let _msg = build_message::<$dex>($dex_address.clone())
             .call(|contract| contract.remove_position($index));
-        $client.call(&$caller, _msg, 0, None).await
+        $client
+            .call(&$caller, _msg, 0, None)
+            .await
+            .expect("Remove position failed")
+            .return_value()
     }};
 }
 
@@ -595,7 +599,7 @@ macro_rules! swap {
         $client
             .call(&$caller, _msg, 0, None)
             .await
-            .expect("Pool creation failed")
+            .expect("Swap failed")
             .return_value()
     }};
 }
@@ -682,7 +686,6 @@ macro_rules! init_dex_and_tokens {
 
         let protocol_fee = Percentage::from_scale(1, 2);
         let dex = create_dex!($client, $dex, protocol_fee);
-
         (dex, token_x, token_y)
     }};
 }
@@ -730,6 +733,10 @@ macro_rules! init_basic_position {
         let lower_tick = -20;
         let upper_tick = 10;
         let liquidity = Liquidity::from_integer(1000000);
+
+        // liquidityDelta = { v: new BN(1000000).mul(LIQUIDITY_DENOMINATOR) }
+        // L_denominator = 10^6
+
         let pool_for_slippage = get_pool!(
             $client,
             $dex,

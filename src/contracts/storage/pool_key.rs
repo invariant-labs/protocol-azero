@@ -31,7 +31,7 @@ impl Default for PoolKey {
 
 impl PoolKey {
     pub fn new(token_0: AccountId, token_1: AccountId, fee_tier: FeeTier) -> Self {
-        if token_1 > token_0 {
+        if token_0 < token_1 {
             PoolKey {
                 token_x: token_0,
                 token_y: token_1,

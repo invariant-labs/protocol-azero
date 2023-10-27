@@ -83,7 +83,7 @@ impl Position {
         // calculate tokens amounts and update pool liquidity
         ok_or_mark_trace!(pool.update_liquidity(
             liquidity_delta,
-            true,
+            add,
             upper_tick.index,
             lower_tick.index
         ))
