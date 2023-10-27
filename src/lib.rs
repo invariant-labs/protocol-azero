@@ -1598,11 +1598,53 @@ pub mod contract {
             let lower_tick_index = -20;
             let upper_tick_index = 10;
 
+            let initial_balance = 10u128.pow(10);
+
             let (dex, token_x, token_y) = init_dex_and_tokens!(client, ContractRef, TokenRef);
 
             let pool_key = PoolKey::new(token_x, token_y, fee_tier);
 
-            init_basic_position!(client, ContractRef, TokenRef, dex, token_x, token_y);
+            // init_basic_position!(client, ContractRef, TokenRef, dex, token_x, token_y);
+
+            create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+
+            let pool = create_pool!(
+                client,
+                ContractRef,
+                dex,
+                token_x,
+                token_y,
+                fee_tier,
+                init_tick
+            );
+
+            let lower_tick_index = -20;
+            let upper_tick_index = 10;
+
+            let liquidity_delta = Liquidity::new(1_000_000_000_000);
+
+            approve!(client, TokenRef, token_x, dex, initial_balance, alice);
+            approve!(client, TokenRef, token_y, dex, initial_balance, alice);
+            let pool_state =
+                get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+
+            create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                lower_tick_index,
+                upper_tick_index,
+                liquidity_delta,
+                pool_state.sqrt_price,
+                pool_state.sqrt_price,
+                alice
+            );
+
+            let pool_state =
+                get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+
+            assert_eq!(pool_state.liquidity, liquidity_delta);
 
             // println!("POSITION OPENED");
             // let alice_x = balance_of!(TokenRef, client, token_x, Alice);
@@ -1612,7 +1654,7 @@ pub mod contract {
             // println!("Alice = {:?} | {:?}", alice_x, alice_y);
             // println!("Dex = {:?} | {:?}", dex_x, dex_y);
 
-            init_basic_swap!(client, ContractRef, TokenRef, dex, token_x, token_y);
+            // init_basic_swap!(client, ContractRef, TokenRef, dex, token_x, token_y);
 
             // println!("SWAP PERFORMED");
             // let alice_x = balance_of!(TokenRef, client, token_x, Alice);
@@ -1672,6 +1714,7 @@ pub mod contract {
             println!("Dex = {:?} | {:?}", dex_x, dex_y);
             println!("Remove result = {:?}", remove_result);
 
+            assert!(false);
             // assert_eq!(
             //     dex_x_before_remove - dex_x,
             //     expected_withdrawn_x + expected_fee_x
@@ -1699,14 +1742,6 @@ pub mod contract {
             // );
             // // Check position
             // // assert_eq!(position_state, None);
-
-            // // Check balancess
-            // assert_eq!(alice_x, initial_balance - 1);
-            // assert_eq!(alice_y, initial_balance - 1);
-
-            // // // Fee token left
-            // assert_eq!(dex_x, 1);
-            // assert_eq!(dex_y, 1);
 
             Ok(())
         }
