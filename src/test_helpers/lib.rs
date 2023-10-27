@@ -277,10 +277,10 @@ macro_rules! create_tokens {
             .await
             .expect("instantiate failed")
             .account_id;
-        if x > y {
-            (y, x)
-        } else {
+        if x < y {
             (x, y)
+        } else {
+            (y, x)
         }
     }};
 }
@@ -708,8 +708,6 @@ macro_rules! init_dex_and_tokens {
 
         let protocol_fee = Percentage::from_scale(1, 2);
         let dex = create_dex!($client, $dex, protocol_fee);
-
-        (dex, token_x, token_y)
     }};
 }
 
