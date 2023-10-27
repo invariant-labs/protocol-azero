@@ -135,28 +135,6 @@ macro_rules! mint {
 }
 
 #[macro_export]
-macro_rules! dex_mint {
-    ($contract_type:ty, $client:ident, $address:ident, $account:expr, $id:expr) => {{
-        let _msg = build_message::<$contract_type>($address.clone())
-            .call(|contract| contract.mint($account, $id));
-        $client
-            .call(&ink_e2e::alice(), _msg, 0, None)
-            .await
-            .expect("mint failed")
-            .return_value()
-    }};
-    ($contract_type:ty, $client:ident, $address:ident, $signer:ident, $account:ident, $id:expr) => {{
-        let _msg = build_message::<$contract_type>($address.clone())
-            .call(|contract| contract.mint($account, $id));
-        $client
-            .call(&ink_e2e::$signer(), _msg, 0, None)
-            .await
-            .expect("mint failed")
-            .return_value()
-    }};
-}
-
-#[macro_export]
 macro_rules! get_role_member_count {
     ($contract_type:ty, $client:ident, $address:ident, $role:expr) => {{
         let _msg = build_message::<$contract_type>($address.clone())
@@ -804,7 +782,6 @@ macro_rules! init_basic_swap {
         let tick_spacing = 10;
         let fee_tier = FeeTier { fee, tick_spacing };
         let pool_key = PoolKey::new($token_x_address, $token_y_address, fee_tier);
-        let upper_tick = 10;
         let lower_tick = -20;
 
         let amount = 1000;
@@ -831,7 +808,6 @@ macro_rules! init_basic_swap {
 
         let swap_amount = TokenAmount::new(amount);
         let slippage = SqrtPrice::new(MIN_SQRT_PRICE);
-
         swap!(
             $client,
             $dex,

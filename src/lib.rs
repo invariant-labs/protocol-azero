@@ -904,15 +904,24 @@ pub mod contract {
         use test_helpers::{
             address_of, approve, balance_of, change_fee_receiver, create_dex, create_fee_tier,
             create_pool, create_position, create_standard_fee_tiers, create_tokens, dex_balance,
-            dex_mint, get_all_positions, get_fee_tier, get_pool, get_position, get_tick,
-            init_basic_position, init_basic_swap, init_dex_and_tokens, mint, remove_position, swap,
-            tickmap_bit, withdraw_protocol_fee,
+            get_all_positions, get_fee_tier, get_pool, get_position, get_tick, init_basic_position,
+            init_basic_swap, init_dex_and_tokens, mint, remove_position, swap, tickmap_bit,
+            withdraw_protocol_fee,
         };
         use token::TokenRef;
 
         use super::*;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
+
+        #[ink_e2e::test]
+        async fn swap(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let (dex, token_x, token_y) = init_dex_and_tokens!(client, ContractRef, TokenRef);
+            init_basic_position!(client, ContractRef, TokenRef, dex, token_x, token_y);
+            init_basic_swap!(client, ContractRef, TokenRef, dex, token_x, token_y);
+
+            Ok(())
+        }
 
         #[ink_e2e::test]
         async fn protocol_fee(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
