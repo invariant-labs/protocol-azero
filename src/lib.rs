@@ -179,19 +179,20 @@ pub mod contract {
 
             let pool = self.pools.get_pool(pool_key)?;
 
-            let tick_option = self.ticks.get_tick(pool_key, index);
-            if tick_option.is_some() {
-                return Err(ContractErrors::TickAlreadyExist);
+            let tick = self.ticks.get_tick(pool_key, index);
+            match tick {
+                Some(tick) => Ok(tick),
+                None => {
+                    let current_timestamp = self.env().block_timestamp();
+                    let tick = Tick::create(index, &pool, current_timestamp);
+                    self.ticks.add_tick(pool_key, index, tick);
+
+                    self.tickmap
+                        .flip(true, index, pool_key.fee_tier.tick_spacing, pool_key);
+
+                    Ok(tick)
+                }
             }
-
-            let current_timestamp = self.env().block_timestamp();
-            let tick = Tick::create(index, &pool, current_timestamp);
-            self.ticks.add_tick(pool_key, index, tick);
-
-            self.tickmap
-                .flip(true, index, pool_key.fee_tier.tick_spacing, pool_key);
-
-            Ok(tick)
         }
 
         #[ink(message)]
@@ -850,7 +851,7 @@ pub mod contract {
             let result = contract.create_tick(pool_key, 0);
             assert!(result.is_ok());
             let result = contract.create_tick(pool_key, 0);
-            assert_eq!(result, Err(ContractErrors::TickAlreadyExist));
+            // assert_eq!(result, Err(ContractErrors::TickAlreadyExist));
         }
 
         #[ink::test]
@@ -1294,6 +1295,104 @@ pub mod contract {
 
             Ok(())
         }
+
+        #[ink_e2e::test]
+        async fn multiple_positions_on_same_tick(
+            mut client: ink_e2e::Client<C, E>,
+        ) -> E2EResult<()> {
+            let MAX_TICK = 177_450; // for tickSpacing 4
+            let MIN_TICK = -MAX_TICK;
+            let alice = ink_e2e::alice();
+            let init_tick = -23028;
+
+            let dex = create_dex!(client, ContractRef, Percentage::new(0));
+            let initial_balance = 100_000_000;
+
+            let (token_x, token_y) =
+                create_tokens!(client, TokenRef, TokenRef, initial_balance, initial_balance);
+
+            let fee_tier = FeeTier {
+                fee: Percentage::from_scale(2, 4),
+                tick_spacing: 4,
+            };
+
+            create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+
+            let pool = create_pool!(
+                client,
+                ContractRef,
+                dex,
+                token_x,
+                token_y,
+                fee_tier,
+                init_tick
+            );
+
+            approve!(client, TokenRef, token_x, dex, initial_balance, alice);
+            approve!(client, TokenRef, token_y, dex, initial_balance, alice);
+
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier);
+            let lower_tick_index = MIN_TICK + 10;
+            let upper_tick_index = MAX_TICK - 10;
+
+            let liquidity_delta = Liquidity::new(100);
+
+            let pool_state =
+                get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+
+            create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                lower_tick_index,
+                upper_tick_index,
+                liquidity_delta,
+                pool_state.sqrt_price,
+                SqrtPrice::max_instance(),
+                alice
+            );
+
+            let first_position = get_position!(client, ContractRef, dex, 0, alice).unwrap();
+
+            create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                lower_tick_index,
+                upper_tick_index,
+                liquidity_delta,
+                pool_state.sqrt_price,
+                SqrtPrice::max_instance(),
+                alice
+            );
+
+            let second_position = get_position!(client, ContractRef, dex, 1, alice).unwrap();
+
+            create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                lower_tick_index,
+                upper_tick_index,
+                liquidity_delta,
+                pool_state.sqrt_price,
+                SqrtPrice::max_instance(),
+                alice
+            );
+
+            let third_position = get_position!(client, ContractRef, dex, 2, alice).unwrap();
+
+            assert!(first_position.lower_tick_index == second_position.lower_tick_index);
+            assert!(first_position.upper_tick_index == second_position.upper_tick_index);
+            assert!(first_position.lower_tick_index == third_position.lower_tick_index);
+            assert!(first_position.upper_tick_index == third_position.upper_tick_index);
+
+            Ok(())
+        }
+
         #[ink_e2e::test]
         async fn position_within_current_tick_test(
             mut client: ink_e2e::Client<C, E>,

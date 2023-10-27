@@ -16,15 +16,10 @@ impl scale::EncodeLike<Vec<Position>> for Position {}
 impl Positions {
     pub fn add(&mut self, account_id: AccountId, position: Position) {
         let (mut positions_length, mut positions) = self.get_value(account_id);
-
-        if positions_length > 0 {
-            positions_length += 1;
-            positions.push(position);
-            self.positions
-                .insert(account_id, &(positions_length, positions));
-        } else {
-            self.positions.insert(account_id, &(1, vec![position]));
-        }
+        positions_length += 1;
+        positions.push(position);
+        self.positions
+            .insert(account_id, &(positions_length, positions));
     }
 
     pub fn remove(
