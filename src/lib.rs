@@ -171,7 +171,33 @@ pub mod contract {
             Ok(())
         }
 
+        // legacy
         pub fn create_tick(
+            &mut self,
+            pool_key: PoolKey,
+            index: i32,
+        ) -> Result<Tick, ContractErrors> {
+            check_tick(index, pool_key.fee_tier.tick_spacing)
+                .map_err(|_| ContractErrors::InvalidTickIndexOrTickSpacing)?;
+
+            let pool = self.pools.get_pool(pool_key)?;
+
+            let tick_option = self.ticks.get_tick(pool_key, index);
+            if tick_option.is_some() {
+                return Err(ContractErrors::TickAlreadyExist);
+            }
+
+            let current_timestamp = self.env().block_timestamp();
+            let tick = Tick::create(index, &pool, current_timestamp);
+            self.ticks.add_tick(pool_key, index, tick);
+
+            self.tickmap
+                .flip(true, index, pool_key.fee_tier.tick_spacing, pool_key);
+
+            Ok(tick)
+        }
+
+        pub fn updated_create_tick(
             &mut self,
             pool_key: PoolKey,
             index: i32,
@@ -217,13 +243,12 @@ pub mod contract {
             let mut lower_tick = self
                 .ticks
                 .get_tick(pool_key, lower_tick)
-                .unwrap_or_else(|| self.create_tick(pool_key, lower_tick).unwrap());
-
+                .unwrap_or_else(|| Self::create_tick(self, pool_key, lower_tick).unwrap());
             let mut upper_tick = self
                 .ticks
                 .get_tick(pool_key, upper_tick)
-                .unwrap_or_else(|| self.create_tick(pool_key, upper_tick).unwrap());
-
+                .unwrap_or_else(|| Self::create_tick(self, pool_key, upper_tick).unwrap());
+gi
             // timestamp and cause the strange bug in the e2e remove position test
             // let current_timestamp = self.env().block_timestamp();
             let current_block_number = self.env().block_number() as u64;
@@ -1304,6 +1329,7 @@ pub mod contract {
         }
 
         #[ink_e2e::test]
+        #[should_panic] // For legacy create_tick when it is not possible to create multiple positions for ticks
         async fn multiple_positions_on_same_tick(
             mut client: ink_e2e::Client<C, E>,
         ) -> E2EResult<()> {
