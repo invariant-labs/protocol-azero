@@ -248,12 +248,12 @@ pub mod contract {
                 .ticks
                 .get_tick(pool_key, upper_tick)
                 .unwrap_or_else(|| Self::create_tick(self, pool_key, upper_tick).unwrap());
-gi
+
             // timestamp and cause the strange bug in the e2e remove position test
-            // let current_timestamp = self.env().block_timestamp();
+            let current_timestamp = self.env().block_timestamp();
             let current_block_number = self.env().block_number() as u64;
 
-            let current_timestamp = 1000;
+            // let current_timestamp = 1000;
             // let current_block_number = 1000;
 
             let (position, x, y) = Position::create(
@@ -882,8 +882,8 @@ gi
             let _ = contract.add_pool(pool_key.token_x, pool_key.token_y, pool_key.fee_tier, 0);
             let result = contract.create_tick(pool_key, 0);
             assert!(result.is_ok());
-            let result = contract.create_tick(pool_key, 0);
-            assert!(result.is_ok());
+            let result = contract.create_tick(pool_key, 0).unwrap_err();
+            // assert!(result.is_ok());
         }
 
         #[ink::test]
@@ -1328,287 +1328,287 @@ gi
             Ok(())
         }
 
-        #[ink_e2e::test]
-        #[should_panic] // For legacy create_tick when it is not possible to create multiple positions for ticks
-        async fn multiple_positions_on_same_tick(
-            mut client: ink_e2e::Client<C, E>,
-        ) -> E2EResult<()> {
-            let alice = ink_e2e::alice();
-            let init_tick = 0;
+        // #[ink_e2e::test]
+        // #[should_panic] // For legacy create_tick when it is not possible to create multiple positions for ticks
+        // async fn multiple_positions_on_same_tick(
+        //     mut client: ink_e2e::Client<C, E>,
+        // ) -> E2EResult<()> {
+        //     let alice = ink_e2e::alice();
+        //     let init_tick = 0;
 
-            let dex = create_dex!(client, ContractRef, Percentage::new(0));
-            let initial_balance = 100_000_000;
+        //     let dex = create_dex!(client, ContractRef, Percentage::new(0));
+        //     let initial_balance = 100_000_000;
 
-            let (token_x, token_y) =
-                create_tokens!(client, TokenRef, TokenRef, initial_balance, initial_balance);
+        //     let (token_x, token_y) =
+        //         create_tokens!(client, TokenRef, TokenRef, initial_balance, initial_balance);
 
-            let fee_tier = FeeTier {
-                fee: Percentage::from_scale(2, 4),
-                tick_spacing: 10,
-            };
+        //     let fee_tier = FeeTier {
+        //         fee: Percentage::from_scale(2, 4),
+        //         tick_spacing: 10,
+        //     };
 
-            create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+        //     create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
 
-            let pool = create_pool!(
-                client,
-                ContractRef,
-                dex,
-                token_x,
-                token_y,
-                fee_tier,
-                init_tick
-            );
+        //     let pool = create_pool!(
+        //         client,
+        //         ContractRef,
+        //         dex,
+        //         token_x,
+        //         token_y,
+        //         fee_tier,
+        //         init_tick
+        //     );
 
-            approve!(client, TokenRef, token_x, dex, initial_balance, alice);
-            approve!(client, TokenRef, token_y, dex, initial_balance, alice);
+        //     approve!(client, TokenRef, token_x, dex, initial_balance, alice);
+        //     approve!(client, TokenRef, token_y, dex, initial_balance, alice);
 
-            let pool_key = PoolKey::new(token_x, token_y, fee_tier);
-            // Three position on same lower and upper tick
-            {
-                let lower_tick_index = -10;
-                let upper_tick_index = 10;
+        //     let pool_key = PoolKey::new(token_x, token_y, fee_tier);
+        //     // Three position on same lower and upper tick
+        //     {
+        //         let lower_tick_index = -10;
+        //         let upper_tick_index = 10;
 
-                let liquidity_delta = Liquidity::new(100);
+        //         let liquidity_delta = Liquidity::new(100);
 
-                let pool_state =
-                    get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+        //         let pool_state =
+        //             get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
 
-                create_position!(
-                    client,
-                    ContractRef,
-                    dex,
-                    pool_key,
-                    lower_tick_index,
-                    upper_tick_index,
-                    liquidity_delta,
-                    pool_state.sqrt_price,
-                    SqrtPrice::max_instance(),
-                    alice
-                );
+        //         create_position!(
+        //             client,
+        //             ContractRef,
+        //             dex,
+        //             pool_key,
+        //             lower_tick_index,
+        //             upper_tick_index,
+        //             liquidity_delta,
+        //             pool_state.sqrt_price,
+        //             SqrtPrice::max_instance(),
+        //             alice
+        //         );
 
-                let first_position = get_position!(client, ContractRef, dex, 0, alice).unwrap();
+        //         let first_position = get_position!(client, ContractRef, dex, 0, alice).unwrap();
 
-                create_position!(
-                    client,
-                    ContractRef,
-                    dex,
-                    pool_key,
-                    lower_tick_index,
-                    upper_tick_index,
-                    liquidity_delta,
-                    pool_state.sqrt_price,
-                    SqrtPrice::max_instance(),
-                    alice
-                );
+        //         create_position!(
+        //             client,
+        //             ContractRef,
+        //             dex,
+        //             pool_key,
+        //             lower_tick_index,
+        //             upper_tick_index,
+        //             liquidity_delta,
+        //             pool_state.sqrt_price,
+        //             SqrtPrice::max_instance(),
+        //             alice
+        //         );
 
-                let second_position = get_position!(client, ContractRef, dex, 1, alice).unwrap();
+        //         let second_position = get_position!(client, ContractRef, dex, 1, alice).unwrap();
 
-                create_position!(
-                    client,
-                    ContractRef,
-                    dex,
-                    pool_key,
-                    lower_tick_index,
-                    upper_tick_index,
-                    liquidity_delta,
-                    pool_state.sqrt_price,
-                    SqrtPrice::max_instance(),
-                    alice
-                );
+        //         create_position!(
+        //             client,
+        //             ContractRef,
+        //             dex,
+        //             pool_key,
+        //             lower_tick_index,
+        //             upper_tick_index,
+        //             liquidity_delta,
+        //             pool_state.sqrt_price,
+        //             SqrtPrice::max_instance(),
+        //             alice
+        //         );
 
-                let third_position = get_position!(client, ContractRef, dex, 2, alice).unwrap();
+        //         let third_position = get_position!(client, ContractRef, dex, 2, alice).unwrap();
 
-                assert!(first_position.lower_tick_index == second_position.lower_tick_index);
-                assert!(first_position.upper_tick_index == second_position.upper_tick_index);
-                assert!(first_position.lower_tick_index == third_position.lower_tick_index);
-                assert!(first_position.upper_tick_index == third_position.upper_tick_index);
+        //         assert!(first_position.lower_tick_index == second_position.lower_tick_index);
+        //         assert!(first_position.upper_tick_index == second_position.upper_tick_index);
+        //         assert!(first_position.lower_tick_index == third_position.lower_tick_index);
+        //         assert!(first_position.upper_tick_index == third_position.upper_tick_index);
 
-                // Load states
-                let pool_state =
-                    get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
-                let lower_tick =
-                    get_tick!(client, ContractRef, dex, lower_tick_index, pool_key, alice).unwrap();
-                let upper_tick =
-                    get_tick!(client, ContractRef, dex, upper_tick_index, pool_key, alice).unwrap();
-                let lower_tick_bit =
-                    tickmap_bit!(client, ContractRef, dex, lower_tick_index, pool_key, alice);
-                let upper_tick_bit =
-                    tickmap_bit!(client, ContractRef, dex, upper_tick_index, pool_key, alice);
-                let expected_liquidity = Liquidity::new(liquidity_delta.get() * 3);
-                let zero_fee = FeeGrowth::new(0);
+        //         // Load states
+        //         let pool_state =
+        //             get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+        //         let lower_tick =
+        //             get_tick!(client, ContractRef, dex, lower_tick_index, pool_key, alice).unwrap();
+        //         let upper_tick =
+        //             get_tick!(client, ContractRef, dex, upper_tick_index, pool_key, alice).unwrap();
+        //         let lower_tick_bit =
+        //             tickmap_bit!(client, ContractRef, dex, lower_tick_index, pool_key, alice);
+        //         let upper_tick_bit =
+        //             tickmap_bit!(client, ContractRef, dex, upper_tick_index, pool_key, alice);
+        //         let expected_liquidity = Liquidity::new(liquidity_delta.get() * 3);
+        //         let zero_fee = FeeGrowth::new(0);
 
-                // Check ticks
-                assert!(lower_tick.index == lower_tick_index);
-                assert!(upper_tick.index == upper_tick_index);
-                assert_eq!(lower_tick.liquidity_gross, expected_liquidity);
-                assert_eq!(upper_tick.liquidity_gross, expected_liquidity);
-                assert_eq!(lower_tick.liquidity_change, expected_liquidity);
-                assert_eq!(upper_tick.liquidity_change, expected_liquidity);
-                assert!(lower_tick.sign);
-                assert!(!upper_tick.sign);
+        //         // Check ticks
+        //         assert!(lower_tick.index == lower_tick_index);
+        //         assert!(upper_tick.index == upper_tick_index);
+        //         assert_eq!(lower_tick.liquidity_gross, expected_liquidity);
+        //         assert_eq!(upper_tick.liquidity_gross, expected_liquidity);
+        //         assert_eq!(lower_tick.liquidity_change, expected_liquidity);
+        //         assert_eq!(upper_tick.liquidity_change, expected_liquidity);
+        //         assert!(lower_tick.sign);
+        //         assert!(!upper_tick.sign);
 
-                // Check pool
-                assert_eq!(pool_state.liquidity, expected_liquidity);
-                assert!(pool_state.current_tick_index == init_tick);
+        //         // Check pool
+        //         assert_eq!(pool_state.liquidity, expected_liquidity);
+        //         assert!(pool_state.current_tick_index == init_tick);
 
-                // Check first position
-                assert!(first_position.pool_key == pool_key);
-                assert!(first_position.liquidity == liquidity_delta);
-                assert!(first_position.lower_tick_index == lower_tick_index);
-                assert!(first_position.upper_tick_index == upper_tick_index);
-                assert!(first_position.fee_growth_inside_x == zero_fee);
-                assert!(first_position.fee_growth_inside_y == zero_fee);
+        //         // Check first position
+        //         assert!(first_position.pool_key == pool_key);
+        //         assert!(first_position.liquidity == liquidity_delta);
+        //         assert!(first_position.lower_tick_index == lower_tick_index);
+        //         assert!(first_position.upper_tick_index == upper_tick_index);
+        //         assert!(first_position.fee_growth_inside_x == zero_fee);
+        //         assert!(first_position.fee_growth_inside_y == zero_fee);
 
-                // Check second position
-                assert!(second_position.pool_key == pool_key);
-                assert!(second_position.liquidity == liquidity_delta);
-                assert!(second_position.lower_tick_index == lower_tick_index);
-                assert!(second_position.upper_tick_index == upper_tick_index);
-                assert!(second_position.fee_growth_inside_x == zero_fee);
-                assert!(second_position.fee_growth_inside_y == zero_fee);
+        //         // Check second position
+        //         assert!(second_position.pool_key == pool_key);
+        //         assert!(second_position.liquidity == liquidity_delta);
+        //         assert!(second_position.lower_tick_index == lower_tick_index);
+        //         assert!(second_position.upper_tick_index == upper_tick_index);
+        //         assert!(second_position.fee_growth_inside_x == zero_fee);
+        //         assert!(second_position.fee_growth_inside_y == zero_fee);
 
-                // Check third position
-                assert!(third_position.pool_key == pool_key);
-                assert!(third_position.liquidity == liquidity_delta);
-                assert!(third_position.lower_tick_index == lower_tick_index);
-                assert!(third_position.upper_tick_index == upper_tick_index);
-                assert!(third_position.fee_growth_inside_x == zero_fee);
-                assert!(third_position.fee_growth_inside_y == zero_fee);
-            }
-            {
-                let lower_tick_index = -10;
-                let upper_tick_index = 10;
-                let zero_fee = FeeGrowth::new(0);
+        //         // Check third position
+        //         assert!(third_position.pool_key == pool_key);
+        //         assert!(third_position.liquidity == liquidity_delta);
+        //         assert!(third_position.lower_tick_index == lower_tick_index);
+        //         assert!(third_position.upper_tick_index == upper_tick_index);
+        //         assert!(third_position.fee_growth_inside_x == zero_fee);
+        //         assert!(third_position.fee_growth_inside_y == zero_fee);
+        //     }
+        //     {
+        //         let lower_tick_index = -10;
+        //         let upper_tick_index = 10;
+        //         let zero_fee = FeeGrowth::new(0);
 
-                let liquidity_delta = Liquidity::new(100);
+        //         let liquidity_delta = Liquidity::new(100);
 
-                let pool_state =
-                    get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+        //         let pool_state =
+        //             get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
 
-                create_position!(
-                    client,
-                    ContractRef,
-                    dex,
-                    pool_key,
-                    lower_tick_index,
-                    upper_tick_index,
-                    liquidity_delta,
-                    pool_state.sqrt_price,
-                    SqrtPrice::max_instance(),
-                    alice
-                );
+        //         create_position!(
+        //             client,
+        //             ContractRef,
+        //             dex,
+        //             pool_key,
+        //             lower_tick_index,
+        //             upper_tick_index,
+        //             liquidity_delta,
+        //             pool_state.sqrt_price,
+        //             SqrtPrice::max_instance(),
+        //             alice
+        //         );
 
-                let first_position = get_position!(client, ContractRef, dex, 3, alice).unwrap();
+        //         let first_position = get_position!(client, ContractRef, dex, 3, alice).unwrap();
 
-                // Check first position
-                assert!(first_position.pool_key == pool_key);
-                assert!(first_position.liquidity == liquidity_delta);
-                assert!(first_position.lower_tick_index == lower_tick_index);
-                assert!(first_position.upper_tick_index == upper_tick_index);
-                assert!(first_position.fee_growth_inside_x == zero_fee);
-                assert!(first_position.fee_growth_inside_y == zero_fee);
+        //         // Check first position
+        //         assert!(first_position.pool_key == pool_key);
+        //         assert!(first_position.liquidity == liquidity_delta);
+        //         assert!(first_position.lower_tick_index == lower_tick_index);
+        //         assert!(first_position.upper_tick_index == upper_tick_index);
+        //         assert!(first_position.fee_growth_inside_x == zero_fee);
+        //         assert!(first_position.fee_growth_inside_y == zero_fee);
 
-                let lower_tick_index = -20;
-                let upper_tick_index = -10;
+        //         let lower_tick_index = -20;
+        //         let upper_tick_index = -10;
 
-                create_position!(
-                    client,
-                    ContractRef,
-                    dex,
-                    pool_key,
-                    lower_tick_index,
-                    upper_tick_index,
-                    liquidity_delta,
-                    pool_state.sqrt_price,
-                    SqrtPrice::max_instance(),
-                    alice
-                );
+        //         create_position!(
+        //             client,
+        //             ContractRef,
+        //             dex,
+        //             pool_key,
+        //             lower_tick_index,
+        //             upper_tick_index,
+        //             liquidity_delta,
+        //             pool_state.sqrt_price,
+        //             SqrtPrice::max_instance(),
+        //             alice
+        //         );
 
-                let second_position = get_position!(client, ContractRef, dex, 4, alice).unwrap();
-                println!("First position = {:?}", first_position);
-                println!("Seconds position = {:?}", second_position);
+        //         let second_position = get_position!(client, ContractRef, dex, 4, alice).unwrap();
+        //         println!("First position = {:?}", first_position);
+        //         println!("Seconds position = {:?}", second_position);
 
-                // Check second position
-                assert!(second_position.pool_key == pool_key);
-                assert!(second_position.liquidity == liquidity_delta);
-                assert!(second_position.lower_tick_index == lower_tick_index);
-                assert!(second_position.upper_tick_index == upper_tick_index);
-                assert!(second_position.fee_growth_inside_x == zero_fee);
-                assert!(second_position.fee_growth_inside_y == zero_fee);
+        //         // Check second position
+        //         assert!(second_position.pool_key == pool_key);
+        //         assert!(second_position.liquidity == liquidity_delta);
+        //         assert!(second_position.lower_tick_index == lower_tick_index);
+        //         assert!(second_position.upper_tick_index == upper_tick_index);
+        //         assert!(second_position.fee_growth_inside_x == zero_fee);
+        //         assert!(second_position.fee_growth_inside_y == zero_fee);
 
-                let lower_tick_index = 10;
-                let upper_tick_index = 20;
-                create_position!(
-                    client,
-                    ContractRef,
-                    dex,
-                    pool_key,
-                    lower_tick_index,
-                    upper_tick_index,
-                    liquidity_delta,
-                    pool_state.sqrt_price,
-                    SqrtPrice::max_instance(),
-                    alice
-                );
+        //         let lower_tick_index = 10;
+        //         let upper_tick_index = 20;
+        //         create_position!(
+        //             client,
+        //             ContractRef,
+        //             dex,
+        //             pool_key,
+        //             lower_tick_index,
+        //             upper_tick_index,
+        //             liquidity_delta,
+        //             pool_state.sqrt_price,
+        //             SqrtPrice::max_instance(),
+        //             alice
+        //         );
 
-                let third_position = get_position!(client, ContractRef, dex, 5, alice).unwrap();
+        //         let third_position = get_position!(client, ContractRef, dex, 5, alice).unwrap();
 
-                // Check third position
-                assert!(third_position.pool_key == pool_key);
-                assert!(third_position.liquidity == liquidity_delta);
-                assert!(third_position.lower_tick_index == lower_tick_index);
-                assert!(third_position.upper_tick_index == upper_tick_index);
-                assert!(third_position.fee_growth_inside_x == zero_fee);
-                assert!(third_position.fee_growth_inside_y == zero_fee);
+        //         // Check third position
+        //         assert!(third_position.pool_key == pool_key);
+        //         assert!(third_position.liquidity == liquidity_delta);
+        //         assert!(third_position.lower_tick_index == lower_tick_index);
+        //         assert!(third_position.upper_tick_index == upper_tick_index);
+        //         assert!(third_position.fee_growth_inside_x == zero_fee);
+        //         assert!(third_position.fee_growth_inside_y == zero_fee);
 
-                // Load states
-                let pool_state =
-                    get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
-                let tick_n20 = get_tick!(client, ContractRef, dex, -20, pool_key, alice).unwrap();
-                let tick_n10 = get_tick!(client, ContractRef, dex, -10, pool_key, alice).unwrap();
-                let tick_10 = get_tick!(client, ContractRef, dex, 10, pool_key, alice).unwrap();
-                let tick_20 = get_tick!(client, ContractRef, dex, 20, pool_key, alice).unwrap();
-                let tick_n20_bit = tickmap_bit!(client, ContractRef, dex, -20, pool_key, alice);
-                let tick_n10_bit = tickmap_bit!(client, ContractRef, dex, -10, pool_key, alice);
-                let tick_10_bit = tickmap_bit!(client, ContractRef, dex, 10, pool_key, alice);
-                let tick_20_bit = tickmap_bit!(client, ContractRef, dex, 20, pool_key, alice);
+        //         // Load states
+        //         let pool_state =
+        //             get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+        //         let tick_n20 = get_tick!(client, ContractRef, dex, -20, pool_key, alice).unwrap();
+        //         let tick_n10 = get_tick!(client, ContractRef, dex, -10, pool_key, alice).unwrap();
+        //         let tick_10 = get_tick!(client, ContractRef, dex, 10, pool_key, alice).unwrap();
+        //         let tick_20 = get_tick!(client, ContractRef, dex, 20, pool_key, alice).unwrap();
+        //         let tick_n20_bit = tickmap_bit!(client, ContractRef, dex, -20, pool_key, alice);
+        //         let tick_n10_bit = tickmap_bit!(client, ContractRef, dex, -10, pool_key, alice);
+        //         let tick_10_bit = tickmap_bit!(client, ContractRef, dex, 10, pool_key, alice);
+        //         let tick_20_bit = tickmap_bit!(client, ContractRef, dex, 20, pool_key, alice);
 
-                let expected_active_liquidity = Liquidity::new(400);
+        //         let expected_active_liquidity = Liquidity::new(400);
 
-                // Check tick -20
-                assert_eq!(tick_n20.index, -20);
-                assert_eq!(tick_n20.liquidity_gross, Liquidity::new(100));
-                assert_eq!(tick_n20.liquidity_change, Liquidity::new(100));
-                assert!(tick_n20.sign);
-                assert!(tick_n20_bit);
+        //         // Check tick -20
+        //         assert_eq!(tick_n20.index, -20);
+        //         assert_eq!(tick_n20.liquidity_gross, Liquidity::new(100));
+        //         assert_eq!(tick_n20.liquidity_change, Liquidity::new(100));
+        //         assert!(tick_n20.sign);
+        //         assert!(tick_n20_bit);
 
-                // Check tick -10
-                assert_eq!(tick_n10.index, -10);
-                assert_eq!(tick_n10.liquidity_gross, Liquidity::new(500));
-                assert_eq!(tick_n10.liquidity_change, Liquidity::new(300)); // ?
-                assert!(tick_n10.sign);
-                assert!(tick_n10_bit);
+        //         // Check tick -10
+        //         assert_eq!(tick_n10.index, -10);
+        //         assert_eq!(tick_n10.liquidity_gross, Liquidity::new(500));
+        //         assert_eq!(tick_n10.liquidity_change, Liquidity::new(300)); // ?
+        //         assert!(tick_n10.sign);
+        //         assert!(tick_n10_bit);
 
-                // Check tick 10
-                assert_eq!(tick_10.index, 10);
-                assert_eq!(tick_10.liquidity_gross, Liquidity::new(500));
-                assert_eq!(tick_10.liquidity_change, Liquidity::new(300)); // 300?
-                assert!(!tick_10.sign);
-                assert!(tick_20_bit);
+        //         // Check tick 10
+        //         assert_eq!(tick_10.index, 10);
+        //         assert_eq!(tick_10.liquidity_gross, Liquidity::new(500));
+        //         assert_eq!(tick_10.liquidity_change, Liquidity::new(300)); // 300?
+        //         assert!(!tick_10.sign);
+        //         assert!(tick_20_bit);
 
-                // Check tick 20
-                assert_eq!(tick_20.index, 20);
-                assert_eq!(tick_20.liquidity_gross, Liquidity::new(100));
-                assert_eq!(tick_20.liquidity_change, Liquidity::new(100));
-                assert!(!tick_20.sign);
-                assert!(tick_20_bit);
+        //         // Check tick 20
+        //         assert_eq!(tick_20.index, 20);
+        //         assert_eq!(tick_20.liquidity_gross, Liquidity::new(100));
+        //         assert_eq!(tick_20.liquidity_change, Liquidity::new(100));
+        //         assert!(!tick_20.sign);
+        //         assert!(tick_20_bit);
 
-                // Check pool
-                assert_eq!(pool_state.liquidity, expected_active_liquidity);
-                assert!(pool_state.current_tick_index == init_tick);
-            }
-            Ok(())
-        }
+        //         // Check pool
+        //         assert_eq!(pool_state.liquidity, expected_active_liquidity);
+        //         assert!(pool_state.current_tick_index == init_tick);
+        //     }
+        //     Ok(())
+        // }
 
         #[ink_e2e::test]
         async fn position_within_current_tick_test(
@@ -1962,8 +1962,6 @@ gi
 
                 approve!(client, TokenRef, token_x, dex, liquidity_delta.get(), alice);
                 approve!(client, TokenRef, token_y, dex, liquidity_delta.get(), alice);
-
-                // ink::env::test::advance_block::<Environment>();
 
                 create_position!(
                     client,
