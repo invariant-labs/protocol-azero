@@ -10,7 +10,7 @@ pub struct Pools {
 }
 
 impl Pools {
-    pub fn create(&mut self, pool_key: PoolKey, pool: &Pool) -> Result<(), ContractErrors> {
+    pub fn add(&mut self, pool_key: PoolKey, pool: &Pool) -> Result<(), ContractErrors> {
         if self.pools.get(&pool_key).is_some() {
             return Err(ContractErrors::PoolAlreadyExist);
         }

@@ -671,7 +671,7 @@ pub mod contract {
 
         // Pools
         #[ink(message)]
-        pub fn add_pool(
+        pub fn create_pool(
             &mut self,
             token_0: AccountId,
             token_1: AccountId,
@@ -690,7 +690,7 @@ pub mod contract {
             let pool_key = PoolKey::new(token_0, token_1, fee_tier);
             let current_timestamp = self.env().block_timestamp();
             let pool = Pool::create(init_tick, current_timestamp, self.state.admin);
-            self.pools.create(pool_key, &pool)?;
+            self.pools.add(pool_key, &pool)?;
 
             self.pool_keys.push(pool_key);
 
