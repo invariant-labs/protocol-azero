@@ -3,6 +3,7 @@ use openbrush::traits::AccountId;
 
 use crate::contracts::FeeTier;
 use crate::math::percentage::Percentage;
+use crate::ContractErrors;
 
 #[derive(scale::Decode, scale::Encode, Debug, Copy, Clone, PartialEq)]
 #[cfg_attr(
@@ -30,19 +31,27 @@ impl Default for PoolKey {
 }
 
 impl PoolKey {
-    pub fn new(token_0: AccountId, token_1: AccountId, fee_tier: FeeTier) -> Self {
+    pub fn new(
+        token_0: AccountId,
+        token_1: AccountId,
+        fee_tier: FeeTier,
+    ) -> Result<Self, ContractErrors> {
+        if token_0 == token_1 {
+            return Err(ContractErrors::TokensAreTheSame);
+        }
+
         if token_0 < token_1 {
-            PoolKey {
+            Ok(PoolKey {
                 token_x: token_0,
                 token_y: token_1,
                 fee_tier,
-            }
+            })
         } else {
-            PoolKey {
+            Ok(PoolKey {
                 token_x: token_1,
                 token_y: token_0,
                 fee_tier,
-            }
+            })
         }
     }
 }

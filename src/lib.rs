@@ -678,16 +678,12 @@ pub mod contract {
             fee_tier: FeeTier,
             init_tick: i32,
         ) -> Result<(), ContractErrors> {
-            if token_0 == token_1 {
-                return Err(ContractErrors::TokensAreTheSame);
-            }
-
             let fee_tier_key = FeeTierKey(fee_tier.fee, fee_tier.tick_spacing);
             self.fee_tiers
                 .get_fee_tier(fee_tier_key)
                 .ok_or(ContractErrors::FeeTierNotFound)?;
 
-            let pool_key = PoolKey::new(token_0, token_1, fee_tier);
+            let pool_key = PoolKey::new(token_0, token_1, fee_tier)?;
             let current_timestamp = self.env().block_timestamp();
             let pool = Pool::create(init_tick, current_timestamp, self.state.admin);
             self.pools.add(pool_key, &pool)?;
@@ -704,7 +700,7 @@ pub mod contract {
             token_1: AccountId,
             fee_tier: FeeTier,
         ) -> Result<Pool, ContractErrors> {
-            let key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+            let key: PoolKey = PoolKey::new(token_0, token_1, fee_tier)?;
             self.pools.get(key)
         }
 
@@ -842,7 +838,7 @@ pub mod contract {
                 fee: Percentage::new(1),
                 tick_spacing: 2,
             };
-            let pool_key = PoolKey::new(token_0, token_1, fee_tier);
+            let pool_key = PoolKey::new(token_0, token_1, fee_tier).unwrap();
             let result = contract.create_tick(pool_key, MAX_TICK + 1);
             assert_eq!(result, Err(ContractErrors::InvalidTickIndexOrTickSpacing));
             let result = contract.create_tick(pool_key, 1);
@@ -931,7 +927,7 @@ pub mod contract {
                 fee: Percentage::from_scale(6, 3),
                 tick_spacing: 10,
             };
-            let pool_key = PoolKey::new(token_x, token_y, fee_tier);
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
             let alice = ink_e2e::alice();
 
             let upper_tick_index = 10;
@@ -989,7 +985,7 @@ pub mod contract {
                 fee: Percentage::from_scale(6, 3),
                 tick_spacing: 10,
             };
-            let pool_key = PoolKey::new(token_x, token_y, fee_tier);
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
             let alice = ink_e2e::alice();
             withdraw_protocol_fee!(client, ContractRef, dex, pool_key, alice);
 
@@ -1031,7 +1027,8 @@ pub mod contract {
                     fee: Percentage::from_scale(6, 3),
                     tick_spacing: 10,
                 },
-            );
+            )
+            .unwrap();
             let bob = ink_e2e::bob();
             withdraw_protocol_fee!(client, ContractRef, dex, pool_key, bob);
         }
@@ -1129,7 +1126,7 @@ pub mod contract {
             approve!(client, TokenRef, token_x, dex, 500, alice);
             approve!(client, TokenRef, token_y, dex, 500, alice);
 
-            let pool_key = PoolKey::new(token_x, token_y, fee_tier);
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
 
             let position = create_position!(
                 client,
@@ -1277,7 +1274,7 @@ pub mod contract {
             approve!(client, TokenRef, token_x, dex, initial_balance, alice);
             approve!(client, TokenRef, token_y, dex, initial_balance, alice);
 
-            let pool_key = PoolKey::new(token_x, token_y, fee_tier);
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
             let lower_tick_index = -22980;
             let upper_tick_index = 0;
             let liquidity_delta = Liquidity::new(initial_balance);
@@ -1385,7 +1382,7 @@ pub mod contract {
             approve!(client, TokenRef, token_x, dex, initial_balance, alice);
             approve!(client, TokenRef, token_y, dex, initial_balance, alice);
 
-            let pool_key = PoolKey::new(token_x, token_y, fee_tier);
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
             let lower_tick_index = MIN_TICK + 10;
             let upper_tick_index = MAX_TICK - 10;
 
@@ -1492,7 +1489,7 @@ pub mod contract {
             approve!(client, TokenRef, token_x, dex, initial_balance, alice);
             approve!(client, TokenRef, token_y, dex, initial_balance, alice);
 
-            let pool_key = PoolKey::new(token_x, token_y, fee_tier);
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
             let lower_tick_index = -46080;
             let upper_tick_index = -23040;
 
@@ -1595,7 +1592,7 @@ pub mod contract {
 
             let admin = ink_e2e::alice();
             let alice = address_of!(Alice);
-            let pool_key = PoolKey::new(token_x, token_y, fee_tier);
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
             change_fee_receiver!(client, ContractRef, dex, pool_key, alice, admin);
             let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
             assert_eq!(pool.fee_receiver, alice);
@@ -1632,7 +1629,7 @@ pub mod contract {
 
             let user = ink_e2e::bob();
             let bob = address_of!(Bob);
-            let pool_key = PoolKey::new(token_x, token_y, fee_tier);
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
             change_fee_receiver!(client, ContractRef, dex, pool_key, bob, user);
         }
 
@@ -1653,7 +1650,7 @@ pub mod contract {
             let (token_x, token_y) =
                 create_tokens!(client, TokenRef, TokenRef, initial_mint, initial_mint);
 
-            let pool_key = PoolKey::new(token_x, token_y, fee_tier);
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
 
             create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
 
