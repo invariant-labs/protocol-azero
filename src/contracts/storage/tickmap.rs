@@ -289,7 +289,7 @@ mod tests {
             fee: Percentage::new(1),
             tick_spacing: 1,
         };
-        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier).unwrap();
 
         let tickmap = &mut Tickmap::default();
         tickmap.flip(true, 0, 1, pool_key);
@@ -340,7 +340,7 @@ mod tests {
             fee: Percentage::new(1),
             tick_spacing: 1,
         };
-        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier).unwrap();
 
         let tickmap = &mut Tickmap::default();
         //zero
@@ -404,7 +404,7 @@ mod tests {
             fee: Percentage::new(1),
             tick_spacing: 1,
         };
-        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier).unwrap();
 
         let tickmap = &mut Tickmap::default();
         tickmap.flip(true, 5, 1, pool_key);
@@ -419,7 +419,7 @@ mod tests {
             fee: Percentage::new(1),
             tick_spacing: 1,
         };
-        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier).unwrap();
 
         let tickmap = &mut Tickmap::default();
         tickmap.flip(true, 50, 10, pool_key);
@@ -436,7 +436,7 @@ mod tests {
             fee: Percentage::new(1),
             tick_spacing: 1,
         };
-        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier).unwrap();
 
         let tickmap = &mut Tickmap::default();
         tickmap.flip(true, 0, 10, pool_key);
@@ -451,7 +451,7 @@ mod tests {
             fee: Percentage::new(1),
             tick_spacing: 1,
         };
-        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier).unwrap();
 
         let tickmap = &mut Tickmap::default();
 
@@ -470,7 +470,7 @@ mod tests {
             fee: Percentage::new(1),
             tick_spacing: 1,
         };
-        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier).unwrap();
 
         let tickmap = &mut Tickmap::default();
 
@@ -489,7 +489,7 @@ mod tests {
             fee: Percentage::new(1),
             tick_spacing: 1,
         };
-        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier).unwrap();
 
         let tickmap = &mut Tickmap::default();
 
@@ -505,7 +505,7 @@ mod tests {
             fee: Percentage::new(1),
             tick_spacing: 1,
         };
-        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier).unwrap();
 
         let tickmap = &mut Tickmap::default();
 
@@ -520,7 +520,7 @@ mod tests {
             fee: Percentage::new(1),
             tick_spacing: 1,
         };
-        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier).unwrap();
 
         let tickmap = &mut Tickmap::default();
 
@@ -535,7 +535,7 @@ mod tests {
             fee: Percentage::new(1),
             tick_spacing: 1,
         };
-        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier).unwrap();
 
         let tickmap = &mut Tickmap::default();
 
@@ -554,7 +554,7 @@ mod tests {
             fee: Percentage::new(1),
             tick_spacing: 1,
         };
-        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier).unwrap();
 
         let tickmap = &mut Tickmap::default();
 
@@ -570,7 +570,7 @@ mod tests {
             fee: Percentage::new(1),
             tick_spacing: 1,
         };
-        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier).unwrap();
 
         let tickmap = &mut Tickmap::default();
 
@@ -588,7 +588,7 @@ mod tests {
             fee: Percentage::new(1),
             tick_spacing: 1,
         };
-        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier).unwrap();
 
         let tickmap = &mut Tickmap::default();
 
@@ -604,7 +604,7 @@ mod tests {
             fee: Percentage::new(1),
             tick_spacing: 1,
         };
-        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier).unwrap();
 
         let tickmap = &mut Tickmap::default();
 
@@ -620,7 +620,7 @@ mod tests {
             fee: Percentage::new(1),
             tick_spacing: 1,
         };
-        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier).unwrap();
 
         let tickmap = &mut Tickmap::default();
 
@@ -639,7 +639,7 @@ mod tests {
             fee: Percentage::new(1),
             tick_spacing: 1,
         };
-        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier).unwrap();
 
         let tickmap = &mut Tickmap::default();
 
@@ -658,7 +658,7 @@ mod tests {
             fee: Percentage::new(1),
             tick_spacing: 1,
         };
-        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier).unwrap();
 
         let tickmap = &mut Tickmap::default();
 
@@ -674,7 +674,7 @@ mod tests {
             fee: Percentage::new(1),
             tick_spacing: 1,
         };
-        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier).unwrap();
 
         let tickmap = &mut Tickmap::default();
 
@@ -737,7 +737,7 @@ mod tests {
             fee: Percentage::new(1),
             tick_spacing: 1,
         };
-        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
+        let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier).unwrap();
 
         // initalized edges
         {

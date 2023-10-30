@@ -443,7 +443,7 @@ macro_rules! create_pool {
         // fee_tier:expr => Pool fee tier
         // init_tick:expr => init tick as i32
         let _msg = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.add_pool($x, $y, $fee_tier, $init_tick));
+            .call(|contract| contract.create_pool($x, $y, $fee_tier, $init_tick));
         $client
             .call(&ink_e2e::alice(), _msg, 0, None)
             .await
@@ -740,7 +740,7 @@ macro_rules! init_basic_position {
             alice
         );
 
-        let pool_key = PoolKey::new($token_x_address, $token_y_address, fee_tier);
+        let pool_key = PoolKey::new($token_x_address, $token_y_address, fee_tier).unwrap();
         let lower_tick = -20;
         let upper_tick = 10;
         let liquidity = Liquidity::from_integer(1000000);
@@ -813,7 +813,7 @@ macro_rules! init_cross_position {
             alice
         );
 
-        let pool_key = PoolKey::new($token_x_address, $token_y_address, fee_tier);
+        let pool_key = PoolKey::new($token_x_address, $token_y_address, fee_tier).unwrap();
         let lower_tick = -40;
         let upper_tick = -10;
         let liquidity = Liquidity::from_integer(1000000);
@@ -865,7 +865,7 @@ macro_rules! init_basic_swap {
         let fee = Percentage::from_scale(6, 3);
         let tick_spacing = 10;
         let fee_tier = FeeTier { fee, tick_spacing };
-        let pool_key = PoolKey::new($token_x_address, $token_y_address, fee_tier);
+        let pool_key = PoolKey::new($token_x_address, $token_y_address, fee_tier).unwrap();
         let lower_tick = -20;
 
         let amount = 1000;
@@ -944,7 +944,7 @@ macro_rules! init_cross_swap {
         let fee = Percentage::from_scale(6, 3);
         let tick_spacing = 10;
         let fee_tier = FeeTier { fee, tick_spacing };
-        let pool_key = PoolKey::new($token_x_address, $token_y_address, fee_tier);
+        let pool_key = PoolKey::new($token_x_address, $token_y_address, fee_tier).unwrap();
         let lower_tick = -20;
 
         let amount = 1000;
