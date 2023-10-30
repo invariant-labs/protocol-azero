@@ -776,7 +776,7 @@ pub mod contract {
 
             contract.add_fee_tier(fee_tier).unwrap();
 
-            let result = contract.add_pool(
+            let result = contract.create_pool(
                 token_0,
                 token_1,
                 FeeTier {
@@ -786,7 +786,7 @@ pub mod contract {
                 0,
             );
             assert!(result.is_ok());
-            let result = contract.add_pool(
+            let result = contract.create_pool(
                 token_1,
                 token_0,
                 FeeTier {
@@ -820,7 +820,7 @@ pub mod contract {
 
             contract.add_fee_tier(fee_tier).unwrap();
 
-            let result = contract.add_pool(token_0, token_1, fee_tier, 0);
+            let result = contract.create_pool(token_0, token_1, fee_tier, 0);
             assert!(result.is_ok());
             let result = contract.get_pool(
                 token_1,
@@ -851,7 +851,7 @@ pub mod contract {
             assert_eq!(result, Err(ContractErrors::PoolNotFound));
 
             contract.add_fee_tier(fee_tier).unwrap();
-            let _ = contract.add_pool(pool_key.token_x, pool_key.token_y, pool_key.fee_tier, 0);
+            let _ = contract.create_pool(pool_key.token_x, pool_key.token_y, pool_key.fee_tier, 0);
             let result = contract.create_tick(pool_key, 0);
             assert!(result.is_ok());
             let result = contract.create_tick(pool_key, 0);
