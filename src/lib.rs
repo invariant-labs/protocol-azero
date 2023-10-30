@@ -922,6 +922,44 @@ pub mod contract {
             init_cross_position!(client, ContractRef, TokenRef, dex, token_x, token_y);
             init_cross_swap!(client, ContractRef, TokenRef, dex, token_x, token_y);
 
+            let fee_tier = FeeTier {
+                fee: Percentage::from_scale(6, 3),
+                tick_spacing: 10,
+            };
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier);
+            let alice = ink_e2e::alice();
+
+            let upper_tick_index = 10;
+            let middle_tick_index = -10;
+            let lower_tick_index = -20;
+
+            let upper_tick =
+                get_tick!(client, ContractRef, dex, upper_tick_index, pool_key, alice).unwrap();
+            let middle_tick =
+                get_tick!(client, ContractRef, dex, middle_tick_index, pool_key, alice).unwrap();
+            let lower_tick =
+                get_tick!(client, ContractRef, dex, lower_tick_index, pool_key, alice).unwrap();
+
+            assert_eq!(
+                upper_tick.liquidity_change,
+                Liquidity::from_integer(1000000)
+            );
+            assert_eq!(
+                middle_tick.liquidity_change,
+                Liquidity::from_integer(1000000)
+            );
+            assert_eq!(
+                lower_tick.liquidity_change,
+                Liquidity::from_integer(1000000)
+            );
+
+            assert_eq!(upper_tick.fee_growth_outside_x, FeeGrowth::new(0));
+            assert_eq!(
+                middle_tick.fee_growth_outside_x,
+                FeeGrowth::new(30000000000000000000000)
+            );
+            assert_eq!(lower_tick.fee_growth_outside_x, FeeGrowth::new(0));
+
             Ok(())
         }
 
