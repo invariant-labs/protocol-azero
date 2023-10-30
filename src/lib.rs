@@ -213,12 +213,12 @@ pub mod contract {
             let mut lower_tick = self
                 .ticks
                 .get_tick(pool_key, lower_tick)
-                .unwrap_or(self.create_tick(pool_key, lower_tick)?);
+                .unwrap_or_else(|| Self::create_tick(self, pool_key, lower_tick).unwrap());
 
             let mut upper_tick = self
                 .ticks
                 .get_tick(pool_key, upper_tick)
-                .unwrap_or(self.create_tick(pool_key, upper_tick)?);
+                .unwrap_or_else(|| Self::create_tick(self, pool_key, upper_tick).unwrap());
 
             let current_timestamp = self.env().block_timestamp();
             let current_block_number = self.env().block_number() as u64;
@@ -904,9 +904,9 @@ pub mod contract {
         use test_helpers::{
             address_of, approve, balance_of, change_fee_receiver, create_dex, create_fee_tier,
             create_pool, create_position, create_standard_fee_tiers, create_tokens, dex_balance,
-            get_all_positions, get_fee_tier, get_pool, get_position, get_tick, init_basic_position,
-            init_basic_swap, init_dex_and_tokens, mint, remove_position, swap, tickmap_bit,
-            withdraw_protocol_fee,
+            get_all_positions, get_fee_tier, get_pool, get_position, get_tick, init_basic_pool,
+            init_basic_position, init_basic_swap, init_cross_position, init_cross_swap,
+            init_dex_and_tokens, mint, remove_position, swap, tickmap_bit, withdraw_protocol_fee,
         };
         use token::TokenRef;
 
@@ -915,8 +915,20 @@ pub mod contract {
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
+        async fn cross(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let (dex, token_x, token_y) = init_dex_and_tokens!(client, ContractRef, TokenRef);
+            init_basic_pool!(client, ContractRef, TokenRef, dex, token_x, token_y);
+            init_basic_position!(client, ContractRef, TokenRef, dex, token_x, token_y);
+            init_cross_position!(client, ContractRef, TokenRef, dex, token_x, token_y);
+            init_cross_swap!(client, ContractRef, TokenRef, dex, token_x, token_y);
+
+            Ok(())
+        }
+
+        #[ink_e2e::test]
         async fn swap(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let (dex, token_x, token_y) = init_dex_and_tokens!(client, ContractRef, TokenRef);
+            init_basic_pool!(client, ContractRef, TokenRef, dex, token_x, token_y);
             init_basic_position!(client, ContractRef, TokenRef, dex, token_x, token_y);
             init_basic_swap!(client, ContractRef, TokenRef, dex, token_x, token_y);
 
@@ -926,6 +938,7 @@ pub mod contract {
         #[ink_e2e::test]
         async fn protocol_fee(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let (dex, token_x, token_y) = init_dex_and_tokens!(client, ContractRef, TokenRef);
+            init_basic_pool!(client, ContractRef, TokenRef, dex, token_x, token_y);
             init_basic_position!(client, ContractRef, TokenRef, dex, token_x, token_y);
             init_basic_swap!(client, ContractRef, TokenRef, dex, token_x, token_y);
 
