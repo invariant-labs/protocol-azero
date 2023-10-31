@@ -22,11 +22,23 @@ impl Positions {
             .insert(account_id, &(positions_length, positions));
     }
 
-    pub fn update(&mut self, account_id: AccountId, index: u32, position: &Position) {
+    pub fn update(
+        &mut self,
+        account_id: AccountId,
+        index: u32,
+        position: &Position,
+    ) -> Result<(), ContractErrors> {
         let (positions_length, mut positions) = self.get_value(account_id);
+
+        if index >= positions_length {
+            return Err(ContractErrors::PositionNotFound);
+        }
+
         positions[index as usize] = *position;
         self.positions
             .insert(account_id, &(positions_length, positions));
+
+        Ok(())
     }
 
     pub fn remove(
