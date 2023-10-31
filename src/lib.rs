@@ -525,7 +525,6 @@ pub mod contract {
             index: u32,
         ) -> Result<(TokenAmount, TokenAmount), ContractErrors> {
             let caller = self.env().caller();
-            let contract = self.env().account_id();
             let current_timestamp = self.env().block_timestamp();
 
             let mut position = self
@@ -545,14 +544,18 @@ pub mod contract {
 
             let pool = self.pools.get(position.pool_key)?;
 
-            let (token_x, token_y) = position.claim_fee(
-                pool,
-                upper_tick,
-                lower_tick,
-                current_timestamp,
-                contract,
-                caller,
-            );
+            let (token_x, token_y) =
+                position.claim_fee(pool, upper_tick, lower_tick, current_timestamp);
+
+            if token_x.get() > 0 {
+                PSP22Ref::transfer(&position.pool_key.token_x, caller, token_x.get(), vec![])
+                    .map_err(|_| ContractErrors::TransferError)?;
+            }
+
+            if token_y.get() > 0 {
+                PSP22Ref::transfer(&position.pool_key.token_y, caller, token_y.get(), vec![])
+                    .map_err(|_| ContractErrors::TransferError)?;
+            }
 
             Ok((token_x, token_y))
         }
@@ -929,6 +932,8 @@ pub mod contract {
             let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
             let user_amount_before_claim = balance_of!(TokenRef, client, token_x, Alice);
             let dex_amount_before_claim = dex_balance!(TokenRef, client, token_x, dex);
+
+            let position = get_position!(client, ContractRef, dex, 0, alice).unwrap();
 
             claim_fee!(client, ContractRef, dex, 0, alice);
 

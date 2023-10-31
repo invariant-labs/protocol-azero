@@ -146,8 +146,6 @@ impl Position {
         mut upper_tick: Tick,
         mut lower_tick: Tick,
         current_timestamp: u64,
-        contract: AccountId,
-        user: AccountId,
     ) -> (TokenAmount, TokenAmount) {
         unwrap!(self.modify(
             &mut pool,
@@ -159,27 +157,13 @@ impl Position {
             self.pool_key.fee_tier.tick_spacing
         ));
 
-        self.tokens_owed_x -= self.tokens_owed_x;
-        self.tokens_owed_y -= self.tokens_owed_y;
+        let tokens_owed_x = self.tokens_owed_x;
+        let tokens_owed_y = self.tokens_owed_y;
 
-        PSP22Ref::transfer_from(
-            &self.pool_key.token_x,
-            contract,
-            user,
-            self.tokens_owed_x.0,
-            vec![],
-        )
-        .unwrap();
-        PSP22Ref::transfer_from(
-            &self.pool_key.token_y,
-            contract,
-            user,
-            self.tokens_owed_y.0,
-            vec![],
-        )
-        .unwrap();
+        self.tokens_owed_x = TokenAmount(0);
+        self.tokens_owed_y = TokenAmount(0);
 
-        (self.tokens_owed_x, self.tokens_owed_y)
+        (tokens_owed_x, tokens_owed_y)
     }
     pub fn create(
         pool: &mut Pool,
