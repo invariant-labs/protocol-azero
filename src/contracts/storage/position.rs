@@ -146,7 +146,6 @@ impl Position {
         mut upper_tick: Tick,
         mut lower_tick: Tick,
         current_timestamp: u64,
-        pool_key: PoolKey,
         contract: AccountId,
         user: AccountId,
     ) -> (TokenAmount, TokenAmount) {
@@ -157,14 +156,14 @@ impl Position {
             Liquidity::new(0),
             true,
             current_timestamp,
-            pool_key.fee_tier.tick_spacing
+            self.pool_key.fee_tier.tick_spacing
         ));
 
         self.tokens_owed_x -= self.tokens_owed_x;
         self.tokens_owed_y -= self.tokens_owed_y;
 
         PSP22Ref::transfer_from(
-            &pool_key.token_x,
+            &self.pool_key.token_x,
             contract,
             user,
             self.tokens_owed_x.0,
@@ -172,7 +171,7 @@ impl Position {
         )
         .unwrap();
         PSP22Ref::transfer_from(
-            &pool_key.token_y,
+            &self.pool_key.token_y,
             contract,
             user,
             self.tokens_owed_y.0,

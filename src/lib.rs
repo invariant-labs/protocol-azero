@@ -520,14 +520,13 @@ pub mod contract {
         }
 
         #[ink(message)]
-        pub fn position_claim_fee(
+        pub fn claim_fee(
             &mut self,
             index: u32,
-            pool_key: PoolKey,
         ) -> Result<(TokenAmount, TokenAmount), ContractErrors> {
             let caller = self.env().caller();
             let contract = self.env().account_id();
-            let current_timestamp = self.env().block_number();
+            let current_timestamp = self.env().block_timestamp();
 
             let mut position = self
                 .positions
@@ -536,25 +535,25 @@ pub mod contract {
 
             let lower_tick = self
                 .ticks
-                .get_tick(pool_key, position.lower_tick_index)
+                .get_tick(position.pool_key, position.lower_tick_index)
                 .ok_or(ContractErrors::TickNotFound)?;
 
             let upper_tick = self
                 .ticks
-                .get_tick(pool_key, position.upper_tick_index)
+                .get_tick(position.pool_key, position.upper_tick_index)
                 .ok_or(ContractErrors::TickNotFound)?;
 
-            let pool = self.pools.get(pool_key)?;
+            let pool = self.pools.get(position.pool_key)?;
 
             let (token_x, token_y) = position.claim_fee(
                 pool,
                 upper_tick,
                 lower_tick,
-                current_timestamp as u64,
-                pool_key,
+                current_timestamp,
                 contract,
                 caller,
             );
+
             Ok((token_x, token_y))
         }
 
@@ -929,12 +928,12 @@ pub mod contract {
             let alice = ink_e2e::alice();
             let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
             let user_amount_before_claim = balance_of!(TokenRef, client, token_x, Alice);
-            let dex_amount_before_claim = dex_balance!(TokenRef, client, token_x, dex_address);
+            let dex_amount_before_claim = dex_balance!(TokenRef, client, token_x, dex);
 
-            claim_fee!(client, ContractRef, dex, 0, pool_key, alice);
+            claim_fee!(client, ContractRef, dex, 0, alice);
 
             let user_amount_after_claim = balance_of!(TokenRef, client, token_x, Alice);
-            let dex_amount_after_claim = dex_balance!(TokenRef, client, token_x, dex_address);
+            let dex_amount_after_claim = dex_balance!(TokenRef, client, token_x, dex);
             let position = get_position!(client, ContractRef, dex, 0, alice).unwrap();
             let expected_tokens_claimed = 5;
 
