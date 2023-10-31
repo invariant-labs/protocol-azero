@@ -901,17 +901,56 @@ pub mod contract {
         use openbrush::contracts::psp22::psp22_external::PSP22;
         use openbrush::traits::Balance;
         use test_helpers::{
-            address_of, approve, balance_of, change_fee_receiver, create_dex, create_fee_tier,
-            create_pool, create_position, create_standard_fee_tiers, create_tokens, dex_balance,
-            get_all_positions, get_fee_tier, get_pool, get_position, get_tick, init_basic_pool,
-            init_basic_position, init_basic_swap, init_cross_position, init_cross_swap,
-            init_dex_and_tokens, mint, remove_position, swap, tickmap_bit, withdraw_protocol_fee,
+            address_of, approve, balance_of, change_fee_receiver, claim_fee, create_dex,
+            create_fee_tier, create_pool, create_position, create_standard_fee_tiers,
+            create_tokens, dex_balance, get_all_positions, get_fee_tier, get_pool, get_position,
+            get_tick, init_basic_pool, init_basic_position, init_basic_swap, init_cross_position,
+            init_cross_swap, init_dex_and_tokens, mint, remove_position, swap, tickmap_bit,
+            withdraw_protocol_fee,
         };
         use token::TokenRef;
 
         use super::*;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
+
+        #[ink_e2e::test]
+        async fn claim(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let (dex, token_x, token_y) = init_dex_and_tokens!(client, ContractRef, TokenRef);
+            init_basic_pool!(client, ContractRef, TokenRef, dex, token_x, token_y);
+            init_basic_position!(client, ContractRef, TokenRef, dex, token_x, token_y);
+            init_basic_swap!(client, ContractRef, TokenRef, dex, token_x, token_y);
+
+            let fee_tier = FeeTier {
+                fee: Percentage::from_scale(6, 3),
+                tick_spacing: 10,
+            };
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+            let alice = ink_e2e::alice();
+            let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+            let user_amount_before_claim = balance_of!(TokenRef, client, token_x, Alice);
+            let dex_amount_before_claim = dex_balance!(TokenRef, client, token_x, dex_address);
+
+            claim_fee!(client, ContractRef, dex, 0, pool_key, alice);
+
+            let user_amount_after_claim = balance_of!(TokenRef, client, token_x, Alice);
+            let dex_amount_after_claim = dex_balance!(TokenRef, client, token_x, dex_address);
+            let position = get_position!(client, ContractRef, dex, 0, alice).unwrap();
+            let expected_tokens_claimed = 5;
+
+            assert_eq!(
+                user_amount_after_claim - expected_tokens_claimed,
+                user_amount_before_claim
+            );
+            assert_eq!(
+                dex_amount_after_claim + expected_tokens_claimed,
+                dex_amount_before_claim
+            );
+            assert_eq!(position.fee_growth_inside_x, pool.fee_growth_global_x);
+            assert_eq!(position.tokens_owed_x, TokenAmount(0));
+
+            Ok(())
+        }
 
         #[ink_e2e::test]
         async fn cross(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
