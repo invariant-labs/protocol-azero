@@ -84,7 +84,7 @@ impl Tick {
         self.seconds_outside = seconds_passed.wrapping_sub(self.seconds_outside);
 
         if !pool.liquidity.is_zero() {
-            let _ = pool.update_seconds_per_liquidity_global(current_timestamp);
+            ok_or_mark_trace!(pool.update_seconds_per_liquidity_global(current_timestamp))?;
         } else {
             pool.last_timestamp = current_timestamp;
         }
