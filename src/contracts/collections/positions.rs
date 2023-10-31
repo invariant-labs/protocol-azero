@@ -22,6 +22,13 @@ impl Positions {
             .insert(account_id, &(positions_length, positions));
     }
 
+    pub fn update(&mut self, account_id: AccountId, index: u32, position: &Position) {
+        let (positions_length, mut positions) = self.get_value(account_id);
+        positions[index as usize] = *position;
+        self.positions
+            .insert(account_id, &(positions_length, positions));
+    }
+
     pub fn remove(
         &mut self,
         account_id: AccountId,
