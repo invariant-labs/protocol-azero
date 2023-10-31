@@ -2183,5 +2183,110 @@ pub mod contract {
 
             Ok(())
         }
+
+        #[ink_e2e::test]
+        async fn position_slippage(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let alice = ink_e2e::alice();
+            let (dex, token_x, token_y) =
+                init_slippage_dex_and_tokens!(client, ContractRef, TokenRef);
+            let pool_key = create_slippage_pool_with_liquidity!(
+                client,
+                ContractRef,
+                TokenRef,
+                dex,
+                token_x,
+                token_y
+            );
+            // zero slippage
+            {
+                // liquidityDelta: toDecimal(1, 0),
+                // knownPrice: toPrice(1),
+                // slippage: toDecimal(0)
+                let liquidity_delta = Liquidity::new(1);
+                let known_price = SqrtPrice::from_integer(1);
+                let slippage = 0;
+                let tick = pool_key.fee_tier.tick_spacing as i32;
+                create_position!(
+                    client,
+                    ContractRef,
+                    dex,
+                    pool_key,
+                    -tick,
+                    tick,
+                    liquidity_delta,
+                    known_price,
+                    known_price,
+                    alice
+                );
+            }
+            // inside range
+            {
+                // liquidityDelta: toDecimal(1, 0),
+                // knownPrice: { v: toPrice(101, 2).v },
+                // slippage: toDecimal(3, 2)
+                let liquidity_delta = Liquidity::new(1);
+                let known_price = SqrtPrice::from_integer(1);
+                let slippage = 0;
+                let tick = pool_key.fee_tier.tick_spacing as i32;
+                create_position!(
+                    client,
+                    ContractRef,
+                    dex,
+                    pool_key,
+                    -tick,
+                    tick,
+                    liquidity_delta,
+                    known_price,
+                    known_price,
+                    alice
+                );
+            }
+            // below range
+            {
+                // liquidityDelta: toDecimal(1, 0),
+                // knownPrice: { v: toPrice(103, 2).v },
+                // slippage: toDecimal(3, 2)
+                let liquidity_delta = Liquidity::new(1);
+                let known_price = SqrtPrice::from_integer(1);
+                let slippage = 0;
+                let tick = pool_key.fee_tier.tick_spacing as i32;
+                create_position!(
+                    client,
+                    ContractRef,
+                    dex,
+                    pool_key,
+                    -tick,
+                    tick,
+                    liquidity_delta,
+                    known_price,
+                    known_price,
+                    alice
+                );
+            }
+            // above range
+            {
+                // liquidityDelta: toDecimal(1, 0),
+                // knownPrice: { v: toPrice(97, 2).v },
+                // slippage: toDecimal(3, 2)
+                let liquidity_delta = Liquidity::new(1);
+                let known_price = SqrtPrice::from_integer(1);
+                let slippage = 0;
+                let tick = pool_key.fee_tier.tick_spacing as i32;
+                create_position!(
+                    client,
+                    ContractRef,
+                    dex,
+                    pool_key,
+                    -tick,
+                    tick,
+                    liquidity_delta,
+                    known_price,
+                    known_price,
+                    alice
+                );
+            }
+
+            Ok(())
+        }
     }
 }
