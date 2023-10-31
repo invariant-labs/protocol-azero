@@ -2197,12 +2197,25 @@ pub mod contract {
                 token_x,
                 token_y
             );
+
+            // export const toDecimal = (x: number, decimals: number = 0): Decimal => {
+            //     return { v: DENOMINATOR.muln(x).div(new BN(10).pow(new BN(decimals))) }
+            //   }
+
+            //   export const toPrice = (x: number, decimals: number = 0): Decimal => {
+            //     return toDecimalWithDenominator(x, PRICE_DENOMINATOR, decimals)
+            //   }
+
+            // export const toDecimalWithDenominator = (x: number, denominator: BN, decimals: number = 0) => {
+            //     return { v: denominator.muln(x).div(new BN(10).pow(new BN(decimals))) }
+            //   }
+
             // zero slippage
             {
                 // liquidityDelta: toDecimal(1, 0),
                 // knownPrice: toPrice(1),
                 // slippage: toDecimal(0)
-                let liquidity_delta = Liquidity::new(1);
+                let liquidity_delta = Liquidity::from_integer(1_000_000);
                 let known_price = SqrtPrice::from_integer(1);
                 let slippage = 0;
                 let tick = pool_key.fee_tier.tick_spacing as i32;
@@ -2224,7 +2237,7 @@ pub mod contract {
                 // liquidityDelta: toDecimal(1, 0),
                 // knownPrice: { v: toPrice(101, 2).v },
                 // slippage: toDecimal(3, 2)
-                let liquidity_delta = Liquidity::new(1);
+                let liquidity_delta = Liquidity::from_integer(1_000_000);
                 let known_price = SqrtPrice::from_integer(1);
                 let slippage = 0;
                 let tick = pool_key.fee_tier.tick_spacing as i32;
@@ -2246,7 +2259,7 @@ pub mod contract {
                 // liquidityDelta: toDecimal(1, 0),
                 // knownPrice: { v: toPrice(103, 2).v },
                 // slippage: toDecimal(3, 2)
-                let liquidity_delta = Liquidity::new(1);
+                let liquidity_delta = Liquidity::from_integer(1_000_000);
                 let known_price = SqrtPrice::from_integer(1);
                 let slippage = 0;
                 let tick = pool_key.fee_tier.tick_spacing as i32;
@@ -2268,7 +2281,7 @@ pub mod contract {
                 // liquidityDelta: toDecimal(1, 0),
                 // knownPrice: { v: toPrice(97, 2).v },
                 // slippage: toDecimal(3, 2)
-                let liquidity_delta = Liquidity::new(1);
+                let liquidity_delta = Liquidity::from_integer(1_000_000);
                 let known_price = SqrtPrice::from_integer(1);
                 let slippage = 0;
                 let tick = pool_key.fee_tier.tick_spacing as i32;
