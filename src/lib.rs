@@ -520,13 +520,11 @@ pub mod contract {
         }
 
         #[ink(message)]
-        pub fn position_claim_fee(
+        pub fn claim_fee(
             &mut self,
             index: u32,
-            pool_key: PoolKey,
         ) -> Result<(TokenAmount, TokenAmount), ContractErrors> {
             let caller = self.env().caller();
-            let contract = self.env().account_id();
             let current_timestamp = self.env().block_timestamp();
 
             let mut position = self
@@ -534,27 +532,42 @@ pub mod contract {
                 .get(caller, index)
                 .ok_or(ContractErrors::PositionNotFound)?;
 
-            let lower_tick = self
+            let mut lower_tick = self
                 .ticks
-                .get_tick(pool_key, position.lower_tick_index)
+                .get_tick(position.pool_key, position.lower_tick_index)
                 .ok_or(ContractErrors::TickNotFound)?;
 
-            let upper_tick = self
+            let mut upper_tick = self
                 .ticks
-                .get_tick(pool_key, position.upper_tick_index)
+                .get_tick(position.pool_key, position.upper_tick_index)
                 .ok_or(ContractErrors::TickNotFound)?;
 
-            let pool = self.pools.get(pool_key)?;
+            let mut pool = self.pools.get(position.pool_key)?;
 
             let (token_x, token_y) = position.claim_fee(
-                pool,
-                upper_tick,
-                lower_tick,
+                &mut pool,
+                &mut upper_tick,
+                &mut lower_tick,
                 current_timestamp,
-                pool_key,
-                contract,
-                caller,
             );
+
+            self.positions.update(caller, index, &position);
+            self.pools.update(position.pool_key, &pool)?;
+            self.ticks
+                .update_tick(position.pool_key, upper_tick.index, &upper_tick)?;
+            self.ticks
+                .update_tick(position.pool_key, lower_tick.index, &lower_tick)?;
+
+            if token_x.get() > 0 {
+                PSP22Ref::transfer(&position.pool_key.token_x, caller, token_x.get(), vec![])
+                    .map_err(|_| ContractErrors::TransferError)?;
+            }
+
+            if token_y.get() > 0 {
+                PSP22Ref::transfer(&position.pool_key.token_y, caller, token_y.get(), vec![])
+                    .map_err(|_| ContractErrors::TransferError)?;
+            }
+
             Ok((token_x, token_y))
         }
 
@@ -904,8 +917,8 @@ pub mod contract {
         use openbrush::contracts::psp22::psp22_external::PSP22;
         use openbrush::traits::Balance;
         use test_helpers::{
-            address_of, approve, balance_of, change_fee_receiver, create_dex, create_fee_tier,
-            create_pool, create_position, create_slippage_pool_with_liquidity,
+            address_of, approve, balance_of, change_fee_receiver, claim_fee, create_dex,
+            create_fee_tier, create_pool, create_position, create_slippage_pool_with_liquidity,
             create_standard_fee_tiers, create_tokens, dex_balance, get_all_positions, get_fee_tier,
             get_pool, get_position, get_tick, init_basic_pool, init_basic_position,
             init_basic_swap, init_cross_position, init_cross_swap, init_dex_and_tokens,
@@ -917,6 +930,44 @@ pub mod contract {
         use super::*;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
+
+        #[ink_e2e::test]
+        async fn claim(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let (dex, token_x, token_y) = init_dex_and_tokens!(client, ContractRef, TokenRef);
+            init_basic_pool!(client, ContractRef, TokenRef, dex, token_x, token_y);
+            init_basic_position!(client, ContractRef, TokenRef, dex, token_x, token_y);
+            init_basic_swap!(client, ContractRef, TokenRef, dex, token_x, token_y);
+
+            let fee_tier = FeeTier {
+                fee: Percentage::from_scale(6, 3),
+                tick_spacing: 10,
+            };
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+            let alice = ink_e2e::alice();
+            let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+            let user_amount_before_claim = balance_of!(TokenRef, client, token_x, Alice);
+            let dex_amount_before_claim = dex_balance!(TokenRef, client, token_x, dex);
+
+            claim_fee!(client, ContractRef, dex, 0, alice);
+
+            let user_amount_after_claim = balance_of!(TokenRef, client, token_x, Alice);
+            let dex_amount_after_claim = dex_balance!(TokenRef, client, token_x, dex);
+            let position = get_position!(client, ContractRef, dex, 0, alice).unwrap();
+            let expected_tokens_claimed = 5;
+
+            assert_eq!(
+                user_amount_after_claim - expected_tokens_claimed,
+                user_amount_before_claim
+            );
+            assert_eq!(
+                dex_amount_after_claim + expected_tokens_claimed,
+                dex_amount_before_claim
+            );
+            assert_eq!(position.fee_growth_inside_x, pool.fee_growth_global_x);
+            assert_eq!(position.tokens_owed_x, TokenAmount(0));
+
+            Ok(())
+        }
 
         #[ink_e2e::test]
         async fn basic_slippage_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {

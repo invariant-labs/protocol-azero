@@ -142,45 +142,28 @@ impl Position {
 
     pub fn claim_fee(
         &mut self,
-        mut pool: Pool,
-        mut upper_tick: Tick,
-        mut lower_tick: Tick,
+        pool: &mut Pool,
+        upper_tick: &mut Tick,
+        lower_tick: &mut Tick,
         current_timestamp: u64,
-        pool_key: PoolKey,
-        contract: AccountId,
-        user: AccountId,
     ) -> (TokenAmount, TokenAmount) {
         unwrap!(self.modify(
-            &mut pool,
-            &mut upper_tick,
-            &mut lower_tick,
+            pool,
+            upper_tick,
+            lower_tick,
             Liquidity::new(0),
             true,
             current_timestamp,
-            pool_key.fee_tier.tick_spacing
+            self.pool_key.fee_tier.tick_spacing
         ));
 
-        self.tokens_owed_x -= self.tokens_owed_x;
-        self.tokens_owed_y -= self.tokens_owed_y;
+        let tokens_owed_x = self.tokens_owed_x;
+        let tokens_owed_y = self.tokens_owed_y;
 
-        PSP22Ref::transfer_from(
-            &pool_key.token_x,
-            contract,
-            user,
-            self.tokens_owed_x.0,
-            vec![],
-        )
-        .unwrap();
-        PSP22Ref::transfer_from(
-            &pool_key.token_y,
-            contract,
-            user,
-            self.tokens_owed_y.0,
-            vec![],
-        )
-        .unwrap();
+        self.tokens_owed_x = TokenAmount(0);
+        self.tokens_owed_y = TokenAmount(0);
 
-        (self.tokens_owed_x, self.tokens_owed_y)
+        (tokens_owed_x, tokens_owed_y)
     }
     pub fn create(
         pool: &mut Pool,

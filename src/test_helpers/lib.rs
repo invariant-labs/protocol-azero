@@ -558,15 +558,15 @@ macro_rules! get_all_positions {
 
 #[macro_export]
 macro_rules! claim_fee {
-    ($client:ident, $dex:ty, $dex_address:expr, $index:expr, $pool_key:expr, $caller:ident) => {{
+    ($client:ident, $dex:ty, $dex_address:expr, $index:expr, $caller:ident) => {{
         // client => ink_e2e_client
         // dex:ty => ContractRef
         // dex_address:expr => Address of contract
         // index:expr => u32
         // pool_key:expr => pool_key
         // $caller => signer from ink_e2e env
-        let _msg = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.position_claim_fee($index, $pool_key));
+        let _msg =
+            build_message::<$dex>($dex_address.clone()).call(|contract| contract.claim_fee($index));
         $client
             .call(&$caller, _msg, 0, None)
             .await
