@@ -1020,3 +1020,124 @@ macro_rules! init_cross_swap {
         assert_eq!(pool_after.fee_protocol_token_y, TokenAmount::new(0));
     }};
 }
+
+#[macro_export]
+macro_rules! create_slippage_pool_with_liquidity {
+    ($client:ident, $dex:ty, $token:ty, $dex_address:ident, $token_x_address:ident, $token_y_address:ident) => {{
+        let fee_tier = FeeTier {
+            fee: Percentage::from_scale(6, 3),
+            tick_spacing: 10,
+        };
+        let alice = ink_e2e::alice();
+        create_fee_tier!($client, $dex, $dex_address, fee_tier, alice);
+
+        let init_tick = 0;
+        create_pool!(
+            $client,
+            $dex,
+            $dex_address,
+            $token_x_address,
+            $token_y_address,
+            fee_tier,
+            init_tick
+        );
+        let fee_tier = FeeTier {
+            fee: Percentage::from_scale(6, 3),
+            tick_spacing: 10,
+        };
+        let alice = ink_e2e::alice();
+
+        let mint_amount = 10u128.pow(10);
+        approve!(
+            $client,
+            $token,
+            $token_x_address,
+            $dex_address,
+            mint_amount,
+            alice
+        );
+        approve!(
+            $client,
+            $token,
+            $token_y_address,
+            $dex_address,
+            mint_amount,
+            alice
+        );
+
+        let pool_key = PoolKey::new($token_x_address, $token_y_address, fee_tier).unwrap();
+        let lower_tick = -1000;
+        let upper_tick = 1000;
+        let liquidity = Liquidity::new(10u128.pow(16));
+
+        let pool_before = get_pool!(
+            $client,
+            $dex,
+            $dex_address,
+            $token_x_address,
+            $token_y_address,
+            fee_tier
+        )
+        .unwrap();
+        let slippage_limit_lower = pool_before.sqrt_price;
+        let slippage_limit_upper = pool_before.sqrt_price;
+        create_position!(
+            $client,
+            $dex,
+            $dex_address,
+            pool_key,
+            lower_tick,
+            upper_tick,
+            liquidity,
+            slippage_limit_lower,
+            slippage_limit_upper,
+            alice
+        );
+
+        let pool_after = get_pool!(
+            $client,
+            $dex,
+            $dex_address,
+            $token_x_address,
+            $token_y_address,
+            fee_tier
+        )
+        .unwrap();
+
+        assert_eq!(pool_after.liquidity, liquidity);
+
+        pool_key
+    }};
+}
+
+#[macro_export]
+macro_rules! init_slippage_dex_and_tokens {
+    ($client:ident, $dex:ty, $token:ty) => {{
+        let mint_amount = 10u128.pow(23);
+        let (token_x, token_y) = create_tokens!($client, $token, $token, mint_amount, mint_amount);
+
+        let protocol_fee = Percentage::from_scale(1, 2);
+        let dex = create_dex!($client, $dex, protocol_fee);
+        (dex, token_x, token_y)
+    }};
+}
+
+#[macro_export]
+macro_rules! quote {
+    ($client:ident, $dex:ty, $dex_address:ident, $pool_key:expr, $x_to_y:expr, $amount:expr, $by_amount_in:expr, $sqrt_price_limit:expr, $caller:expr) => {{
+        let _msg = build_message::<$dex>($dex_address.clone()).call(|contract| {
+            contract.quote(
+                $pool_key,
+                $x_to_y,
+                $amount,
+                $by_amount_in,
+                $sqrt_price_limit,
+            )
+        });
+        $client
+            .call(&$caller, _msg, 0, None)
+            .await
+            .expect("Quote failed")
+            .return_value()
+    }};
+}
