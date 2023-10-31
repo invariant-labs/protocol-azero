@@ -902,16 +902,94 @@ pub mod contract {
         use openbrush::traits::Balance;
         use test_helpers::{
             address_of, approve, balance_of, change_fee_receiver, create_dex, create_fee_tier,
-            create_pool, create_position, create_standard_fee_tiers, create_tokens, dex_balance,
-            get_all_positions, get_fee_tier, get_pool, get_position, get_tick, init_basic_pool,
-            init_basic_position, init_basic_swap, init_cross_position, init_cross_swap,
-            init_dex_and_tokens, mint, remove_position, swap, tickmap_bit, withdraw_protocol_fee,
+            create_pool, create_position, create_slippage_pool_with_liquidity,
+            create_standard_fee_tiers, create_tokens, dex_balance, get_all_positions, get_fee_tier,
+            get_pool, get_position, get_tick, init_basic_pool, init_basic_position,
+            init_basic_swap, init_cross_position, init_cross_swap, init_dex_and_tokens,
+            init_slippage_dex_and_tokens, mint, quote, remove_position, swap, tickmap_bit,
+            withdraw_protocol_fee,
         };
         use token::TokenRef;
 
         use super::*;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
+
+        #[ink_e2e::test]
+        async fn basic_slippage_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let alice = ink_e2e::alice();
+            let (dex, token_x, token_y) =
+                init_slippage_dex_and_tokens!(client, ContractRef, TokenRef);
+            let pool_key = create_slippage_pool_with_liquidity!(
+                client,
+                ContractRef,
+                TokenRef,
+                dex,
+                token_x,
+                token_y
+            );
+            let amount = 10u128.pow(8);
+            let swap_amount = TokenAmount::new(amount);
+            approve!(client, TokenRef, token_x, dex, amount, alice);
+
+            let slippage = SqrtPrice::new(5000000000000000000000);
+            let result = quote!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                false,
+                swap_amount,
+                true,
+                slippage,
+                alice
+            );
+            swap!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                false,
+                swap_amount,
+                true,
+                slippage,
+                alice
+            );
+
+            Ok(())
+        }
+
+        #[ink_e2e::test]
+        #[should_panic]
+        async fn swap_close_to_limit_test(mut client: ink_e2e::Client<C, E>) -> () {
+            let alice = ink_e2e::alice();
+            let (dex, token_x, token_y) =
+                init_slippage_dex_and_tokens!(client, ContractRef, TokenRef);
+            let pool_key = create_slippage_pool_with_liquidity!(
+                client,
+                ContractRef,
+                TokenRef,
+                dex,
+                token_x,
+                token_y
+            );
+            let amount = 10u128.pow(8);
+            let swap_amount = TokenAmount::new(amount);
+            approve!(client, TokenRef, token_x, dex, amount, alice);
+
+            let slippage = calculate_sqrt_price(-98).unwrap();
+            swap!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                false,
+                swap_amount,
+                true,
+                slippage,
+                alice
+            );
+        }
 
         #[ink_e2e::test]
         async fn cross(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
