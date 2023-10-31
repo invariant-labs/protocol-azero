@@ -532,22 +532,31 @@ pub mod contract {
                 .get(caller, index)
                 .ok_or(ContractErrors::PositionNotFound)?;
 
-            let lower_tick = self
+            let mut lower_tick = self
                 .ticks
                 .get_tick(position.pool_key, position.lower_tick_index)
                 .ok_or(ContractErrors::TickNotFound)?;
 
-            let upper_tick = self
+            let mut upper_tick = self
                 .ticks
                 .get_tick(position.pool_key, position.upper_tick_index)
                 .ok_or(ContractErrors::TickNotFound)?;
 
-            let pool = self.pools.get(position.pool_key)?;
+            let mut pool = self.pools.get(position.pool_key)?;
 
-            let (token_x, token_y) =
-                position.claim_fee(pool, upper_tick, lower_tick, current_timestamp);
+            let (token_x, token_y) = position.claim_fee(
+                &mut pool,
+                &mut upper_tick,
+                &mut lower_tick,
+                current_timestamp,
+            );
 
             self.positions.update(caller, index, &position);
+            self.pools.update(position.pool_key, &pool)?;
+            self.ticks
+                .update_tick(position.pool_key, upper_tick.index, &upper_tick)?;
+            self.ticks
+                .update_tick(position.pool_key, lower_tick.index, &lower_tick)?;
 
             if token_x.get() > 0 {
                 PSP22Ref::transfer(&position.pool_key.token_x, caller, token_x.get(), vec![])

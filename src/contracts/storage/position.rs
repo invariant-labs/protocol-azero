@@ -142,15 +142,15 @@ impl Position {
 
     pub fn claim_fee(
         &mut self,
-        mut pool: Pool,
-        mut upper_tick: Tick,
-        mut lower_tick: Tick,
+        pool: &mut Pool,
+        upper_tick: &mut Tick,
+        lower_tick: &mut Tick,
         current_timestamp: u64,
     ) -> (TokenAmount, TokenAmount) {
         unwrap!(self.modify(
-            &mut pool,
-            &mut upper_tick,
-            &mut lower_tick,
+            pool,
+            upper_tick,
+            lower_tick,
             Liquidity::new(0),
             true,
             current_timestamp,
