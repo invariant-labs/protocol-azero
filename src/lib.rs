@@ -109,8 +109,9 @@ pub mod contract {
 
         #[ink(message)]
         pub fn withdraw_protocol_fee(&mut self, pool_key: PoolKey) -> Result<(), ContractErrors> {
-            let mut pool = self.pools.get(pool_key)?;
             let caller = self.env().caller();
+
+            let mut pool = self.pools.get(pool_key)?;
 
             if pool.fee_receiver != caller {
                 return Err(ContractErrors::NotAFeeReceiver);
@@ -143,7 +144,9 @@ pub mod contract {
             &mut self,
             protocol_fee: Percentage,
         ) -> Result<(), ContractErrors> {
-            if self.env().caller() != self.state.admin {
+            let caller = self.env().caller();
+
+            if caller != self.state.admin {
                 return Err(ContractErrors::NotAnAdmin);
             }
 
@@ -175,6 +178,8 @@ pub mod contract {
             pool_key: PoolKey,
             index: i32,
         ) -> Result<Tick, ContractErrors> {
+            let current_timestamp = self.env().block_timestamp();
+
             check_tick(index, pool_key.fee_tier.tick_spacing)
                 .map_err(|_| ContractErrors::InvalidTickIndexOrTickSpacing)?;
 
@@ -185,7 +190,6 @@ pub mod contract {
                 return Err(ContractErrors::TickAlreadyExist);
             }
 
-            let current_timestamp = self.env().block_timestamp();
             let tick = Tick::create(index, &pool, current_timestamp);
             self.ticks.add_tick(pool_key, index, tick);
 
@@ -205,12 +209,15 @@ pub mod contract {
             slippage_limit_lower: SqrtPrice,
             slippage_limit_upper: SqrtPrice,
         ) -> Result<Position, ContractErrors> {
+            let caller = self.env().caller();
+            let contract = self.env().account_id();
+            let current_timestamp = self.env().block_timestamp();
+            let current_block_number = self.env().block_number() as u64;
+
             // liquidity delta = 0 => return
             if liquidity_delta == Liquidity::new(0) {
                 return Err(ContractErrors::ZeroLiquidity);
             }
-            let current_timestamp = self.env().block_timestamp();
-            let current_block_number = self.env().block_number() as u64;
 
             let mut pool = self.pools.get(pool_key)?;
 
@@ -239,28 +246,15 @@ pub mod contract {
 
             self.pools.update(pool_key, &pool)?;
 
-            let caller = self.env().caller();
             self.positions.add(caller, position);
 
             self.ticks.add_tick(pool_key, lower_tick.index, lower_tick);
             self.ticks.add_tick(pool_key, upper_tick.index, upper_tick);
 
-            PSP22Ref::transfer_from(
-                &pool_key.token_x,
-                self.env().caller(),
-                self.env().account_id(),
-                x.get(),
-                vec![],
-            )
-            .map_err(|_| ContractErrors::TransferError)?;
-            PSP22Ref::transfer_from(
-                &pool_key.token_y,
-                self.env().caller(),
-                self.env().account_id(),
-                y.get(),
-                vec![],
-            )
-            .map_err(|_| ContractErrors::TransferError)?;
+            PSP22Ref::transfer_from(&pool_key.token_x, caller, contract, x.get(), vec![])
+                .map_err(|_| ContractErrors::TransferError)?;
+            PSP22Ref::transfer_from(&pool_key.token_y, caller, contract, y.get(), vec![])
+                .map_err(|_| ContractErrors::TransferError)?;
 
             Ok(position)
         }
@@ -273,6 +267,8 @@ pub mod contract {
             by_amount_in: bool,
             sqrt_price_limit: SqrtPrice,
         ) -> Result<CalculateSwapResult, ContractErrors> {
+            let current_timestamp = self.env().block_timestamp();
+
             if amount.is_zero() {
                 return Err(ContractErrors::AmountIsZero);
             }
@@ -280,7 +276,6 @@ pub mod contract {
             let mut ticks: Vec<Tick> = vec![];
 
             let mut pool = self.pools.get(pool_key)?;
-            let current_timestamp = self.env().block_timestamp();
 
             if x_to_y {
                 if pool.sqrt_price <= sqrt_price_limit
@@ -387,6 +382,9 @@ pub mod contract {
             by_amount_in: bool,
             sqrt_price_limit: SqrtPrice,
         ) -> Result<(), ContractErrors> {
+            let caller = self.env().caller();
+            let contract = self.env().account_id();
+
             let calculate_swap_result =
                 self.calculate_swap(pool_key, x_to_y, amount, by_amount_in, sqrt_price_limit)?;
 
@@ -399,15 +397,15 @@ pub mod contract {
             if x_to_y {
                 PSP22Ref::transfer_from(
                     &pool_key.token_x,
-                    self.env().caller(),
-                    self.env().account_id(),
+                    caller,
+                    contract,
                     calculate_swap_result.amount_in.get(),
                     vec![],
                 )
                 .map_err(|_| ContractErrors::TransferError)?;
                 PSP22Ref::transfer(
                     &pool_key.token_y,
-                    self.env().caller(),
+                    caller,
                     calculate_swap_result.amount_out.get(),
                     vec![],
                 )
@@ -415,15 +413,15 @@ pub mod contract {
             } else {
                 PSP22Ref::transfer_from(
                     &pool_key.token_y,
-                    self.env().caller(),
-                    self.env().account_id(),
+                    caller,
+                    contract,
                     calculate_swap_result.amount_in.get(),
                     vec![],
                 )
                 .map_err(|_| ContractErrors::TransferError)?;
                 PSP22Ref::transfer(
                     &pool_key.token_x,
-                    self.env().caller(),
+                    caller,
                     calculate_swap_result.amount_out.get(),
                     vec![],
                 )
@@ -459,6 +457,7 @@ pub mod contract {
             receiver: AccountId,
         ) -> Result<(), ContractErrors> {
             let caller = self.env().caller();
+
             self.positions.transfer(caller, index, receiver)?;
 
             Ok(())
@@ -474,12 +473,14 @@ pub mod contract {
         #[ink(message)]
         pub fn get_position(&mut self, index: u32) -> Option<Position> {
             let caller = self.env().caller();
+
             self.positions.get(caller, index)
         }
 
         #[ink(message)]
         pub fn get_all_positions(&mut self) -> Vec<Position> {
             let caller = self.env().caller();
+
             self.positions.get_all(caller)
         }
 
@@ -490,13 +491,12 @@ pub mod contract {
             pool_key: PoolKey,
         ) -> Result<(), ContractErrors> {
             let caller = self.env().caller();
+            let current_timestamp = self.env().block_timestamp();
 
             let mut position = self
                 .positions
                 .get(caller, index)
                 .ok_or(ContractErrors::PositionNotFound)?;
-
-            let current_timestamp = self.env().block_number();
 
             let lower_tick = self
                 .ticks
@@ -566,7 +566,7 @@ pub mod contract {
             index: u32,
         ) -> Result<(TokenAmount, TokenAmount), ContractErrors> {
             let caller = self.env().caller();
-            let current_timestamp = self.env().block_number();
+            let current_timestamp = self.env().block_timestamp();
 
             let mut position = self
                 .positions
@@ -641,7 +641,9 @@ pub mod contract {
         // Fee tiers
         #[ink(message)]
         pub fn add_fee_tier(&mut self, fee_tier: FeeTier) -> Result<(), ContractErrors> {
-            if self.env().caller() != self.state.admin {
+            let caller = self.env().caller();
+
+            if caller != self.state.admin {
                 return Err(ContractErrors::NotAnAdmin);
             }
 
@@ -680,13 +682,14 @@ pub mod contract {
             fee_tier: FeeTier,
             init_tick: i32,
         ) -> Result<(), ContractErrors> {
+            let current_timestamp = self.env().block_timestamp();
+
             let fee_tier_key = FeeTierKey(fee_tier.fee, fee_tier.tick_spacing);
             self.fee_tiers
                 .get_fee_tier(fee_tier_key)
                 .ok_or(ContractErrors::FeeTierNotFound)?;
 
             let pool_key = PoolKey::new(token_0, token_1, fee_tier)?;
-            let current_timestamp = self.env().block_timestamp();
             let pool = Pool::create(init_tick, current_timestamp, self.state.admin);
             self.pools.add(pool_key, &pool)?;
 
