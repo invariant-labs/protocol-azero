@@ -922,14 +922,48 @@ pub mod contract {
             create_standard_fee_tiers, create_tokens, dex_balance, get_all_positions, get_fee_tier,
             get_pool, get_position, get_tick, init_basic_pool, init_basic_position,
             init_basic_swap, init_cross_position, init_cross_swap, init_dex_and_tokens,
-            init_slippage_dex_and_tokens, mint, quote, remove_position, swap, tickmap_bit,
-            withdraw_protocol_fee,
+            init_slippage_dex_and_tokens, mint, quote, remove_position, swap, swap_exact_limit,
+            tickmap_bit, withdraw_protocol_fee,
         };
         use token::TokenRef;
 
         use super::*;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
+
+        #[ink_e2e::test]
+        async fn swap_exact_limit(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let (dex, token_x, token_y) = init_dex_and_tokens!(client, ContractRef, TokenRef);
+            init_basic_pool!(client, ContractRef, TokenRef, dex, token_x, token_y);
+            init_basic_position!(client, ContractRef, TokenRef, dex, token_x, token_y);
+
+            let fee_tier = FeeTier {
+                fee: Percentage::from_scale(6, 3),
+                tick_spacing: 10,
+            };
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+
+            let amount = 1000;
+            let bob = ink_e2e::bob();
+            mint!(TokenRef, client, token_x, Bob, amount);
+            let amount_x = balance_of!(TokenRef, client, token_x, Bob);
+            assert_eq!(amount_x, amount);
+            approve!(client, TokenRef, token_x, dex, amount, bob);
+
+            let swap_amount = TokenAmount::new(amount);
+            swap_exact_limit!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                true,
+                swap_amount,
+                true,
+                bob
+            );
+
+            Ok(())
+        }
 
         #[ink_e2e::test]
         async fn claim(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
