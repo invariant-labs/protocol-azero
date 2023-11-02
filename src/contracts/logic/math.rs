@@ -1,10 +1,9 @@
 use decimal::*;
-use decimal::{BigOps, CheckedOps, Factories};
 
 use crate::math::liquidity::Liquidity;
 use crate::math::sqrt_price::sqrt_price::{calculate_sqrt_price, SqrtPrice};
 use crate::math::token_amount::TokenAmount;
-use crate::math::{sqrt_price, MAX_TICK};
+use crate::math::MAX_TICK;
 
 const PRICE_DENOMINATOR: u128 = 1_000_000_000_000_000_000_000_000;
 const LIQUIDITY_DENOMINATOR: u128 = 1_000_000;
