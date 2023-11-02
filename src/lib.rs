@@ -2185,7 +2185,9 @@ pub mod contract {
         }
 
         #[ink_e2e::test]
-        async fn position_slippage(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn position_slippage_zero_slippage_and_inside_range(
+            mut client: ink_e2e::Client<C, E>,
+        ) -> E2EResult<()> {
             let alice = ink_e2e::alice();
             let (dex, token_x, token_y) =
                 init_slippage_dex_and_tokens!(client, ContractRef, TokenRef);
@@ -2207,10 +2209,31 @@ pub mod contract {
                 pool_key.fee_tier
             )
             .unwrap();
+
+            // SLIPPAGE FORMULA
+            /*
+                        denominator = 10^12
+                        multiplier = slippage + denominator || denominator - slippage
+                        slippage_sqrt = sqrt(multiplier * denominator)
+                        result = price * slippage_sqrt / denominator
+            */
+
+            // export const toDecimal = (x: number, decimals: number = 0): Decimal => {
+            //     return { v: DENOMINATOR.muln(x).div(new BN(10).pow(new BN(decimals))) }
+            //   }
+
+            //   export const toPrice = (x: number, decimals: number = 0): Decimal => {
+            //     return toDecimalWithDenominator(x, PRICE_DENOMINATOR, decimals)
+            //   }
+
+            // export const toDecimalWithDenominator = (x: number, denominator: BN, decimals: number = 0) => {
+            //     return { v: denominator.muln(x).div(new BN(10).pow(new BN(decimals))) }
+            //   }
+
+            // zero slippage
             {
                 let liquidity_delta = Liquidity::from_integer(1_000_000);
                 let known_price = pool.sqrt_price;
-                let slippage = SqrtPrice::new(MAX_SQRT_PRICE);
                 let tick = pool_key.fee_tier.tick_spacing as i32;
                 create_position!(
                     client,
@@ -2221,51 +2244,28 @@ pub mod contract {
                     tick,
                     liquidity_delta,
                     known_price,
-                    slippage,
-                    alice
-                );
-            }
-            {
-                let liquidity_delta = Liquidity::from_integer(1_000_000);
-                let known_price = pool.sqrt_price;
-                let limit_upper = SqrtPrice::new(1010000000000000000000000);
-                let tick = pool_key.fee_tier.tick_spacing as i32;
-                create_position!(
-                    client,
-                    ContractRef,
-                    dex,
-                    pool_key,
-                    -tick,
-                    tick,
-                    liquidity_delta,
                     known_price,
-                    limit_upper,
                     alice
                 );
             }
+            // inside range
             {
                 let liquidity_delta = Liquidity::from_integer(1_000_000);
-                let known_price = pool.sqrt_price;
-                let limit_upper = SqrtPrice::new(1030000000000000000000000);
+                let known_price = SqrtPrice::new(1010000000000000000000000);
+                // slippage = 10^12 * 3 / 10^2 = 3 * 10^10
+
+                // limit lower = known_price * sqrt(10^12 * (10^12 - 3 * 10^10)) / 10^12
+                // limit lower = 1010000000000000000000000 * sqrt(10^12 * (10^12 - 3 * 10^10)) / 10^12
+                // limit lower = 994734637981406576896367
+                let limit_lower = SqrtPrice::new(994734637981406576896367);
+
+                // limit upper = known_price * sqrt(10^12 * (3 * 10^10 + 10^12)) / 10^12
+                // limit upper = 1010000000000000000000000 * sqrt(10^12 * (3 * 10^10 + 10^12)) / 10^12
+                // limit upper = 1025038048074314166333500
+                let limit_upper = SqrtPrice::new(1025038048074314166333500);
+
                 let tick = pool_key.fee_tier.tick_spacing as i32;
-                create_position!(
-                    client,
-                    ContractRef,
-                    dex,
-                    pool_key,
-                    -tick,
-                    tick,
-                    liquidity_delta,
-                    known_price,
-                    limit_upper,
-                    alice
-                );
-            }
-            {
-                let liquidity_delta = Liquidity::from_integer(1_000_000);
-                let known_price = pool.sqrt_price;
-                let limit_lower = SqrtPrice::new(970000000000000000000000);
-                let tick = pool_key.fee_tier.tick_spacing as i32;
+
                 create_position!(
                     client,
                     ContractRef,
@@ -2275,12 +2275,178 @@ pub mod contract {
                     tick,
                     liquidity_delta,
                     limit_lower,
-                    known_price,
+                    limit_upper,
                     alice
                 );
             }
+            // // below range
+            // {
+            //     let liquidity_delta = Liquidity::from_integer(1_000_000);
+            //     let known_price = SqrtPrice::new(1030000000000000000000000);
+            //     // slippage = 10^12 * 3 / 10^2 = 3 * 10^10
 
+            //     // limit lower = known_price * sqrt(10^12 * (10^12 - 3 * 10^10)) / 10^12
+            //     // limit lower = 1030000000000000000000000 * sqrt(10^12 * (10^12 - 3 * 10^10)) / 10^12
+            //     // limit lower = 1014432353584998786339859
+            //     let limit_lower = SqrtPrice::new(1014432353584998786339859);
+
+            //     // limit upper = known_price * sqrt(10^12 * (3 * 10^10 + 10^12)) / 10^12
+            //     // limit upper = 1030000000000000000000000 * sqrt(10^12 * (3 * 10^10 + 10^12)) / 10^12
+            //     // limit upper = 1045335831204498605270797
+            //     let limit_upper = SqrtPrice::new(1045335831204498605270797);
+            //     let tick = pool_key.fee_tier.tick_spacing as i32;
+            //     create_position!(
+            //         client,
+            //         ContractRef,
+            //         dex,
+            //         pool_key,
+            //         -tick,
+            //         tick,
+            //         liquidity_delta,
+            //         limit_lower,
+            //         limit_upper,
+            //         alice
+            //     );
+            // }
+            // // above range
+            // should panic
+            // {
+            //     let liquidity_delta = Liquidity::from_integer(1_000_000);
+            //     let known_price = pool.sqrt_price;
+            //     let limit_lower = SqrtPrice::new(970000000000000000000000);
+
+            //     // slippage = 10^12 * 3 / 10^2 = 3 * 10^10
+
+            //     // limit lower = known_price * sqrt(10^12 * (10^12 - 3 * 10^10)) / 10^12
+            //     // limit lower = 970000000000000000000000 * sqrt(10^12 * (10^12 - 3 * 10^10)) / 10^12
+            //     // limit lower = 955339206774222158009382
+            //     let limit_lower = SqrtPrice::new(955339206774222158009382);
+
+            //     // limit upper = known_price * sqrt(10^12 * (3 * 10^10 + 10^12)) / 10^12
+            //     // limit upper = 970000000000000000000000 * sqrt(10^12 * (3 * 10^10 + 10^12)) / 10^12
+            //     // limit upper = 984442481813945288458906
+            //     let limit_upper = SqrtPrice::new(984442481813945288458906);
+            //     let tick = pool_key.fee_tier.tick_spacing as i32;
+            //     create_position!(
+            //         client,
+            //         ContractRef,
+            //         dex,
+            //         pool_key,
+            //         -tick,
+            //         tick,
+            //         liquidity_delta,
+            //         limit_lower,
+            //         limit_upper,
+            //         alice
+            //     );
+            // }
             Ok(())
+        }
+        #[ink_e2e::test]
+        #[should_panic]
+        async fn position_slippage_below_range(mut client: ink_e2e::Client<C, E>) -> () {
+            let alice = ink_e2e::alice();
+            let (dex, token_x, token_y) =
+                init_slippage_dex_and_tokens!(client, ContractRef, TokenRef);
+            let pool_key = create_slippage_pool_with_liquidity!(
+                client,
+                ContractRef,
+                TokenRef,
+                dex,
+                token_x,
+                token_y
+            );
+
+            let pool = get_pool!(
+                client,
+                ContractRef,
+                dex,
+                token_x,
+                token_y,
+                pool_key.fee_tier
+            )
+            .unwrap();
+
+            let liquidity_delta = Liquidity::from_integer(1_000_000);
+            let known_price = SqrtPrice::new(1030000000000000000000000);
+            // slippage = 10^12 * 3 / 10^2 = 3 * 10^10
+
+            // limit lower = known_price * sqrt(10^12 * (10^12 - 3 * 10^10)) / 10^12
+            // limit lower = 1030000000000000000000000 * sqrt(10^12 * (10^12 - 3 * 10^10)) / 10^12
+            // limit lower = 1014432353584998786339859
+            let limit_lower = SqrtPrice::new(1014432353584998786339859);
+
+            // limit upper = known_price * sqrt(10^12 * (3 * 10^10 + 10^12)) / 10^12
+            // limit upper = 1030000000000000000000000 * sqrt(10^12 * (3 * 10^10 + 10^12)) / 10^12
+            // limit upper = 1045335831204498605270797
+            let limit_upper = SqrtPrice::new(1045335831204498605270797);
+            let tick = pool_key.fee_tier.tick_spacing as i32;
+            create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                -tick,
+                tick,
+                liquidity_delta,
+                limit_lower,
+                limit_upper,
+                alice
+            );
+        }
+        #[ink_e2e::test]
+        #[should_panic]
+        async fn position_slippage_above_range(mut client: ink_e2e::Client<C, E>) -> () {
+            let alice = ink_e2e::alice();
+            let (dex, token_x, token_y) =
+                init_slippage_dex_and_tokens!(client, ContractRef, TokenRef);
+            let pool_key = create_slippage_pool_with_liquidity!(
+                client,
+                ContractRef,
+                TokenRef,
+                dex,
+                token_x,
+                token_y
+            );
+
+            let pool = get_pool!(
+                client,
+                ContractRef,
+                dex,
+                token_x,
+                token_y,
+                pool_key.fee_tier
+            )
+            .unwrap();
+
+            let liquidity_delta = Liquidity::from_integer(1_000_000);
+            let known_price = pool.sqrt_price;
+            let limit_lower = SqrtPrice::new(970000000000000000000000);
+
+            // slippage = 10^12 * 3 / 10^2 = 3 * 10^10
+
+            // limit lower = known_price * sqrt(10^12 * (10^12 - 3 * 10^10)) / 10^12
+            // limit lower = 970000000000000000000000 * sqrt(10^12 * (10^12 - 3 * 10^10)) / 10^12
+            // limit lower = 955339206774222158009382
+            let limit_lower = SqrtPrice::new(955339206774222158009382);
+
+            // limit upper = known_price * sqrt(10^12 * (3 * 10^10 + 10^12)) / 10^12
+            // limit upper = 970000000000000000000000 * sqrt(10^12 * (3 * 10^10 + 10^12)) / 10^12
+            // limit upper = 984442481813945288458906
+            let limit_upper = SqrtPrice::new(984442481813945288458906);
+            let tick = pool_key.fee_tier.tick_spacing as i32;
+            create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                -tick,
+                tick,
+                liquidity_delta,
+                limit_lower,
+                limit_upper,
+                alice
+            );
         }
     }
 }
