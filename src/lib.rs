@@ -2210,14 +2210,6 @@ pub mod contract {
             )
             .unwrap();
 
-            // SLIPPAGE FORMULA
-            /*
-                        denominator = 10^12
-                        multiplier = slippage + denominator || denominator - slippage
-                        slippage_sqrt = sqrt(multiplier * denominator)
-                        result = price * slippage_sqrt / denominator
-            */
-
             // zero slippage
             {
                 let liquidity_delta = Liquidity::from_integer(1_000_000);
@@ -2240,16 +2232,7 @@ pub mod contract {
             {
                 let liquidity_delta = Liquidity::from_integer(1_000_000);
                 let known_price = SqrtPrice::new(1010000000000000000000000);
-                // slippage = 10^12 * 3 / 10^2 = 3 * 10^10
-
-                // limit lower = known_price * sqrt(10^12 * (10^12 - 3 * 10^10)) / 10^12
-                // limit lower = 1010000000000000000000000 * sqrt(10^12 * (10^12 - 3 * 10^10)) / 10^12
-                // limit lower = 994734637981406576896367
                 let limit_lower = SqrtPrice::new(994734637981406576896367);
-
-                // limit upper = known_price * sqrt(10^12 * (3 * 10^10 + 10^12)) / 10^12
-                // limit upper = 1010000000000000000000000 * sqrt(10^12 * (3 * 10^10 + 10^12)) / 10^12
-                // limit upper = 1025038048074314166333500
                 let limit_upper = SqrtPrice::new(1025038048074314166333500);
 
                 let tick = pool_key.fee_tier.tick_spacing as i32;
@@ -2297,16 +2280,7 @@ pub mod contract {
 
             let liquidity_delta = Liquidity::from_integer(1_000_000);
             let known_price = SqrtPrice::new(1030000000000000000000000);
-            // slippage = 10^12 * 3 / 10^2 = 3 * 10^10
-
-            // limit lower = known_price * sqrt(10^12 * (10^12 - 3 * 10^10)) / 10^12
-            // limit lower = 1030000000000000000000000 * sqrt(10^12 * (10^12 - 3 * 10^10)) / 10^12
-            // limit lower = 1014432353584998786339859
             let limit_lower = SqrtPrice::new(1014432353584998786339859);
-
-            // limit upper = known_price * sqrt(10^12 * (3 * 10^10 + 10^12)) / 10^12
-            // limit upper = 1030000000000000000000000 * sqrt(10^12 * (3 * 10^10 + 10^12)) / 10^12
-            // limit upper = 1045335831204498605270797
             let limit_upper = SqrtPrice::new(1045335831204498605270797);
             let tick = pool_key.fee_tier.tick_spacing as i32;
             create_position!(
@@ -2349,18 +2323,7 @@ pub mod contract {
 
             let liquidity_delta = Liquidity::from_integer(1_000_000);
             let known_price = pool.sqrt_price;
-            let limit_lower = SqrtPrice::new(970000000000000000000000);
-
-            // slippage = 10^12 * 3 / 10^2 = 3 * 10^10
-
-            // limit lower = known_price * sqrt(10^12 * (10^12 - 3 * 10^10)) / 10^12
-            // limit lower = 970000000000000000000000 * sqrt(10^12 * (10^12 - 3 * 10^10)) / 10^12
-            // limit lower = 955339206774222158009382
             let limit_lower = SqrtPrice::new(955339206774222158009382);
-
-            // limit upper = known_price * sqrt(10^12 * (3 * 10^10 + 10^12)) / 10^12
-            // limit upper = 970000000000000000000000 * sqrt(10^12 * (3 * 10^10 + 10^12)) / 10^12
-            // limit upper = 984442481813945288458906
             let limit_upper = SqrtPrice::new(984442481813945288458906);
             let tick = pool_key.fee_tier.tick_spacing as i32;
             create_position!(
