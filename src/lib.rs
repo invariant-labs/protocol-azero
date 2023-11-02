@@ -439,7 +439,7 @@ pub mod contract {
             amount: TokenAmount,
             by_amount_in: bool,
             sqrt_price_limit: SqrtPrice,
-        ) -> Result<(TokenAmount, TokenAmount, SqrtPrice), ContractErrors> {
+        ) -> Result<(TokenAmount, TokenAmount, SqrtPrice, Vec<Tick>), ContractErrors> {
             let calculate_swap_result =
                 self.calculate_swap(pool_key, x_to_y, amount, by_amount_in, sqrt_price_limit)?;
 
@@ -447,6 +447,7 @@ pub mod contract {
                 calculate_swap_result.amount_in,
                 calculate_swap_result.amount_out,
                 calculate_swap_result.pool.sqrt_price,
+                calculate_swap_result.ticks,
             ))
         }
 
@@ -1047,6 +1048,12 @@ pub mod contract {
                 pool_after.current_tick_index,
                 get_tick_at_sqrt_price(quote_result.2, 10).unwrap()
             );
+
+            for quote_tick in quote_result.3.iter() {
+                let tick =
+                    get_tick!(client, ContractRef, dex, quote_tick.index, pool_key, alice).unwrap();
+                assert_eq!(quote_tick.fee_growth_outside_x, tick.fee_growth_outside_x);
+            }
 
             Ok(())
         }
