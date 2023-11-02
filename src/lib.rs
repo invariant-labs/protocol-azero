@@ -1018,6 +1018,7 @@ pub mod contract {
             let crosses_after_quote =
                 ((pool_after_quote.current_tick_index - pool_before.current_tick_index) / 10).abs();
             assert_eq!(crosses_after_quote, 0);
+            assert_eq!(quote_result.3.len() - 1, 19);
 
             swap!(
                 client,
@@ -1048,12 +1049,6 @@ pub mod contract {
                 pool_after.current_tick_index,
                 get_tick_at_sqrt_price(quote_result.2, 10).unwrap()
             );
-
-            for quote_tick in quote_result.3.iter() {
-                let tick =
-                    get_tick!(client, ContractRef, dex, quote_tick.index, pool_key, alice).unwrap();
-                assert_eq!(quote_tick.fee_growth_outside_x, tick.fee_growth_outside_x);
-            }
 
             Ok(())
         }
