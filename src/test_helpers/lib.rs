@@ -1141,3 +1141,38 @@ macro_rules! quote {
             .return_value()
     }};
 }
+
+#[macro_export]
+macro_rules! swap_exact_limit {
+    ($client:ident, $dex:ty, $dex_address:ident, $pool_key:expr, $x_to_y:expr, $amount:expr, $by_amount_in:expr, $caller:ident) => {{
+        let sqrt_price_limit = if $x_to_y {
+            SqrtPrice::new(MIN_SQRT_PRICE)
+        } else {
+            SqrtPrice::new(MAX_SQRT_PRICE)
+        };
+
+        let quote_result = quote!(
+            $client,
+            $dex,
+            $dex_address,
+            $pool_key,
+            $x_to_y,
+            $amount,
+            $by_amount_in,
+            sqrt_price_limit,
+            $caller
+        )
+        .unwrap();
+        swap!(
+            $client,
+            $dex,
+            $dex_address,
+            $pool_key,
+            $x_to_y,
+            $amount,
+            $by_amount_in,
+            quote_result.2,
+            $caller
+        );
+    }};
+}
