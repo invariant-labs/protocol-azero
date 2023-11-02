@@ -439,7 +439,7 @@ pub mod contract {
             amount: TokenAmount,
             by_amount_in: bool,
             sqrt_price_limit: SqrtPrice,
-        ) -> Result<(TokenAmount, TokenAmount, SqrtPrice), ContractErrors> {
+        ) -> Result<(TokenAmount, TokenAmount, SqrtPrice, Vec<Tick>), ContractErrors> {
             let calculate_swap_result =
                 self.calculate_swap(pool_key, x_to_y, amount, by_amount_in, sqrt_price_limit)?;
 
@@ -447,6 +447,7 @@ pub mod contract {
                 calculate_swap_result.amount_in,
                 calculate_swap_result.amount_out,
                 calculate_swap_result.pool.sqrt_price,
+                calculate_swap_result.ticks,
             ))
         }
 
@@ -910,6 +911,7 @@ pub mod contract {
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod e2e_tests {
         use crate::math::fee_growth::FeeGrowth;
+        use crate::math::sqrt_price::log::get_tick_at_sqrt_price;
         use crate::math::sqrt_price::sqrt_price::calculate_sqrt_price;
         use ink::prelude::vec;
         use ink::prelude::vec::Vec;
@@ -930,6 +932,126 @@ pub mod contract {
         use super::*;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
+
+        #[ink_e2e::test]
+        async fn max_tick_cross(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let (dex, token_x, token_y) = init_dex_and_tokens!(client, ContractRef, TokenRef);
+            init_basic_pool!(client, ContractRef, TokenRef, dex, token_x, token_y);
+
+            let mint_amount = 10u128.pow(10);
+            let alice = ink_e2e::alice();
+            approve!(client, TokenRef, token_x, dex, mint_amount, alice);
+            approve!(client, TokenRef, token_y, dex, mint_amount, alice);
+
+            let liquidity = Liquidity::from_integer(10000000);
+            let fee_tier = FeeTier {
+                fee: Percentage::from_scale(6, 3),
+                tick_spacing: 10,
+            };
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+
+            for i in (-200..20).step_by(10) {
+                let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+
+                let slippage_limit_lower = pool.sqrt_price;
+                let slippage_limit_upper = pool.sqrt_price;
+
+                create_position!(
+                    client,
+                    ContractRef,
+                    dex,
+                    pool_key,
+                    i,
+                    i + 10,
+                    liquidity,
+                    slippage_limit_lower,
+                    slippage_limit_upper,
+                    alice
+                );
+            }
+
+            let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+            assert_eq!(pool.liquidity, liquidity);
+
+            let amount = 95000;
+            let bob = ink_e2e::bob();
+            mint!(TokenRef, client, token_x, Bob, amount);
+            let amount_x = balance_of!(TokenRef, client, token_x, Bob);
+            assert_eq!(amount_x, amount);
+            approve!(client, TokenRef, token_x, dex, amount, bob);
+
+            let pool_before = get_pool!(
+                client,
+                ContractRef,
+                dex,
+                token_x,
+                token_y,
+                pool_key.fee_tier
+            )
+            .unwrap();
+
+            let swap_amount = TokenAmount::new(amount);
+            let slippage = SqrtPrice::new(MIN_SQRT_PRICE);
+            let quote_result = quote!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                true,
+                swap_amount,
+                true,
+                slippage,
+                bob
+            )
+            .unwrap();
+
+            let pool_after_quote = get_pool!(
+                client,
+                ContractRef,
+                dex,
+                token_x,
+                token_y,
+                pool_key.fee_tier
+            )
+            .unwrap();
+
+            let crosses_after_quote =
+                ((pool_after_quote.current_tick_index - pool_before.current_tick_index) / 10).abs();
+            assert_eq!(crosses_after_quote, 0);
+            assert_eq!(quote_result.3.len() - 1, 19);
+
+            swap!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                true,
+                swap_amount,
+                true,
+                slippage,
+                bob
+            );
+
+            let pool_after = get_pool!(
+                client,
+                ContractRef,
+                dex,
+                token_x,
+                token_y,
+                pool_key.fee_tier
+            )
+            .unwrap();
+
+            let crosses =
+                ((pool_after.current_tick_index - pool_before.current_tick_index) / 10).abs();
+            assert_eq!(crosses, 19);
+            assert_eq!(
+                pool_after.current_tick_index,
+                get_tick_at_sqrt_price(quote_result.2, 10).unwrap()
+            );
+
+            Ok(())
+        }
 
         #[ink_e2e::test]
         async fn swap_exact_limit(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
