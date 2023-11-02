@@ -14,14 +14,18 @@ const TICK_LIMIT: i32 = 44_364;
 
 pub fn get_liquidity_by_x(
     x: TokenAmount,
-    lower_tick: i32,
-    upper_tick: i32,
+    mut lower_tick: i32,
+    mut upper_tick: i32,
     current_sqrt_price: SqrtPrice,
     rounding_up: bool,
     tick_spacing: u16,
 ) -> (Liquidity, TokenAmount) {
-    // let lower_tick_index = get_min_tick(tick_spacing);
-    // let upper_tick_index = get_max_tick(tick_spacing);
+    if lower_tick < -MAX_TICK {
+        lower_tick = get_min_tick(tick_spacing);
+    }
+    if upper_tick > MAX_TICK {
+        upper_tick = get_max_tick(tick_spacing);
+    }
 
     let lower_sqrt_price = calculate_sqrt_price(lower_tick).unwrap();
     let upper_sqrt_price = calculate_sqrt_price(upper_tick).unwrap();
@@ -42,7 +46,8 @@ pub fn get_liquidity_by_x_sqrt_price(
     rounding_up: bool,
 ) -> (Liquidity, TokenAmount) {
     if upper_sqrt_price < current_sqrt_price {
-        // error
+        // err
+        return (Liquidity::new(0), TokenAmount::new(0));
     }
 
     if current_sqrt_price < lower_sqrt_price {
@@ -86,14 +91,18 @@ pub fn calculate_y(
 
 pub fn get_liquidity_by_y(
     y: TokenAmount,
-    lower_tick: i32,
-    upper_tick: i32,
+    mut lower_tick: i32,
+    mut upper_tick: i32,
     current_sqrt_price: SqrtPrice,
     rounding_up: bool,
     tick_spacing: u16,
 ) -> (Liquidity, TokenAmount) {
-    // let lower_tick_index = get_min_tick(tick_spacing);
-    // let upper_tick_index = get_max_tick(tick_spacing);
+    if lower_tick < -MAX_TICK {
+        lower_tick = get_min_tick(tick_spacing);
+    }
+    if upper_tick > MAX_TICK {
+        upper_tick = get_max_tick(tick_spacing);
+    }
 
     let lower_sqrt_price = calculate_sqrt_price(lower_tick).unwrap();
     let upper_sqrt_price = calculate_sqrt_price(upper_tick).unwrap();
@@ -116,6 +125,7 @@ pub fn get_liquidity_by_y_sqrt_price(
 ) -> (Liquidity, TokenAmount) {
     if current_sqrt_price < lower_sqrt_price {
         // err
+        return (Liquidity::new(0), TokenAmount::new(0));
     }
 
     if upper_sqrt_price <= current_sqrt_price {
