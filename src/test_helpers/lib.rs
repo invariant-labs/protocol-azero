@@ -1145,6 +1145,12 @@ macro_rules! quote {
 #[macro_export]
 macro_rules! swap_exact_limit {
     ($client:ident, $dex:ty, $dex_address:ident, $pool_key:expr, $x_to_y:expr, $amount:expr, $by_amount_in:expr, $caller:ident) => {{
+        let sqrt_price_limit = if $x_to_y {
+            SqrtPrice::new(MIN_SQRT_PRICE)
+        } else {
+            SqrtPrice::new(MAX_SQRT_PRICE)
+        };
+
         let quote_result = quote!(
             $client,
             $dex,
@@ -1153,7 +1159,7 @@ macro_rules! swap_exact_limit {
             $x_to_y,
             $amount,
             $by_amount_in,
-            SqrtPrice::new(MAX_SQRT_PRICE),
+            sqrt_price_limit,
             $caller
         )
         .unwrap();
