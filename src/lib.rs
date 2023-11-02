@@ -910,6 +910,7 @@ pub mod contract {
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod e2e_tests {
         use crate::math::fee_growth::FeeGrowth;
+        use crate::math::sqrt_price::log::get_tick_at_sqrt_price;
         use crate::math::sqrt_price::sqrt_price::calculate_sqrt_price;
         use ink::prelude::vec;
         use ink::prelude::vec::Vec;
@@ -990,6 +991,33 @@ pub mod contract {
 
             let swap_amount = TokenAmount::new(amount);
             let slippage = SqrtPrice::new(MIN_SQRT_PRICE);
+            let quote_result = quote!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                true,
+                swap_amount,
+                true,
+                slippage,
+                bob
+            )
+            .unwrap();
+
+            let pool_after_quote = get_pool!(
+                client,
+                ContractRef,
+                dex,
+                token_x,
+                token_y,
+                pool_key.fee_tier
+            )
+            .unwrap();
+
+            let crosses_after_quote =
+                ((pool_after_quote.current_tick_index - pool_before.current_tick_index) / 10).abs();
+            assert_eq!(crosses_after_quote, 0);
+
             swap!(
                 client,
                 ContractRef,
@@ -1015,6 +1043,10 @@ pub mod contract {
             let crosses =
                 ((pool_after.current_tick_index - pool_before.current_tick_index) / 10).abs();
             assert_eq!(crosses, 19);
+            assert_eq!(
+                pool_after.current_tick_index,
+                get_tick_at_sqrt_price(quote_result.2, 10).unwrap()
+            );
 
             Ok(())
         }
