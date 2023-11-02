@@ -331,7 +331,7 @@ mod tests {
         }
         // above current tick
         {
-            let expected_l = Liquidity::new(0); // PROTOCOL = 584945290554346935
+            let expected_l = Liquidity::new(0);
             let expected_x = TokenAmount(0);
             let lower_tick = -10000;
             let upper_tick = 0;
@@ -348,15 +348,98 @@ mod tests {
     }
     #[test]
     fn get_liquidity_test() {
-        let expected_liquidity: Liquidity;
-        let expected_x: TokenAmount;
-        let expected_y: TokenAmount;
-        let x = TokenAmount(1);
-        let y = TokenAmount(1);
-        let lower_tick = -10;
-        let upper_tick = 10;
-        let current_sqrt_price = SqrtPrice::from_integer(1);
-        let result = get_liquidity(x, y, lower_tick, upper_tick, current_sqrt_price, true, 10);
-        println!("Result = {:?}", result);
+        let y = TokenAmount(476_000_000_00);
+        let current_sqrt_price = calculate_sqrt_price(-20000).unwrap();
+
+        // below current tick
+        {
+            let lower_tick = -22000;
+            let upper_tick = -21000;
+            let expected_x = TokenAmount(0);
+            let expected_l = Liquidity::new(2789052279103000000); // 2789052279103923275
+            let (x_up, _, liquidity_up) = get_liquidity(
+                expected_x,
+                y,
+                lower_tick,
+                upper_tick,
+                current_sqrt_price,
+                true,
+                10,
+            );
+            let (x_down, _, liquidity_down) = get_liquidity(
+                expected_x,
+                y,
+                lower_tick,
+                upper_tick,
+                current_sqrt_price,
+                true,
+                10,
+            );
+            assert_eq!(expected_l, liquidity_up);
+            assert_eq!(expected_l, liquidity_down);
+            assert_eq!(x_up, expected_x);
+            assert_eq!(x_down, expected_x);
+        }
+        // in current tick
+        {
+            let lower_tick = -25000;
+            let upper_tick = -19000;
+            let expected_x_up = TokenAmount(77539808126);
+            let expected_x_down = TokenAmount(77539808126); // 77539808125
+            let expected_l_up = Liquidity::new(584945290554000000); // 584945290554346935
+            let expected_l_down = Liquidity::new(584945290554000000);
+            let (x_up, _, liquidity_up) = get_liquidity(
+                expected_x_up,
+                y,
+                lower_tick,
+                upper_tick,
+                current_sqrt_price,
+                true,
+                10,
+            );
+            let (x_down, _, liquidity_down) = get_liquidity(
+                expected_x_down,
+                y,
+                lower_tick,
+                upper_tick,
+                current_sqrt_price,
+                true,
+                10,
+            );
+            assert_eq!(expected_l_up, liquidity_up);
+            assert_eq!(expected_l_down, liquidity_down);
+            assert_eq!(x_up, expected_x_up);
+            assert_eq!(x_down, expected_x_down);
+        }
+        // above current tick
+        {
+            let lower_tick = 150;
+            let upper_tick = 800;
+            let x = TokenAmount(43_000_000_0);
+            let expected_y = TokenAmount(0);
+            let expected_l = Liquidity::new(13548826311000000); // 13548826311623850
+            let (_, y_up, liquidity_up) = get_liquidity(
+                x,
+                expected_y,
+                lower_tick,
+                upper_tick,
+                current_sqrt_price,
+                true,
+                10,
+            );
+            let (_, y_down, liquidity_down) = get_liquidity(
+                x,
+                expected_y,
+                lower_tick,
+                upper_tick,
+                current_sqrt_price,
+                true,
+                10,
+            );
+            assert_eq!(expected_l, liquidity_up);
+            assert_eq!(expected_l, liquidity_down);
+            assert_eq!(y_up, expected_y);
+            assert_eq!(y_down, expected_y);
+        }
     }
 }
