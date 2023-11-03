@@ -2,9 +2,7 @@ use decimal::*;
 use traceable_result::*;
 
 use crate::math::liquidity::Liquidity;
-use crate::math::sqrt_price::sqrt_price::{
-    calculate_sqrt_price, get_max_tick, get_min_tick, SqrtPrice,
-};
+use crate::math::sqrt_price::sqrt_price::{calculate_sqrt_price, SqrtPrice};
 use crate::math::token_amount::TokenAmount;
 use crate::math::MAX_TICK;
 
@@ -24,17 +22,13 @@ pub struct SingleTokenLiquidity {
 pub fn get_liquidity(
     x: TokenAmount,
     y: TokenAmount,
-    mut lower_tick: i32,
-    mut upper_tick: i32,
+    lower_tick: i32,
+    upper_tick: i32,
     current_sqrt_price: SqrtPrice,
     rounding_up: bool,
-    tick_spacing: u16,
 ) -> TrackableResult<LiquidityResult> {
-    if lower_tick < -MAX_TICK {
-        lower_tick = get_min_tick(tick_spacing);
-    }
-    if upper_tick > MAX_TICK {
-        upper_tick = get_max_tick(tick_spacing);
+    if lower_tick < -MAX_TICK || upper_tick > MAX_TICK {
+        return Err(err!("Invalid Ticks"));
     }
 
     let lower_sqrt_price = calculate_sqrt_price(lower_tick).unwrap();
@@ -100,17 +94,13 @@ pub fn get_liquidity(
 
 pub fn get_liquidity_by_x(
     x: TokenAmount,
-    mut lower_tick: i32,
-    mut upper_tick: i32,
+    lower_tick: i32,
+    upper_tick: i32,
     current_sqrt_price: SqrtPrice,
     rounding_up: bool,
-    tick_spacing: u16,
 ) -> TrackableResult<SingleTokenLiquidity> {
-    if lower_tick < -MAX_TICK {
-        lower_tick = get_min_tick(tick_spacing);
-    }
-    if upper_tick > MAX_TICK {
-        upper_tick = get_max_tick(tick_spacing);
+    if lower_tick < -MAX_TICK || upper_tick > MAX_TICK {
+        return Err(err!("Invalid Ticks"));
     }
 
     let lower_sqrt_price = calculate_sqrt_price(lower_tick).unwrap();
@@ -163,17 +153,13 @@ pub fn get_liquidity_by_x_sqrt_price(
 
 pub fn get_liquidity_by_y(
     y: TokenAmount,
-    mut lower_tick: i32,
-    mut upper_tick: i32,
+    lower_tick: i32,
+    upper_tick: i32,
     current_sqrt_price: SqrtPrice,
     rounding_up: bool,
-    tick_spacing: u16,
 ) -> TrackableResult<SingleTokenLiquidity> {
-    if lower_tick < -MAX_TICK {
-        lower_tick = get_min_tick(tick_spacing);
-    }
-    if upper_tick > MAX_TICK {
-        upper_tick = get_max_tick(tick_spacing);
+    if lower_tick < -MAX_TICK || upper_tick > MAX_TICK {
+        return Err(err!("Invalid Ticks"));
     }
 
     let lower_sqrt_price = calculate_sqrt_price(lower_tick).unwrap();
@@ -272,7 +258,7 @@ mod tests {
             let lower_tick = -50;
             let upper_tick = 10;
             let (_, cause, stack) =
-                get_liquidity_by_x(x, lower_tick, upper_tick, current_sqrt_price, true, 1)
+                get_liquidity_by_x(x, lower_tick, upper_tick, current_sqrt_price, true)
                     .unwrap_err()
                     .get();
             assert_eq!(cause, "Upper Sqrt Price < Current Sqrt Price");
@@ -288,11 +274,10 @@ mod tests {
             let upper_tick = 120;
 
             let result_up =
-                get_liquidity_by_x(x, lower_tick, upper_tick, current_sqrt_price, true, 1).unwrap();
+                get_liquidity_by_x(x, lower_tick, upper_tick, current_sqrt_price, true).unwrap();
 
             let result_down =
-                get_liquidity_by_x(x, lower_tick, upper_tick, current_sqrt_price, false, 1)
-                    .unwrap();
+                get_liquidity_by_x(x, lower_tick, upper_tick, current_sqrt_price, false).unwrap();
             assert_eq!(expected_l, result_up.l);
             assert_eq!(expected_y_up, result_up.amount);
             assert_eq!(expected_l, result_down.l);
@@ -306,13 +291,12 @@ mod tests {
             let upper_tick = 800;
 
             let result_up =
-                get_liquidity_by_x(x, lower_tick, upper_tick, current_sqrt_price, true, 1).unwrap();
+                get_liquidity_by_x(x, lower_tick, upper_tick, current_sqrt_price, true).unwrap();
             assert_eq!(expected_l, result_up.l);
             assert_eq!(expected_y, result_up.amount);
 
             let result_down =
-                get_liquidity_by_x(x, lower_tick, upper_tick, current_sqrt_price, false, 1)
-                    .unwrap();
+                get_liquidity_by_x(x, lower_tick, upper_tick, current_sqrt_price, false).unwrap();
             assert_eq!(expected_l, result_down.l);
             assert_eq!(expected_y, result_up.amount);
         }
@@ -330,12 +314,11 @@ mod tests {
             let upper_tick = -21000;
 
             let result_up =
-                get_liquidity_by_y(y, lower_tick, upper_tick, current_sqrt_price, true, 1).unwrap();
+                get_liquidity_by_y(y, lower_tick, upper_tick, current_sqrt_price, true).unwrap();
             assert_eq!(expected_l, result_up.l);
             assert_eq!(expected_x, result_up.amount);
             let result_down =
-                get_liquidity_by_y(y, lower_tick, upper_tick, current_sqrt_price, false, 1)
-                    .unwrap();
+                get_liquidity_by_y(y, lower_tick, upper_tick, current_sqrt_price, false).unwrap();
             assert_eq!(expected_l, result_down.l);
             assert_eq!(expected_x, result_down.amount);
         }
@@ -348,12 +331,11 @@ mod tests {
             let upper_tick = -19000;
 
             let result_up =
-                get_liquidity_by_y(y, lower_tick, upper_tick, current_sqrt_price, true, 1).unwrap();
+                get_liquidity_by_y(y, lower_tick, upper_tick, current_sqrt_price, true).unwrap();
             assert_eq!(expected_l, result_up.l);
             assert_eq!(expected_x_up, result_up.amount);
             let result_down =
-                get_liquidity_by_y(y, lower_tick, upper_tick, current_sqrt_price, false, 1)
-                    .unwrap();
+                get_liquidity_by_y(y, lower_tick, upper_tick, current_sqrt_price, false).unwrap();
             assert_eq!(expected_l, result_down.l);
             assert_eq!(expected_x_down, result_down.amount);
         }
@@ -363,13 +345,13 @@ mod tests {
             let upper_tick = 0;
 
             let (_, cause, stack) =
-                get_liquidity_by_y(y, lower_tick, upper_tick, current_sqrt_price, true, 1)
+                get_liquidity_by_y(y, lower_tick, upper_tick, current_sqrt_price, true)
                     .unwrap_err()
                     .get();
             assert_eq!(cause, "Current Sqrt Price < Lower Sqrt Price");
             assert_eq!(stack.len(), 2);
             let (_, cause, stack) =
-                get_liquidity_by_y(y, lower_tick, upper_tick, current_sqrt_price, false, 1)
+                get_liquidity_by_y(y, lower_tick, upper_tick, current_sqrt_price, false)
                     .unwrap_err()
                     .get();
             assert_eq!(cause, "Current Sqrt Price < Lower Sqrt Price");
@@ -395,7 +377,6 @@ mod tests {
                 upper_tick,
                 current_sqrt_price,
                 true,
-                10,
             )
             .unwrap();
             let result_down = get_liquidity(
@@ -405,7 +386,6 @@ mod tests {
                 upper_tick,
                 current_sqrt_price,
                 true,
-                10,
             )
             .unwrap();
             assert_eq!(expected_l, result_up.l);
@@ -428,7 +408,6 @@ mod tests {
                 upper_tick,
                 current_sqrt_price,
                 true,
-                10,
             )
             .unwrap();
             let result_down = get_liquidity(
@@ -438,7 +417,6 @@ mod tests {
                 upper_tick,
                 current_sqrt_price,
                 true,
-                10,
             )
             .unwrap();
             assert_eq!(expected_l_up, result_up.l);
@@ -460,7 +438,6 @@ mod tests {
                 upper_tick,
                 current_sqrt_price,
                 true,
-                10,
             )
             .unwrap();
             let result_down = get_liquidity(
@@ -470,7 +447,6 @@ mod tests {
                 upper_tick,
                 current_sqrt_price,
                 true,
-                10,
             )
             .unwrap();
             assert_eq!(expected_l, result_up.l);
