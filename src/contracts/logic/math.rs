@@ -177,7 +177,11 @@ pub fn get_liquidity_by_y_sqrt_price(
 
     if upper_sqrt_price <= current_sqrt_price {
         let sqrt_price_diff = upper_sqrt_price - lower_sqrt_price;
-        let liquidity = Liquidity::from_integer(y.0 * PRICE_DENOMINATOR / sqrt_price_diff.get());
+        let l: u128 = (U256::from(y.0) * U256::from(PRICE_DENOMINATOR)
+            / U256::from(sqrt_price_diff.get()))
+        .try_into()
+        .unwrap();
+        let liquidity = Liquidity::from_integer(l);
         return (liquidity, TokenAmount::new(0));
     }
 

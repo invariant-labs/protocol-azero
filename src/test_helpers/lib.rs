@@ -1180,7 +1180,7 @@ macro_rules! swap_exact_limit {
 #[macro_export]
 macro_rules! init_dex_and_tokens_max_mint_amount {
     ($client:ident, $dex:ty, $token:ty) => {{
-        let mint_amount = 2u128.pow(63) - 1;
+        let mint_amount = 2u128.pow(64) - 1;
         let (token_x, token_y) = create_tokens!($client, $token, $token, mint_amount, mint_amount);
 
         let protocol_fee = Percentage::from_scale(1, 2);
