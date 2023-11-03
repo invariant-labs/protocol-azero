@@ -1176,3 +1176,33 @@ macro_rules! swap_exact_limit {
         );
     }};
 }
+
+#[macro_export]
+macro_rules! init_dex_and_tokens_max_mint_amount {
+    ($client:ident, $dex:ty, $token:ty) => {{
+        let mint_amount = 2u128.pow(63) - 1;
+        let (token_x, token_y) = create_tokens!($client, $token, $token, mint_amount, mint_amount);
+
+        let protocol_fee = Percentage::from_scale(1, 2);
+        let dex = create_dex!($client, $dex, protocol_fee);
+        (dex, token_x, token_y)
+    }};
+}
+
+#[macro_export]
+macro_rules! mint_with_aprove_for_bob {
+    ($client:ident, $token:ty, $token_address:ident, $dex_address:ident, $mint_amount:expr) => {{
+        let bob = ink_e2e::bob();
+        mint!($token, $client, $token_address, Bob, $mint_amount);
+        let amount = balance_of!($token, $client, $token_address, Bob);
+        assert_eq!(amount, $mint_amount);
+        approve!(
+            $client,
+            $token,
+            $token_address,
+            $dex_address,
+            $mint_amount,
+            bob
+        );
+    }};
+}

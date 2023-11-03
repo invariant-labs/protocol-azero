@@ -910,6 +910,7 @@ pub mod contract {
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod e2e_tests {
+        use crate::contracts::{get_liquidity_by_x, get_liquidity_by_y};
         use crate::math::fee_growth::FeeGrowth;
         use crate::math::sqrt_price::log::get_tick_at_sqrt_price;
         use crate::math::sqrt_price::sqrt_price::calculate_sqrt_price;
@@ -924,14 +925,101 @@ pub mod contract {
             create_standard_fee_tiers, create_tokens, dex_balance, get_all_positions, get_fee_tier,
             get_pool, get_position, get_tick, init_basic_pool, init_basic_position,
             init_basic_swap, init_cross_position, init_cross_swap, init_dex_and_tokens,
-            init_slippage_dex_and_tokens, mint, quote, remove_position, swap, swap_exact_limit,
-            tickmap_bit, withdraw_protocol_fee,
+            init_dex_and_tokens_max_mint_amount, init_slippage_dex_and_tokens, mint,
+            mint_with_aprove_for_bob, quote, remove_position, swap, swap_exact_limit, tickmap_bit,
+            withdraw_protocol_fee,
         };
         use token::TokenRef;
 
         use super::*;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
+
+        #[ink_e2e::test]
+        #[should_panic]
+        async fn limits_big_deposit_both_tokens(mut client: ink_e2e::Client<C, E>) -> () {
+            let (dex, token_x, token_y) =
+                init_dex_and_tokens_max_mint_amount!(client, ContractRef, TokenRef);
+
+            let mint_amount = 2u128.pow(63) - 1;
+            let alice = ink_e2e::alice();
+            approve!(client, TokenRef, token_x, dex, mint_amount, alice);
+            approve!(client, TokenRef, token_y, dex, mint_amount, alice);
+
+            let fee_tier = FeeTier {
+                fee: Percentage::from_scale(6, 3),
+                tick_spacing: 1,
+            };
+            create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+
+            let init_tick = 0;
+            create_pool!(
+                client,
+                ContractRef,
+                dex,
+                token_x,
+                token_y,
+                fee_tier,
+                init_tick
+            );
+
+            let lower_tick = -(fee_tier.tick_spacing as i32);
+            let upper_tick = fee_tier.tick_spacing as i32;
+            let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+            let (liquidity_by_x, _amount) = get_liquidity_by_x(
+                TokenAmount(mint_amount),
+                lower_tick,
+                upper_tick,
+                pool.sqrt_price,
+                false,
+                fee_tier.tick_spacing,
+            );
+
+            let (liquidity_by_y, _amount) = get_liquidity_by_y(
+                TokenAmount(mint_amount),
+                lower_tick,
+                upper_tick,
+                pool.sqrt_price,
+                false,
+                fee_tier.tick_spacing,
+            );
+
+            let liquidity_delta = if liquidity_by_y < liquidity_by_x {
+                liquidity_by_y
+            } else {
+                liquidity_by_x
+            };
+
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+            let slippage_limit_lower = pool.sqrt_price;
+            let slippage_limit_upper = pool.sqrt_price;
+            create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                lower_tick,
+                upper_tick,
+                liquidity_delta,
+                slippage_limit_lower,
+                slippage_limit_upper,
+                alice
+            );
+
+            let bob = ink_e2e::bob();
+            let swap_amount = TokenAmount(1);
+            mint_with_aprove_for_bob!(client, TokenRef, token_x, dex, 1);
+            swap_exact_limit!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                true,
+                swap_amount,
+                true,
+                bob
+            );
+        }
 
         #[ink_e2e::test]
         async fn max_tick_cross(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {

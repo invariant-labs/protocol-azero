@@ -115,7 +115,11 @@ pub fn get_liquidity_by_x_sqrt_price(
         let nominator =
             (lower_sqrt_price.big_mul(upper_sqrt_price)).big_div(SqrtPrice::new(PRICE_DENOMINATOR));
         let denominator = upper_sqrt_price - lower_sqrt_price;
-        let liquidity = Liquidity::from_integer((x.0 * nominator.get()) / denominator.get());
+        let l: u128 = ((U256::from(x.0) * U256::from(nominator.get()))
+            / U256::from(denominator.get()))
+        .try_into()
+        .unwrap();
+        let liquidity = Liquidity::from_integer(l);
         return (liquidity, TokenAmount(0));
     }
 
@@ -123,7 +127,10 @@ pub fn get_liquidity_by_x_sqrt_price(
         .big_mul(upper_sqrt_price)
         .big_div(SqrtPrice::new(PRICE_DENOMINATOR));
     let denominator = upper_sqrt_price - current_sqrt_price;
-    let liquidity = Liquidity::from_integer((x.0 * nominator.get()) / denominator.get());
+    let l: u128 = ((U256::from(x.0) * U256::from(nominator.get())) / U256::from(denominator.get()))
+        .try_into()
+        .unwrap();
+    let liquidity = Liquidity::from_integer(l);
     let sqrt_price_diff = current_sqrt_price - lower_sqrt_price;
     let y = calculate_y(sqrt_price_diff, liquidity, rounding_up);
     (liquidity, y)
@@ -175,7 +182,11 @@ pub fn get_liquidity_by_y_sqrt_price(
     }
 
     let sqrt_price_diff = current_sqrt_price - lower_sqrt_price;
-    let liquidity = Liquidity::from_integer(y.0 * PRICE_DENOMINATOR / sqrt_price_diff.get());
+    let l: u128 = (U256::from(y.0) * U256::from(PRICE_DENOMINATOR)
+        / U256::from(sqrt_price_diff.get()))
+    .try_into()
+    .unwrap();
+    let liquidity = Liquidity::from_integer(l);
     let denominator =
         (current_sqrt_price.big_mul(upper_sqrt_price)).big_div(SqrtPrice::new(PRICE_DENOMINATOR));
     let nominator = upper_sqrt_price - current_sqrt_price;
@@ -212,7 +223,12 @@ pub fn calculate_y(
                 / PRICE_DENOMINATOR,
         )
     } else {
-        TokenAmount::new(sqrt_price_diff.get() * shifted_liquidity / PRICE_DENOMINATOR)
+        TokenAmount::new(
+            (U256::from(sqrt_price_diff.get()) * U256::from(shifted_liquidity)
+                / U256::from(PRICE_DENOMINATOR))
+            .try_into()
+            .unwrap(),
+        )
     }
 }
 
