@@ -230,10 +230,14 @@ pub fn calculate_y(
     Ok(if rounding_up {
         // intermediate 19996000399699881985603000000 * 49960018500000000000) + 10^24 - 1) / 10^6
         // intermediate < 2^140 || May be higher it is prtocol example
-        let intermediate = sqrt_price_diff.big_mul_up(shifted_liquidity);
-        let result = TokenAmount::from_decimal_up(intermediate);
-        result
-        // TokenAmount::from_decimal_up(sqrt_price_diff.big_mul_up(shifted_liquidity))
+        // let intermediate = sqrt_price_diff.big_mul_up(shifted_liquidity);
+        // let result = TokenAmount::from_decimal_up(intermediate);
+        // result;
+        // SqrtPrice::big_div_values_to_token_up(
+        //     U256::from(sqrt_price_diff.get()),
+        //     U256::from(shifted_liquidity.get()),
+        // )?
+        TokenAmount::from_decimal_up(sqrt_price_diff.big_mul_up(shifted_liquidity))
     } else {
         TokenAmount::from_decimal(sqrt_price_diff.big_mul(shifted_liquidity))
     })
