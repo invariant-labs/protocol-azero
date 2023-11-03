@@ -936,6 +936,100 @@ pub mod contract {
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
+        async fn limits_big_deposit_and_swaps(mut client: ink_e2e::Client<C, E>) -> () {
+            let (dex, token_x, token_y) =
+                init_dex_and_tokens_max_mint_amount!(client, ContractRef, TokenRef);
+
+            let mint_amount = 2u128.pow(63) - 1;
+            let alice = ink_e2e::alice();
+            approve!(client, TokenRef, token_x, dex, mint_amount, alice);
+            approve!(client, TokenRef, token_y, dex, mint_amount, alice);
+
+            let fee_tier = FeeTier {
+                fee: Percentage::from_scale(6, 3),
+                tick_spacing: 1,
+            };
+            create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+
+            let init_tick = 0;
+            create_pool!(
+                client,
+                ContractRef,
+                dex,
+                token_x,
+                token_y,
+                fee_tier,
+                init_tick
+            );
+
+            let pos_amount = mint_amount / 2;
+            let lower_tick = -(fee_tier.tick_spacing as i32);
+            let upper_tick = fee_tier.tick_spacing as i32;
+            let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+            let (liquidity_by_x, _amount) = get_liquidity_by_x(
+                TokenAmount(pos_amount),
+                lower_tick,
+                upper_tick,
+                pool.sqrt_price,
+                false,
+                fee_tier.tick_spacing,
+            );
+
+            let (liquidity_by_y, _amount) = get_liquidity_by_y(
+                TokenAmount(pos_amount),
+                lower_tick,
+                upper_tick,
+                pool.sqrt_price,
+                false,
+                fee_tier.tick_spacing,
+            );
+
+            let liquidity_delta = if liquidity_by_y < liquidity_by_x {
+                liquidity_by_y
+            } else {
+                liquidity_by_x
+            };
+
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+            let slippage_limit_lower = pool.sqrt_price;
+            let slippage_limit_upper = pool.sqrt_price;
+            create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                lower_tick,
+                upper_tick,
+                liquidity_delta,
+                slippage_limit_lower,
+                slippage_limit_upper,
+                alice
+            );
+
+            let swap_amount = TokenAmount(mint_amount / 8);
+
+            for i in 1..=4 {
+                let (x_to_y, sqrt_price_limit) = if i % 2 == 0 {
+                    (true, SqrtPrice::new(MIN_SQRT_PRICE))
+                } else {
+                    (false, SqrtPrice::new(MAX_SQRT_PRICE))
+                };
+
+                swap!(
+                    client,
+                    ContractRef,
+                    dex,
+                    pool_key,
+                    i % 2 == 0,
+                    swap_amount,
+                    true,
+                    sqrt_price_limit,
+                    alice
+                );
+            }
+        }
+
+        #[ink_e2e::test]
         async fn limits_big_deposit_x_and_swap_y(
             mut client: ink_e2e::Client<C, E>,
         ) -> E2EResult<()> {
