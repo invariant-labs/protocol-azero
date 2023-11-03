@@ -910,10 +910,13 @@ pub mod contract {
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod e2e_tests {
-        use crate::contracts::{get_liquidity_by_x, get_liquidity_by_y};
+        use crate::contracts::{
+            fee_to_tick_spacing, get_liquidity_by_x, get_liquidity_by_y, utils::get_max_tick,
+        };
         use crate::math::fee_growth::FeeGrowth;
         use crate::math::sqrt_price::log::get_tick_at_sqrt_price;
         use crate::math::sqrt_price::sqrt_price::calculate_sqrt_price;
+        use crate::math::MAX_TICK;
         use ink::prelude::vec;
         use ink::prelude::vec::Vec;
         use ink_e2e::build_message;
@@ -936,7 +939,81 @@ pub mod contract {
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
-        async fn limits_big_deposit_and_swaps(mut client: ink_e2e::Client<C, E>) -> () {
+        #[should_panic]
+        async fn limits_swap_at_upper_limit(mut client: ink_e2e::Client<C, E>) -> () {
+            let (dex, token_x, token_y) =
+                init_dex_and_tokens_max_mint_amount!(client, ContractRef, TokenRef);
+
+            let mint_amount = 2u128.pow(63) - 1;
+            let alice = ink_e2e::alice();
+            approve!(client, TokenRef, token_x, dex, mint_amount, alice);
+            approve!(client, TokenRef, token_y, dex, mint_amount, alice);
+
+            let fee = Percentage::from_scale(6, 3);
+            let tick_spacing = fee_to_tick_spacing(fee);
+
+            let fee_tier = FeeTier { fee, tick_spacing };
+            create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+
+            let init_tick = get_max_tick(tick_spacing);
+            create_pool!(
+                client,
+                ContractRef,
+                dex,
+                token_x,
+                token_y,
+                fee_tier,
+                init_tick
+            );
+
+            let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+            let current_sqrt_price = pool.sqrt_price;
+            assert_eq!(pool.current_tick_index, init_tick);
+            assert_eq!(pool.sqrt_price, calculate_sqrt_price(init_tick).unwrap());
+
+            let position_amount = mint_amount - 1;
+
+            let (liquidity_delta, _amount) = get_liquidity_by_y(
+                TokenAmount(position_amount),
+                0,
+                MAX_TICK,
+                pool.sqrt_price,
+                false,
+                fee_tier.tick_spacing,
+            );
+
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+            let slippage_limit_lower = pool.sqrt_price;
+            let slippage_limit_upper = pool.sqrt_price;
+            create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                0,
+                MAX_TICK,
+                liquidity_delta,
+                slippage_limit_lower,
+                slippage_limit_upper,
+                alice
+            );
+
+            let swap_amount = TokenAmount(1);
+            swap!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                true,
+                swap_amount,
+                true,
+                SqrtPrice::new(MIN_SQRT_PRICE),
+                alice
+            );
+        }
+
+        #[ink_e2e::test]
+        async fn limits_big_deposit_and_swaps(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let (dex, token_x, token_y) =
                 init_dex_and_tokens_max_mint_amount!(client, ContractRef, TokenRef);
 
@@ -1027,6 +1104,8 @@ pub mod contract {
                     alice
                 );
             }
+
+            Ok(())
         }
 
         #[ink_e2e::test]
@@ -1121,7 +1200,7 @@ pub mod contract {
             let bob = ink_e2e::bob();
             let swap_amount = TokenAmount(1);
             mint_with_aprove_for_bob!(client, TokenRef, token_x, dex, 1);
-            swap_exact_limit!(
+            swap!(
                 client,
                 ContractRef,
                 dex,
@@ -1129,6 +1208,7 @@ pub mod contract {
                 true,
                 swap_amount,
                 true,
+                SqrtPrice::new(MIN_SQRT_PRICE),
                 bob
             );
         }
@@ -2129,8 +2209,8 @@ pub mod contract {
         async fn position_within_current_tick_test(
             mut client: ink_e2e::Client<C, E>,
         ) -> E2EResult<()> {
-            let MAX_TICK = 177_450; // for tickSpacing 4
-            let MIN_TICK = -MAX_TICK;
+            let MAX_TICK_TEST = 177_450; // for tickSpacing 4
+            let MIN_TICK_TEST = -MAX_TICK_TEST;
             let alice = ink_e2e::alice();
             let init_tick = -23028;
 
@@ -2161,8 +2241,8 @@ pub mod contract {
             approve!(client, TokenRef, token_y, dex, initial_balance, alice);
 
             let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
-            let lower_tick_index = MIN_TICK + 10;
-            let upper_tick_index = MAX_TICK - 10;
+            let lower_tick_index = MIN_TICK_TEST + 10;
+            let upper_tick_index = MAX_TICK_TEST - 10;
 
             let liquidity_delta = Liquidity::new(initial_balance);
 
