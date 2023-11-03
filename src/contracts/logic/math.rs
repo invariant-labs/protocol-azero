@@ -223,23 +223,12 @@ pub fn calculate_y(
     rounding_up: bool,
 ) -> TrackableResult<TokenAmount> {
     let shifted_liquidity = liquidity / Liquidity::from_integer(1);
-    // 19996000399699881985603000000
-    // 499600185000000000000
-    // l * r + r^scale - 1 / r^scale
-    //(((19996000399699881985603000000 * 49960018500000000000) + 10^24 - 1) / 10^6 / 10^24)
     Ok(if rounding_up {
-        // intermediate 19996000399699881985603000000 * 49960018500000000000) + 10^24 - 1) / 10^6
-        // intermediate < 2^140 || May be higher it is prtocol example
-        // let intermediate = sqrt_price_diff.big_mul_up(shifted_liquidity);
-        // let result = TokenAmount::from_decimal_up(intermediate);
-        // result;
-        // SqrtPrice::big_div_values_to_token_up(
-        //     U256::from(sqrt_price_diff.get()),
-        //     U256::from(shifted_liquidity.get()),
-        // )?
-        TokenAmount::from_decimal_up(sqrt_price_diff.big_mul_up(shifted_liquidity))
+        let value = sqrt_price_diff.big_mul_to_value_up(shifted_liquidity);
+        ok_or_mark_trace!(TokenAmount::from_big_sqrt_price_up(value))?
     } else {
-        TokenAmount::from_decimal(sqrt_price_diff.big_mul(shifted_liquidity))
+        let value = sqrt_price_diff.big_mul_to_value(shifted_liquidity);
+        ok_or_mark_trace!(TokenAmount::from_big_sqrt_price(value))?
     })
 }
 
@@ -455,32 +444,6 @@ mod tests {
             .unwrap();
             assert_eq!(expected_l, result_down.l);
             assert_eq!(result_down.y, expected_y);
-        }
-    }
-
-    #[test]
-    fn protocol_test() {
-        // in current tick
-        {
-            let expected_l = Liquidity::new(432392130000000);
-            let expected_y_up = TokenAmount(434321);
-            let expected_y_down = TokenAmount(434320);
-
-            let x = TokenAmount(10u128.pow(19));
-            let lower_tick = -20;
-            let upper_tick = 0;
-            let current_sqrt_price = calculate_sqrt_price(-10).unwrap();
-
-            let result_up =
-                get_liquidity_by_x(x, lower_tick, upper_tick, current_sqrt_price, true).unwrap();
-            // assert_eq!(expected_l, result_up.l);
-            // assert_eq!(expected_y_up, result_up.amount);
-
-            // let result_down =
-            // get_liquidity_by_x(x, lower_tick, upper_tick, current_sqrt_price, false).unwrap();
-
-            // assert_eq!(expected_l, result_down.l);
-            // assert_eq!(expected_y_down, result_down.amount);
         }
     }
 }
