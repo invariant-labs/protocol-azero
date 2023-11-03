@@ -1238,15 +1238,16 @@ macro_rules! big_deposit_and_swap {
         };
         let pool = get_pool!($client, $dex, dex, token_x, token_y, fee_tier).unwrap();
 
-        let (liquidity_delta, _amount) = if $x_to_y {
+        let liquidity_delta = if $x_to_y {
             get_liquidity_by_y(
                 TokenAmount(mint_amount),
                 lower_tick,
                 upper_tick,
                 pool.sqrt_price,
                 true,
-                fee_tier.tick_spacing,
             )
+            .unwrap()
+            .l
         } else {
             get_liquidity_by_x(
                 TokenAmount(mint_amount),
@@ -1254,8 +1255,9 @@ macro_rules! big_deposit_and_swap {
                 upper_tick,
                 pool.sqrt_price,
                 true,
-                fee_tier.tick_spacing,
             )
+            .unwrap()
+            .l
         };
 
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
