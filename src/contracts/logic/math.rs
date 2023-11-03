@@ -2,9 +2,11 @@ use decimal::*;
 use traceable_result::*;
 
 use crate::math::liquidity::Liquidity;
-use crate::math::sqrt_price::sqrt_price::{calculate_sqrt_price, SqrtPrice};
+use crate::math::sqrt_price::sqrt_price::{
+    calculate_sqrt_price, get_max_tick, get_min_tick, SqrtPrice,
+};
 use crate::math::token_amount::TokenAmount;
-// use crate::math::MAX_TICK;
+use crate::math::MAX_TICK;
 
 #[derive(Debug)]
 pub struct LiquidityResult {
@@ -22,18 +24,18 @@ pub struct SingleTokenLiquidity {
 pub fn get_liquidity(
     x: TokenAmount,
     y: TokenAmount,
-    lower_tick: i32,
-    upper_tick: i32,
+    mut lower_tick: i32,
+    mut upper_tick: i32,
     current_sqrt_price: SqrtPrice,
     rounding_up: bool,
     tick_spacing: u16,
 ) -> TrackableResult<LiquidityResult> {
-    // if lower_tick < -MAX_TICK {
-    //     lower_tick = get_min_tick(tick_spacing);
-    // }
-    // if upper_tick > MAX_TICK {
-    //     upper_tick = get_max_tick(tick_spacing);
-    // }
+    if lower_tick < -MAX_TICK {
+        lower_tick = get_min_tick(tick_spacing);
+    }
+    if upper_tick > MAX_TICK {
+        upper_tick = get_max_tick(tick_spacing);
+    }
 
     let lower_sqrt_price = calculate_sqrt_price(lower_tick).unwrap();
     let upper_sqrt_price = calculate_sqrt_price(upper_tick).unwrap();
@@ -98,18 +100,18 @@ pub fn get_liquidity(
 
 pub fn get_liquidity_by_x(
     x: TokenAmount,
-    lower_tick: i32,
-    upper_tick: i32,
+    mut lower_tick: i32,
+    mut upper_tick: i32,
     current_sqrt_price: SqrtPrice,
     rounding_up: bool,
     tick_spacing: u16,
 ) -> TrackableResult<SingleTokenLiquidity> {
-    // if lower_tick < -MAX_TICK {
-    //     lower_tick = get_min_tick(tick_spacing);
-    // }
-    // if upper_tick > MAX_TICK {
-    //     upper_tick = get_max_tick(tick_spacing);
-    // }
+    if lower_tick < -MAX_TICK {
+        lower_tick = get_min_tick(tick_spacing);
+    }
+    if upper_tick > MAX_TICK {
+        upper_tick = get_max_tick(tick_spacing);
+    }
 
     let lower_sqrt_price = calculate_sqrt_price(lower_tick).unwrap();
     let upper_sqrt_price = calculate_sqrt_price(upper_tick).unwrap();
@@ -130,7 +132,7 @@ pub fn get_liquidity_by_x_sqrt_price(
     rounding_up: bool,
 ) -> TrackableResult<SingleTokenLiquidity> {
     if upper_sqrt_price < current_sqrt_price {
-        return Err(err!("Wrong token"));
+        return Err(err!("Upper Sqrt Price < Current Sqrt Price"));
     }
 
     if current_sqrt_price < lower_sqrt_price {
@@ -161,18 +163,18 @@ pub fn get_liquidity_by_x_sqrt_price(
 
 pub fn get_liquidity_by_y(
     y: TokenAmount,
-    lower_tick: i32,
-    upper_tick: i32,
+    mut lower_tick: i32,
+    mut upper_tick: i32,
     current_sqrt_price: SqrtPrice,
     rounding_up: bool,
     tick_spacing: u16,
 ) -> TrackableResult<SingleTokenLiquidity> {
-    // if lower_tick < -MAX_TICK {
-    //     lower_tick = get_min_tick(tick_spacing);
-    // }
-    // if upper_tick > MAX_TICK {
-    //     upper_tick = get_max_tick(tick_spacing);
-    // }
+    if lower_tick < -MAX_TICK {
+        lower_tick = get_min_tick(tick_spacing);
+    }
+    if upper_tick > MAX_TICK {
+        upper_tick = get_max_tick(tick_spacing);
+    }
 
     let lower_sqrt_price = calculate_sqrt_price(lower_tick).unwrap();
     let upper_sqrt_price = calculate_sqrt_price(upper_tick).unwrap();
@@ -193,9 +195,9 @@ pub fn get_liquidity_by_y_sqrt_price(
     current_sqrt_price: SqrtPrice,
     rounding_up: bool,
 ) -> TrackableResult<SingleTokenLiquidity> {
-    // if current_sqrt_price < lower_sqrt_price {
-    //     return Err(err!(TrackableError::cast::<TokenAmount>().as_str()));
-    // }
+    if current_sqrt_price < lower_sqrt_price {
+        return Err(err!("Current Sqrt Price < Lower Sqrt Price"));
+    }
 
     if upper_sqrt_price <= current_sqrt_price {
         let sqrt_price_diff = upper_sqrt_price - lower_sqrt_price;
@@ -257,25 +259,6 @@ pub fn calculate_y(
     }
 }
 
-// pub fn get_min_tick(tick_spacing: u16) -> i32 {
-//     let limited_by_price = -MAX_TICK + (-MAX_TICK % tick_spacing as i32);
-//     let limited_by_tickmap = -TICK_LIMIT * tick_spacing as i32 - tick_spacing as i32;
-//     if limited_by_price > limited_by_tickmap {
-//         limited_by_price
-//     } else {
-//         limited_by_tickmap
-//     }
-// }
-
-// pub fn get_max_tick(tick_spacing: u16) -> i32 {
-//     let limited_by_price = MAX_TICK + (MAX_TICK % tick_spacing as i32);
-//     let limited_by_tickmap = TICK_LIMIT * tick_spacing as i32 - tick_spacing as i32;
-//     if limited_by_price > limited_by_tickmap {
-//         limited_by_price
-//     } else {
-//         limited_by_tickmap
-//     }
-// }
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -292,7 +275,7 @@ mod tests {
                 get_liquidity_by_x(x, lower_tick, upper_tick, current_sqrt_price, true, 1)
                     .unwrap_err()
                     .get();
-            assert_eq!(cause, "Wrong token");
+            assert_eq!(cause, "Upper Sqrt Price < Current Sqrt Price");
             assert_eq!(stack.len(), 2);
         }
         // in current tick
@@ -383,13 +366,13 @@ mod tests {
                 get_liquidity_by_y(y, lower_tick, upper_tick, current_sqrt_price, true, 1)
                     .unwrap_err()
                     .get();
-            assert_eq!(cause, "Wrong token");
+            assert_eq!(cause, "Current Sqrt Price < Lower Sqrt Price");
             assert_eq!(stack.len(), 2);
             let (_, cause, stack) =
                 get_liquidity_by_y(y, lower_tick, upper_tick, current_sqrt_price, false, 1)
                     .unwrap_err()
                     .get();
-            assert_eq!(cause, "Wrong token");
+            assert_eq!(cause, "Current Sqrt Price < Lower Sqrt Price");
             assert_eq!(stack.len(), 2);
         }
     }
