@@ -31,8 +31,8 @@ pub fn get_liquidity(
         return Err(err!("Invalid Ticks"));
     }
 
-    let lower_sqrt_price = calculate_sqrt_price(lower_tick).unwrap();
-    let upper_sqrt_price = calculate_sqrt_price(upper_tick).unwrap();
+    let lower_sqrt_price = ok_or_mark_trace!(calculate_sqrt_price(lower_tick))?;
+    let upper_sqrt_price = ok_or_mark_trace!(calculate_sqrt_price(upper_tick))?;
 
     if upper_sqrt_price < current_sqrt_price {
         // single token y
@@ -103,8 +103,8 @@ pub fn get_liquidity_by_x(
         return Err(err!("Invalid Ticks"));
     }
 
-    let lower_sqrt_price = calculate_sqrt_price(lower_tick).unwrap();
-    let upper_sqrt_price = calculate_sqrt_price(upper_tick).unwrap();
+    let lower_sqrt_price = ok_or_mark_trace!(calculate_sqrt_price(lower_tick))?;
+    let upper_sqrt_price = ok_or_mark_trace!(calculate_sqrt_price(upper_tick))?;
 
     ok_or_mark_trace!(get_liquidity_by_x_sqrt_price(
         x,
@@ -162,8 +162,8 @@ pub fn get_liquidity_by_y(
         return Err(err!("Invalid Ticks"));
     }
 
-    let lower_sqrt_price = calculate_sqrt_price(lower_tick).unwrap();
-    let upper_sqrt_price = calculate_sqrt_price(upper_tick).unwrap();
+    let lower_sqrt_price = ok_or_mark_trace!(calculate_sqrt_price(lower_tick))?;
+    let upper_sqrt_price = ok_or_mark_trace!(calculate_sqrt_price(upper_tick))?;
 
     ok_or_mark_trace!(get_liquidity_by_y_sqrt_price(
         y,
@@ -218,13 +218,13 @@ pub fn calculate_x(
 ) -> TrackableResult<TokenAmount> {
     let common = liquidity.big_mul(nominator).big_div(denominator).get();
 
-    if rounding_up {
-        Ok(TokenAmount::new(
+    Ok(if rounding_up {
+        TokenAmount::new(
             ((common + Liquidity::from_integer(1).get()) - 1) / Liquidity::from_integer(1).get(),
-        ))
+        )
     } else {
-        Ok(TokenAmount::new(common / Liquidity::from_integer(1).get()))
-    }
+        TokenAmount::new(common / Liquidity::from_integer(1).get())
+    })
 }
 
 pub fn calculate_y(
@@ -233,16 +233,16 @@ pub fn calculate_y(
     rounding_up: bool,
 ) -> TrackableResult<TokenAmount> {
     let shifted_liquidity = liquidity.get() / Liquidity::from_integer(1).get();
-    if rounding_up {
-        Ok(TokenAmount::new(
+    Ok(if rounding_up {
+        TokenAmount::new(
             ((sqrt_price_diff.get() * shifted_liquidity) + (SqrtPrice::from_integer(1).get() - 1))
                 / SqrtPrice::from_integer(1).get(),
-        ))
+        )
     } else {
-        Ok(TokenAmount::new(
+        TokenAmount::new(
             sqrt_price_diff.get() * shifted_liquidity / SqrtPrice::from_integer(1).get(),
-        ))
-    }
+        )
+    })
 }
 
 #[cfg(test)]
