@@ -920,14 +920,14 @@ pub mod contract {
         use openbrush::contracts::psp22::psp22_external::PSP22;
         use openbrush::traits::Balance;
         use test_helpers::{
-            address_of, approve, balance_of, change_fee_receiver, claim_fee, create_dex,
-            create_fee_tier, create_pool, create_position, create_slippage_pool_with_liquidity,
-            create_standard_fee_tiers, create_tokens, dex_balance, get_all_positions, get_fee_tier,
-            get_pool, get_position, get_tick, init_basic_pool, init_basic_position,
-            init_basic_swap, init_cross_position, init_cross_swap, init_dex_and_tokens,
-            init_dex_and_tokens_max_mint_amount, init_slippage_dex_and_tokens, mint,
-            mint_with_aprove_for_bob, quote, remove_position, swap, swap_exact_limit, tickmap_bit,
-            withdraw_protocol_fee,
+            address_of, approve, balance_of, big_deposit_and_swap, change_fee_receiver, claim_fee,
+            create_dex, create_fee_tier, create_pool, create_position,
+            create_slippage_pool_with_liquidity, create_standard_fee_tiers, create_tokens,
+            dex_balance, get_all_positions, get_fee_tier, get_pool, get_position, get_tick,
+            init_basic_pool, init_basic_position, init_basic_swap, init_cross_position,
+            init_cross_swap, init_dex_and_tokens, init_dex_and_tokens_max_mint_amount,
+            init_slippage_dex_and_tokens, mint, mint_with_aprove_for_bob, quote, remove_position,
+            swap, swap_exact_limit, tickmap_bit, withdraw_protocol_fee,
         };
         use token::TokenRef;
 
@@ -936,82 +936,21 @@ pub mod contract {
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
-        async fn limits_big_deposit_x_and_swap_y(mut client: ink_e2e::Client<C, E>) -> () {
-            let (dex, token_x, token_y) =
-                init_dex_and_tokens_max_mint_amount!(client, ContractRef, TokenRef);
+        async fn limits_big_deposit_x_and_swap_y(
+            mut client: ink_e2e::Client<C, E>,
+        ) -> E2EResult<()> {
+            big_deposit_and_swap!(client, ContractRef, TokenRef, true);
 
-            let mint_amount = 2u128.pow(64) - 1;
-            let alice = ink_e2e::alice();
-            approve!(client, TokenRef, token_x, dex, mint_amount, alice);
-            approve!(client, TokenRef, token_y, dex, mint_amount, alice);
+            Ok(())
+        }
 
-            let fee_tier = FeeTier {
-                fee: Percentage::from_scale(6, 3),
-                tick_spacing: 1,
-            };
-            create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+        #[ink_e2e::test]
+        async fn limits_big_deposit_y_and_swap_x(
+            mut client: ink_e2e::Client<C, E>,
+        ) -> E2EResult<()> {
+            big_deposit_and_swap!(client, ContractRef, TokenRef, false);
 
-            let init_tick = 0;
-            create_pool!(
-                client,
-                ContractRef,
-                dex,
-                token_x,
-                token_y,
-                fee_tier,
-                init_tick
-            );
-
-            let lower_tick = 0;
-            let upper_tick = fee_tier.tick_spacing as i32;
-            let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
-
-            let (liquidity_delta, _amount) = get_liquidity_by_x(
-                TokenAmount(mint_amount),
-                lower_tick,
-                upper_tick,
-                pool.sqrt_price,
-                true,
-                fee_tier.tick_spacing,
-            );
-
-            let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
-            let slippage_limit_lower = pool.sqrt_price;
-            let slippage_limit_upper = pool.sqrt_price;
-            create_position!(
-                client,
-                ContractRef,
-                dex,
-                pool_key,
-                lower_tick,
-                upper_tick,
-                liquidity_delta,
-                slippage_limit_lower,
-                slippage_limit_upper,
-                alice
-            );
-
-            let amount_x = balance_of!(TokenRef, client, token_x, Alice);
-            let amount_y = balance_of!(TokenRef, client, token_y, Alice);
-            assert_eq!(amount_x, 0);
-            assert_eq!(amount_y, mint_amount);
-
-            swap!(
-                client,
-                ContractRef,
-                dex,
-                pool_key,
-                false,
-                TokenAmount(mint_amount),
-                true,
-                SqrtPrice::new(MAX_SQRT_PRICE),
-                alice
-            );
-
-            let amount_x = balance_of!(TokenRef, client, token_x, Alice);
-            let amount_y = balance_of!(TokenRef, client, token_y, Alice);
-            assert_ne!(amount_x, 0);
-            assert_eq!(amount_y, 0);
+            Ok(())
         }
 
         #[ink_e2e::test]
