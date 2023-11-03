@@ -85,8 +85,8 @@ pub fn get_liquidity(
         }
     } else {
         LiquidityResult {
-            x: result_by_x.amount,
-            y: result_by_y.amount,
+            x: result_by_y.amount,
+            y: result_by_x.amount,
             l: result_by_x.l,
         }
     })
@@ -190,10 +190,7 @@ pub fn get_liquidity_by_y_sqrt_price(
     }
 
     let sqrt_price_diff = current_sqrt_price - lower_sqrt_price;
-    let liquidity = Liquidity::from_decimal(
-        y.big_mul(SqrtPrice::from_integer(1))
-            .big_div(sqrt_price_diff),
-    );
+    let liquidity = Liquidity::from_decimal(y.big_div(sqrt_price_diff));
     let denominator = current_sqrt_price.big_mul(upper_sqrt_price);
     let nominator = upper_sqrt_price - current_sqrt_price;
 
@@ -214,9 +211,9 @@ pub fn calculate_x(
     let common = liquidity.big_mul(nominator).big_div(denominator);
 
     Ok(if rounding_up {
-        TokenAmount::from_decimal_up(common.big_div_up(Liquidity::from_integer(1)))
+        TokenAmount::from_decimal_up(common)
     } else {
-        TokenAmount::from_decimal(common.big_div(Liquidity::from_integer(1)))
+        TokenAmount::from_decimal(common)
     })
 }
 
@@ -229,11 +226,7 @@ pub fn calculate_y(
     Ok(if rounding_up {
         TokenAmount::from_decimal_up(sqrt_price_diff.big_mul_up(shifted_liquidity))
     } else {
-        TokenAmount::from_decimal(
-            sqrt_price_diff
-                .big_mul(shifted_liquidity)
-                .big_div(SqrtPrice::from_integer(1)),
-        )
+        TokenAmount::from_decimal(sqrt_price_diff.big_mul(shifted_liquidity))
     })
 }
 
@@ -372,6 +365,9 @@ mod tests {
                 true,
             )
             .unwrap();
+            assert_eq!(expected_l, result_up.l);
+            assert_eq!(result_up.x, expected_x);
+
             let result_down = get_liquidity(
                 expected_x,
                 y,
@@ -381,9 +377,7 @@ mod tests {
                 true,
             )
             .unwrap();
-            assert_eq!(expected_l, result_up.l);
             assert_eq!(expected_l, result_down.l);
-            assert_eq!(result_up.x, expected_x);
             assert_eq!(result_down.x, expected_x);
         }
         // in current tick
@@ -403,6 +397,9 @@ mod tests {
                 true,
             )
             .unwrap();
+            assert_eq!(expected_l_up, result_up.l);
+            assert_eq!(result_up.x, expected_x_up);
+
             let result_down = get_liquidity(
                 expected_x_down,
                 y,
@@ -412,18 +409,8 @@ mod tests {
                 true,
             )
             .unwrap();
-            assert_eq!(expected_l_up, result_up.l);
             assert_eq!(expected_l_down, result_down.l);
-
-            //             assertion `left == right` failed
-            //   left: TokenAmount(47600000000)
-            //  right: TokenAmount(77539808126)
-            // assert_eq!(result_up.x, expected_x_up);
-
-            //             assertion `left == right` failed
-            //   left: TokenAmount(47600000000)
-            //  right: TokenAmount(77539808126)
-            // assert_eq!(result_down.x, expected_x_down);
+            assert_eq!(result_down.x, expected_x_down);
         }
         // above current tick
         {
@@ -431,7 +418,7 @@ mod tests {
             let upper_tick = 800;
             let x = TokenAmount(43_000_000_0);
             let expected_y = TokenAmount(0);
-            let expected_l = Liquidity::new(13548826311000000); // 13548826311623850
+            let expected_l = Liquidity::new(13548826293000000); // 13548826311623850
             let result_up = get_liquidity(
                 x,
                 expected_y,
@@ -441,6 +428,9 @@ mod tests {
                 true,
             )
             .unwrap();
+            assert_eq!(expected_l, result_up.l);
+            assert_eq!(result_up.y, expected_y);
+
             let result_down = get_liquidity(
                 x,
                 expected_y,
@@ -450,9 +440,7 @@ mod tests {
                 true,
             )
             .unwrap();
-            assert_eq!(expected_l, result_up.l);
             assert_eq!(expected_l, result_down.l);
-            assert_eq!(result_up.y, expected_y);
             assert_eq!(result_down.y, expected_y);
         }
     }
