@@ -911,7 +911,8 @@ pub mod contract {
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod e2e_tests {
         use crate::contracts::{
-            fee_to_tick_spacing, get_liquidity_by_x, get_liquidity_by_y, utils::get_max_tick,
+            fee_to_tick_spacing, get_liquidity, get_liquidity_by_x, get_liquidity_by_y,
+            utils::get_max_tick,
         };
         use crate::math::fee_growth::FeeGrowth;
         use crate::math::sqrt_price::log::get_tick_at_sqrt_price;
@@ -929,8 +930,8 @@ pub mod contract {
             dex_balance, get_all_positions, get_fee_tier, get_pool, get_position, get_tick,
             init_basic_pool, init_basic_position, init_basic_swap, init_cross_position,
             init_cross_swap, init_dex_and_tokens, init_dex_and_tokens_max_mint_amount,
-            init_slippage_dex_and_tokens, mint, mint_with_aprove_for_bob, quote, remove_position,
-            swap, swap_exact_limit, tickmap_bit, withdraw_protocol_fee,
+            init_slippage_dex_and_tokens, mint, mint_with_aprove_for_bob, multiple_swap, quote,
+            remove_position, swap, swap_exact_limit, tickmap_bit, withdraw_protocol_fee,
         };
         use token::TokenRef;
 
@@ -1112,10 +1113,24 @@ pub mod contract {
         }
 
         #[ink_e2e::test]
+        async fn multiple_swap_x_to_y(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            multiple_swap!(client, ContractRef, TokenRef, true);
+
+            Ok(())
+        }
+
+        #[ink_e2e::test]
         async fn limits_big_deposit_x_and_swap_y(
             mut client: ink_e2e::Client<C, E>,
         ) -> E2EResult<()> {
             big_deposit_and_swap!(client, ContractRef, TokenRef, true);
+
+            Ok(())
+        }
+
+        #[ink_e2e::test]
+        async fn multiple_swap_y_to_x(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            multiple_swap!(client, ContractRef, TokenRef, false);
 
             Ok(())
         }

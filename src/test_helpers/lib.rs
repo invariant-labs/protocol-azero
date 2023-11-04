@@ -1221,48 +1221,47 @@ macro_rules! big_deposit_and_swap {
             fee: Percentage::from_scale(6, 3),
             tick_spacing: 1,
         };
+    }};
+}
+
+#[macro_export]
+macro_rules! multiple_swap {
+    ($client:ident, $dex:ty, $token:ty, $x_to_y:expr) => {{
+        let (dex, token_x, token_y) = init_dex_and_tokens!($client, $dex, $token);
+
+        let fee_tier = FeeTier {
+            fee: Percentage::from_scale(1, 3),
+            tick_spacing: 1,
+        };
+        let alice = ink_e2e::alice();
         create_fee_tier!($client, $dex, dex, fee_tier, alice);
 
         let init_tick = 0;
         create_pool!($client, $dex, dex, token_x, token_y, fee_tier, init_tick);
 
-        let lower_tick = if $x_to_y {
-            -(fee_tier.tick_spacing as i32)
-        } else {
-            0
-        };
-        let upper_tick = if $x_to_y {
-            0
-        } else {
-            fee_tier.tick_spacing as i32
-        };
-        let pool = get_pool!($client, $dex, dex, token_x, token_y, fee_tier).unwrap();
-
-        let liquidity_delta = if $x_to_y {
-            get_liquidity_by_y(
-                TokenAmount(mint_amount),
-                lower_tick,
-                upper_tick,
-                pool.sqrt_price,
-                true,
-            )
-            .unwrap()
-            .l
-        } else {
-            get_liquidity_by_x(
-                TokenAmount(mint_amount),
-                lower_tick,
-                upper_tick,
-                pool.sqrt_price,
-                true,
-            )
-            .unwrap()
-            .l
-        };
+        let mint_amount = 10u128.pow(10);
+        approve!($client, $token, token_x, dex, mint_amount, alice);
+        approve!($client, $token, token_y, dex, mint_amount, alice);
 
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
-        let slippage_limit_lower = pool.sqrt_price;
-        let slippage_limit_upper = pool.sqrt_price;
+        let mut upper_tick = 953;
+        let mut lower_tick = -upper_tick;
+
+        let amount = 100;
+        let pool_data = get_pool!($client, $dex, dex, token_x, token_y, fee_tier).unwrap();
+        let liquidity_delta = get_liquidity(
+            TokenAmount(amount),
+            TokenAmount(amount),
+            lower_tick,
+            upper_tick,
+            pool_data.sqrt_price,
+            true,
+        )
+        .unwrap()
+        .l;
+        let slippage_limit_lower = pool_data.sqrt_price;
+        let slippage_limit_upper = pool_data.sqrt_price;
+
         create_position!(
             $client,
             $dex,
@@ -1276,42 +1275,73 @@ macro_rules! big_deposit_and_swap {
             alice
         );
 
-        let amount_x = balance_of!($token, $client, token_x, Alice);
-        let amount_y = balance_of!($token, $client, token_y, Alice);
+        let bob = ink_e2e::bob();
         if $x_to_y {
-            assert_eq!(amount_x, mint_amount);
-            assert_eq!(amount_y, 0);
+            mint!($token, $client, token_x, Bob, amount);
+            let amount_x = balance_of!($token, $client, token_x, Bob);
+            assert_eq!(amount_x, amount);
+            approve!($client, $token, token_x, dex, amount, bob);
         } else {
-            assert_eq!(amount_x, 0);
-            assert_eq!(amount_y, mint_amount);
+            mint!($token, $client, token_y, Bob, amount);
+            let amount_y = balance_of!($token, $client, token_y, Bob);
+            assert_eq!(amount_y, amount);
+            approve!($client, $token, token_y, dex, amount, bob);
         }
 
-        let sqrt_price_limit = if $x_to_y {
-            SqrtPrice::new(MIN_SQRT_PRICE)
-        } else {
-            SqrtPrice::new(MAX_SQRT_PRICE)
-        };
+        let swap_amount = TokenAmount(10);
+        for i in 1..=10 {
+            swap_exact_limit!(
+                $client,
+                $dex,
+                dex,
+                pool_key,
+                $x_to_y,
+                swap_amount,
+                true,
+                bob
+            );
+        }
 
-        swap!(
-            $client,
-            $dex,
-            dex,
-            pool_key,
-            $x_to_y,
-            TokenAmount(mint_amount),
-            true,
-            sqrt_price_limit,
-            alice
-        );
-
-        let amount_x = balance_of!($token, $client, token_x, Alice);
-        let amount_y = balance_of!($token, $client, token_y, Alice);
+        let pool = get_pool!($client, $dex, dex, token_x, token_y, fee_tier).unwrap();
         if $x_to_y {
-            assert_eq!(amount_x, 0);
-            assert_ne!(amount_y, 0);
+            assert_eq!(pool.current_tick_index, -821);
         } else {
-            assert_ne!(amount_x, 0);
-            assert_eq!(amount_y, 0);
+            assert_eq!(pool.current_tick_index, 820);
+        }
+        assert_eq!(pool.fee_growth_global_x, FeeGrowth::new(0));
+        assert_eq!(pool.fee_growth_global_y, FeeGrowth::new(0));
+        if $x_to_y {
+            assert_eq!(pool.fee_protocol_token_x, TokenAmount(10));
+            assert_eq!(pool.fee_protocol_token_y, TokenAmount(0));
+        } else {
+            assert_eq!(pool.fee_protocol_token_x, TokenAmount(0));
+            assert_eq!(pool.fee_protocol_token_y, TokenAmount(10));
+        }
+        assert_eq!(pool.liquidity, liquidity_delta);
+        if $x_to_y {
+            assert_eq!(pool.sqrt_price, SqrtPrice::new(959803483698079499776690));
+        } else {
+            assert_eq!(pool.sqrt_price, SqrtPrice::new(1041879944160074453234060));
+        }
+
+        let dex_amount_x = dex_balance!($token, $client, token_x, dex);
+        let dex_amount_y = dex_balance!($token, $client, token_y, dex);
+        if $x_to_y {
+            assert_eq!(dex_amount_x, 200);
+            assert_eq!(dex_amount_y, 20);
+        } else {
+            assert_eq!(dex_amount_x, 20);
+            assert_eq!(dex_amount_y, 200);
+        }
+
+        let user_amount_x = balance_of!($token, $client, token_x, Bob);
+        let user_amount_y = balance_of!($token, $client, token_y, Bob);
+        if $x_to_y {
+            assert_eq!(user_amount_x, 0);
+            assert_eq!(user_amount_y, 80);
+        } else {
+            assert_eq!(user_amount_x, 80);
+            assert_eq!(user_amount_y, 0);
         }
     }};
 }
