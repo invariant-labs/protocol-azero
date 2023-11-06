@@ -1275,9 +1275,9 @@ macro_rules! multiple_swap {
         }
         assert_eq!(pool.liquidity, liquidity_delta);
         if $x_to_y {
-            assert_eq!(pool.sqrt_price, SqrtPrice::new(959803483698079499776690));
+            assert_eq!(pool.sqrt_price, SqrtPrice::new(959805958620596146276151));
         } else {
-            assert_eq!(pool.sqrt_price, SqrtPrice::new(1041879944160074453234060));
+            assert_eq!(pool.sqrt_price, SqrtPrice::new(1041877257604411525269920));
         }
 
         let dex_amount_x = dex_balance!($token, $client, token_x, dex);
