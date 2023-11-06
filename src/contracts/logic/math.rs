@@ -324,7 +324,7 @@ mod tests {
         }
         // above current tick
         {
-            let expected_l = Liquidity::new(13548826311623); // 13548826311623
+            let expected_l = Liquidity::new(13548826311623);
             let expected_y = TokenAmount(0);
             let lower_tick = 150;
             let upper_tick = 800;
@@ -438,9 +438,9 @@ mod tests {
             let lower_tick = -25000;
             let upper_tick = -19000;
             let expected_x_up = TokenAmount(77539808126);
-            let expected_x_down = TokenAmount(77539808126);
+            let expected_x_down = TokenAmount(77539808125);
             let expected_l_up = Liquidity::new(584945290554346935);
-            let expected_l_down = Liquidity::new(584945290554346935);
+            let expected_l_down = Liquidity::new(584945290552911923);
             let result_up = get_liquidity(
                 expected_x_up,
                 y,
@@ -459,7 +459,7 @@ mod tests {
                 lower_tick,
                 upper_tick,
                 current_sqrt_price,
-                true,
+                false,
             )
             .unwrap();
             assert_eq!(expected_l_down, result_down.l);
@@ -471,7 +471,7 @@ mod tests {
             let upper_tick = 800;
             let x = TokenAmount(43_000_000_0);
             let expected_y = TokenAmount(0);
-            let expected_l = Liquidity::new(13548826311623850); // 13548826311623850
+            let expected_l = Liquidity::new(13548826311623850);
             let result_up = get_liquidity(
                 x,
                 expected_y,
