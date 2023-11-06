@@ -230,6 +230,10 @@ pub fn calculate_y(
     })
 }
 
+pub fn get_max_tick(tick_spacing: u16) -> i32 {
+    MAX_TICK - (MAX_TICK % tick_spacing as i32)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

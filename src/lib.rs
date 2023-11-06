@@ -911,8 +911,7 @@ pub mod contract {
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod e2e_tests {
         use crate::contracts::{
-            fee_to_tick_spacing, get_liquidity, get_liquidity_by_x, get_liquidity_by_y,
-            utils::get_max_tick,
+            get_liquidity, get_liquidity_by_x, get_liquidity_by_y, get_max_tick,
         };
         use crate::math::fee_growth::FeeGrowth;
         use crate::math::sqrt_price::log::get_tick_at_sqrt_price;
@@ -951,7 +950,7 @@ pub mod contract {
             approve!(client, TokenRef, token_y, dex, mint_amount, alice);
 
             let fee = Percentage::from_scale(6, 3);
-            let tick_spacing = fee_to_tick_spacing(fee);
+            let tick_spacing = 1;
 
             let fee_tier = FeeTier { fee, tick_spacing };
             create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
