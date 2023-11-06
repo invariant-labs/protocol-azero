@@ -3176,5 +3176,175 @@ pub mod contract {
             );
             Ok(())
         }
+
+        #[ink_e2e::test]
+        #[should_panic]
+        async fn cross_both_side_not_cross_case_test(mut client: ink_e2e::Client<C, E>) -> () {
+            let fee_tier = FeeTier {
+                fee: Percentage::from_scale(6, 3),
+                tick_spacing: 10,
+            };
+            let alice = ink_e2e::alice();
+            let bob = ink_e2e::bob();
+            let init_tick = 0;
+
+            let initial_mint = 10u128.pow(10);
+
+            let dex = create_dex!(client, ContractRef, Percentage::from_scale(1, 2));
+            let (token_x, token_y) =
+                create_tokens!(client, TokenRef, TokenRef, initial_mint, initial_mint);
+
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+
+            create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+
+            let pool = create_pool!(
+                client,
+                ContractRef,
+                dex,
+                token_x,
+                token_y,
+                fee_tier,
+                init_tick
+            );
+
+            let lower_tick_index = -10;
+            let upper_tick_index = 10;
+
+            let mint_amount = 10u128.pow(5);
+            mint!(TokenRef, client, token_x, Alice, mint_amount);
+            mint!(TokenRef, client, token_y, Alice, mint_amount);
+
+            approve!(client, TokenRef, token_x, dex, mint_amount, alice);
+            approve!(client, TokenRef, token_y, dex, mint_amount, alice);
+
+            let liquidity_delta = Liquidity::from_integer(20_006_000);
+
+            let pool_state =
+                get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+
+            let sqrt_price = pool_state.sqrt_price;
+
+            let amount = TokenAmount::new(10u128.pow(4));
+            let liquidity_delta = get_liquidity_by_x(
+                amount,
+                lower_tick_index,
+                upper_tick_index,
+                sqrt_price,
+                false,
+            )
+            .unwrap()
+            .l;
+
+            create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                lower_tick_index,
+                upper_tick_index,
+                liquidity_delta,
+                pool_state.sqrt_price,
+                pool_state.sqrt_price,
+                alice
+            );
+
+            create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                -20,
+                lower_tick_index,
+                liquidity_delta,
+                pool_state.sqrt_price,
+                pool_state.sqrt_price,
+                alice
+            );
+
+            let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+
+            assert_eq!(pool.liquidity, liquidity_delta);
+
+            let limit_wihtout_cross_tick_amount = TokenAmount(10_000);
+
+            let not_cross_amount = TokenAmount(1);
+            let min_amount_to_cross_from_tick_price = TokenAmount(3);
+            let crossing_amount_by_amount_out = TokenAmount(20136101434);
+
+            let mint_amount = limit_wihtout_cross_tick_amount.get()
+                + not_cross_amount.get()
+                + min_amount_to_cross_from_tick_price.get()
+                + crossing_amount_by_amount_out.get();
+
+            mint!(TokenRef, client, token_x, Alice, mint_amount);
+            mint!(TokenRef, client, token_y, Alice, mint_amount);
+
+            approve!(client, TokenRef, token_x, dex, mint_amount, alice);
+            approve!(client, TokenRef, token_y, dex, mint_amount, alice);
+
+            let pool_before =
+                get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+
+            let slippage = SqrtPrice::new(MIN_SQRT_PRICE);
+            let target_sqrt_price = quote!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                true,
+                limit_wihtout_cross_tick_amount,
+                true,
+                slippage,
+                alice
+            )
+            .unwrap()
+            .2;
+
+            swap!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                true,
+                limit_wihtout_cross_tick_amount,
+                true,
+                target_sqrt_price,
+                alice
+            );
+
+            let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+            let expected_tick = -10;
+
+            assert_eq!(pool.current_tick_index, expected_tick);
+            assert_eq!(pool.liquidity, pool_before.liquidity);
+
+            let slippage = SqrtPrice::new(MIN_SQRT_PRICE);
+            let target_sqrt_price = quote!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                true,
+                not_cross_amount,
+                true,
+                slippage,
+                alice
+            )
+            .unwrap()
+            .2;
+
+            swap!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                true,
+                not_cross_amount,
+                true,
+                target_sqrt_price,
+                alice
+            );
+        }
     }
 }
