@@ -1202,15 +1202,19 @@ macro_rules! multiple_swap {
 
         let amount = 100;
         let pool_data = get_pool!($client, $dex, dex, token_x, token_y, fee_tier).unwrap();
-        let (_amount_x, _amount_y, liquidity_delta) = get_liquidity(
+        let result = get_liquidity(
             TokenAmount(amount),
             TokenAmount(amount),
             lower_tick,
             upper_tick,
             pool_data.sqrt_price,
             true,
-            fee_tier.tick_spacing,
-        );
+        )
+        .unwrap();
+        let _amount_x = result.x;
+        let _amount_y = result.y;
+        let liquidity_delta = result.l;
+
         let slippage_limit_lower = pool_data.sqrt_price;
         let slippage_limit_upper = pool_data.sqrt_price;
 
@@ -1271,9 +1275,9 @@ macro_rules! multiple_swap {
         }
         assert_eq!(pool.liquidity, liquidity_delta);
         if $x_to_y {
-            assert_eq!(pool.sqrt_price, SqrtPrice::new(959803483698079499776690));
+            assert_eq!(pool.sqrt_price, SqrtPrice::new(959805958620596146276151));
         } else {
-            assert_eq!(pool.sqrt_price, SqrtPrice::new(1041879944160074453234060));
+            assert_eq!(pool.sqrt_price, SqrtPrice::new(1041877257604411525269920));
         }
 
         let dex_amount_x = dex_balance!($token, $client, token_x, dex);
