@@ -944,7 +944,7 @@ pub mod contract {
             let (dex, token_x, token_y) =
                 init_dex_and_tokens_max_mint_amount!(client, ContractRef, TokenRef);
 
-            let mint_amount = 2u128.pow(63) - 1;
+            let mint_amount = 2u128.pow(64) - 1;
             let alice = ink_e2e::alice();
             approve!(client, TokenRef, token_x, dex, mint_amount, alice);
             approve!(client, TokenRef, token_y, dex, mint_amount, alice);
@@ -1018,7 +1018,7 @@ pub mod contract {
             let (dex, token_x, token_y) =
                 init_dex_and_tokens_max_mint_amount!(client, ContractRef, TokenRef);
 
-            let mint_amount = 2u128.pow(63) - 1;
+            let mint_amount = 2u128.pow(49) - 1;
             let alice = ink_e2e::alice();
             approve!(client, TokenRef, token_x, dex, mint_amount, alice);
             approve!(client, TokenRef, token_y, dex, mint_amount, alice);
@@ -1149,7 +1149,7 @@ pub mod contract {
             let (dex, token_x, token_y) =
                 init_dex_and_tokens_max_mint_amount!(client, ContractRef, TokenRef);
 
-            let mint_amount = 2u128.pow(63) - 1;
+            let mint_amount = 2u128.pow(48) - 1;
             let alice = ink_e2e::alice();
             approve!(client, TokenRef, token_x, dex, mint_amount, alice);
             approve!(client, TokenRef, token_y, dex, mint_amount, alice);

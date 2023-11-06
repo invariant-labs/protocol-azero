@@ -1221,6 +1221,98 @@ macro_rules! big_deposit_and_swap {
             fee: Percentage::from_scale(6, 3),
             tick_spacing: 1,
         };
+        create_fee_tier!($client, $dex, dex, fee_tier, alice);
+
+        let init_tick = 0;
+        create_pool!($client, $dex, dex, token_x, token_y, fee_tier, init_tick);
+
+        let lower_tick = if $x_to_y {
+            -(fee_tier.tick_spacing as i32)
+        } else {
+            0
+        };
+        let upper_tick = if $x_to_y {
+            0
+        } else {
+            fee_tier.tick_spacing as i32
+        };
+        let pool = get_pool!($client, $dex, dex, token_x, token_y, fee_tier).unwrap();
+
+        let liquidity_delta = if $x_to_y {
+            get_liquidity_by_y(
+                TokenAmount(mint_amount),
+                lower_tick,
+                upper_tick,
+                pool.sqrt_price,
+                true,
+            )
+            .unwrap()
+            .l
+        } else {
+            get_liquidity_by_x(
+                TokenAmount(mint_amount),
+                lower_tick,
+                upper_tick,
+                pool.sqrt_price,
+                true,
+            )
+            .unwrap()
+            .l
+        };
+
+        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+        let slippage_limit_lower = pool.sqrt_price;
+        let slippage_limit_upper = pool.sqrt_price;
+        create_position!(
+            $client,
+            $dex,
+            dex,
+            pool_key,
+            lower_tick,
+            upper_tick,
+            liquidity_delta,
+            slippage_limit_lower,
+            slippage_limit_upper,
+            alice
+        );
+
+        let amount_x = balance_of!($token, $client, token_x, Alice);
+        let amount_y = balance_of!($token, $client, token_y, Alice);
+        if $x_to_y {
+            assert_eq!(amount_x, mint_amount);
+            assert_eq!(amount_y, 0);
+        } else {
+            assert_eq!(amount_x, 0);
+            assert_eq!(amount_y, mint_amount);
+        }
+
+        let sqrt_price_limit = if $x_to_y {
+            SqrtPrice::new(MIN_SQRT_PRICE)
+        } else {
+            SqrtPrice::new(MAX_SQRT_PRICE)
+        };
+
+        swap!(
+            $client,
+            $dex,
+            dex,
+            pool_key,
+            $x_to_y,
+            TokenAmount(mint_amount),
+            true,
+            sqrt_price_limit,
+            alice
+        );
+
+        let amount_x = balance_of!($token, $client, token_x, Alice);
+        let amount_y = balance_of!($token, $client, token_y, Alice);
+        if $x_to_y {
+            assert_eq!(amount_x, 0);
+            assert_ne!(amount_y, 0);
+        } else {
+            assert_ne!(amount_x, 0);
+            assert_eq!(amount_y, 0);
+        }
     }};
 }
 
