@@ -1202,15 +1202,19 @@ macro_rules! multiple_swap {
 
         let amount = 100;
         let pool_data = get_pool!($client, $dex, dex, token_x, token_y, fee_tier).unwrap();
-        let (_amount_x, _amount_y, liquidity_delta) = get_liquidity(
+        let result = get_liquidity(
             TokenAmount(amount),
             TokenAmount(amount),
             lower_tick,
             upper_tick,
             pool_data.sqrt_price,
             true,
-            fee_tier.tick_spacing,
-        );
+        )
+        .unwrap();
+        let _amount_x = result.x;
+        let _amount_y = result.y;
+        let liquidity_delta = result.l;
+
         let slippage_limit_lower = pool_data.sqrt_price;
         let slippage_limit_upper = pool_data.sqrt_price;
 
