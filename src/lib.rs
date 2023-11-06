@@ -910,12 +910,10 @@ pub mod contract {
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod e2e_tests {
-        use crate::contracts::{
-            get_liquidity, get_liquidity_by_x, get_liquidity_by_y, get_max_tick,
-        };
+        use crate::contracts::{get_liquidity, get_liquidity_by_x, get_liquidity_by_y};
         use crate::math::fee_growth::FeeGrowth;
         use crate::math::sqrt_price::log::get_tick_at_sqrt_price;
-        use crate::math::sqrt_price::sqrt_price::calculate_sqrt_price;
+        use crate::math::sqrt_price::sqrt_price::{calculate_sqrt_price, get_max_tick};
         use crate::math::MAX_TICK;
         use ink::prelude::vec;
         use ink::prelude::vec::Vec;
