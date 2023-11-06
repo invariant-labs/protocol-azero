@@ -129,7 +129,7 @@ pub fn get_liquidity_by_x_sqrt_price(
 
     if current_sqrt_price < lower_sqrt_price {
         let nominator =
-            (lower_sqrt_price.big_mul(upper_sqrt_price)).big_div(SqrtPrice::new(PRICE_DENOMINATOR));
+            (lower_sqrt_price.big_mul(upper_sqrt_price)).big_div(SqrtPrice::from_integer(1));
         let denominator = upper_sqrt_price - lower_sqrt_price;
         let liquidity = Liquidity::from_integer((x.0 * nominator.get()) / denominator.get());
         return Ok(SingleTokenLiquidity {
@@ -140,7 +140,7 @@ pub fn get_liquidity_by_x_sqrt_price(
 
     let nominator = current_sqrt_price
         .big_mul(upper_sqrt_price)
-        .big_div(SqrtPrice::new(PRICE_DENOMINATOR));
+        .big_div(SqrtPrice::from_integer(1));
     let denominator = upper_sqrt_price - current_sqrt_price;
     let liquidity = Liquidity::from_integer((x.0 * nominator.get()) / denominator.get());
     let sqrt_price_diff = current_sqrt_price - lower_sqrt_price;
@@ -187,7 +187,8 @@ pub fn get_liquidity_by_y_sqrt_price(
 
     if upper_sqrt_price <= current_sqrt_price {
         let sqrt_price_diff = upper_sqrt_price - lower_sqrt_price;
-        let liquidity = Liquidity::from_integer(y.0 * PRICE_DENOMINATOR / sqrt_price_diff.get());
+        let liquidity =
+            Liquidity::from_integer(y.0 * SqrtPrice::from_integer(1).get() / sqrt_price_diff.get());
         return Ok(SingleTokenLiquidity {
             l: liquidity,
             amount: TokenAmount::new(0),
@@ -195,9 +196,10 @@ pub fn get_liquidity_by_y_sqrt_price(
     }
 
     let sqrt_price_diff = current_sqrt_price - lower_sqrt_price;
-    let liquidity = Liquidity::from_integer(y.0 * PRICE_DENOMINATOR / sqrt_price_diff.get());
+    let liquidity =
+        Liquidity::from_integer(y.0 * SqrtPrice::from_integer(1).get() / sqrt_price_diff.get());
     let denominator =
-        (current_sqrt_price.big_mul(upper_sqrt_price)).big_div(SqrtPrice::new(PRICE_DENOMINATOR));
+        (current_sqrt_price.big_mul(upper_sqrt_price)).big_div(SqrtPrice::from_integer(1));
     let nominator = upper_sqrt_price - current_sqrt_price;
 
     let x = calculate_x(nominator, denominator, liquidity, rounding_up)?;
@@ -217,9 +219,11 @@ pub fn calculate_x(
     let common = liquidity.big_mul(nominator).big_div(denominator).get();
 
     Ok(if rounding_up {
-        TokenAmount::new(((common + LIQUIDITY_DENOMINATOR) - 1) / LIQUIDITY_DENOMINATOR)
+        TokenAmount::new(
+            ((common + Liquidity::from_integer(1).get()) - 1) / Liquidity::from_integer(1).get(),
+        )
     } else {
-        TokenAmount::new(common / LIQUIDITY_DENOMINATOR)
+        TokenAmount::new(common / Liquidity::from_integer(1).get())
     })
 }
 
@@ -228,14 +232,16 @@ pub fn calculate_y(
     liquidity: Liquidity,
     rounding_up: bool,
 ) -> TrackableResult<TokenAmount> {
-    let shifted_liquidity = liquidity.get() / LIQUIDITY_DENOMINATOR;
+    let shifted_liquidity = liquidity.get() / Liquidity::from_integer(1).get();
     Ok(if rounding_up {
         TokenAmount::new(
-            ((sqrt_price_diff.get() * shifted_liquidity) + (PRICE_DENOMINATOR - 1))
-                / PRICE_DENOMINATOR,
+            ((sqrt_price_diff.get() * shifted_liquidity) + (SqrtPrice::from_integer(1).get() - 1))
+                / SqrtPrice::from_integer(1).get(),
         )
     } else {
-        TokenAmount::new(sqrt_price_diff.get() * shifted_liquidity / PRICE_DENOMINATOR)
+        TokenAmount::new(
+            sqrt_price_diff.get() * shifted_liquidity / SqrtPrice::from_integer(1).get(),
+        )
     })
 }
 
