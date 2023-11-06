@@ -1,10 +1,11 @@
+use decimal::num_traits::ToPrimitive;
 use decimal::*;
 use traceable_result::*;
 
 use crate::math::liquidity::Liquidity;
 use crate::math::sqrt_price::sqrt_price::{calculate_sqrt_price, SqrtPrice};
 use crate::math::token_amount::TokenAmount;
-use crate::math::MAX_TICK;
+use crate::math::{sqrt_price, MAX_TICK};
 
 #[derive(Debug)]
 pub struct LiquidityResult {
@@ -129,7 +130,12 @@ pub fn get_liquidity_by_x_sqrt_price(
         let nominator =
             (lower_sqrt_price.big_mul(upper_sqrt_price)).big_div(SqrtPrice::from_integer(1));
         let denominator = upper_sqrt_price - lower_sqrt_price;
-        let liquidity = Liquidity::from_integer((x.0 * nominator.get()) / denominator.get());
+        let liquidity = Liquidity::new(
+            ((U256::from(x.0) * U256::from(nominator.get())) / U256::from(denominator.get())
+                * U256::from(Liquidity::from_integer(1).get()))
+            .try_into()
+            .map_err(|_| err!("Overflow in calculating liquidity"))?,
+        );
         return Ok(SingleTokenLiquidity {
             l: liquidity,
             amount: TokenAmount(0),
@@ -140,7 +146,13 @@ pub fn get_liquidity_by_x_sqrt_price(
         .big_mul(upper_sqrt_price)
         .big_div(SqrtPrice::from_integer(1));
     let denominator = upper_sqrt_price - current_sqrt_price;
-    let liquidity = Liquidity::from_integer((x.0 * nominator.get()) / denominator.get());
+    let liquidity = Liquidity::new(
+        ((U256::from(x.0) * U256::from(nominator.get())) / U256::from(denominator.get())
+            * U256::from(Liquidity::from_integer(1).get()))
+        .try_into()
+        .map_err(|_| err!("Overflow in calculating liquidity"))?,
+    );
+
     let sqrt_price_diff = current_sqrt_price - lower_sqrt_price;
     let y = calculate_y(sqrt_price_diff, liquidity, rounding_up)?;
     Ok(SingleTokenLiquidity {
@@ -185,8 +197,15 @@ pub fn get_liquidity_by_y_sqrt_price(
 
     if upper_sqrt_price <= current_sqrt_price {
         let sqrt_price_diff = upper_sqrt_price - lower_sqrt_price;
-        let liquidity =
-            Liquidity::from_integer(y.0 * SqrtPrice::from_integer(1).get() / sqrt_price_diff.get());
+        // let liquidity =
+        //     Liquidity::from_integer(y.0 * SqrtPrice::from_integer(1).get() / sqrt_price_diff.get());
+        let liquidity = Liquidity::new(
+            (U256::from(y.0) * U256::from(SqrtPrice::from_integer(1).get())
+                / U256::from(sqrt_price_diff.get())
+                * U256::from(Liquidity::from_integer(1).get()))
+            .try_into()
+            .map_err(|_| err!("Overflow while calculating liquidity"))?,
+        );
         return Ok(SingleTokenLiquidity {
             l: liquidity,
             amount: TokenAmount::new(0),
@@ -194,8 +213,15 @@ pub fn get_liquidity_by_y_sqrt_price(
     }
 
     let sqrt_price_diff = current_sqrt_price - lower_sqrt_price;
-    let liquidity =
-        Liquidity::from_integer(y.0 * SqrtPrice::from_integer(1).get() / sqrt_price_diff.get());
+    // let liquidity =
+    //     Liquidity::from_integer(y.0 * SqrtPrice::from_integer(1).get() / sqrt_price_diff.get());
+    let liquidity = Liquidity::new(
+        (U256::from(y.0) * U256::from(SqrtPrice::from_integer(1).get())
+            / U256::from(sqrt_price_diff.get())
+            * U256::from(Liquidity::from_integer(1).get()))
+        .try_into()
+        .map_err(|_| err!("Overflow while calculating liquidity"))?,
+    );
     let denominator =
         (current_sqrt_price.big_mul(upper_sqrt_price)).big_div(SqrtPrice::from_integer(1));
     let nominator = upper_sqrt_price - current_sqrt_price;
@@ -218,10 +244,17 @@ pub fn calculate_x(
 
     Ok(if rounding_up {
         TokenAmount::new(
-            ((common + Liquidity::from_integer(1).get()) - 1) / Liquidity::from_integer(1).get(),
+            (((U256::from(common) + U256::from(Liquidity::from_integer(1).get())) - U256::from(1))
+                / U256::from(Liquidity::from_integer(1).get()))
+            .try_into()
+            .map_err(|_| err!("Overflow while casting to TokenAmount"))?,
         )
     } else {
-        TokenAmount::new(common / Liquidity::from_integer(1).get())
+        TokenAmount::new(
+            (U256::from(common) / U256::from(Liquidity::from_integer(1).get()))
+                .try_into()
+                .map_err(|_| err!("Overflow while casting to TokenAmount"))?,
+        )
     })
 }
 
@@ -232,13 +265,21 @@ pub fn calculate_y(
 ) -> TrackableResult<TokenAmount> {
     let shifted_liquidity = liquidity.get() / Liquidity::from_integer(1).get();
     Ok(if rounding_up {
+        // (2^96 * 2^128 + (10^24 - 1)) / 10^24
         TokenAmount::new(
-            ((sqrt_price_diff.get() * shifted_liquidity) + (SqrtPrice::from_integer(1).get() - 1))
-                / SqrtPrice::from_integer(1).get(),
+            (((U256::from(sqrt_price_diff.get()) * U256::from(shifted_liquidity))
+                + U256::from(SqrtPrice::from_integer(1).get() - 1))
+                / U256::from(SqrtPrice::from_integer(1).get()))
+            .try_into()
+            .map_err(|_| err!("Overflow in calculating TokenAmount"))?,
         )
+        // Ok(result)
     } else {
         TokenAmount::new(
-            sqrt_price_diff.get() * shifted_liquidity / SqrtPrice::from_integer(1).get(),
+            (U256::from(sqrt_price_diff.get()) * U256::from(shifted_liquidity)
+                / U256::from(SqrtPrice::from_integer(1).get()))
+            .try_into()
+            .map_err(|_| err!("Overflow in calculating TokenAmount"))?,
         )
     })
 }
