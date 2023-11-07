@@ -912,6 +912,7 @@ pub mod contract {
     pub mod e2e_tests {
         use crate::contracts::{get_liquidity, get_liquidity_by_x, get_liquidity_by_y};
         use crate::math::fee_growth::FeeGrowth;
+        use crate::math::get_delta_y;
         use crate::math::sqrt_price::log::get_tick_at_sqrt_price;
         use crate::math::sqrt_price::sqrt_price::{calculate_sqrt_price, get_max_tick};
         use crate::math::MAX_TICK;
@@ -1188,8 +1189,8 @@ pub mod contract {
 
             let mint_amount = 2u128.pow(75) - 1;
             let alice = ink_e2e::alice();
-            approve!(client, TokenRef, token_x, dex, mint_amount, alice);
-            approve!(client, TokenRef, token_y, dex, mint_amount, alice);
+            approve!(client, TokenRef, token_x, dex, u128::MAX, alice);
+            approve!(client, TokenRef, token_y, dex, u128::MAX, alice);
 
             let fee_tier = FeeTier {
                 fee: Percentage::from_scale(6, 3),
@@ -1211,7 +1212,7 @@ pub mod contract {
             let lower_tick = -(fee_tier.tick_spacing as i32);
             let upper_tick = fee_tier.tick_spacing as i32;
             let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
-            let liquidity_by_x = get_liquidity_by_x(
+            let liquidity_delta = get_liquidity_by_x(
                 TokenAmount(mint_amount),
                 lower_tick,
                 upper_tick,
@@ -1220,22 +1221,13 @@ pub mod contract {
             )
             .unwrap()
             .l;
-
-            let liquidity_by_y = get_liquidity_by_y(
-                TokenAmount(mint_amount),
-                lower_tick,
-                upper_tick,
+            let y = get_delta_y(
+                calculate_sqrt_price(lower_tick).unwrap(),
                 pool.sqrt_price,
-                false,
+                liquidity_delta,
+                true,
             )
-            .unwrap()
-            .l;
-
-            let liquidity_delta = if liquidity_by_y < liquidity_by_x {
-                liquidity_by_y
-            } else {
-                liquidity_by_x
-            };
+            .unwrap();
 
             let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
             let slippage_limit_lower = pool.sqrt_price;
@@ -1252,6 +1244,16 @@ pub mod contract {
                 slippage_limit_upper,
                 alice
             );
+
+            let user_amount_x = balance_of!(TokenRef, client, token_x, Alice);
+            let user_amount_y = balance_of!(TokenRef, client, token_y, Alice);
+            assert_eq!(user_amount_x, u128::MAX - mint_amount);
+            assert_eq!(user_amount_y, u128::MAX - y.get());
+
+            let contract_amount_x = dex_balance!(TokenRef, client, token_x, dex);
+            let contract_amount_y = dex_balance!(TokenRef, client, token_y, dex);
+            assert_eq!(contract_amount_x, mint_amount);
+            assert_eq!(contract_amount_y, y.get());
 
             Ok(())
         }
