@@ -937,6 +937,56 @@ pub mod contract {
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
+        async fn limits_full_range_with_max_liquidity(mut client: ink_e2e::Client<C, E>) -> () {
+            let (dex, token_x, token_y) =
+                init_dex_and_tokens_max_mint_amount!(client, ContractRef, TokenRef);
+
+            let mint_amount = u128::MAX;
+            let alice = ink_e2e::alice();
+            approve!(client, TokenRef, token_x, dex, mint_amount, alice);
+            approve!(client, TokenRef, token_y, dex, mint_amount, alice);
+
+            let fee = Percentage::from_scale(6, 3);
+            let tick_spacing = 1;
+
+            let fee_tier = FeeTier { fee, tick_spacing };
+            create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+
+            let init_tick = get_max_tick(tick_spacing);
+            create_pool!(
+                client,
+                ContractRef,
+                dex,
+                token_x,
+                token_y,
+                fee_tier,
+                init_tick
+            );
+
+            let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+            let current_sqrt_price = pool.sqrt_price;
+            assert_eq!(pool.current_tick_index, init_tick);
+            assert_eq!(pool.sqrt_price, calculate_sqrt_price(init_tick).unwrap());
+
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+            let liquidity_delta = Liquidity::new(2u128.pow(109) - 1);
+            let slippage_limit_lower = pool.sqrt_price;
+            let slippage_limit_upper = pool.sqrt_price;
+            create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                -MAX_TICK,
+                MAX_TICK,
+                liquidity_delta,
+                slippage_limit_lower,
+                slippage_limit_upper,
+                alice
+            );
+        }
+
+        #[ink_e2e::test]
         #[should_panic]
         async fn limits_swap_at_upper_limit(mut client: ink_e2e::Client<C, E>) -> () {
             let (dex, token_x, token_y) =
