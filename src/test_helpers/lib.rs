@@ -1180,7 +1180,7 @@ macro_rules! swap_exact_limit {
 #[macro_export]
 macro_rules! init_dex_and_tokens_max_mint_amount {
     ($client:ident, $dex:ty, $token:ty) => {{
-        let mint_amount = 2u128.pow(64) - 1;
+        let mint_amount = u128::MAX;
         let (token_x, token_y) = create_tokens!($client, $token, $token, mint_amount, mint_amount);
 
         let protocol_fee = Percentage::from_scale(1, 2);
@@ -1212,7 +1212,7 @@ macro_rules! big_deposit_and_swap {
     ($client:ident, $dex:ty, $token:ty, $x_to_y:expr) => {{
         let (dex, token_x, token_y) = init_dex_and_tokens_max_mint_amount!($client, $dex, $token);
 
-        let mint_amount = 2u128.pow(64) - 1;
+        let mint_amount = 2u128.pow(75) - 1;
         let alice = ink_e2e::alice();
         approve!($client, $token, token_x, dex, mint_amount, alice);
         approve!($client, $token, token_y, dex, mint_amount, alice);
@@ -1279,11 +1279,11 @@ macro_rules! big_deposit_and_swap {
         let amount_x = balance_of!($token, $client, token_x, Alice);
         let amount_y = balance_of!($token, $client, token_y, Alice);
         if $x_to_y {
-            assert_eq!(amount_x, mint_amount);
-            assert_eq!(amount_y, 0);
+            assert_eq!(amount_x, 340282366920938463463374607431768211455);
+            assert_eq!(amount_y, 340282366920938425684442744474606501888);
         } else {
-            assert_eq!(amount_x, 0);
-            assert_eq!(amount_y, mint_amount);
+            assert_eq!(amount_x, 340282366920938425684442744474606501888);
+            assert_eq!(amount_y, 340282366920938463463374607431768211455);
         }
 
         let sqrt_price_limit = if $x_to_y {
@@ -1307,11 +1307,11 @@ macro_rules! big_deposit_and_swap {
         let amount_x = balance_of!($token, $client, token_x, Alice);
         let amount_y = balance_of!($token, $client, token_y, Alice);
         if $x_to_y {
-            assert_eq!(amount_x, 0);
+            assert_eq!(amount_x, 340282366920938425684442744474606501888);
             assert_ne!(amount_y, 0);
         } else {
             assert_ne!(amount_x, 0);
-            assert_eq!(amount_y, 0);
+            assert_eq!(amount_y, 340282366920938425684442744474606501888);
         }
     }};
 }
@@ -1341,7 +1341,7 @@ macro_rules! multiple_swap {
 
         let amount = 100;
         let pool_data = get_pool!($client, $dex, dex, token_x, token_y, fee_tier).unwrap();
-        let liquidity_delta = get_liquidity(
+        let result = get_liquidity(
             TokenAmount(amount),
             TokenAmount(amount),
             lower_tick,
@@ -1349,8 +1349,11 @@ macro_rules! multiple_swap {
             pool_data.sqrt_price,
             true,
         )
-        .unwrap()
-        .l;
+        .unwrap();
+        let _amount_x = result.x;
+        let _amount_y = result.y;
+        let liquidity_delta = result.l;
+
         let slippage_limit_lower = pool_data.sqrt_price;
         let slippage_limit_upper = pool_data.sqrt_price;
 
@@ -1396,9 +1399,9 @@ macro_rules! multiple_swap {
 
         let pool = get_pool!($client, $dex, dex, token_x, token_y, fee_tier).unwrap();
         if $x_to_y {
-            assert_eq!(pool.current_tick_index, -828);
+            assert_eq!(pool.current_tick_index, -821);
         } else {
-            assert_eq!(pool.current_tick_index, 827);
+            assert_eq!(pool.current_tick_index, 820);
         }
         assert_eq!(pool.fee_growth_global_x, FeeGrowth::new(0));
         assert_eq!(pool.fee_growth_global_y, FeeGrowth::new(0));
@@ -1411,9 +1414,9 @@ macro_rules! multiple_swap {
         }
         assert_eq!(pool.liquidity, liquidity_delta);
         if $x_to_y {
-            assert_eq!(pool.sqrt_price, SqrtPrice::new(959477712742008104457457));
+            assert_eq!(pool.sqrt_price, SqrtPrice::new(959805958620596146276151));
         } else {
-            assert_eq!(pool.sqrt_price, SqrtPrice::new(1042233693101830126701070));
+            assert_eq!(pool.sqrt_price, SqrtPrice::new(1041877257604411525269920));
         }
 
         let dex_amount_x = dex_balance!($token, $client, token_x, dex);
