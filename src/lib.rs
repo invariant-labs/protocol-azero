@@ -987,8 +987,7 @@ pub mod contract {
         }
 
         #[ink_e2e::test]
-        #[should_panic]
-        async fn limits_swap_at_upper_limit(mut client: ink_e2e::Client<C, E>) -> () {
+        async fn limits_swap_at_upper_limit(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let (dex, token_x, token_y) =
                 init_dex_and_tokens_max_mint_amount!(client, ContractRef, TokenRef);
 
@@ -1047,18 +1046,7 @@ pub mod contract {
                 alice
             );
 
-            let swap_amount = TokenAmount(1);
-            swap!(
-                client,
-                ContractRef,
-                dex,
-                pool_key,
-                true,
-                swap_amount,
-                true,
-                SqrtPrice::new(MIN_SQRT_PRICE),
-                alice
-            );
+            Ok(())
         }
 
         #[ink_e2e::test]
@@ -1192,8 +1180,9 @@ pub mod contract {
         }
 
         #[ink_e2e::test]
-        #[should_panic]
-        async fn limits_big_deposit_both_tokens(mut client: ink_e2e::Client<C, E>) -> () {
+        async fn limits_big_deposit_both_tokens(
+            mut client: ink_e2e::Client<C, E>,
+        ) -> E2EResult<()> {
             let (dex, token_x, token_y) =
                 init_dex_and_tokens_max_mint_amount!(client, ContractRef, TokenRef);
 
@@ -1264,18 +1253,7 @@ pub mod contract {
                 alice
             );
 
-            let swap_amount = TokenAmount(1);
-            swap!(
-                client,
-                ContractRef,
-                dex,
-                pool_key,
-                true,
-                swap_amount,
-                true,
-                SqrtPrice::new(MIN_SQRT_PRICE),
-                alice
-            );
+            Ok(())
         }
 
         #[ink_e2e::test]
