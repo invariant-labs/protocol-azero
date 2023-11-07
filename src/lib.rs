@@ -39,7 +39,6 @@ pub mod contract {
     use traceable_result::unwrap;
 
     use crate::contracts::state::State;
-    use crate::contracts::Balances;
     use crate::contracts::FeeTierKey;
     use crate::contracts::Pool;
     use crate::contracts::Tick;
@@ -79,7 +78,6 @@ pub mod contract {
     #[ink(storage)]
     #[derive(Default)]
     pub struct Contract {
-        balances: Balances,
         positions: Positions,
         fee_tiers: FeeTiers,
         pools: Pools,
