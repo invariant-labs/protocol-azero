@@ -3266,7 +3266,7 @@ pub mod contract {
 
             assert_eq!(pool.liquidity, liquidity_delta);
 
-            let limit_wihtout_cross_tick_amount = TokenAmount(10_068);
+            let limit_wihtout_cross_tick_amount = TokenAmount(10_000);
 
             let not_cross_amount = TokenAmount(1);
             let min_amount_to_cross_from_tick_price = TokenAmount(3);
