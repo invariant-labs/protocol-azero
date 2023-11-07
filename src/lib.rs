@@ -944,8 +944,8 @@ pub mod contract {
 
             let mint_amount = u128::MAX;
             let alice = ink_e2e::alice();
-            approve!(client, TokenRef, token_x, dex, mint_amount, alice);
-            approve!(client, TokenRef, token_y, dex, mint_amount, alice);
+            approve!(client, TokenRef, token_x, dex, u128::MAX, alice);
+            approve!(client, TokenRef, token_y, dex, u128::MAX, alice);
 
             let fee = Percentage::from_scale(6, 3);
             let tick_spacing = 1;
@@ -994,8 +994,8 @@ pub mod contract {
 
             let mint_amount = 2u128.pow(105) - 1;
             let alice = ink_e2e::alice();
-            approve!(client, TokenRef, token_x, dex, mint_amount, alice);
-            approve!(client, TokenRef, token_y, dex, mint_amount, alice);
+            approve!(client, TokenRef, token_x, dex, u128::MAX, alice);
+            approve!(client, TokenRef, token_y, dex, u128::MAX, alice);
 
             let fee = Percentage::from_scale(6, 3);
             let tick_spacing = 1;
@@ -1055,10 +1055,10 @@ pub mod contract {
             let (dex, token_x, token_y) =
                 init_dex_and_tokens_max_mint_amount!(client, ContractRef, TokenRef);
 
-            let mint_amount = 2u128.pow(70) - 1;
+            let mint_amount = 2u128.pow(76) - 1;
             let alice = ink_e2e::alice();
-            approve!(client, TokenRef, token_x, dex, mint_amount, alice);
-            approve!(client, TokenRef, token_y, dex, mint_amount, alice);
+            approve!(client, TokenRef, token_x, dex, u128::MAX, alice);
+            approve!(client, TokenRef, token_y, dex, u128::MAX, alice);
 
             let fee_tier = FeeTier {
                 fee: Percentage::from_scale(6, 3),

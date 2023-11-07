@@ -1214,8 +1214,8 @@ macro_rules! big_deposit_and_swap {
 
         let mint_amount = 2u128.pow(75) - 1;
         let alice = ink_e2e::alice();
-        approve!($client, $token, token_x, dex, mint_amount, alice);
-        approve!($client, $token, token_y, dex, mint_amount, alice);
+        approve!($client, $token, token_x, dex, u128::MAX, alice);
+        approve!($client, $token, token_y, dex, u128::MAX, alice);
 
         let fee_tier = FeeTier {
             fee: Percentage::from_scale(6, 3),
