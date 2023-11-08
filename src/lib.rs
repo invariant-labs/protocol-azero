@@ -51,9 +51,10 @@ pub mod contract {
     use crate::math::types::liquidity::Liquidity;
     use crate::math::{compute_swap_step, MAX_SQRT_PRICE, MIN_SQRT_PRICE};
     use decimal::*;
+    use ink::contract_ref;
     use ink::prelude::vec;
     use ink::prelude::vec::Vec;
-    use openbrush::contracts::traits::psp22::PSP22Ref;
+    use psp22::PSP22;
 
     #[derive(Debug)]
     pub struct OrderPair {
@@ -118,21 +119,14 @@ pub mod contract {
             let (fee_protocol_token_x, fee_protocol_token_y) = pool.withdraw_protocol_fee(pool_key);
             self.pools.update(pool_key, &pool)?;
 
-            PSP22Ref::transfer(
-                &pool_key.token_x,
-                pool.fee_receiver,
-                fee_protocol_token_x.get(),
-                vec![],
-            )
-            .map_err(|_| ContractErrors::TransferError)?;
-
-            PSP22Ref::transfer(
-                &pool_key.token_y,
-                pool.fee_receiver,
-                fee_protocol_token_y.get(),
-                vec![],
-            )
-            .map_err(|_| ContractErrors::TransferError)?;
+            let mut token_x: contract_ref!(PSP22) = pool_key.token_x.into();
+            token_x
+                .transfer(pool.fee_receiver, fee_protocol_token_x.get(), vec![])
+                .map_err(|_| ContractErrors::TransferError)?;
+            let mut token_y: contract_ref!(PSP22) = pool_key.token_y.into();
+            token_y
+                .transfer(pool.fee_receiver, fee_protocol_token_y.get(), vec![])
+                .map_err(|_| ContractErrors::TransferError)?;
 
             Ok(())
         }
@@ -249,9 +243,13 @@ pub mod contract {
             self.ticks.add_tick(pool_key, lower_tick.index, lower_tick);
             self.ticks.add_tick(pool_key, upper_tick.index, upper_tick);
 
-            PSP22Ref::transfer_from(&pool_key.token_x, caller, contract, x.get(), vec![])
+            let mut token_x: contract_ref!(PSP22) = pool_key.token_x.into();
+            token_x
+                .transfer_from(caller, contract, x.get(), vec![])
                 .map_err(|_| ContractErrors::TransferError)?;
-            PSP22Ref::transfer_from(&pool_key.token_y, caller, contract, y.get(), vec![])
+            let mut token_y: contract_ref!(PSP22) = pool_key.token_y.into();
+            token_y
+                .transfer_from(caller, contract, y.get(), vec![])
                 .map_err(|_| ContractErrors::TransferError)?;
 
             Ok(position)
@@ -393,37 +391,33 @@ pub mod contract {
             self.pools.update(pool_key, &calculate_swap_result.pool)?;
 
             if x_to_y {
-                PSP22Ref::transfer_from(
-                    &pool_key.token_x,
-                    caller,
-                    contract,
-                    calculate_swap_result.amount_in.get(),
-                    vec![],
-                )
-                .map_err(|_| ContractErrors::TransferError)?;
-                PSP22Ref::transfer(
-                    &pool_key.token_y,
-                    caller,
-                    calculate_swap_result.amount_out.get(),
-                    vec![],
-                )
-                .map_err(|_| ContractErrors::TransferError)?;
+                let mut token_x: contract_ref!(PSP22) = pool_key.token_x.into();
+                token_x
+                    .transfer_from(
+                        caller,
+                        contract,
+                        calculate_swap_result.amount_in.get(),
+                        vec![],
+                    )
+                    .map_err(|_| ContractErrors::TransferError)?;
+                let mut token_y: contract_ref!(PSP22) = pool_key.token_y.into();
+                token_y
+                    .transfer(caller, calculate_swap_result.amount_out.get(), vec![])
+                    .map_err(|_| ContractErrors::TransferError)?;
             } else {
-                PSP22Ref::transfer_from(
-                    &pool_key.token_y,
-                    caller,
-                    contract,
-                    calculate_swap_result.amount_in.get(),
-                    vec![],
-                )
-                .map_err(|_| ContractErrors::TransferError)?;
-                PSP22Ref::transfer(
-                    &pool_key.token_x,
-                    caller,
-                    calculate_swap_result.amount_out.get(),
-                    vec![],
-                )
-                .map_err(|_| ContractErrors::TransferError)?;
+                let mut token_y: contract_ref!(PSP22) = pool_key.token_y.into();
+                token_y
+                    .transfer_from(
+                        caller,
+                        contract,
+                        calculate_swap_result.amount_in.get(),
+                        vec![],
+                    )
+                    .map_err(|_| ContractErrors::TransferError)?;
+                let mut token_x: contract_ref!(PSP22) = pool_key.token_x.into();
+                token_x
+                    .transfer(caller, calculate_swap_result.amount_out.get(), vec![])
+                    .map_err(|_| ContractErrors::TransferError)?;
             };
 
             Ok(())
@@ -543,7 +537,7 @@ pub mod contract {
 
             let mut pool = self.pools.get(position.pool_key)?;
 
-            let (token_x, token_y) = position.claim_fee(
+            let (x, y) = position.claim_fee(
                 &mut pool,
                 &mut upper_tick,
                 &mut lower_tick,
@@ -557,17 +551,21 @@ pub mod contract {
             self.ticks
                 .update_tick(position.pool_key, lower_tick.index, &lower_tick)?;
 
-            if token_x.get() > 0 {
-                PSP22Ref::transfer(&position.pool_key.token_x, caller, token_x.get(), vec![])
+            if x.get() > 0 {
+                let mut token_x: contract_ref!(PSP22) = position.pool_key.token_x.into();
+                token_x
+                    .transfer(caller, x.get(), vec![])
                     .map_err(|_| ContractErrors::TransferError)?;
             }
 
-            if token_y.get() > 0 {
-                PSP22Ref::transfer(&position.pool_key.token_y, caller, token_y.get(), vec![])
+            if y.get() > 0 {
+                let mut token_y: contract_ref!(PSP22) = position.pool_key.token_y.into();
+                token_y
+                    .transfer(caller, y.get(), vec![])
                     .map_err(|_| ContractErrors::TransferError)?;
             }
 
-            Ok((token_x, token_y))
+            Ok((x, y))
         }
 
         #[ink(message)]
@@ -640,9 +638,13 @@ pub mod contract {
 
             self.positions.remove(caller, index).unwrap();
 
-            PSP22Ref::transfer(&position.pool_key.token_x, caller, amount_x.get(), vec![])
+            let mut token_x: contract_ref!(PSP22) = position.pool_key.token_x.into();
+            token_x
+                .transfer(caller, amount_x.get(), vec![])
                 .map_err(|_| ContractErrors::TransferError)?;
-            PSP22Ref::transfer(&position.pool_key.token_y, caller, amount_y.get(), vec![])
+            let mut token_y: contract_ref!(PSP22) = position.pool_key.token_y.into();
+            token_y
+                .transfer(caller, amount_y.get(), vec![])
                 .map_err(|_| ContractErrors::TransferError)?;
 
             Ok((amount_x, amount_y))

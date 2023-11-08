@@ -826,6 +826,7 @@ dependencies = [
  "ink_e2e",
  "openbrush",
  "parity-scale-codec",
+ "psp22",
  "scale-info",
  "test_helpers",
  "token",
@@ -3246,6 +3247,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5787f7cda34e3033a72192c018bc5883100330f362ef279a8cbccfce8bb4e874"
 dependencies = [
  "cc",
+]
+
+[[package]]
+name = "psp22"
+version = "0.2.0"
+source = "git+https://github.com/Cardinal-Cryptography/PSP22.git#9e756a73eb988dffff1357143f527f1b5bfecce3"
+dependencies = [
+ "ink",
+ "parity-scale-codec",
 ]
 
 [[package]]
