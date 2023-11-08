@@ -1179,7 +1179,7 @@ pub mod contract {
                 target_sqrt_price,
                 alice
             );
-            let expected_sqrt_price = SqrtPrice::new(1009940000000000000000000); // -197 tick
+            let expected_sqrt_price = SqrtPrice::new(1009940000000000000000000);
             let pool = get_pool!(
                 client,
                 ContractRef,
