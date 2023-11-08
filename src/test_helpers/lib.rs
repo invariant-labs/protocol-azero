@@ -243,8 +243,8 @@ macro_rules! create_tokens {
         // ink_e2e client
         // x:ty  || y:ty => x token ref => TokenRef
         // supply_x:expr || supply_y:expr => amount of initial supply x => 100
-        let constructor_x = <$x>::new($supply_x);
-        let constructor_y = <$y>::new($supply_y);
+        let constructor_x = <$x>::new($supply_x, None, None, 0);
+        let constructor_y = <$y>::new($supply_y, None, None, 0);
         let x = $client
             .instantiate("token", &ink_e2e::alice(), constructor_x, 0, None)
             .await
