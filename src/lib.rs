@@ -54,7 +54,7 @@ pub mod contract {
     use ink::contract_ref;
     use ink::prelude::vec;
     use ink::prelude::vec::Vec;
-    use psp22::PSP22;
+    use token::PSP22;
 
     #[derive(Debug)]
     pub struct OrderPair {
@@ -917,8 +917,6 @@ pub mod contract {
         use ink::prelude::vec;
         use ink::prelude::vec::Vec;
         use ink_e2e::build_message;
-        use openbrush::contracts::psp22::psp22_external::PSP22;
-        use openbrush::traits::Balance;
         use test_helpers::{
             address_of, approve, balance_of, change_fee_receiver, claim_fee, create_dex,
             create_fee_tier, create_pool, create_position, create_slippage_pool_with_liquidity,
@@ -1346,7 +1344,7 @@ pub mod contract {
 
         #[ink_e2e::test]
         async fn constructor_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let constructor = TokenRef::new(500);
+            let constructor = TokenRef::new(500, None, None, 0);
             let _token: AccountId = client
                 .instantiate("token", &ink_e2e::alice(), constructor, 0, None)
                 .await

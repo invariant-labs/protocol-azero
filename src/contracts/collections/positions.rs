@@ -1,9 +1,9 @@
 use crate::{contracts::Position, ContractErrors};
 use ink::{
     prelude::{vec, vec::Vec},
+    primitives::AccountId,
     storage::Mapping,
 };
-use openbrush::traits::AccountId;
 
 #[ink::storage_item]
 #[derive(Debug, Default)]

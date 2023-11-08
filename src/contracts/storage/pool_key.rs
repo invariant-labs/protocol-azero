@@ -1,5 +1,5 @@
 use decimal::Decimal;
-use openbrush::traits::AccountId;
+use ink::primitives::AccountId;
 
 use crate::contracts::FeeTier;
 use crate::math::percentage::Percentage;

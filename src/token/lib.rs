@@ -1,311 +1,220 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
-#![feature(min_specialization)]
-// pub use my_psp22::*;
-pub use openbrush::traits::{AccountId, Storage};
+
+mod data;
+mod errors;
+mod testing;
+mod traits;
+
+pub use data::{PSP22Data, PSP22Event};
+pub use errors::PSP22Error;
+pub use traits::{PSP22Burnable, PSP22Metadata, PSP22Mintable, PSP22};
 
 pub use self::token::TokenRef;
 
-/// Most basic PSP22 token.W
-/// // #[openbrush::implementation(Ownable, PSP22, PSP22Mintable)]
-#[openbrush::implementation(Ownable, PSP22)]
-#[openbrush::contract]
-#[allow(clippy::let_unit_value)] // Clippy-speciefic workaround for errors
-pub mod token {
-    use core::result::Result;
-
-    // use ink::prelude::vec;
-    use openbrush::contracts::psp22::{psp22, PSP22Error, PSP22Impl};
-
-    use crate::*;
-
-    /*use openbrush::{
-        contracts::{
-            ownable::*,
-            psp22::{self, extensions::mintable, psp22::Internal, Data, PSP22Error},
-        },
-        modifiers,
-        traits::Storage,
-    };*/
+// An example code of a smart contract using PSP22Data struct to implement
+// the functionality of PSP22 fungible token.
+//
+// Any contract can be easily enriched to act as PSP22 token by:
+// (1) adding PSP22Data to contract storage
+// (2) properly initializing it
+// (3) defining the correct Transfer and Approval events
+// (4) implementing PSP22 trait based on PSP22Data methods
+// (5) properly emitting resulting events
+//
+// It is a good practice to also implement the optional PSP22Metadata extension (6)
+// and include unit tests (7).
+#[ink::contract]
+mod token {
+    use crate::{PSP22Data, PSP22Error, PSP22Event, PSP22Metadata, PSP22};
+    use ink::prelude::{string::String, vec, vec::Vec};
 
     #[ink(storage)]
-    #[derive(Default, Storage)]
-    // if u change contract name then change it in test_helpers crate too in order to run e2e tests
     pub struct Token {
-        #[storage_field]
-        psp22: psp22::Data,
-        // storage contract owner
-        #[storage_field]
-        ownable: ownable::Data,
+        pub data: PSP22Data, // (1)
+        name: Option<String>,
+        symbol: Option<String>,
+        decimals: u8,
     }
 
-    // impl psp22::PSP22 for PspExample {}
-
-    /// Result type alias
-    // pub type Result<T> = core::result::Result<T, PSP22Error>;
-
-    // Ownable
-    // impl Ownable for PspExample {}
-
     impl Token {
-        /// Instantiate the contract with `total_supply` tokens of supply.
-        ///
-        /// All the created tokens will be minted to the caller.
         #[ink(constructor)]
-        pub fn new(total_supply: Balance) -> Self {
-            let mut instance = Self::default();
+        pub fn new(
+            supply: u128,
+            name: Option<String>,
+            symbol: Option<String>,
+            decimals: u8,
+        ) -> Self {
+            Self {
+                data: PSP22Data::new(supply, Self::env().caller()), // (2)
+                name,
+                symbol,
+                decimals,
+            }
+        }
 
-            // added ownable
-            ownable::Internal::_init_with_owner(&mut instance, Self::env().caller());
-            psp22::Internal::_mint_to(&mut instance, Self::env().caller(), total_supply)
-                .expect("Should mint");
-            // instance
-            //     .psp22
-            //     ._mint_to(Self::env().caller(), total_supply)
-            //     .expect("Should mint");
-
-            instance
+        // A helper function translating a vector of PSP22Events into the proper
+        // ink event types (defined internally in this contract) and emitting them.
+        // (5)
+        fn emit_events(&self, events: Vec<PSP22Event>) {
+            for event in events {
+                match event {
+                    PSP22Event::Transfer { from, to, value } => {
+                        self.env().emit_event(Transfer { from, to, value })
+                    }
+                    PSP22Event::Approval {
+                        owner,
+                        spender,
+                        amount,
+                    } => self.env().emit_event(Approval {
+                        owner,
+                        spender,
+                        amount,
+                    }),
+                }
+            }
         }
 
         #[ink(message)]
-        // #[modifiers(only_owner)]
-        pub fn mint(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
-            psp22::Internal::_mint_to(self, account, amount)
-            // self._mint_to(account, amount)
+        pub fn mint(&mut self, to: AccountId, value: u128) -> Result<(), PSP22Error> {
+            if value == 0 {
+                return Ok(());
+            }
+            let new_supply =
+                self.data
+                    .total_supply
+                    .checked_add(value)
+                    .ok_or(PSP22Error::Custom(String::from(
+                        "Max PSP22 supply exceeded. Max supply limited to 2^128-1.",
+                    )))?;
+            self.data.total_supply = new_supply;
+            let new_balance = self.balance_of(to).saturating_add(value);
+            self.data.balances.insert(to, &new_balance);
+            self.emit_events(vec![PSP22Event::Transfer {
+                from: None,
+                to: Some(to),
+                value,
+            }]);
+            Ok(())
+        }
+    }
+
+    // (3)
+    #[ink(event)]
+    pub struct Approval {
+        #[ink(topic)]
+        owner: AccountId,
+        #[ink(topic)]
+        spender: AccountId,
+        amount: u128,
+    }
+
+    // (3)
+    #[ink(event)]
+    pub struct Transfer {
+        #[ink(topic)]
+        from: Option<AccountId>,
+        #[ink(topic)]
+        to: Option<AccountId>,
+        value: u128,
+    }
+
+    // (4)
+    impl PSP22 for Token {
+        #[ink(message)]
+        fn total_supply(&self) -> u128 {
+            self.data.total_supply()
         }
 
         #[ink(message)]
-        // #[modifiers(only_owner)]
-        pub fn transfer(
+        fn balance_of(&self, owner: AccountId) -> u128 {
+            self.data.balance_of(owner)
+        }
+
+        #[ink(message)]
+        fn allowance(&self, owner: AccountId, spender: AccountId) -> u128 {
+            self.data.allowance(owner, spender)
+        }
+
+        #[ink(message)]
+        fn transfer(
             &mut self,
             to: AccountId,
-            amount: Balance,
-            data: Vec<u8>,
+            value: u128,
+            _data: Vec<u8>,
         ) -> Result<(), PSP22Error> {
-            psp22::PSP22Impl::transfer(self, to, amount, data)
+            let events = self.data.transfer(self.env().caller(), to, value)?;
+            self.emit_events(events);
+            Ok(())
         }
 
         #[ink(message)]
-        // #[modifiers(only_owner)]
-        pub fn transfer_from(
+        fn transfer_from(
             &mut self,
             from: AccountId,
             to: AccountId,
-            amount: Balance,
-            data: Vec<u8>,
+            value: u128,
+            _data: Vec<u8>,
         ) -> Result<(), PSP22Error> {
-            psp22::PSP22Impl::transfer_from(self, from, to, amount, data)
+            let events = self
+                .data
+                .transfer_from(self.env().caller(), from, to, value)?;
+            self.emit_events(events);
+            Ok(())
         }
-
-        // impl mintable::PSP22Mintable for PspExample {
-        //     #[ink(message)]
-        //     #[modifiers(only_owner)]
-        //     /// Mints the `amount` of underlying tokens to the recipient identified by the `account` address.
-        //     fn mint(&mut self, account: AccountId, amount: Balance) -> Result<()> {
-        //         self._mint_to(account, amount)
-        //     }
-        // }
 
         #[ink(message)]
-        pub fn balance_of(&self, account: AccountId) -> Balance {
-            psp22::PSP22Impl::balance_of(self, account)
+        fn approve(&mut self, spender: AccountId, value: u128) -> Result<(), PSP22Error> {
+            let events = self.data.approve(self.env().caller(), spender, value)?;
+            self.emit_events(events);
+            Ok(())
+        }
+
+        #[ink(message)]
+        fn increase_allowance(
+            &mut self,
+            spender: AccountId,
+            delta_value: u128,
+        ) -> Result<(), PSP22Error> {
+            let events = self
+                .data
+                .increase_allowance(self.env().caller(), spender, delta_value)?;
+            self.emit_events(events);
+            Ok(())
+        }
+
+        #[ink(message)]
+        fn decrease_allowance(
+            &mut self,
+            spender: AccountId,
+            delta_value: u128,
+        ) -> Result<(), PSP22Error> {
+            let events = self
+                .data
+                .decrease_allowance(self.env().caller(), spender, delta_value)?;
+            self.emit_events(events);
+            Ok(())
         }
     }
 
+    // (6)
+    impl PSP22Metadata for Token {
+        #[ink(message)]
+        fn token_name(&self) -> Option<String> {
+            self.name.clone()
+        }
+        #[ink(message)]
+        fn token_symbol(&self) -> Option<String> {
+            self.symbol.clone()
+        }
+        #[ink(message)]
+        fn token_decimals(&self) -> u8 {
+            self.decimals
+        }
+    }
+
+    // (7)
     #[cfg(test)]
-    pub mod tests {
-        use ink::primitives::AccountId;
-
-        use super::*;
-
-        #[ink::test]
-        fn constructor_test() {
-            let token = Token::new(200);
-            //println!("{:?}", token);
-            assert_eq!(token.psp22.supply.get().unwrap(), 200);
-        }
-
-        #[ink::test]
-        fn mint_test() {
-            let mut token = Token::new(200);
-            // let address = AccountId::from([0x1; 32]);
-            let _ = token.mint(token.ownable.owner.get().unwrap().unwrap(), 200);
-            assert_eq!(token.psp22.supply.get().unwrap(), 400);
-        }
-
-        #[ink::test]
-        fn transfer_test() {
-            let mut token = Token::new(200);
-            let sender = token.ownable.owner.get().unwrap().unwrap();
-            let recipient = AccountId::from([0x7; 32]);
-            let result = token.transfer(recipient, 20, vec![]).unwrap();
-            let sender_balance = token.balance_of(sender);
-            let recipient_balance = token.balance_of(recipient);
-            assert_eq!(result, ());
-            assert_eq!(sender_balance, 180);
-            assert_eq!(recipient_balance, 20);
-        }
-
-        #[ink::test]
-        #[should_panic]
-        fn transfer_insufficient_funds_test() {
-            let mut token = Token::new(200);
-            let recipient = AccountId::from([0x7; 32]);
-            let _ = token.transfer(recipient, 200000, vec![]).unwrap();
-        }
-    }
-
-    #[cfg(all(test, feature = "e2e-tests"))]
-    pub mod e2e_tests {
-
-        use ink_e2e::build_message;
-        use openbrush::contracts::psp22::psp22_external::PSP22;
-        use test_helpers::{address_of, balance_of};
-
-        use super::*;
-
-        type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
-
-        #[ink_e2e::test]
-        async fn transfer_bob_alice(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let constructor = TokenRef::new(100);
-            let address = client
-                .instantiate("token", &ink_e2e::alice(), constructor, 0, None)
-                .await
-                .expect("instantiate failed")
-                .account_id;
-
-            {
-                let _msg = build_message::<TokenRef>(address.clone())
-                    .call(|contract| contract.mint(address_of!(Bob), 50));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("Mint failed!")
-            };
-            {
-                let _msg = build_message::<TokenRef>(address.clone())
-                    .call(|contract| contract.transfer(address_of!(Alice), 50, vec![]));
-
-                client
-                    .call(&ink_e2e::bob(), _msg, 0, None)
-                    .await
-                    .expect("Trasnfer failed!");
-            };
-
-            let balance_of_alice = balance_of!(TokenRef, client, address, Alice);
-            let balance_of_bob = balance_of!(TokenRef, client, address, Bob);
-
-            assert_eq!(150, balance_of_alice);
-            assert_eq!(0, balance_of_bob);
-
-            Ok(())
-        }
-
-        #[ink_e2e::test]
-        async fn mints_balance_on_new(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let constructor = TokenRef::new(100);
-            let address = client
-                .instantiate("token", &ink_e2e::alice(), constructor, 0, None)
-                .await
-                .expect("instantiate failed")
-                .account_id;
-
-            let result = {
-                let _msg = build_message::<TokenRef>(address.clone())
-                    .call(|contract| contract.balance_of(address_of!(Alice)));
-                client.call_dry_run(&ink_e2e::alice(), &_msg, 0, None).await
-            };
-
-            assert!(matches!(result.return_value(), 100));
-
-            Ok(())
-        }
-
-        #[ink_e2e::test]
-        async fn transfer_adds_amount_to_destination_account(
-            mut client: ink_e2e::Client<C, E>,
-        ) -> E2EResult<()> {
-            let constructor = TokenRef::new(100);
-            let address = client
-                .instantiate("token", &ink_e2e::alice(), constructor, 0, None)
-                .await
-                .expect("instantiate failed")
-                .account_id;
-
-            let result = {
-                let _msg = build_message::<TokenRef>(address.clone())
-                    .call(|contract| contract.transfer(address_of!(Bob), 50, vec![]));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("transfer failed")
-            };
-
-            assert!(matches!(result.return_value(), Ok(())));
-
-            let balance_of_alice = balance_of!(TokenRef, client, address, Alice);
-
-            let balance_of_bob = balance_of!(TokenRef, client, address, Bob);
-
-            assert_eq!(balance_of_bob, 50, "Bob should have 50 tokens");
-            assert_eq!(balance_of_alice, 50, "Alice should have 50 tokens");
-            Ok(())
-        }
-
-        #[ink_e2e::test]
-        #[should_panic]
-        async fn insufficient_allowance_test(mut client: ink_e2e::Client<C, E>) -> () {
-            let constructor = TokenRef::new(100);
-            let address = client
-                .instantiate("token", &ink_e2e::alice(), constructor, 0, None)
-                .await
-                .expect("Instantiate failed")
-                .account_id;
-
-            let _result = {
-                let _msg = build_message::<TokenRef>(address.clone()).call(|contract| {
-                    contract.transfer_from(address_of!(Alice), address_of!(Bob), 100, vec![])
-                });
-                client
-                    .call(&ink_e2e::bob(), _msg, 0, None)
-                    .await
-                    .expect("Transfer from failed")
-            };
-        }
-
-        #[ink_e2e::test]
-        async fn sufficient_allowance_test(mut client: ink_e2e::Client<C, E>) -> () {
-            let constructor = TokenRef::new(100);
-            let address = client
-                .instantiate("token", &ink_e2e::alice(), constructor, 0, None)
-                .await
-                .expect("Instantiate failed")
-                .account_id;
-
-            let _result = {
-                let _msg = build_message::<TokenRef>(address.clone())
-                    .call(|contract| contract.approve(address_of!(Bob), 100));
-                client
-                    .call(&ink_e2e::alice(), _msg, 0, None)
-                    .await
-                    .expect("Approval failed")
-            };
-
-            let _result = {
-                let _msg = build_message::<TokenRef>(address.clone()).call(|contract| {
-                    contract.transfer_from(address_of!(Alice), address_of!(Bob), 100, vec![])
-                });
-                client
-                    .call(&ink_e2e::bob(), _msg, 0, None)
-                    .await
-                    .expect("Transfer from failed")
-            };
-
-            let balance_of_alice = balance_of!(TokenRef, client, address, Alice);
-            let balance_of_bob = balance_of!(TokenRef, client, address, Bob);
-
-            assert_eq!(balance_of_bob, 100, "Bob should have 100 tokens");
-            assert_eq!(balance_of_alice, 0, "Alice should have 0 tokens");
-        }
+    mod tests {
+        crate::tests!(Token, (|supply| Token::new(supply, None, None, 0)));
     }
 }
