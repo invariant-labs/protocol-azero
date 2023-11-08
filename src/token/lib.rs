@@ -96,6 +96,31 @@ mod token {
             }]);
             Ok(())
         }
+
+        #[ink(message)]
+        pub fn burn(&mut self, from: AccountId, value: u128) -> Result<(), PSP22Error> {
+            if value == 0 {
+                return Ok(());
+            }
+            let balance = self.balance_of(from);
+            if balance < value {
+                return Err(PSP22Error::InsufficientBalance);
+            }
+            if balance == value {
+                self.data.balances.remove(from);
+            } else {
+                self.data
+                    .balances
+                    .insert(from, &(balance.saturating_sub(value)));
+            }
+            self.data.total_supply = self.data.total_supply.saturating_sub(value);
+            self.emit_events(vec![PSP22Event::Transfer {
+                from: Some(from),
+                to: None,
+                value,
+            }]);
+            Ok(())
+        }
     }
 
     // (3)
