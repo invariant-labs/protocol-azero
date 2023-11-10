@@ -20,11 +20,6 @@ scale = { package = "parity-scale-codec", version = "3", default-features = fals
 scale-info = { version = "2.6", default-features = false, features = [
   "derive",
 ], optional = true }
-openbrush = { git = "https://github.com/Brushfam/openbrush-contracts", branch = "develop", default-features = false, features = [
-  "psp22",
-  "ownable",
-  "reentrancy_guard",
-] }
 token = { path = "src/token", default-features = false, features = [
   "ink-as-dependency",
 ] }
@@ -39,7 +34,7 @@ path = "src/lib.rs"
 
 [features]
 default = ["std"]
-std = ["ink/std", "scale/std", "scale-info/std", "openbrush/std"]
+std = ["ink/std", "scale/std", "scale-info/std"]
 ink-as-dependency = []
 e2e-tests = []
 

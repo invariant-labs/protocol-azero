@@ -1,39 +1,24 @@
 [package]
 name = "token"
-version = "0.1.0"
-authors = ["[your_name] <[your_email]>"]
+version = "0.2.0"
+authors = ["Hans <michal.handzlik@cardinals.cc>"]
 edition = "2021"
 
 [dependencies]
-ink = { version = "4.3.0", default-features = false }
-scale = { package = "parity-scale-codec", version = "3.6.5", default-features = false, features = [
-  "derive",
-] }
-scale-info = { version = "2.9.0", default-features = false, features = [
-  "derive",
-], optional = true }
-# Brush dependencies
-openbrush = { git = "https://github.com/Brushfam/openbrush-contracts", branch = "develop", default-features = false, features = [
-  "psp22",
-  "ownable",
-] }
+ink = { version = "4.3", default-features = false }
 
-[dev-dependencies]
-ink_e2e = "4.3.0"
-test_helpers = { path = "../test_helpers", default-features = false }
+scale = { package = "parity-scale-codec", version = "3", default-features = false, features = [
+    "derive",
+] }
+scale-info = { version = "2.9", default-features = false, features = [
+    "derive",
+], optional = true }
 
 [lib]
-name = "token"
 path = "lib.rs"
 
 [features]
 default = ["std"]
-std = [
-  "ink/std",
-  "scale/std",
-  "scale-info/std",
-  # Brush dependency
-  "openbrush/std",
-]
+std = ["ink/std", "scale/std", "scale-info/std"]
+contract = []
 ink-as-dependency = []
-e2e-tests = []

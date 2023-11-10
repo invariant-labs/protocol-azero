@@ -39,7 +39,6 @@ pub mod contract {
     use traceable_result::unwrap;
 
     use crate::contracts::state::State;
-    use crate::contracts::Balances;
     use crate::contracts::FeeTierKey;
     use crate::contracts::Pool;
     use crate::contracts::Tick;
@@ -52,9 +51,10 @@ pub mod contract {
     use crate::math::types::liquidity::Liquidity;
     use crate::math::{compute_swap_step, MAX_SQRT_PRICE, MIN_SQRT_PRICE};
     use decimal::*;
+    use ink::contract_ref;
     use ink::prelude::vec;
     use ink::prelude::vec::Vec;
-    use openbrush::contracts::traits::psp22::PSP22Ref;
+    use token::PSP22;
 
     #[derive(Debug)]
     pub struct OrderPair {
@@ -79,7 +79,6 @@ pub mod contract {
     #[ink(storage)]
     #[derive(Default)]
     pub struct Contract {
-        balances: Balances,
         positions: Positions,
         fee_tiers: FeeTiers,
         pools: Pools,
@@ -120,21 +119,14 @@ pub mod contract {
             let (fee_protocol_token_x, fee_protocol_token_y) = pool.withdraw_protocol_fee(pool_key);
             self.pools.update(pool_key, &pool)?;
 
-            PSP22Ref::transfer(
-                &pool_key.token_x,
-                pool.fee_receiver,
-                fee_protocol_token_x.get(),
-                vec![],
-            )
-            .map_err(|_| ContractErrors::TransferError)?;
-
-            PSP22Ref::transfer(
-                &pool_key.token_y,
-                pool.fee_receiver,
-                fee_protocol_token_y.get(),
-                vec![],
-            )
-            .map_err(|_| ContractErrors::TransferError)?;
+            let mut token_x: contract_ref!(PSP22) = pool_key.token_x.into();
+            token_x
+                .transfer(pool.fee_receiver, fee_protocol_token_x.get(), vec![])
+                .map_err(|_| ContractErrors::TransferError)?;
+            let mut token_y: contract_ref!(PSP22) = pool_key.token_y.into();
+            token_y
+                .transfer(pool.fee_receiver, fee_protocol_token_y.get(), vec![])
+                .map_err(|_| ContractErrors::TransferError)?;
 
             Ok(())
         }
@@ -251,9 +243,13 @@ pub mod contract {
             self.ticks.add_tick(pool_key, lower_tick.index, lower_tick);
             self.ticks.add_tick(pool_key, upper_tick.index, upper_tick);
 
-            PSP22Ref::transfer_from(&pool_key.token_x, caller, contract, x.get(), vec![])
+            let mut token_x: contract_ref!(PSP22) = pool_key.token_x.into();
+            token_x
+                .transfer_from(caller, contract, x.get(), vec![])
                 .map_err(|_| ContractErrors::TransferError)?;
-            PSP22Ref::transfer_from(&pool_key.token_y, caller, contract, y.get(), vec![])
+            let mut token_y: contract_ref!(PSP22) = pool_key.token_y.into();
+            token_y
+                .transfer_from(caller, contract, y.get(), vec![])
                 .map_err(|_| ContractErrors::TransferError)?;
 
             Ok(position)
@@ -395,37 +391,33 @@ pub mod contract {
             self.pools.update(pool_key, &calculate_swap_result.pool)?;
 
             if x_to_y {
-                PSP22Ref::transfer_from(
-                    &pool_key.token_x,
-                    caller,
-                    contract,
-                    calculate_swap_result.amount_in.get(),
-                    vec![],
-                )
-                .map_err(|_| ContractErrors::TransferError)?;
-                PSP22Ref::transfer(
-                    &pool_key.token_y,
-                    caller,
-                    calculate_swap_result.amount_out.get(),
-                    vec![],
-                )
-                .map_err(|_| ContractErrors::TransferError)?;
+                let mut token_x: contract_ref!(PSP22) = pool_key.token_x.into();
+                token_x
+                    .transfer_from(
+                        caller,
+                        contract,
+                        calculate_swap_result.amount_in.get(),
+                        vec![],
+                    )
+                    .map_err(|_| ContractErrors::TransferError)?;
+                let mut token_y: contract_ref!(PSP22) = pool_key.token_y.into();
+                token_y
+                    .transfer(caller, calculate_swap_result.amount_out.get(), vec![])
+                    .map_err(|_| ContractErrors::TransferError)?;
             } else {
-                PSP22Ref::transfer_from(
-                    &pool_key.token_y,
-                    caller,
-                    contract,
-                    calculate_swap_result.amount_in.get(),
-                    vec![],
-                )
-                .map_err(|_| ContractErrors::TransferError)?;
-                PSP22Ref::transfer(
-                    &pool_key.token_x,
-                    caller,
-                    calculate_swap_result.amount_out.get(),
-                    vec![],
-                )
-                .map_err(|_| ContractErrors::TransferError)?;
+                let mut token_y: contract_ref!(PSP22) = pool_key.token_y.into();
+                token_y
+                    .transfer_from(
+                        caller,
+                        contract,
+                        calculate_swap_result.amount_in.get(),
+                        vec![],
+                    )
+                    .map_err(|_| ContractErrors::TransferError)?;
+                let mut token_x: contract_ref!(PSP22) = pool_key.token_x.into();
+                token_x
+                    .transfer(caller, calculate_swap_result.amount_out.get(), vec![])
+                    .map_err(|_| ContractErrors::TransferError)?;
             };
 
             Ok(())
@@ -545,7 +537,7 @@ pub mod contract {
 
             let mut pool = self.pools.get(position.pool_key)?;
 
-            let (token_x, token_y) = position.claim_fee(
+            let (x, y) = position.claim_fee(
                 &mut pool,
                 &mut upper_tick,
                 &mut lower_tick,
@@ -559,17 +551,21 @@ pub mod contract {
             self.ticks
                 .update_tick(position.pool_key, lower_tick.index, &lower_tick)?;
 
-            if token_x.get() > 0 {
-                PSP22Ref::transfer(&position.pool_key.token_x, caller, token_x.get(), vec![])
+            if x.get() > 0 {
+                let mut token_x: contract_ref!(PSP22) = position.pool_key.token_x.into();
+                token_x
+                    .transfer(caller, x.get(), vec![])
                     .map_err(|_| ContractErrors::TransferError)?;
             }
 
-            if token_y.get() > 0 {
-                PSP22Ref::transfer(&position.pool_key.token_y, caller, token_y.get(), vec![])
+            if y.get() > 0 {
+                let mut token_y: contract_ref!(PSP22) = position.pool_key.token_y.into();
+                token_y
+                    .transfer(caller, y.get(), vec![])
                     .map_err(|_| ContractErrors::TransferError)?;
             }
 
-            Ok((token_x, token_y))
+            Ok((x, y))
         }
 
         #[ink(message)]
@@ -642,9 +638,13 @@ pub mod contract {
 
             self.positions.remove(caller, index).unwrap();
 
-            PSP22Ref::transfer(&position.pool_key.token_x, caller, amount_x.get(), vec![])
+            let mut token_x: contract_ref!(PSP22) = position.pool_key.token_x.into();
+            token_x
+                .transfer(caller, amount_x.get(), vec![])
                 .map_err(|_| ContractErrors::TransferError)?;
-            PSP22Ref::transfer(&position.pool_key.token_y, caller, amount_y.get(), vec![])
+            let mut token_y: contract_ref!(PSP22) = position.pool_key.token_y.into();
+            token_y
+                .transfer(caller, amount_y.get(), vec![])
                 .map_err(|_| ContractErrors::TransferError)?;
 
             Ok((amount_x, amount_y))
@@ -910,24 +910,24 @@ pub mod contract {
 
     #[cfg(all(test, feature = "e2e-tests"))]
     pub mod e2e_tests {
-        use crate::contracts::get_liquidity;
-        use crate::contracts::get_liquidity_by_x;
+        use crate::contracts::{get_liquidity, get_liquidity_by_x, get_liquidity_by_y};
         use crate::math::fee_growth::FeeGrowth;
+        use crate::math::get_delta_y;
         use crate::math::sqrt_price::log::get_tick_at_sqrt_price;
-        use crate::math::sqrt_price::sqrt_price::calculate_sqrt_price;
+        use crate::math::sqrt_price::sqrt_price::{calculate_sqrt_price, get_max_tick};
+        use crate::math::MAX_TICK;
         use ink::prelude::vec;
         use ink::prelude::vec::Vec;
         use ink_e2e::build_message;
-        use openbrush::contracts::psp22::psp22_external::PSP22;
-        use openbrush::traits::Balance;
         use test_helpers::{
-            address_of, approve, balance_of, change_fee_receiver, claim_fee, create_dex,
-            create_fee_tier, create_pool, create_position, create_slippage_pool_with_liquidity,
-            create_standard_fee_tiers, create_tokens, dex_balance, get_all_positions, get_fee_tier,
-            get_pool, get_position, get_tick, init_basic_pool, init_basic_position,
-            init_basic_swap, init_cross_position, init_cross_swap, init_dex_and_tokens,
-            init_slippage_dex_and_tokens, mint, multiple_swap, quote, remove_position, swap,
-            swap_exact_limit, tickmap_bit, withdraw_protocol_fee,
+            address_of, approve, balance_of, big_deposit_and_swap, change_fee_receiver, claim_fee,
+            create_dex, create_fee_tier, create_pool, create_position,
+            create_slippage_pool_with_liquidity, create_standard_fee_tiers, create_tokens,
+            dex_balance, get_all_positions, get_fee_tier, get_pool, get_position, get_tick,
+            init_basic_pool, init_basic_position, init_basic_swap, init_cross_position,
+            init_cross_swap, init_dex_and_tokens, init_dex_and_tokens_max_mint_amount,
+            init_slippage_dex_and_tokens, mint, mint_with_aprove_for_bob, multiple_swap, quote,
+            remove_position, swap, swap_exact_limit, tickmap_bit, withdraw_protocol_fee,
         };
         use token::TokenRef;
 
@@ -936,14 +936,324 @@ pub mod contract {
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
+        async fn limits_full_range_with_max_liquidity(mut client: ink_e2e::Client<C, E>) -> () {
+            let (dex, token_x, token_y) =
+                init_dex_and_tokens_max_mint_amount!(client, ContractRef, TokenRef);
+
+            let mint_amount = u128::MAX;
+            let alice = ink_e2e::alice();
+            approve!(client, TokenRef, token_x, dex, u128::MAX, alice);
+            approve!(client, TokenRef, token_y, dex, u128::MAX, alice);
+
+            let fee = Percentage::from_scale(6, 3);
+            let tick_spacing = 1;
+
+            let fee_tier = FeeTier { fee, tick_spacing };
+            create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+
+            let init_tick = get_max_tick(tick_spacing);
+            create_pool!(
+                client,
+                ContractRef,
+                dex,
+                token_x,
+                token_y,
+                fee_tier,
+                init_tick
+            );
+
+            let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+            let current_sqrt_price = pool.sqrt_price;
+            assert_eq!(pool.current_tick_index, init_tick);
+            assert_eq!(pool.sqrt_price, calculate_sqrt_price(init_tick).unwrap());
+
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+            let liquidity_delta = Liquidity::new(2u128.pow(109) - 1);
+            let slippage_limit_lower = pool.sqrt_price;
+            let slippage_limit_upper = pool.sqrt_price;
+            create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                -MAX_TICK,
+                MAX_TICK,
+                liquidity_delta,
+                slippage_limit_lower,
+                slippage_limit_upper,
+                alice
+            );
+        }
+
+        #[ink_e2e::test]
+        async fn limits_swap_at_upper_limit(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let (dex, token_x, token_y) =
+                init_dex_and_tokens_max_mint_amount!(client, ContractRef, TokenRef);
+
+            let mint_amount = 2u128.pow(105) - 1;
+            let alice = ink_e2e::alice();
+            approve!(client, TokenRef, token_x, dex, u128::MAX, alice);
+            approve!(client, TokenRef, token_y, dex, u128::MAX, alice);
+
+            let fee = Percentage::from_scale(6, 3);
+            let tick_spacing = 1;
+
+            let fee_tier = FeeTier { fee, tick_spacing };
+            create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+
+            let init_tick = get_max_tick(tick_spacing);
+            create_pool!(
+                client,
+                ContractRef,
+                dex,
+                token_x,
+                token_y,
+                fee_tier,
+                init_tick
+            );
+
+            let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+            let current_sqrt_price = pool.sqrt_price;
+            assert_eq!(pool.current_tick_index, init_tick);
+            assert_eq!(pool.sqrt_price, calculate_sqrt_price(init_tick).unwrap());
+
+            let position_amount = mint_amount - 1;
+
+            let liquidity_delta = get_liquidity_by_y(
+                TokenAmount(position_amount),
+                0,
+                MAX_TICK,
+                pool.sqrt_price,
+                false,
+            )
+            .unwrap()
+            .l;
+
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+            let slippage_limit_lower = pool.sqrt_price;
+            let slippage_limit_upper = pool.sqrt_price;
+            create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                0,
+                MAX_TICK,
+                liquidity_delta,
+                slippage_limit_lower,
+                slippage_limit_upper,
+                alice
+            );
+
+            Ok(())
+        }
+
+        #[ink_e2e::test]
+        async fn limits_big_deposit_and_swaps(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let (dex, token_x, token_y) =
+                init_dex_and_tokens_max_mint_amount!(client, ContractRef, TokenRef);
+
+            let mint_amount = 2u128.pow(76) - 1;
+            let alice = ink_e2e::alice();
+            approve!(client, TokenRef, token_x, dex, u128::MAX, alice);
+            approve!(client, TokenRef, token_y, dex, u128::MAX, alice);
+
+            let fee_tier = FeeTier {
+                fee: Percentage::from_scale(6, 3),
+                tick_spacing: 1,
+            };
+            create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+
+            let init_tick = 0;
+            create_pool!(
+                client,
+                ContractRef,
+                dex,
+                token_x,
+                token_y,
+                fee_tier,
+                init_tick
+            );
+
+            let pos_amount = mint_amount / 2;
+            let lower_tick = -(fee_tier.tick_spacing as i32);
+            let upper_tick = fee_tier.tick_spacing as i32;
+            let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+
+            let liquidity_delta = get_liquidity_by_x(
+                TokenAmount(pos_amount),
+                lower_tick,
+                upper_tick,
+                pool.sqrt_price,
+                false,
+            )
+            .unwrap()
+            .l;
+
+            let y = get_delta_y(
+                calculate_sqrt_price(lower_tick).unwrap(),
+                pool.sqrt_price,
+                liquidity_delta,
+                true,
+            )
+            .unwrap();
+
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+            let slippage_limit_lower = pool.sqrt_price;
+            let slippage_limit_upper = pool.sqrt_price;
+            create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                lower_tick,
+                upper_tick,
+                liquidity_delta,
+                slippage_limit_lower,
+                slippage_limit_upper,
+                alice
+            );
+
+            let user_amount_x = balance_of!(TokenRef, client, token_x, Alice);
+            let user_amount_y = balance_of!(TokenRef, client, token_y, Alice);
+            assert_eq!(user_amount_x, u128::MAX - pos_amount);
+            assert_eq!(user_amount_y, u128::MAX - y.get());
+
+            let contract_amount_x = dex_balance!(TokenRef, client, token_x, dex);
+            let contract_amount_y = dex_balance!(TokenRef, client, token_y, dex);
+            assert_eq!(contract_amount_x, pos_amount);
+            assert_eq!(contract_amount_y, y.get());
+
+            let swap_amount = TokenAmount(mint_amount / 8);
+
+            for i in 1..=4 {
+                let (x_to_y, sqrt_price_limit) = if i % 2 == 0 {
+                    (true, SqrtPrice::new(MIN_SQRT_PRICE))
+                } else {
+                    (false, SqrtPrice::new(MAX_SQRT_PRICE))
+                };
+
+                swap!(
+                    client,
+                    ContractRef,
+                    dex,
+                    pool_key,
+                    i % 2 == 0,
+                    swap_amount,
+                    true,
+                    sqrt_price_limit,
+                    alice
+                );
+            }
+
+            Ok(())
+        }
+
+        #[ink_e2e::test]
         async fn multiple_swap_x_to_y(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             multiple_swap!(client, ContractRef, TokenRef, true);
             Ok(())
         }
 
         #[ink_e2e::test]
+        async fn limits_big_deposit_x_and_swap_y(
+            mut client: ink_e2e::Client<C, E>,
+        ) -> E2EResult<()> {
+            big_deposit_and_swap!(client, ContractRef, TokenRef, true);
+
+            Ok(())
+        }
+
+        #[ink_e2e::test]
         async fn multiple_swap_y_to_x(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             multiple_swap!(client, ContractRef, TokenRef, false);
+            Ok(())
+        }
+
+        #[ink_e2e::test]
+        async fn limits_big_deposit_y_and_swap_x(
+            mut client: ink_e2e::Client<C, E>,
+        ) -> E2EResult<()> {
+            big_deposit_and_swap!(client, ContractRef, TokenRef, false);
+
+            Ok(())
+        }
+
+        #[ink_e2e::test]
+        async fn limits_big_deposit_both_tokens(
+            mut client: ink_e2e::Client<C, E>,
+        ) -> E2EResult<()> {
+            let (dex, token_x, token_y) =
+                init_dex_and_tokens_max_mint_amount!(client, ContractRef, TokenRef);
+
+            let mint_amount = 2u128.pow(75) - 1;
+            let alice = ink_e2e::alice();
+            approve!(client, TokenRef, token_x, dex, u128::MAX, alice);
+            approve!(client, TokenRef, token_y, dex, u128::MAX, alice);
+
+            let fee_tier = FeeTier {
+                fee: Percentage::from_scale(6, 3),
+                tick_spacing: 1,
+            };
+            create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+
+            let init_tick = 0;
+            create_pool!(
+                client,
+                ContractRef,
+                dex,
+                token_x,
+                token_y,
+                fee_tier,
+                init_tick
+            );
+
+            let lower_tick = -(fee_tier.tick_spacing as i32);
+            let upper_tick = fee_tier.tick_spacing as i32;
+            let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+            let liquidity_delta = get_liquidity_by_x(
+                TokenAmount(mint_amount),
+                lower_tick,
+                upper_tick,
+                pool.sqrt_price,
+                false,
+            )
+            .unwrap()
+            .l;
+            let y = get_delta_y(
+                calculate_sqrt_price(lower_tick).unwrap(),
+                pool.sqrt_price,
+                liquidity_delta,
+                true,
+            )
+            .unwrap();
+
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+            let slippage_limit_lower = pool.sqrt_price;
+            let slippage_limit_upper = pool.sqrt_price;
+            create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key,
+                lower_tick,
+                upper_tick,
+                liquidity_delta,
+                slippage_limit_lower,
+                slippage_limit_upper,
+                alice
+            );
+
+            let user_amount_x = balance_of!(TokenRef, client, token_x, Alice);
+            let user_amount_y = balance_of!(TokenRef, client, token_y, Alice);
+            assert_eq!(user_amount_x, u128::MAX - mint_amount);
+            assert_eq!(user_amount_y, u128::MAX - y.get());
+
+            let contract_amount_x = dex_balance!(TokenRef, client, token_x, dex);
+            let contract_amount_y = dex_balance!(TokenRef, client, token_y, dex);
+            assert_eq!(contract_amount_x, mint_amount);
+            assert_eq!(contract_amount_y, y.get());
+
             Ok(())
         }
 
@@ -1335,7 +1645,7 @@ pub mod contract {
 
         #[ink_e2e::test]
         async fn constructor_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let constructor = TokenRef::new(500);
+            let constructor = TokenRef::new(500, None, None, 0);
             let _token: AccountId = client
                 .instantiate("token", &ink_e2e::alice(), constructor, 0, None)
                 .await
@@ -1933,8 +2243,8 @@ pub mod contract {
         async fn position_within_current_tick_test(
             mut client: ink_e2e::Client<C, E>,
         ) -> E2EResult<()> {
-            let MAX_TICK = 177_450; // for tickSpacing 4
-            let MIN_TICK = -MAX_TICK;
+            let MAX_TICK_TEST = 177_450; // for tickSpacing 4
+            let MIN_TICK_TEST = -MAX_TICK_TEST;
             let alice = ink_e2e::alice();
             let init_tick = -23028;
 
@@ -1965,8 +2275,8 @@ pub mod contract {
             approve!(client, TokenRef, token_y, dex, initial_balance, alice);
 
             let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
-            let lower_tick_index = MIN_TICK + 10;
-            let upper_tick_index = MAX_TICK - 10;
+            let lower_tick_index = MIN_TICK_TEST + 10;
+            let upper_tick_index = MAX_TICK_TEST - 10;
 
             let liquidity_delta = Liquidity::new(initial_balance);
 

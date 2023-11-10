@@ -15,7 +15,6 @@ use crate::{
 use decimal::*;
 use ink::prelude::vec;
 use ink::primitives::AccountId;
-use openbrush::contracts::traits::psp22::PSP22Ref;
 use traceable_result::*;
 #[derive(PartialEq, Default, Debug, Copy, Clone, scale::Decode, scale::Encode)]
 #[cfg_attr(
