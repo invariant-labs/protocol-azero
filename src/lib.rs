@@ -1156,18 +1156,7 @@ pub mod contract {
             let swap_amount = TokenAmount::new(amount);
             approve!(client, TokenRef, token_x, dex, amount, alice);
 
-            let target_sqrt_price = SqrtPrice::new(MAX_SQRT_PRICE);
-            let result = quote!(
-                client,
-                ContractRef,
-                dex,
-                pool_key,
-                false,
-                swap_amount,
-                true,
-                target_sqrt_price,
-                alice
-            );
+            let target_sqrt_price = SqrtPrice::new(1009940000000000000000000);
             swap!(
                 client,
                 ContractRef,
