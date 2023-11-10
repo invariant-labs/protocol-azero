@@ -1353,7 +1353,6 @@ macro_rules! multiple_swap {
         let _amount_x = result.x;
         let _amount_y = result.y;
         let liquidity_delta = result.l;
-
         let slippage_limit_lower = pool_data.sqrt_price;
         let slippage_limit_upper = pool_data.sqrt_price;
 
