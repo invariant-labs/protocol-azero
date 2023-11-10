@@ -1156,7 +1156,7 @@ pub mod contract {
             let swap_amount = TokenAmount::new(amount);
             approve!(client, TokenRef, token_x, dex, amount, alice);
 
-            let target_sqrt_price = SqrtPrice::new(1009940000000000000000000);
+            let target_sqrt_price = SqrtPrice::new(1009940000000000000000001);
             swap!(
                 client,
                 ContractRef,
@@ -1178,6 +1178,7 @@ pub mod contract {
                 pool_key.fee_tier
             )
             .unwrap();
+
             assert_eq!(expected_sqrt_price, pool.sqrt_price);
             Ok(())
         }
