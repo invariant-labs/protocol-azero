@@ -33,8 +33,10 @@ impl SecondsPerLiquidity {
         let delta_time = current_timestamp - last_timestamp;
 
         Ok(Self::new(
-            (delta_time as u128)
+            U256::from(delta_time)
                 .checked_mul(SecondsPerLiquidity::one())
+                .ok_or_else(|| err!(TrackableError::MUL))?
+                .checked_mul(Liquidity::one())
                 .ok_or_else(|| err!(TrackableError::MUL))?
                 .checked_div(liquidity.here())
                 .ok_or_else(|| err!(TrackableError::DIV))?
@@ -129,17 +131,15 @@ pub mod tests {
             let liquidity = Liquidity::new(1);
             let current_timestamp = 315360000;
             let last_timestamp = 0;
-            let seconds_per_liquidity =
-                SecondsPerLiquidity::calculate_seconds_per_liquidity_global(
-                    liquidity,
-                    current_timestamp,
-                    last_timestamp,
-                )
-                .unwrap();
-            assert_eq!(
-                seconds_per_liquidity.get(),
-                315360000000000000000000000000000000000
-            );
+            let (_, cause, stack) = SecondsPerLiquidity::calculate_seconds_per_liquidity_global(
+                liquidity,
+                current_timestamp,
+                last_timestamp,
+            )
+            .unwrap_err()
+            .get();
+            assert_eq!(cause, "conversion to contract::math::types::seconds_per_liquidity::SecondsPerLiquidity type failed");
+            assert_eq!(stack.len(), 1);
         }
         // max value outside domain
         {
@@ -153,7 +153,7 @@ pub mod tests {
             )
             .unwrap_err()
             .get();
-            assert_eq!(cause, "multiplication overflow");
+            assert_eq!(cause, "conversion to contract::math::types::seconds_per_liquidity::SecondsPerLiquidity type failed");
             assert_eq!(stack.len(), 1);
         }
 
@@ -162,16 +162,15 @@ pub mod tests {
         let max_delta_time = 315360000 as u64;
         // max time, one liq
         {
-            let result = SecondsPerLiquidity::calculate_seconds_per_liquidity_global(
+            let (_, cause, stack) = SecondsPerLiquidity::calculate_seconds_per_liquidity_global(
                 one_liquidity,
                 max_delta_time,
                 0,
             )
-            .unwrap();
-            assert_eq!(
-                result,
-                SecondsPerLiquidity::new(315360000000000000000000000000000000000)
-            )
+            .unwrap_err()
+            .get();
+            assert_eq!(cause, "conversion to contract::math::types::seconds_per_liquidity::SecondsPerLiquidity type failed");
+            assert_eq!(stack.len(), 1);
         }
         // big liquidity
         {
@@ -181,7 +180,7 @@ pub mod tests {
                 0,
             )
             .unwrap();
-            assert_eq!(result, SecondsPerLiquidity::new(0))
+            assert_eq!(result, SecondsPerLiquidity::new(926759))
         }
         // min time max liq
         {
@@ -203,7 +202,7 @@ pub mod tests {
             .unwrap();
             assert_eq!(
                 result,
-                SecondsPerLiquidity::new(1000000000000000000000000000000)
+                SecondsPerLiquidity::new(1000000000000000000000000000000000000)
             )
         }
     }
