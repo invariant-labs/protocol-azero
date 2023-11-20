@@ -74,6 +74,19 @@ pub mod contract {
         feature = "std",
         derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout,)
     )]
+    pub struct SwapParams {
+        pool_key: PoolKey,
+        x_to_y: bool,
+        amount: TokenAmount,
+        by_amount_in: bool,
+        sqrt_price_limit: SqrtPrice,
+    }
+
+    #[derive(scale::Decode, Default, scale::Encode, Clone, Debug)]
+    #[cfg_attr(
+        feature = "std",
+        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout,)
+    )]
     pub struct TokenPairs(pub Vec<(AccountId, AccountId)>);
 
     #[ink(storage)]
@@ -419,6 +432,22 @@ pub mod contract {
                     .transfer(caller, calculate_swap_result.amount_out.get(), vec![])
                     .map_err(|_| ContractErrors::TransferError)?;
             };
+
+            Ok(())
+        }
+
+        #[ink(message)]
+        pub fn swap_route(&mut self, swaps: Vec<SwapParams>) -> Result<(), ContractErrors> {
+            for swap in swaps.iter() {
+                let SwapParams {
+                    pool_key,
+                    x_to_y,
+                    amount,
+                    by_amount_in,
+                    sqrt_price_limit,
+                } = *swap;
+                self.swap(pool_key, x_to_y, amount, by_amount_in, sqrt_price_limit)?;
+            }
 
             Ok(())
         }
