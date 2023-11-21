@@ -99,6 +99,7 @@ pub mod contract {
         fee: TokenAmount,
         start_sqrt_price: SqrtPrice,
         target_sqrt_price: SqrtPrice,
+        x_to_y: bool,
     }
 
     #[ink(event)]
@@ -495,6 +496,7 @@ pub mod contract {
                 calculate_swap_result.fee,
                 calculate_swap_result.start_sqrt_price,
                 calculate_swap_result.target_sqrt_price,
+                x_to_y,
             );
             Ok(())
         }
@@ -837,6 +839,7 @@ pub mod contract {
             fee: TokenAmount,
             start_sqrt_price: SqrtPrice,
             target_sqrt_price: SqrtPrice,
+            x_to_y: bool,
         ) {
             let timestamp = self.get_timestamp();
             ink::codegen::EmitEvent::<Contract>::emit_event(
@@ -850,6 +853,7 @@ pub mod contract {
                     fee,
                     start_sqrt_price,
                     target_sqrt_price,
+                    x_to_y,
                 },
             );
         }
@@ -1091,6 +1095,8 @@ pub mod contract {
         use ink::prelude::vec;
         use ink::prelude::vec::Vec;
         use ink_e2e::build_message;
+        use ink_e2e::subxt::events::EventDetails;
+        use ink_e2e::CallResult;
         use test_helpers::{
             address_of, approve, balance_of, big_deposit_and_swap, change_fee_receiver, claim_fee,
             create_dex, create_fee_tier, create_pool, create_position,
@@ -1752,7 +1758,6 @@ pub mod contract {
             init_basic_pool!(client, ContractRef, TokenRef, dex, token_x, token_y);
             init_basic_position!(client, ContractRef, TokenRef, dex, token_x, token_y);
             init_basic_swap!(client, ContractRef, TokenRef, dex, token_x, token_y);
-
             Ok(())
         }
 
