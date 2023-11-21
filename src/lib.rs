@@ -111,6 +111,9 @@ pub mod contract {
     pub struct CalculateSwapResult {
         pub amount_in: TokenAmount,
         pub amount_out: TokenAmount,
+        pub start_sqrt_price: SqrtPrice,
+        pub target_sqrt_price: SqrtPrice,
+        pub fee: TokenAmount,
         pub pool: Pool,
         pub ticks: Vec<Tick>,
     }
@@ -319,7 +322,6 @@ pub mod contract {
         ) -> Result<CalculateSwapResult, ContractErrors> {
             let current_timestamp = self.env().block_timestamp();
             let caller = self.env().caller();
-
             if amount.is_zero() {
                 return Err(ContractErrors::AmountIsZero);
             }
@@ -347,8 +349,8 @@ pub mod contract {
             let mut total_amount_in = TokenAmount(0);
             let mut total_amount_out = TokenAmount(0);
 
-            let start_sqrt_price = pool.sqrt_price;
-            let mut fee_amount = 0;
+            let event_start_sqrt_price = pool.sqrt_price;
+            let mut event_fee_amount = TokenAmount(0);
 
             while !remaining_amount.is_zero() {
                 let (swap_limit, limiting_tick) = self.tickmap.get_closer_limit(
@@ -376,6 +378,7 @@ pub mod contract {
                 }
 
                 pool.add_fee(result.fee_amount, x_to_y, self.state.protocol_fee);
+                event_fee_amount += result.fee_amount;
 
                 pool.sqrt_price = result.next_sqrt_price;
 
@@ -422,18 +425,12 @@ pub mod contract {
                 return Err(ContractErrors::NoGainSwap);
             }
 
-            // self.emit_swap_event(
-            //     caller,
-            //     pool_key,
-            //     calculate_swap_result.amount_in,
-            //     calculate_swap_result.amount_out,
-            //     fee,
-            //     start_sqrt_price,
-            //     target_sqrt_price,
-            // );
             Ok(CalculateSwapResult {
                 amount_in: total_amount_in,
                 amount_out: total_amount_out,
+                start_sqrt_price: event_start_sqrt_price,
+                target_sqrt_price: pool.sqrt_price,
+                fee: event_fee_amount,
                 pool,
                 ticks,
             })
@@ -490,6 +487,15 @@ pub mod contract {
                     .map_err(|_| ContractErrors::TransferError)?;
             };
 
+            self.emit_swap_event(
+                caller,
+                pool_key,
+                calculate_swap_result.amount_in,
+                calculate_swap_result.amount_out,
+                calculate_swap_result.fee,
+                calculate_swap_result.start_sqrt_price,
+                calculate_swap_result.target_sqrt_price,
+            );
             Ok(())
         }
 
