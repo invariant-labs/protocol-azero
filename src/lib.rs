@@ -57,6 +57,51 @@ pub mod contract {
     use ink::prelude::vec::Vec;
     use token::PSP22;
 
+    #[ink(event)]
+    pub struct CreatePositionEvent {
+        #[ink(topic)]
+        timestamp: u64,
+        address: AccountId,
+        pool: PoolKey,
+        liquidity: Liquidity,
+        lower_tick: i32,
+        upper_tick: i32,
+        current_sqrt_price: SqrtPrice,
+    }
+    #[ink(event)]
+    pub struct CrossTickEvent {
+        #[ink(topic)]
+        timestamp: u64,
+        address: AccountId,
+        pool: PoolKey,
+        index: i32,
+    }
+
+    #[ink(event)]
+    pub struct RemovePositionEvent {
+        #[ink(topic)]
+        timestamp: u64,
+        address: AccountId,
+        pool: PoolKey,
+        liquidity: Liquidity,
+        lower_tick: i32,
+        upper_tick: i32,
+        current_sqrt_price: SqrtPrice,
+    }
+    #[ink(event)]
+    pub struct SwapEvent {
+        #[ink(topic)]
+        timestamp: u64,
+        address: AccountId,
+        pool: PoolKey,
+        amount_in: TokenAmount,
+        amount_out: TokenAmount,
+        fee: TokenAmount,
+        start_sqrt_price: SqrtPrice,
+        target_sqrt_price: SqrtPrice,
+    }
+
+    #[ink(event)]
     #[derive(Debug)]
     pub struct OrderPair {
         pub x: (AccountId, Balance),
@@ -90,50 +135,6 @@ pub mod contract {
         state: State,
     }
 
-    #[ink(event)]
-    pub struct SwapEvent {
-        #[ink(topic)]
-        timestamp: u64,
-        address: AccountId,
-        pool: PoolKey,
-        amount_in: TokenAmount,
-        amount_out: TokenAmount,
-        fee: TokenAmount,
-        start_sqrt_price: SqrtPrice,
-        target_sqrt_price: SqrtPrice,
-    }
-    #[ink(event)]
-    pub struct CreatePositionEvent {
-        #[ink(topic)]
-        timestamp: u64,
-        address: AccountId,
-        pool: PoolKey,
-        liquidity: Liquidity,
-        lower_tick: i32,
-        upper_tick: i32,
-        current_sqrt_price: SqrtPrice,
-    }
-
-    #[ink(event)]
-    pub struct RemovePositionEvent {
-        #[ink(topic)]
-        timestamp: u64,
-        address: AccountId,
-        pool: PoolKey,
-        liquidity: Liquidity,
-        lower_tick: i32,
-        upper_tick: i32,
-        current_sqrt_price: SqrtPrice,
-    }
-
-    #[ink(event)]
-    pub struct CrossTickEvent {
-        #[ink(topic)]
-        timestamp: u64,
-        address: AccountId,
-        pool: PoolKey,
-        index: i32,
-    }
     impl Contract {
         #[ink(constructor)]
         pub fn new(protocol_fee: Percentage) -> Self {
@@ -790,7 +791,7 @@ pub mod contract {
         }
 
         fn emit_swap_event(
-            &mut self,
+            self,
             address: AccountId,
             pool: PoolKey,
             amount_in: TokenAmount,
@@ -800,20 +801,22 @@ pub mod contract {
             target_sqrt_price: SqrtPrice,
         ) {
             let timestamp = self.get_timestamp();
-
-            Self::env().emit_event(SwapEvent {
-                timestamp,
-                address,
-                pool,
-                amount_in,
-                amount_out,
-                fee,
-                start_sqrt_price,
-                target_sqrt_price,
-            });
+            ink::codegen::EmitEvent::<Contract>::emit_event(
+                self.env(),
+                SwapEvent {
+                    timestamp,
+                    address,
+                    pool,
+                    amount_in,
+                    amount_out,
+                    fee,
+                    start_sqrt_price,
+                    target_sqrt_price,
+                },
+            );
         }
         fn emit_create_position_event(
-            &self,
+            self,
             address: AccountId,
             pool: PoolKey,
             liquidity: Liquidity,
@@ -822,18 +825,21 @@ pub mod contract {
             current_sqrt_price: SqrtPrice,
         ) {
             let timestamp = self.get_timestamp();
-            self.env().emit_event(CreatePositionEvent {
-                timestamp,
-                address,
-                pool,
-                liquidity,
-                lower_tick,
-                upper_tick,
-                current_sqrt_price,
-            });
+            ink::codegen::EmitEvent::<Contract>::emit_event(
+                self.env(),
+                CreatePositionEvent {
+                    timestamp,
+                    address,
+                    pool,
+                    liquidity,
+                    lower_tick,
+                    upper_tick,
+                    current_sqrt_price,
+                },
+            );
         }
         fn emit_remove_position_event(
-            &self,
+            self,
             address: AccountId,
             pool: PoolKey,
             liquidity: Liquidity,
@@ -842,27 +848,33 @@ pub mod contract {
             current_sqrt_price: SqrtPrice,
         ) {
             let timestamp = self.get_timestamp();
-            self.env().emit_event(RemovePositionEvent {
-                timestamp,
-                address,
-                pool,
-                liquidity,
-                lower_tick,
-                upper_tick,
-                current_sqrt_price,
-            });
+            ink::codegen::EmitEvent::<Contract>::emit_event(
+                self.env(),
+                RemovePositionEvent {
+                    timestamp,
+                    address,
+                    pool,
+                    liquidity,
+                    lower_tick,
+                    upper_tick,
+                    current_sqrt_price,
+                },
+            );
         }
-        fn emit_cross_tick_event(&mut self, address: AccountId, pool: PoolKey, index: i32) {
+        fn emit_cross_tick_event(self, address: AccountId, pool: PoolKey, index: i32) {
             let timestamp = self.get_timestamp();
-            Self::env().emit_event::<CrossTickEvent>(CrossTickEvent {
-                timestamp,
-                address,
-                pool,
-                index,
-            });
+            ink::codegen::EmitEvent::<Contract>::emit_event(
+                self.env(),
+                CrossTickEvent {
+                    timestamp,
+                    address,
+                    pool,
+                    index,
+                },
+            );
         }
 
-        fn get_timestamp(self) -> u64 {
+        fn get_timestamp(&self) -> u64 {
             self.env().block_timestamp()
         }
 
