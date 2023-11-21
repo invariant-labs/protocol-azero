@@ -1095,8 +1095,7 @@ pub mod contract {
         use ink::prelude::vec;
         use ink::prelude::vec::Vec;
         use ink_e2e::build_message;
-        use ink_e2e::subxt::events::EventDetails;
-        use ink_e2e::CallResult;
+
         use test_helpers::{
             address_of, approve, balance_of, big_deposit_and_swap, change_fee_receiver, claim_fee,
             create_dex, create_fee_tier, create_pool, create_position,
