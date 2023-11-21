@@ -298,6 +298,14 @@ pub mod contract {
                 .transfer_from(caller, contract, y.get(), vec![])
                 .map_err(|_| ContractErrors::TransferError)?;
 
+            self.emit_create_position_event(
+                caller,
+                pool_key,
+                liquidity_delta,
+                lower_tick.index,
+                upper_tick.index,
+                pool.sqrt_price,
+            );
             Ok(position)
         }
 
@@ -310,6 +318,7 @@ pub mod contract {
             sqrt_price_limit: SqrtPrice,
         ) -> Result<CalculateSwapResult, ContractErrors> {
             let current_timestamp = self.env().block_timestamp();
+            let caller = self.env().caller();
 
             if amount.is_zero() {
                 return Err(ContractErrors::AmountIsZero);
@@ -337,6 +346,9 @@ pub mod contract {
 
             let mut total_amount_in = TokenAmount(0);
             let mut total_amount_out = TokenAmount(0);
+
+            let start_sqrt_price = pool.sqrt_price;
+            let mut fee_amount = 0;
 
             while !remaining_amount.is_zero() {
                 let (swap_limit, limiting_tick) = self.tickmap.get_closer_limit(
@@ -387,7 +399,7 @@ pub mod contract {
                     }
                 });
 
-                pool.cross_tick(
+                let (has_crossed, crossing_index) = pool.cross_tick(
                     result,
                     swap_limit,
                     update_limiting_tick,
@@ -399,6 +411,9 @@ pub mod contract {
                     self.state.protocol_fee,
                     pool_key.fee_tier,
                 );
+                if has_crossed {
+                    self.emit_cross_tick_event(caller, pool_key, crossing_index.unwrap())
+                }
 
                 ticks.push(tick);
             }
@@ -407,6 +422,15 @@ pub mod contract {
                 return Err(ContractErrors::NoGainSwap);
             }
 
+            // self.emit_swap_event(
+            //     caller,
+            //     pool_key,
+            //     calculate_swap_result.amount_in,
+            //     calculate_swap_result.amount_out,
+            //     fee,
+            //     start_sqrt_price,
+            //     target_sqrt_price,
+            // );
             Ok(CalculateSwapResult {
                 amount_in: total_amount_in,
                 amount_out: total_amount_out,
@@ -693,6 +717,14 @@ pub mod contract {
                 .transfer(caller, amount_y.get(), vec![])
                 .map_err(|_| ContractErrors::TransferError)?;
 
+            self.emit_remove_position_event(
+                caller,
+                position.pool_key,
+                position.liquidity,
+                lower_tick.index,
+                upper_tick.index,
+                pool.sqrt_price,
+            );
             Ok((amount_x, amount_y))
         }
 
@@ -791,7 +823,7 @@ pub mod contract {
         }
 
         fn emit_swap_event(
-            self,
+            &self,
             address: AccountId,
             pool: PoolKey,
             amount_in: TokenAmount,
@@ -816,7 +848,7 @@ pub mod contract {
             );
         }
         fn emit_create_position_event(
-            self,
+            &self,
             address: AccountId,
             pool: PoolKey,
             liquidity: Liquidity,
@@ -839,7 +871,7 @@ pub mod contract {
             );
         }
         fn emit_remove_position_event(
-            self,
+            &self,
             address: AccountId,
             pool: PoolKey,
             liquidity: Liquidity,
@@ -861,7 +893,7 @@ pub mod contract {
                 },
             );
         }
-        fn emit_cross_tick_event(self, address: AccountId, pool: PoolKey, index: i32) {
+        fn emit_cross_tick_event(&self, address: AccountId, pool: PoolKey, index: i32) {
             let timestamp = self.get_timestamp();
             ink::codegen::EmitEvent::<Contract>::emit_event(
                 self.env(),
