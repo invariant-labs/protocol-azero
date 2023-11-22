@@ -403,7 +403,7 @@ pub mod contract {
                     }
                 });
 
-                let (has_crossed, crossing_index) = pool.cross_tick(
+                let has_crossed = pool.cross_tick(
                     result,
                     swap_limit,
                     update_limiting_tick,
@@ -416,7 +416,7 @@ pub mod contract {
                     pool_key.fee_tier,
                 );
                 if has_crossed {
-                    self.emit_cross_tick_event(caller, pool_key, crossing_index.unwrap())
+                    self.emit_cross_tick_event(caller, pool_key, limiting_tick.unwrap().0)
                 }
 
                 ticks.push(tick);
