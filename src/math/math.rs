@@ -4,6 +4,8 @@ use traceable_result::*;
 use crate::math::consts::*;
 use crate::math::types::{liquidity::*, percentage::*, sqrt_price::sqrt_price::*, token_amount::*};
 
+use super::percentage;
+
 #[derive(PartialEq, Debug)]
 pub struct SwapResult {
     pub next_sqrt_price: SqrtPrice,
@@ -358,6 +360,13 @@ pub fn check_tick(tick_index: i32, tick_spacing: u16) -> TrackableResult<()> {
     }
 
     Ok(())
+}
+
+pub fn calculate_min_amount_out(
+    expected_amount_out: TokenAmount,
+    slippage: Percentage,
+) -> TokenAmount {
+    expected_amount_out.big_mul(Percentage::from_integer(1u8) - slippage)
 }
 
 #[cfg(test)]
