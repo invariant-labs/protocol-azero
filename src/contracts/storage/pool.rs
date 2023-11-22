@@ -186,7 +186,8 @@ impl Pool {
         total_amount_in: &mut TokenAmount,
         protocol_fee: Percentage,
         fee_tier: FeeTier,
-    ) {
+    ) -> bool {
+        let mut has_crossed = false;
         if result.next_sqrt_price == swap_limit && limiting_tick.is_some() {
             let (tick_index, tick) = limiting_tick.unwrap();
 
@@ -202,7 +203,9 @@ impl Pool {
             // crossing tick
             if tick.is_some() {
                 if !x_to_y || is_enough_amount_to_cross {
-                    let _ = tick.unwrap().cross(self, current_timestamp);
+                    let tick = tick.unwrap();
+                    let _ = tick.cross(self, current_timestamp);
+                    has_crossed = true;
                 } else if !remaining_amount.is_zero() {
                     if by_amount_in {
                         self.add_fee(*remaining_amount, x_to_y, protocol_fee)
@@ -225,6 +228,7 @@ impl Pool {
                 fee_tier.tick_spacing
             ));
         };
+        has_crossed
     }
 
     pub fn withdraw_protocol_fee(&mut self, _pool_key: PoolKey) -> (TokenAmount, TokenAmount) {
