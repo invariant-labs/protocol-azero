@@ -1000,6 +1000,7 @@ pub mod contract {
             let amount = 1000;
             let bob = ink_e2e::bob();
             mint_with_aprove_for_bob!(client, TokenRef, token_x, dex, amount);
+            approve!(client, TokenRef, token_y, dex, u64::MAX as u128, bob);
 
             let fee = Percentage::from_scale(6, 3);
             let tick_spacing = 1;
