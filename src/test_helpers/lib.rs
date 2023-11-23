@@ -698,6 +698,19 @@ macro_rules! swap_route {
 }
 
 #[macro_export]
+macro_rules! quote_route {
+    ($client:ident, $dex:ty, $dex_address:expr, $amount_in:expr, $swaps:expr, $caller:ident) => {{
+        let _msg = build_message::<$dex>($dex_address.clone())
+            .call(|contract| contract.quote_route($amount_in, $swaps));
+        $client
+            .call(&$caller, _msg, 0, None)
+            .await
+            .expect("Quote route failed")
+            .return_value()
+    }};
+}
+
+#[macro_export]
 macro_rules! init_dex_and_tokens {
     ($client:ident, $dex:ty, $token:ty) => {{
         let mint_amount = 10u128.pow(10);

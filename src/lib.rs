@@ -495,6 +495,37 @@ pub mod contract {
         }
 
         #[ink(message)]
+        pub fn quote_route(
+            &mut self,
+            amount_in: TokenAmount,
+            swaps: Vec<SwapRouteParams>,
+        ) -> Result<TokenAmount, ContractErrors> {
+            let mut next_swap_amount = amount_in;
+
+            for swap in swaps.iter() {
+                let SwapRouteParams { pool_key, x_to_y } = *swap;
+
+                let sqrt_price_limit = if x_to_y {
+                    SqrtPrice::new(MIN_SQRT_PRICE)
+                } else {
+                    SqrtPrice::new(MAX_SQRT_PRICE)
+                };
+
+                let result = self.calculate_swap(
+                    pool_key,
+                    x_to_y,
+                    next_swap_amount,
+                    true,
+                    sqrt_price_limit,
+                )?;
+
+                next_swap_amount = result.amount_out;
+            }
+
+            Ok(next_swap_amount)
+        }
+
+        #[ink(message)]
         pub fn transfer_position(
             &mut self,
             index: u32,
@@ -978,7 +1009,7 @@ pub mod contract {
             init_basic_pool, init_basic_position, init_basic_swap, init_cross_position,
             init_cross_swap, init_dex_and_3_tokens, init_dex_and_tokens,
             init_dex_and_tokens_max_mint_amount, init_slippage_dex_and_tokens, mint,
-            mint_with_aprove_for_bob, multiple_swap, quote, remove_position, swap,
+            mint_with_aprove_for_bob, multiple_swap, quote, quote_route, remove_position, swap,
             swap_exact_limit, swap_route, tickmap_bit, withdraw_protocol_fee,
         };
         use token::TokenRef;
@@ -1069,7 +1100,7 @@ pub mod contract {
 
             let amount_in = TokenAmount(1000);
             let expected_amount_out = TokenAmount(1000);
-            let slippage = Percentage::from_scale(5, 1);
+            let slippage = Percentage::new(0);
             let swaps = vec![
                 SwapRouteParams {
                     pool_key: pool_key_1,
@@ -1081,12 +1112,15 @@ pub mod contract {
                 },
             ];
 
+            let expected_token_amount =
+                quote_route!(client, ContractRef, dex, amount_in, swaps.clone(), bob).unwrap();
+
             swap_route!(
                 client,
                 ContractRef,
                 dex,
                 amount_in,
-                expected_amount_out,
+                expected_token_amount,
                 slippage,
                 swaps.clone(),
                 bob
