@@ -3,7 +3,7 @@ use traceable_result::*;
 
 use crate::math::types::liquidity::Liquidity;
 
-#[decimal(30)]
+#[decimal(24)]
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, scale::Decode, scale::Encode)]
 #[cfg_attr(
     feature = "std",
@@ -33,8 +33,10 @@ impl SecondsPerLiquidity {
         let delta_time = current_timestamp - last_timestamp;
 
         Ok(Self::new(
-            (delta_time as u128)
+            U256::from(delta_time)
                 .checked_mul(SecondsPerLiquidity::one())
+                .ok_or_else(|| err!(TrackableError::MUL))?
+                .checked_mul(Liquidity::one())
                 .ok_or_else(|| err!(TrackableError::MUL))?
                 .checked_div(liquidity.here())
                 .ok_or_else(|| err!(TrackableError::DIV))?
@@ -153,7 +155,7 @@ pub mod tests {
             )
             .unwrap_err()
             .get();
-            assert_eq!(cause, "multiplication overflow");
+            assert_eq!(cause, "conversion to contract::math::types::seconds_per_liquidity::SecondsPerLiquidity type failed");
             assert_eq!(stack.len(), 1);
         }
 
