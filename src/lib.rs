@@ -1043,8 +1043,8 @@ pub mod contract {
                 ContractRef,
                 dex,
                 pool_key_1,
-                -10,
-                10,
+                -1,
+                1,
                 liquidity_delta,
                 slippage_limit_lower,
                 slippage_limit_upper,
@@ -1059,8 +1059,8 @@ pub mod contract {
                 ContractRef,
                 dex,
                 pool_key_2,
-                -10,
-                10,
+                -1,
+                1,
                 liquidity_delta,
                 slippage_limit_lower,
                 slippage_limit_upper,
@@ -1091,6 +1091,39 @@ pub mod contract {
                 swaps.clone(),
                 bob
             );
+
+            let bob_amount_x = balance_of!(TokenRef, client, token_x, Bob);
+            let bob_amount_y = balance_of!(TokenRef, client, token_y, Bob);
+            let bob_amount_z = balance_of!(TokenRef, client, token_z, Bob);
+
+            assert_eq!(bob_amount_x, 0);
+            assert_eq!(bob_amount_y, 0);
+            assert_eq!(bob_amount_z, 986);
+
+            let pool_1_after =
+                get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+            assert_eq!(pool_1_after.fee_protocol_token_x, TokenAmount(1));
+            assert_eq!(pool_1_after.fee_protocol_token_y, TokenAmount(0));
+
+            let pool_2_after =
+                get_pool!(client, ContractRef, dex, token_y, token_z, fee_tier).unwrap();
+            assert_eq!(pool_2_after.fee_protocol_token_x, TokenAmount(1));
+            assert_eq!(pool_2_after.fee_protocol_token_y, TokenAmount(0));
+
+            let alice_amount_x_before = balance_of!(TokenRef, client, token_x, Alice);
+            let alice_amount_y_before = balance_of!(TokenRef, client, token_y, Alice);
+            let alice_amount_z_before = balance_of!(TokenRef, client, token_z, Alice);
+
+            claim_fee!(client, ContractRef, dex, 0, alice);
+            claim_fee!(client, ContractRef, dex, 1, alice);
+
+            let alice_amount_x_after = balance_of!(TokenRef, client, token_x, Alice);
+            let alice_amount_y_after = balance_of!(TokenRef, client, token_y, Alice);
+            let alice_amount_z_after = balance_of!(TokenRef, client, token_z, Alice);
+
+            assert_eq!(alice_amount_x_after - alice_amount_x_before, 4);
+            assert_eq!(alice_amount_y_after - alice_amount_y_before, 4);
+            assert_eq!(alice_amount_z_after - alice_amount_z_before, 0);
 
             Ok(())
         }
