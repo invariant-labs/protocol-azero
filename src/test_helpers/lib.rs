@@ -679,6 +679,38 @@ macro_rules! change_fee_receiver {
 }
 
 #[macro_export]
+macro_rules! swap_route {
+    ($client:ident, $dex:ty, $dex_address:expr, $amount_in:expr, $expected_amount_out:expr, $slippage:expr, $swaps:expr, $caller:ident) => {{
+        // client => ink_e2e_client
+        // x:ident || y:ident => Addresses of x and y tokens
+        // dex:ty => ContractRef
+        // dex_address:expr => Address of contract
+        // fee_tier:expr => Pool fee tier
+        let _msg = build_message::<$dex>($dex_address.clone()).call(|contract| {
+            contract.swap_route($amount_in, $expected_amount_out, $slippage, $swaps)
+        });
+        $client
+            .call(&$caller, _msg, 0, None)
+            .await
+            .expect("Swap route failed")
+            .return_value()
+    }};
+}
+
+#[macro_export]
+macro_rules! quote_route {
+    ($client:ident, $dex:ty, $dex_address:expr, $amount_in:expr, $swaps:expr, $caller:ident) => {{
+        let _msg = build_message::<$dex>($dex_address.clone())
+            .call(|contract| contract.quote_route($amount_in, $swaps));
+        $client
+            .call(&$caller, _msg, 0, None)
+            .await
+            .expect("Quote route failed")
+            .return_value()
+    }};
+}
+
+#[macro_export]
 macro_rules! init_dex_and_tokens {
     ($client:ident, $dex:ty, $token:ty) => {{
         let mint_amount = 10u128.pow(10);
@@ -687,6 +719,57 @@ macro_rules! init_dex_and_tokens {
         let protocol_fee = Percentage::from_scale(1, 2);
         let dex = create_dex!($client, $dex, protocol_fee);
         (dex, token_x, token_y)
+    }};
+}
+
+#[macro_export]
+macro_rules! init_dex_and_3_tokens {
+    ($client:ident, $dex:ty, $token:ty) => {{
+        let mint_amount = u64::MAX as u128;
+        let protocol_fee = Percentage::from_scale(1, 2);
+
+        let dex = create_dex!($client, $dex, protocol_fee);
+        let (token_x, token_y, token_z) = create_3_tokens!(
+            $client,
+            $token,
+            $token,
+            $token,
+            mint_amount,
+            mint_amount,
+            mint_amount
+        );
+
+        (dex, token_x, token_y, token_z)
+    }};
+}
+
+#[macro_export]
+macro_rules! create_3_tokens {
+    ($client:ident, $x:ty, $y:ty, $z:ty, $supply_x:expr, $supply_y:expr, $supply_z:expr) => {{
+        let constructor_x = <$x>::new($supply_x, None, None, 0);
+        let constructor_y = <$y>::new($supply_y, None, None, 0);
+        let constructor_z = <$z>::new($supply_z, None, None, 0);
+
+        let x = $client
+            .instantiate("token", &ink_e2e::alice(), constructor_x, 0, None)
+            .await
+            .expect("instantiate failed")
+            .account_id;
+        let y = $client
+            .instantiate("token", &ink_e2e::alice(), constructor_y, 0, None)
+            .await
+            .expect("instantiate failed")
+            .account_id;
+        let z = $client
+            .instantiate("token", &ink_e2e::alice(), constructor_z, 0, None)
+            .await
+            .expect("instantiate failed")
+            .account_id;
+
+        let mut v = [x, y, z];
+        v.sort();
+        let [x, y, z] = v;
+        (x, y, z)
     }};
 }
 

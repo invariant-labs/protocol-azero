@@ -32,6 +32,7 @@ pub enum ContractErrors {
     ZeroLiquidity,
     TransferError,
     TokensAreTheSame,
+    AmountUnderMinimumAmountOut,
 }
 #[ink::contract]
 pub mod contract {
@@ -45,6 +46,7 @@ pub mod contract {
     use crate::contracts::Tick;
     use crate::contracts::Tickmap;
     use crate::contracts::{FeeTier, FeeTiers, PoolKey, Pools, Position, Positions, Ticks}; //
+    use crate::math::calculate_min_amount_out;
     use crate::math::check_tick;
     use crate::math::percentage::Percentage;
     use crate::math::sqrt_price::sqrt_price::SqrtPrice;
@@ -109,6 +111,11 @@ pub mod contract {
         pub y: (AccountId, Balance),
     }
 
+    #[derive(scale::Decode, Default, scale::Encode, Clone, Debug)]
+    #[cfg_attr(
+        feature = "std",
+        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout,)
+    )]
     pub struct CalculateSwapResult {
         pub amount_in: TokenAmount,
         pub amount_out: TokenAmount,
@@ -117,6 +124,16 @@ pub mod contract {
         pub fee: TokenAmount,
         pub pool: Pool,
         pub ticks: Vec<Tick>,
+    }
+
+    #[derive(scale::Decode, Default, scale::Encode, Clone, Debug)]
+    #[cfg_attr(
+        feature = "std",
+        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout,)
+    )]
+    pub struct SwapRouteParams {
+        pool_key: PoolKey,
+        x_to_y: bool,
     }
 
     #[derive(scale::Decode, Default, scale::Encode, Clone, Debug)]
@@ -445,7 +462,7 @@ pub mod contract {
             amount: TokenAmount,
             by_amount_in: bool,
             sqrt_price_limit: SqrtPrice,
-        ) -> Result<(), ContractErrors> {
+        ) -> Result<CalculateSwapResult, ContractErrors> {
             let caller = self.env().caller();
             let contract = self.env().account_id();
 
@@ -498,6 +515,41 @@ pub mod contract {
                 calculate_swap_result.target_sqrt_price,
                 x_to_y,
             );
+
+            Ok(calculate_swap_result)
+        }
+
+        #[ink(message)]
+        pub fn swap_route(
+            &mut self,
+            amount_in: TokenAmount,
+            expected_amount_out: TokenAmount,
+            slippage: Percentage,
+            swaps: Vec<SwapRouteParams>,
+        ) -> Result<(), ContractErrors> {
+            let mut next_swap_amount = amount_in;
+
+            for swap in swaps.iter() {
+                let SwapRouteParams { pool_key, x_to_y } = *swap;
+
+                let sqrt_price_limit = if x_to_y {
+                    SqrtPrice::new(MIN_SQRT_PRICE)
+                } else {
+                    SqrtPrice::new(MAX_SQRT_PRICE)
+                };
+
+                let result =
+                    self.swap(pool_key, x_to_y, next_swap_amount, true, sqrt_price_limit)?;
+
+                next_swap_amount = result.amount_out;
+            }
+
+            let min_amount_out = calculate_min_amount_out(expected_amount_out, slippage);
+
+            if next_swap_amount < min_amount_out {
+                return Err(ContractErrors::AmountUnderMinimumAmountOut);
+            }
+
             Ok(())
         }
 
@@ -519,6 +571,37 @@ pub mod contract {
                 calculate_swap_result.pool.sqrt_price,
                 calculate_swap_result.ticks,
             ))
+        }
+
+        #[ink(message)]
+        pub fn quote_route(
+            &mut self,
+            amount_in: TokenAmount,
+            swaps: Vec<SwapRouteParams>,
+        ) -> Result<TokenAmount, ContractErrors> {
+            let mut next_swap_amount = amount_in;
+
+            for swap in swaps.iter() {
+                let SwapRouteParams { pool_key, x_to_y } = *swap;
+
+                let sqrt_price_limit = if x_to_y {
+                    SqrtPrice::new(MIN_SQRT_PRICE)
+                } else {
+                    SqrtPrice::new(MAX_SQRT_PRICE)
+                };
+
+                let result = self.calculate_swap(
+                    pool_key,
+                    x_to_y,
+                    next_swap_amount,
+                    true,
+                    sqrt_price_limit,
+                )?;
+
+                next_swap_amount = result.amount_out;
+            }
+
+            Ok(next_swap_amount)
         }
 
         #[ink(message)]
@@ -1098,19 +1181,164 @@ pub mod contract {
 
         use test_helpers::{
             address_of, approve, balance_of, big_deposit_and_swap, change_fee_receiver, claim_fee,
-            create_dex, create_fee_tier, create_pool, create_position,
+            create_3_tokens, create_dex, create_fee_tier, create_pool, create_position,
             create_slippage_pool_with_liquidity, create_standard_fee_tiers, create_tokens,
             dex_balance, get_all_positions, get_fee_tier, get_pool, get_position, get_tick,
             init_basic_pool, init_basic_position, init_basic_swap, init_cross_position,
-            init_cross_swap, init_dex_and_tokens, init_dex_and_tokens_max_mint_amount,
-            init_slippage_dex_and_tokens, mint, mint_with_aprove_for_bob, multiple_swap, quote,
-            remove_position, swap, swap_exact_limit, tickmap_bit, withdraw_protocol_fee,
+            init_cross_swap, init_dex_and_3_tokens, init_dex_and_tokens,
+            init_dex_and_tokens_max_mint_amount, init_slippage_dex_and_tokens, mint,
+            mint_with_aprove_for_bob, multiple_swap, quote, quote_route, remove_position, swap,
+            swap_exact_limit, swap_route, tickmap_bit, withdraw_protocol_fee,
         };
         use token::TokenRef;
 
         use super::*;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
+
+        #[ink_e2e::test]
+        async fn swap_route(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let (dex, token_x, token_y, token_z) =
+                init_dex_and_3_tokens!(client, ContractRef, TokenRef);
+
+            let alice = ink_e2e::alice();
+            approve!(client, TokenRef, token_x, dex, u64::MAX as u128, alice);
+            approve!(client, TokenRef, token_y, dex, u64::MAX as u128, alice);
+            approve!(client, TokenRef, token_z, dex, u64::MAX as u128, alice);
+
+            let amount = 1000;
+            let bob = ink_e2e::bob();
+            mint_with_aprove_for_bob!(client, TokenRef, token_x, dex, amount);
+            approve!(client, TokenRef, token_y, dex, u64::MAX as u128, bob);
+
+            let fee = Percentage::from_scale(6, 3);
+            let tick_spacing = 1;
+
+            let fee_tier = FeeTier { fee, tick_spacing };
+            create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+
+            let init_tick = 0;
+            create_pool!(
+                client,
+                ContractRef,
+                dex,
+                token_x,
+                token_y,
+                fee_tier,
+                init_tick
+            );
+
+            let init_tick = 0;
+            create_pool!(
+                client,
+                ContractRef,
+                dex,
+                token_y,
+                token_z,
+                fee_tier,
+                init_tick
+            );
+
+            let pool_key_1 = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+            let pool_key_2 = PoolKey::new(token_y, token_z, fee_tier).unwrap();
+
+            let liquidity_delta = Liquidity::new(2u128.pow(63) - 1);
+
+            let pool_1 = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+            let slippage_limit_lower = pool_1.sqrt_price;
+            let slippage_limit_upper = pool_1.sqrt_price;
+            create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key_1,
+                -1,
+                1,
+                liquidity_delta,
+                slippage_limit_lower,
+                slippage_limit_upper,
+                alice
+            );
+
+            let pool_2 = get_pool!(client, ContractRef, dex, token_y, token_z, fee_tier).unwrap();
+            let slippage_limit_lower = pool_2.sqrt_price;
+            let slippage_limit_upper = pool_2.sqrt_price;
+            create_position!(
+                client,
+                ContractRef,
+                dex,
+                pool_key_2,
+                -1,
+                1,
+                liquidity_delta,
+                slippage_limit_lower,
+                slippage_limit_upper,
+                alice
+            );
+
+            let amount_in = TokenAmount(1000);
+            let expected_amount_out = TokenAmount(1000);
+            let slippage = Percentage::new(0);
+            let swaps = vec![
+                SwapRouteParams {
+                    pool_key: pool_key_1,
+                    x_to_y: true,
+                },
+                SwapRouteParams {
+                    pool_key: pool_key_2,
+                    x_to_y: true,
+                },
+            ];
+
+            let expected_token_amount =
+                quote_route!(client, ContractRef, dex, amount_in, swaps.clone(), bob).unwrap();
+
+            swap_route!(
+                client,
+                ContractRef,
+                dex,
+                amount_in,
+                expected_token_amount,
+                slippage,
+                swaps.clone(),
+                bob
+            );
+
+            let bob_amount_x = balance_of!(TokenRef, client, token_x, Bob);
+            let bob_amount_y = balance_of!(TokenRef, client, token_y, Bob);
+            let bob_amount_z = balance_of!(TokenRef, client, token_z, Bob);
+
+            assert_eq!(bob_amount_x, 0);
+            assert_eq!(bob_amount_y, 0);
+            assert_eq!(bob_amount_z, 986);
+
+            let pool_1_after =
+                get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+            assert_eq!(pool_1_after.fee_protocol_token_x, TokenAmount(1));
+            assert_eq!(pool_1_after.fee_protocol_token_y, TokenAmount(0));
+
+            let pool_2_after =
+                get_pool!(client, ContractRef, dex, token_y, token_z, fee_tier).unwrap();
+            assert_eq!(pool_2_after.fee_protocol_token_x, TokenAmount(1));
+            assert_eq!(pool_2_after.fee_protocol_token_y, TokenAmount(0));
+
+            let alice_amount_x_before = balance_of!(TokenRef, client, token_x, Alice);
+            let alice_amount_y_before = balance_of!(TokenRef, client, token_y, Alice);
+            let alice_amount_z_before = balance_of!(TokenRef, client, token_z, Alice);
+
+            claim_fee!(client, ContractRef, dex, 0, alice);
+            claim_fee!(client, ContractRef, dex, 1, alice);
+
+            let alice_amount_x_after = balance_of!(TokenRef, client, token_x, Alice);
+            let alice_amount_y_after = balance_of!(TokenRef, client, token_y, Alice);
+            let alice_amount_z_after = balance_of!(TokenRef, client, token_z, Alice);
+
+            assert_eq!(alice_amount_x_after - alice_amount_x_before, 4);
+            assert_eq!(alice_amount_y_after - alice_amount_y_before, 4);
+            assert_eq!(alice_amount_z_after - alice_amount_z_before, 0);
+
+            Ok(())
+        }
 
         #[ink_e2e::test]
         async fn limits_full_range_with_max_liquidity(mut client: ink_e2e::Client<C, E>) -> () {
