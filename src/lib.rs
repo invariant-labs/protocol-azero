@@ -131,7 +131,7 @@ pub mod contract {
         feature = "std",
         derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout,)
     )]
-    pub struct SwapRouteParams {
+    pub struct Hop {
         pool_key: PoolKey,
         x_to_y: bool,
     }
@@ -525,12 +525,12 @@ pub mod contract {
             amount_in: TokenAmount,
             expected_amount_out: TokenAmount,
             slippage: Percentage,
-            swaps: Vec<SwapRouteParams>,
+            swaps: Vec<Hop>,
         ) -> Result<(), InvariantError> {
             let mut next_swap_amount = amount_in;
 
             for swap in swaps.iter() {
-                let SwapRouteParams { pool_key, x_to_y } = *swap;
+                let Hop { pool_key, x_to_y } = *swap;
 
                 let sqrt_price_limit = if x_to_y {
                     SqrtPrice::new(MIN_SQRT_PRICE)
@@ -577,12 +577,12 @@ pub mod contract {
         pub fn quote_route(
             &mut self,
             amount_in: TokenAmount,
-            swaps: Vec<SwapRouteParams>,
+            swaps: Vec<Hop>,
         ) -> Result<TokenAmount, InvariantError> {
             let mut next_swap_amount = amount_in;
 
             for swap in swaps.iter() {
-                let SwapRouteParams { pool_key, x_to_y } = *swap;
+                let Hop { pool_key, x_to_y } = *swap;
 
                 let sqrt_price_limit = if x_to_y {
                     SqrtPrice::new(MIN_SQRT_PRICE)
@@ -1280,11 +1280,11 @@ pub mod contract {
             let expected_amount_out = TokenAmount(1000);
             let slippage = Percentage::new(0);
             let swaps = vec![
-                SwapRouteParams {
+                Hop {
                     pool_key: pool_key_1,
                     x_to_y: true,
                 },
-                SwapRouteParams {
+                Hop {
                     pool_key: pool_key_2,
                     x_to_y: true,
                 },
