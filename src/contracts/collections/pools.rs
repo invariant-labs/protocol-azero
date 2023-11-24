@@ -1,6 +1,6 @@
 use crate::contracts::Pool;
 use crate::contracts::PoolKey;
-use crate::ContractErrors;
+use crate::InvariantError;
 use ink::storage::Mapping;
 
 #[ink::storage_item]
@@ -10,37 +10,37 @@ pub struct Pools {
 }
 
 impl Pools {
-    pub fn add(&mut self, pool_key: PoolKey, pool: &Pool) -> Result<(), ContractErrors> {
+    pub fn add(&mut self, pool_key: PoolKey, pool: &Pool) -> Result<(), InvariantError> {
         if self.pools.get(&pool_key).is_some() {
-            return Err(ContractErrors::PoolAlreadyExist);
+            return Err(InvariantError::PoolAlreadyExist);
         }
 
         self.pools.insert(pool_key, pool);
         Ok(())
     }
 
-    pub fn get(&self, pool_key: PoolKey) -> Result<Pool, ContractErrors> {
+    pub fn get(&self, pool_key: PoolKey) -> Result<Pool, InvariantError> {
         let pool = self
             .pools
             .get(pool_key)
-            .ok_or(ContractErrors::PoolNotFound)?;
+            .ok_or(InvariantError::PoolNotFound)?;
 
         Ok(pool)
     }
 
-    pub fn update(&mut self, pool_key: PoolKey, pool: &Pool) -> Result<(), ContractErrors> {
+    pub fn update(&mut self, pool_key: PoolKey, pool: &Pool) -> Result<(), InvariantError> {
         self.pools
             .get(pool_key)
-            .ok_or(ContractErrors::PoolNotFound)?;
+            .ok_or(InvariantError::PoolNotFound)?;
 
         self.pools.insert(pool_key, pool);
         Ok(())
     }
 
-    pub fn remove(&mut self, pool_key: PoolKey) -> Result<(), ContractErrors> {
+    pub fn remove(&mut self, pool_key: PoolKey) -> Result<(), InvariantError> {
         self.pools
             .get(pool_key)
-            .ok_or(ContractErrors::PoolNotFound)?;
+            .ok_or(InvariantError::PoolNotFound)?;
 
         self.pools.remove(&pool_key);
         Ok(())

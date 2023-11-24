@@ -2,7 +2,7 @@ use ink::storage::Mapping;
 
 use crate::contracts::PoolKey;
 use crate::contracts::Tick;
-use crate::ContractErrors;
+use crate::InvariantError;
 #[ink::storage_item]
 #[derive(Debug, Default)]
 pub struct Ticks {
@@ -14,10 +14,10 @@ impl Ticks {
         self.ticks.get(&(key, index))
     }
     // pub fn update_tick(&mut self, key: PoolKey, index: i32, tick: Tick) {}
-    pub fn remove_tick(&mut self, key: PoolKey, index: i32) -> Result<(), ContractErrors> {
+    pub fn remove_tick(&mut self, key: PoolKey, index: i32) -> Result<(), InvariantError> {
         self.ticks
             .get(&(key, index))
-            .ok_or(ContractErrors::TickNotFound)?;
+            .ok_or(InvariantError::TickNotFound)?;
 
         self.ticks.remove(&(key, index));
         Ok(())
@@ -32,10 +32,10 @@ impl Ticks {
         key: PoolKey,
         index: i32,
         tick: &Tick,
-    ) -> Result<(), ContractErrors> {
+    ) -> Result<(), InvariantError> {
         self.ticks
             .get(&(key, index))
-            .ok_or(ContractErrors::TickNotFound)?;
+            .ok_or(InvariantError::TickNotFound)?;
 
         self.ticks.insert((&key, index), tick);
 

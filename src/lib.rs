@@ -7,7 +7,7 @@ pub mod math;
 
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
-pub enum ContractErrors {
+pub enum InvariantError {
     InsufficientSenderBalance,
     InsufficientLPLocked,
     PairNotFound,
@@ -36,7 +36,7 @@ pub enum ContractErrors {
 }
 #[ink::contract]
 pub mod contract {
-    use crate::ContractErrors;
+    use crate::InvariantError;
     // use math::fee_growth::FeeGrowth;
     use traceable_result::unwrap;
 
@@ -174,13 +174,13 @@ pub mod contract {
         }
 
         #[ink(message)]
-        pub fn withdraw_protocol_fee(&mut self, pool_key: PoolKey) -> Result<(), ContractErrors> {
+        pub fn withdraw_protocol_fee(&mut self, pool_key: PoolKey) -> Result<(), InvariantError> {
             let caller = self.env().caller();
 
             let mut pool = self.pools.get(pool_key)?;
 
             if pool.fee_receiver != caller {
-                return Err(ContractErrors::NotAFeeReceiver);
+                return Err(InvariantError::NotAFeeReceiver);
             }
 
             let (fee_protocol_token_x, fee_protocol_token_y) = pool.withdraw_protocol_fee(pool_key);
@@ -189,11 +189,11 @@ pub mod contract {
             let mut token_x: contract_ref!(PSP22) = pool_key.token_x.into();
             token_x
                 .transfer(pool.fee_receiver, fee_protocol_token_x.get(), vec![])
-                .map_err(|_| ContractErrors::TransferError)?;
+                .map_err(|_| InvariantError::TransferError)?;
             let mut token_y: contract_ref!(PSP22) = pool_key.token_y.into();
             token_y
                 .transfer(pool.fee_receiver, fee_protocol_token_y.get(), vec![])
-                .map_err(|_| ContractErrors::TransferError)?;
+                .map_err(|_| InvariantError::TransferError)?;
 
             Ok(())
         }
@@ -202,11 +202,11 @@ pub mod contract {
         pub fn change_protocol_fee(
             &mut self,
             protocol_fee: Percentage,
-        ) -> Result<(), ContractErrors> {
+        ) -> Result<(), InvariantError> {
             let caller = self.env().caller();
 
             if caller != self.state.admin {
-                return Err(ContractErrors::NotAnAdmin);
+                return Err(InvariantError::NotAnAdmin);
             }
 
             self.state.protocol_fee = protocol_fee;
@@ -218,11 +218,11 @@ pub mod contract {
             &mut self,
             pool_key: PoolKey,
             fee_receiver: AccountId,
-        ) -> Result<(), ContractErrors> {
+        ) -> Result<(), InvariantError> {
             let caller = self.env().caller();
 
             if caller != self.state.admin {
-                return Err(ContractErrors::NotAnAdmin);
+                return Err(InvariantError::NotAnAdmin);
             }
 
             let mut pool = self.pools.get(pool_key)?;
@@ -236,17 +236,17 @@ pub mod contract {
             &mut self,
             pool_key: PoolKey,
             index: i32,
-        ) -> Result<Tick, ContractErrors> {
+        ) -> Result<Tick, InvariantError> {
             let current_timestamp = self.env().block_timestamp();
 
             check_tick(index, pool_key.fee_tier.tick_spacing)
-                .map_err(|_| ContractErrors::InvalidTickIndexOrTickSpacing)?;
+                .map_err(|_| InvariantError::InvalidTickIndexOrTickSpacing)?;
 
             let pool = self.pools.get(pool_key)?;
 
             let tick_option = self.ticks.get_tick(pool_key, index);
             if tick_option.is_some() {
-                return Err(ContractErrors::TickAlreadyExist);
+                return Err(InvariantError::TickAlreadyExist);
             }
 
             let tick = Tick::create(index, &pool, current_timestamp);
@@ -267,7 +267,7 @@ pub mod contract {
             liquidity_delta: Liquidity,
             slippage_limit_lower: SqrtPrice,
             slippage_limit_upper: SqrtPrice,
-        ) -> Result<Position, ContractErrors> {
+        ) -> Result<Position, InvariantError> {
             let caller = self.env().caller();
             let contract = self.env().account_id();
             let current_timestamp = self.env().block_timestamp();
@@ -275,7 +275,7 @@ pub mod contract {
 
             // liquidity delta = 0 => return
             if liquidity_delta == Liquidity::new(0) {
-                return Err(ContractErrors::ZeroLiquidity);
+                return Err(InvariantError::ZeroLiquidity);
             }
 
             let mut pool = self.pools.get(pool_key)?;
@@ -313,11 +313,11 @@ pub mod contract {
             let mut token_x: contract_ref!(PSP22) = pool_key.token_x.into();
             token_x
                 .transfer_from(caller, contract, x.get(), vec![])
-                .map_err(|_| ContractErrors::TransferError)?;
+                .map_err(|_| InvariantError::TransferError)?;
             let mut token_y: contract_ref!(PSP22) = pool_key.token_y.into();
             token_y
                 .transfer_from(caller, contract, y.get(), vec![])
-                .map_err(|_| ContractErrors::TransferError)?;
+                .map_err(|_| InvariantError::TransferError)?;
 
             self.emit_create_position_event(
                 caller,
@@ -337,11 +337,11 @@ pub mod contract {
             amount: TokenAmount,
             by_amount_in: bool,
             sqrt_price_limit: SqrtPrice,
-        ) -> Result<CalculateSwapResult, ContractErrors> {
+        ) -> Result<CalculateSwapResult, InvariantError> {
             let current_timestamp = self.env().block_timestamp();
             let caller = self.env().caller();
             if amount.is_zero() {
-                return Err(ContractErrors::AmountIsZero);
+                return Err(InvariantError::AmountIsZero);
             }
 
             let mut ticks: Vec<Tick> = vec![];
@@ -352,13 +352,13 @@ pub mod contract {
                 if pool.sqrt_price <= sqrt_price_limit
                     || sqrt_price_limit > SqrtPrice::new(MAX_SQRT_PRICE)
                 {
-                    return Err(ContractErrors::WrongLimit);
+                    return Err(InvariantError::WrongLimit);
                 }
             } else {
                 if pool.sqrt_price >= sqrt_price_limit
                     || sqrt_price_limit < SqrtPrice::new(MIN_SQRT_PRICE)
                 {
-                    return Err(ContractErrors::WrongLimit);
+                    return Err(InvariantError::WrongLimit);
                 }
             }
 
@@ -405,7 +405,7 @@ pub mod contract {
 
                 // Fail if price would go over swap limit
                 if pool.sqrt_price == sqrt_price_limit && !remaining_amount.is_zero() {
-                    return Err(ContractErrors::PriceLimitReached);
+                    return Err(InvariantError::PriceLimitReached);
                 }
 
                 // TODO: refactor
@@ -440,7 +440,7 @@ pub mod contract {
             }
 
             if total_amount_out.get() == 0 {
-                return Err(ContractErrors::NoGainSwap);
+                return Err(InvariantError::NoGainSwap);
             }
 
             Ok(CalculateSwapResult {
@@ -462,7 +462,7 @@ pub mod contract {
             amount: TokenAmount,
             by_amount_in: bool,
             sqrt_price_limit: SqrtPrice,
-        ) -> Result<CalculateSwapResult, ContractErrors> {
+        ) -> Result<CalculateSwapResult, InvariantError> {
             let caller = self.env().caller();
             let contract = self.env().account_id();
 
@@ -484,11 +484,11 @@ pub mod contract {
                         calculate_swap_result.amount_in.get(),
                         vec![],
                     )
-                    .map_err(|_| ContractErrors::TransferError)?;
+                    .map_err(|_| InvariantError::TransferError)?;
                 let mut token_y: contract_ref!(PSP22) = pool_key.token_y.into();
                 token_y
                     .transfer(caller, calculate_swap_result.amount_out.get(), vec![])
-                    .map_err(|_| ContractErrors::TransferError)?;
+                    .map_err(|_| InvariantError::TransferError)?;
             } else {
                 let mut token_y: contract_ref!(PSP22) = pool_key.token_y.into();
                 token_y
@@ -498,11 +498,11 @@ pub mod contract {
                         calculate_swap_result.amount_in.get(),
                         vec![],
                     )
-                    .map_err(|_| ContractErrors::TransferError)?;
+                    .map_err(|_| InvariantError::TransferError)?;
                 let mut token_x: contract_ref!(PSP22) = pool_key.token_x.into();
                 token_x
                     .transfer(caller, calculate_swap_result.amount_out.get(), vec![])
-                    .map_err(|_| ContractErrors::TransferError)?;
+                    .map_err(|_| InvariantError::TransferError)?;
             };
 
             self.emit_swap_event(
@@ -526,7 +526,7 @@ pub mod contract {
             expected_amount_out: TokenAmount,
             slippage: Percentage,
             swaps: Vec<SwapRouteParams>,
-        ) -> Result<(), ContractErrors> {
+        ) -> Result<(), InvariantError> {
             let mut next_swap_amount = amount_in;
 
             for swap in swaps.iter() {
@@ -547,7 +547,7 @@ pub mod contract {
             let min_amount_out = calculate_min_amount_out(expected_amount_out, slippage);
 
             if next_swap_amount < min_amount_out {
-                return Err(ContractErrors::AmountUnderMinimumAmountOut);
+                return Err(InvariantError::AmountUnderMinimumAmountOut);
             }
 
             Ok(())
@@ -561,7 +561,7 @@ pub mod contract {
             amount: TokenAmount,
             by_amount_in: bool,
             sqrt_price_limit: SqrtPrice,
-        ) -> Result<(TokenAmount, TokenAmount, SqrtPrice, Vec<Tick>), ContractErrors> {
+        ) -> Result<(TokenAmount, TokenAmount, SqrtPrice, Vec<Tick>), InvariantError> {
             let calculate_swap_result =
                 self.calculate_swap(pool_key, x_to_y, amount, by_amount_in, sqrt_price_limit)?;
 
@@ -578,7 +578,7 @@ pub mod contract {
             &mut self,
             amount_in: TokenAmount,
             swaps: Vec<SwapRouteParams>,
-        ) -> Result<TokenAmount, ContractErrors> {
+        ) -> Result<TokenAmount, InvariantError> {
             let mut next_swap_amount = amount_in;
 
             for swap in swaps.iter() {
@@ -609,7 +609,7 @@ pub mod contract {
             &mut self,
             index: u32,
             receiver: AccountId,
-        ) -> Result<(), ContractErrors> {
+        ) -> Result<(), InvariantError> {
             let caller = self.env().caller();
 
             self.positions.transfer(caller, index, receiver)?;
@@ -643,24 +643,24 @@ pub mod contract {
             &mut self,
             index: u32,
             pool_key: PoolKey,
-        ) -> Result<(), ContractErrors> {
+        ) -> Result<(), InvariantError> {
             let caller = self.env().caller();
             let current_timestamp = self.env().block_timestamp();
 
             let mut position = self
                 .positions
                 .get(caller, index)
-                .ok_or(ContractErrors::PositionNotFound)?;
+                .ok_or(InvariantError::PositionNotFound)?;
 
             let lower_tick = self
                 .ticks
                 .get_tick(pool_key, position.lower_tick_index)
-                .ok_or(ContractErrors::TickNotFound)?;
+                .ok_or(InvariantError::TickNotFound)?;
 
             let upper_tick = self
                 .ticks
                 .get_tick(pool_key, position.upper_tick_index)
-                .ok_or(ContractErrors::TickNotFound)?;
+                .ok_or(InvariantError::TickNotFound)?;
 
             let pool = self.pools.get(pool_key)?;
 
@@ -677,24 +677,24 @@ pub mod contract {
         pub fn claim_fee(
             &mut self,
             index: u32,
-        ) -> Result<(TokenAmount, TokenAmount), ContractErrors> {
+        ) -> Result<(TokenAmount, TokenAmount), InvariantError> {
             let caller = self.env().caller();
             let current_timestamp = self.env().block_timestamp();
 
             let mut position = self
                 .positions
                 .get(caller, index)
-                .ok_or(ContractErrors::PositionNotFound)?;
+                .ok_or(InvariantError::PositionNotFound)?;
 
             let mut lower_tick = self
                 .ticks
                 .get_tick(position.pool_key, position.lower_tick_index)
-                .ok_or(ContractErrors::TickNotFound)?;
+                .ok_or(InvariantError::TickNotFound)?;
 
             let mut upper_tick = self
                 .ticks
                 .get_tick(position.pool_key, position.upper_tick_index)
-                .ok_or(ContractErrors::TickNotFound)?;
+                .ok_or(InvariantError::TickNotFound)?;
 
             let mut pool = self.pools.get(position.pool_key)?;
 
@@ -716,14 +716,14 @@ pub mod contract {
                 let mut token_x: contract_ref!(PSP22) = position.pool_key.token_x.into();
                 token_x
                     .transfer(caller, x.get(), vec![])
-                    .map_err(|_| ContractErrors::TransferError)?;
+                    .map_err(|_| InvariantError::TransferError)?;
             }
 
             if y.get() > 0 {
                 let mut token_y: contract_ref!(PSP22) = position.pool_key.token_y.into();
                 token_y
                     .transfer(caller, y.get(), vec![])
-                    .map_err(|_| ContractErrors::TransferError)?;
+                    .map_err(|_| InvariantError::TransferError)?;
             }
 
             Ok((x, y))
@@ -733,24 +733,24 @@ pub mod contract {
         pub fn remove_position(
             &mut self,
             index: u32,
-        ) -> Result<(TokenAmount, TokenAmount), ContractErrors> {
+        ) -> Result<(TokenAmount, TokenAmount), InvariantError> {
             let caller = self.env().caller();
             let current_timestamp = self.env().block_timestamp();
 
             let mut position = self
                 .positions
                 .get(caller, index)
-                .ok_or(ContractErrors::PositionNotFound)?;
+                .ok_or(InvariantError::PositionNotFound)?;
 
             let mut lower_tick = self
                 .ticks
                 .get_tick(position.pool_key, position.lower_tick_index)
-                .ok_or(ContractErrors::TickNotFound)?;
+                .ok_or(InvariantError::TickNotFound)?;
 
             let mut upper_tick = self
                 .ticks
                 .get_tick(position.pool_key, position.upper_tick_index)
-                .ok_or(ContractErrors::TickNotFound)?;
+                .ok_or(InvariantError::TickNotFound)?;
 
             let pool = &mut self.pools.get(position.pool_key)?;
 
@@ -802,11 +802,11 @@ pub mod contract {
             let mut token_x: contract_ref!(PSP22) = position.pool_key.token_x.into();
             token_x
                 .transfer(caller, amount_x.get(), vec![])
-                .map_err(|_| ContractErrors::TransferError)?;
+                .map_err(|_| InvariantError::TransferError)?;
             let mut token_y: contract_ref!(PSP22) = position.pool_key.token_y.into();
             token_y
                 .transfer(caller, amount_y.get(), vec![])
-                .map_err(|_| ContractErrors::TransferError)?;
+                .map_err(|_| InvariantError::TransferError)?;
 
             self.emit_remove_position_event(
                 caller,
@@ -821,21 +821,21 @@ pub mod contract {
 
         // Fee tiers
         #[ink(message)]
-        pub fn add_fee_tier(&mut self, fee_tier: FeeTier) -> Result<(), ContractErrors> {
+        pub fn add_fee_tier(&mut self, fee_tier: FeeTier) -> Result<(), InvariantError> {
             let caller = self.env().caller();
 
             if caller != self.state.admin {
-                return Err(ContractErrors::NotAnAdmin);
+                return Err(InvariantError::NotAnAdmin);
             }
 
             if fee_tier.tick_spacing == 0 {
-                return Err(ContractErrors::InvalidTickSpacing);
+                return Err(InvariantError::InvalidTickSpacing);
             }
 
             let fee_tier_key = FeeTierKey(fee_tier.fee, fee_tier.tick_spacing);
 
             if self.fee_tiers.get_fee_tier(fee_tier_key).is_some() {
-                return Err(ContractErrors::FeeTierAlreadyAdded);
+                return Err(InvariantError::FeeTierAlreadyAdded);
             } else {
                 self.fee_tiers.add_fee_tier(fee_tier_key);
                 self.fee_tier_keys.push(fee_tier_key);
@@ -862,13 +862,13 @@ pub mod contract {
             token_1: AccountId,
             fee_tier: FeeTier,
             init_tick: i32,
-        ) -> Result<(), ContractErrors> {
+        ) -> Result<(), InvariantError> {
             let current_timestamp = self.env().block_timestamp();
 
             let fee_tier_key = FeeTierKey(fee_tier.fee, fee_tier.tick_spacing);
             self.fee_tiers
                 .get_fee_tier(fee_tier_key)
-                .ok_or(ContractErrors::FeeTierNotFound)?;
+                .ok_or(InvariantError::FeeTierNotFound)?;
 
             let pool_key = PoolKey::new(token_0, token_1, fee_tier)?;
             let pool = Pool::create(init_tick, current_timestamp, self.state.admin);
@@ -885,7 +885,7 @@ pub mod contract {
             token_0: AccountId,
             token_1: AccountId,
             fee_tier: FeeTier,
-        ) -> Result<Pool, ContractErrors> {
+        ) -> Result<Pool, InvariantError> {
             let key: PoolKey = PoolKey::new(token_0, token_1, fee_tier)?;
             self.pools.get(key)
         }
@@ -1067,7 +1067,7 @@ pub mod contract {
                 },
                 0,
             );
-            assert_eq!(result, Err(ContractErrors::PoolAlreadyExist));
+            assert_eq!(result, Err(InvariantError::PoolAlreadyExist));
         }
 
         #[ink::test]
@@ -1083,7 +1083,7 @@ pub mod contract {
                     tick_spacing: 1,
                 },
             );
-            assert_eq!(result, Err(ContractErrors::PoolNotFound));
+            assert_eq!(result, Err(InvariantError::PoolNotFound));
 
             let fee_tier = FeeTier {
                 fee: Percentage::new(1),
@@ -1116,11 +1116,11 @@ pub mod contract {
             };
             let pool_key = PoolKey::new(token_0, token_1, fee_tier).unwrap();
             let result = contract.create_tick(pool_key, MAX_TICK + 1);
-            assert_eq!(result, Err(ContractErrors::InvalidTickIndexOrTickSpacing));
+            assert_eq!(result, Err(InvariantError::InvalidTickIndexOrTickSpacing));
             let result = contract.create_tick(pool_key, 1);
-            assert_eq!(result, Err(ContractErrors::InvalidTickIndexOrTickSpacing));
+            assert_eq!(result, Err(InvariantError::InvalidTickIndexOrTickSpacing));
             let result = contract.create_tick(pool_key, 0);
-            assert_eq!(result, Err(ContractErrors::PoolNotFound));
+            assert_eq!(result, Err(InvariantError::PoolNotFound));
 
             contract.add_fee_tier(fee_tier).unwrap();
             let _ = contract.create_pool(pool_key.token_x, pool_key.token_y, pool_key.fee_tier, 0);

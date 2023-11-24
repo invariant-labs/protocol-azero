@@ -10,7 +10,7 @@ use crate::{
             token_amount::TokenAmount,
         },
     },
-    ContractErrors,
+    InvariantError,
 };
 use decimal::*;
 use ink::prelude::vec;
@@ -176,9 +176,9 @@ impl Position {
         slippage_limit_upper: SqrtPrice,
         block_number: u64,
         tick_spacing: u16,
-    ) -> Result<(Self, TokenAmount, TokenAmount), ContractErrors> {
+    ) -> Result<(Self, TokenAmount, TokenAmount), InvariantError> {
         if pool.sqrt_price < slippage_limit_lower || pool.sqrt_price > slippage_limit_upper {
-            return Err(ContractErrors::PriceLimitReached);
+            return Err(InvariantError::PriceLimitReached);
         }
 
         // if !tickmap.get(lower_tick.index, pool.tick_spacing) {
