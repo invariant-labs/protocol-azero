@@ -14,7 +14,7 @@ pub enum InvariantError {
     MintFailed,
     BurnFailed,
     SwapFailed,
-    NotAnAdmin,
+    UnauthorizedAdmin,
     PoolAlreadyExist,
     PoolNotFound,
     TickAlreadyExist,
@@ -28,7 +28,7 @@ pub enum InvariantError {
     NoGainSwap,
     InvalidTickSpacing,
     FeeTierAlreadyAdded,
-    NotAFeeReceiver,
+    UnauthorizedFeeReceriver,
     ZeroLiquidity,
     TransferError,
     TokensAreTheSame,
@@ -180,7 +180,7 @@ pub mod contract {
             let mut pool = self.pools.get(pool_key)?;
 
             if pool.fee_receiver != caller {
-                return Err(InvariantError::NotAFeeReceiver);
+                return Err(InvariantError::UnauthorizedFeeReceriver);
             }
 
             let (fee_protocol_token_x, fee_protocol_token_y) = pool.withdraw_protocol_fee(pool_key);
@@ -206,7 +206,7 @@ pub mod contract {
             let caller = self.env().caller();
 
             if caller != self.state.admin {
-                return Err(InvariantError::NotAnAdmin);
+                return Err(InvariantError::UnauthorizedAdmin);
             }
 
             self.state.protocol_fee = protocol_fee;
@@ -222,7 +222,7 @@ pub mod contract {
             let caller = self.env().caller();
 
             if caller != self.state.admin {
-                return Err(InvariantError::NotAnAdmin);
+                return Err(InvariantError::UnauthorizedAdmin);
             }
 
             let mut pool = self.pools.get(pool_key)?;
@@ -825,7 +825,7 @@ pub mod contract {
             let caller = self.env().caller();
 
             if caller != self.state.admin {
-                return Err(InvariantError::NotAnAdmin);
+                return Err(InvariantError::UnauthorizedAdmin);
             }
 
             if fee_tier.tick_spacing == 0 {
