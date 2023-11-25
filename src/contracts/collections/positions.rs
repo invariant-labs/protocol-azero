@@ -1,4 +1,4 @@
-use crate::{contracts::Position, ContractErrors};
+use crate::{contracts::Position, InvariantError};
 use ink::{
     prelude::{vec, vec::Vec},
     primitives::AccountId,
@@ -27,11 +27,11 @@ impl Positions {
         account_id: AccountId,
         index: u32,
         position: &Position,
-    ) -> Result<(), ContractErrors> {
+    ) -> Result<(), InvariantError> {
         let (positions_length, mut positions) = self.get_value(account_id);
 
         if index >= positions_length {
-            return Err(ContractErrors::PositionNotFound);
+            return Err(InvariantError::PositionNotFound);
         }
 
         positions[index as usize] = *position;
@@ -45,7 +45,7 @@ impl Positions {
         &mut self,
         account_id: AccountId,
         index: u32,
-    ) -> Result<Position, ContractErrors> {
+    ) -> Result<Position, InvariantError> {
         let (mut positions_length, mut positions) = self.get_value(account_id);
 
         if index < positions_length {
@@ -56,7 +56,7 @@ impl Positions {
                 .insert(account_id, &(positions_length, positions));
             Ok(position)
         } else {
-            Err(ContractErrors::PositionNotFound)
+            Err(InvariantError::PositionNotFound)
         }
     }
 
@@ -65,7 +65,7 @@ impl Positions {
         account_id: AccountId,
         index: u32,
         receiver: AccountId,
-    ) -> Result<(), ContractErrors> {
+    ) -> Result<(), InvariantError> {
         let position = self.remove(account_id, index)?;
         self.add(receiver, position);
 
