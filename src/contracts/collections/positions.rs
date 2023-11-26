@@ -49,11 +49,11 @@ impl Positions {
     ) -> Result<Position, ContractErrors> {
         let positions_length = self.get_length(account_id);
 
-        if index >= positions_length {
+        let position = self.positions.get((account_id, index));
+
+        if position.is_none() {
             return Err(ContractErrors::PositionNotFound);
         }
-
-        let position = self.positions.get((account_id, index)).unwrap_or_default();
 
         if index < positions_length - 1 {
             let last_position = self
@@ -68,7 +68,7 @@ impl Positions {
         self.positions_length
             .insert(account_id, &(positions_length - 1));
 
-        Ok(position)
+        Ok(position.unwrap())
     }
 
     pub fn transfer(
