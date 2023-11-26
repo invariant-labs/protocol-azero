@@ -3,7 +3,7 @@ use ink::primitives::AccountId;
 
 use crate::contracts::FeeTier;
 use crate::math::percentage::Percentage;
-use crate::ContractErrors;
+use crate::InvariantError;
 
 #[derive(scale::Decode, scale::Encode, Debug, Copy, Clone, PartialEq)]
 #[cfg_attr(
@@ -35,9 +35,9 @@ impl PoolKey {
         token_0: AccountId,
         token_1: AccountId,
         fee_tier: FeeTier,
-    ) -> Result<Self, ContractErrors> {
+    ) -> Result<Self, InvariantError> {
         if token_0 == token_1 {
-            return Err(ContractErrors::TokensAreTheSame);
+            return Err(InvariantError::TokensAreTheSame);
         }
 
         if token_0 < token_1 {
