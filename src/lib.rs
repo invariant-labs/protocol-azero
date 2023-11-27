@@ -20,6 +20,7 @@ pub enum InvariantError {
     TickAlreadyExist,
     InvalidTickIndexOrTickSpacing,
     PositionNotFound,
+    PositionAlreadyExist,
     TickNotFound,
     FeeTierNotFound,
     AmountIsZero,
@@ -625,9 +626,8 @@ pub mod contract {
         // }
 
         #[ink(message)]
-        pub fn get_position(&mut self, index: u32) -> Option<Position> {
+        pub fn get_position(&mut self, index: u32) -> Result<Position, InvariantError> {
             let caller = self.env().caller();
-
             self.positions.get(caller, index)
         }
 
@@ -647,10 +647,7 @@ pub mod contract {
             let caller = self.env().caller();
             let current_timestamp = self.env().block_timestamp();
 
-            let mut position = self
-                .positions
-                .get(caller, index)
-                .ok_or(InvariantError::PositionNotFound)?;
+            let mut position = self.positions.get(caller, index)?;
 
             let lower_tick = self
                 .ticks
@@ -681,10 +678,7 @@ pub mod contract {
             let caller = self.env().caller();
             let current_timestamp = self.env().block_timestamp();
 
-            let mut position = self
-                .positions
-                .get(caller, index)
-                .ok_or(InvariantError::PositionNotFound)?;
+            let mut position = self.positions.get(caller, index)?;
 
             let mut lower_tick = self
                 .ticks
@@ -737,10 +731,7 @@ pub mod contract {
             let caller = self.env().caller();
             let current_timestamp = self.env().block_timestamp();
 
-            let mut position = self
-                .positions
-                .get(caller, index)
-                .ok_or(InvariantError::PositionNotFound)?;
+            let mut position = self.positions.get(caller, index)?;
 
             let mut lower_tick = self
                 .ticks
@@ -834,7 +825,7 @@ pub mod contract {
 
             let fee_tier_key = FeeTierKey(fee_tier.fee, fee_tier.tick_spacing);
 
-            self.fee_tiers.add_fee_tier(fee_tier_key);
+            self.fee_tiers.add_fee_tier(fee_tier_key)?;
             self.fee_tier_keys.push(fee_tier_key);
             Ok(())
         }
@@ -1133,7 +1124,7 @@ pub mod contract {
 
             contract.add_fee_tier(fee_tier_value).unwrap();
             assert_eq!(contract.fee_tier_keys.len(), 1);
-            // contract.add_fee_tier(fee_tier_value).unwrap_err();
+            contract.add_fee_tier(fee_tier_value).unwrap_err();
             contract.remove_fee_tier(fee_tier_key);
             assert_eq!(contract.fee_tier_keys.len(), 0);
         }
