@@ -83,7 +83,7 @@ impl Positions {
             .collect()
     }
 
-    pub fn get(&mut self, account_id: AccountId, index: u32) -> Option<Position> {
+    pub fn get(&self, account_id: AccountId, index: u32) -> Option<Position> {
         let position = self.positions.get((account_id, index));
         position
     }

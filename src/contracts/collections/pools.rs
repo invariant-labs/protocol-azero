@@ -1,6 +1,7 @@
-use crate::contracts::Pool;
-use crate::contracts::PoolKey;
-use crate::InvariantError;
+use crate::{
+    contracts::{Pool, PoolKey},
+    InvariantError,
+};
 use ink::storage::Mapping;
 
 #[ink::storage_item]
