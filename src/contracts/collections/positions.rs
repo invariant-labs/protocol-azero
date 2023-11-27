@@ -82,14 +82,9 @@ impl Positions {
     }
 
     pub fn get_all(&self, account_id: AccountId) -> Vec<Position> {
-        let mut positions = vec![];
-
-        for index in 0..self.get_length(account_id) {
-            let position = self.positions.get((account_id, index)).unwrap();
-            positions.push(position);
-        }
-
-        positions
+        (0..self.get_length(account_id))
+            .map(|index| self.positions.get((account_id, index)).unwrap())
+            .collect()
     }
 
     pub fn get(&mut self, account_id: AccountId, index: u32) -> Option<Position> {
