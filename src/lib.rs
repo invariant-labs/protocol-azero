@@ -30,6 +30,7 @@ pub enum InvariantError {
     InvalidTickSpacing,
     FeeTierAlreadyAdded,
     UnauthorizedFeeReceriver,
+    FeeNotAdded,
     ZeroLiquidity,
     TransferError,
     TokensAreTheSame,
@@ -393,7 +394,11 @@ pub mod contract {
                     remaining_amount -= result.amount_out;
                 }
 
-                pool.add_fee(result.fee_amount, x_to_y, self.state.protocol_fee);
+                match pool.add_fee(result.fee_amount, x_to_y, self.state.protocol_fee) {
+                    Ok(()) => (),
+                    Err(_) => return Err(InvariantError::FeeNotAdded),
+                };
+
                 event_fee_amount += result.fee_amount;
 
                 pool.sqrt_price = result.next_sqrt_price;
@@ -468,7 +473,7 @@ pub mod contract {
                 self.calculate_swap(pool_key, x_to_y, amount, by_amount_in, sqrt_price_limit)?;
 
             for tick in calculate_swap_result.ticks.iter() {
-                self.ticks.update_tick(pool_key, tick.index, tick);
+                self.ticks.update_tick(pool_key, tick.index, tick)?;
             }
 
             self.pools.update(pool_key, &calculate_swap_result.pool)?;
@@ -687,7 +692,7 @@ pub mod contract {
                 current_timestamp,
             );
 
-            self.positions.update(caller, index, &position);
+            self.positions.update(caller, index, &position)?;
             self.pools.update(position.pool_key, &pool)?;
             self.ticks
                 .update_tick(position.pool_key, upper_tick.index, &upper_tick)?;
@@ -821,9 +826,10 @@ pub mod contract {
         }
 
         #[ink(message)]
-        pub fn remove_fee_tier(&mut self, key: FeeTierKey) {
-            self.fee_tiers.remove_fee_tier(key);
+        pub fn remove_fee_tier(&mut self, key: FeeTierKey) -> Result<(), InvariantError> {
+            self.fee_tiers.remove_fee_tier(key)?;
             self.fee_tier_keys.retain(|&x| x != key);
+            Ok(())
         }
 
         // Pools
@@ -860,14 +866,16 @@ pub mod contract {
             self.pools.get(key)
         }
 
-        fn remove_pool(&mut self, key: PoolKey) {
-            self.pools.remove(key);
+        fn remove_pool(&mut self, key: PoolKey) -> Result<(), InvariantError> {
+            self.pools.remove(key)?;
             self.pool_keys.retain(|&x| x != key);
+            Ok(())
         }
 
         // Ticks
-        fn add_tick(&mut self, key: PoolKey, index: i32, tick: Tick) {
-            self.ticks.add_tick(key, index, tick);
+        fn add_tick(&mut self, key: PoolKey, index: i32, tick: Tick) -> Result<(), InvariantError> {
+            self.ticks.add_tick(key, index, tick)?;
+            Ok(())
         }
 
         #[ink(message)]
@@ -879,8 +887,10 @@ pub mod contract {
         pub fn get_tickmap_bit(&self, key: PoolKey, index: i32) -> bool {
             self.tickmap.get(index, key.fee_tier.tick_spacing, key)
         }
-        fn remove_tick(&mut self, key: PoolKey, index: i32) {
-            self.ticks.remove_tick(key, index);
+
+        fn remove_tick(&mut self, key: PoolKey, index: i32) -> Result<(), InvariantError> {
+            self.ticks.remove_tick(key, index)?;
+            Ok(())
         }
 
         fn emit_swap_event(
