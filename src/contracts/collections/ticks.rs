@@ -47,3 +47,31 @@ impl Ticks {
         self.ticks.get(&(pool_key, index))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{contracts::FeeTier, math::percentage::Percentage};
+    use decimal::*;
+    use ink::primitives::AccountId;
+
+    #[ink::test]
+    fn test_add() {
+        let ticks = &mut Ticks::default();
+        let token_x = AccountId::from([0x01; 32]);
+        let token_y = AccountId::from([0x02; 32]);
+        let fee_tier = FeeTier {
+            fee: Percentage::new(0),
+            tick_spacing: 1,
+        };
+        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+        let tick = Tick::default();
+
+        ticks.add(pool_key, 0, &tick).unwrap();
+        assert_eq!(ticks.get(pool_key, 0), Some(tick));
+        assert_eq!(ticks.get(pool_key, 1), None);
+
+        // let result = ticks.add(pool_key, 0, &tick);
+        // assert_eq!(result, Err(InvariantError::TickAlreadyExist));
+    }
+}
