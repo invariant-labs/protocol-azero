@@ -3,22 +3,23 @@ set -e
 
 cd src
 
-# Build and test math module
-# cd math
-# cargo build
-# cargo test
-
-# Build trackable result
-cd traceable_result
-cargo build
-
+# Test token module
+cd token
+cargo test
 cd ..
-# Build decimal
-cd decimal
-cargo build
 
-cd ../..
-# Build and test parent module
+# Test trackable result
+cd traceable_result
+cargo test
+cd ..
+
+
+# Test decimal
+cd decimal
+cargo test
+cd decimal_core
+cd ../../..
+
 
 cargo test --features e2e-tests
 
