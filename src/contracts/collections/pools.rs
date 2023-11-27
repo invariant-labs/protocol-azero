@@ -104,4 +104,25 @@ mod tests {
         let result = pools.update(new_pool_key, &new_pool);
         assert_eq!(result, Err(InvariantError::PoolNotFound));
     }
+
+    #[ink::test]
+    fn test_remove() {
+        let pools = &mut Pools::default();
+        let token_x = AccountId::from([0x01; 32]);
+        let token_y = AccountId::from([0x02; 32]);
+        let fee_tier = FeeTier {
+            fee: Percentage::new(0),
+            tick_spacing: 1,
+        };
+        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+        let pool = Pool::default();
+
+        pools.add(pool_key, &pool).unwrap();
+
+        pools.remove(pool_key).unwrap();
+        assert_eq!(pools.get(pool_key), None);
+
+        let result = pools.remove(pool_key);
+        assert_eq!(result, Err(InvariantError::PoolNotFound));
+    }
 }
