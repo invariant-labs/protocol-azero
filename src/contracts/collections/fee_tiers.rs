@@ -1,13 +1,11 @@
+use crate::{math::types::percentage::Percentage, InvariantError};
 use ink::storage::Mapping;
-
-use crate::math::types::percentage::Percentage;
 
 #[derive(scale::Decode, scale::Encode, Debug, Copy, Clone, PartialEq)]
 #[cfg_attr(
     feature = "std",
     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
 )]
-// key(fee: Percentage, tick_spacing: u16)
 pub struct FeeTierKey(pub Percentage, pub u16);
 
 #[ink::storage_item]
@@ -17,13 +15,25 @@ pub struct FeeTiers {
 }
 
 impl FeeTiers {
-    pub fn get_fee_tier(&self, key: FeeTierKey) -> Option<()> {
-        self.fee_tiers.get(&key)
+    pub fn add(&mut self, fee_tier_key: &FeeTierKey) -> Result<(), InvariantError> {
+        if self.fee_tiers.get(&fee_tier_key).is_some() {
+            return Err(InvariantError::FeeTierAlreadyExist);
+        }
+
+        self.fee_tiers.insert(&fee_tier_key, &());
+        Ok(())
     }
-    pub fn add_fee_tier(&mut self, key: FeeTierKey) {
-        self.fee_tiers.insert(&key, &());
+
+    pub fn remove(&mut self, fee_tier_key: &FeeTierKey) -> Result<(), InvariantError> {
+        self.fee_tiers
+            .get(fee_tier_key)
+            .ok_or(InvariantError::FeeTierNotFound)?;
+
+        self.fee_tiers.remove(&fee_tier_key);
+        Ok(())
     }
-    pub fn remove_fee_tier(&mut self, key: FeeTierKey) {
-        self.fee_tiers.remove(&key);
+
+    pub fn get(&self, fee_tier_key: &FeeTierKey) -> Option<()> {
+        self.fee_tiers.get(fee_tier_key)
     }
 }

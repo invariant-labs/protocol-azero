@@ -1,8 +1,9 @@
+use crate::{
+    contracts::{PoolKey, Tick},
+    InvariantError,
+};
 use ink::storage::Mapping;
 
-use crate::contracts::PoolKey;
-use crate::contracts::Tick;
-use crate::InvariantError;
 #[ink::storage_item]
 #[derive(Debug, Default)]
 pub struct Ticks {
