@@ -858,10 +858,10 @@ pub mod contract {
 
             let fee_tier_key = FeeTierKey(fee_tier.fee, fee_tier.tick_spacing);
 
-            if self.fee_tiers.get(&fee_tier_key).is_some() {
+            if self.fee_tiers.get(fee_tier_key).is_some() {
                 return Err(InvariantError::FeeTierAlreadyExist);
             } else {
-                self.fee_tiers.add(&fee_tier_key);
+                self.fee_tiers.add(fee_tier_key);
                 self.fee_tier_keys.push(fee_tier_key);
                 Ok(())
             }
@@ -869,12 +869,12 @@ pub mod contract {
 
         #[ink(message)]
         pub fn get_fee_tier(&self, key: FeeTierKey) -> Option<()> {
-            self.fee_tiers.get(&key)
+            self.fee_tiers.get(key)
         }
 
         #[ink(message)]
         pub fn remove_fee_tier(&mut self, key: FeeTierKey) {
-            self.fee_tiers.remove(&key);
+            self.fee_tiers.remove(key);
             self.fee_tier_keys.retain(|&x| x != key);
         }
 
@@ -891,7 +891,7 @@ pub mod contract {
 
             let fee_tier_key = FeeTierKey(fee_tier.fee, fee_tier.tick_spacing);
             self.fee_tiers
-                .get(&fee_tier_key)
+                .get(fee_tier_key)
                 .ok_or(InvariantError::FeeTierNotFound)?;
 
             let pool_key = PoolKey::new(token_0, token_1, fee_tier)?;
