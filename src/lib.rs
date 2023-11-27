@@ -253,13 +253,13 @@ pub mod contract {
                 .get(pool_key)
                 .ok_or(InvariantError::PoolNotFound)?;
 
-            let tick_option = self.ticks.get_tick(pool_key, index);
+            let tick_option = self.ticks.get(pool_key, index);
             if tick_option.is_some() {
                 return Err(InvariantError::TickAlreadyExist);
             }
 
             let tick = Tick::create(index, &pool, current_timestamp);
-            self.ticks.add_tick(pool_key, index, tick);
+            self.ticks.add(pool_key, index, &tick);
 
             self.tickmap
                 .flip(true, index, pool_key.fee_tier.tick_spacing, pool_key);
@@ -294,12 +294,12 @@ pub mod contract {
 
             let mut lower_tick = self
                 .ticks
-                .get_tick(pool_key, lower_tick)
+                .get(pool_key, lower_tick)
                 .unwrap_or_else(|| Self::create_tick(self, pool_key, lower_tick).unwrap());
 
             let mut upper_tick = self
                 .ticks
-                .get_tick(pool_key, upper_tick)
+                .get(pool_key, upper_tick)
                 .unwrap_or_else(|| Self::create_tick(self, pool_key, upper_tick).unwrap());
 
             let (position, x, y) = Position::create(
@@ -319,8 +319,8 @@ pub mod contract {
 
             self.positions.add(caller, &position);
 
-            self.ticks.add_tick(pool_key, lower_tick.index, lower_tick);
-            self.ticks.add_tick(pool_key, upper_tick.index, upper_tick);
+            self.ticks.add(pool_key, lower_tick.index, &lower_tick);
+            self.ticks.add(pool_key, upper_tick.index, &upper_tick);
 
             let mut token_x: contract_ref!(PSP22) = pool_key.token_x.into();
             token_x
@@ -428,7 +428,7 @@ pub mod contract {
 
                 let update_limiting_tick = limiting_tick.map(|(index, bool)| {
                     if bool {
-                        tick = self.ticks.get_tick(pool_key, index).unwrap();
+                        tick = self.ticks.get(pool_key, index).unwrap();
                         (index, Some(&mut tick))
                     } else {
                         (index, None)
@@ -485,7 +485,7 @@ pub mod contract {
                 self.calculate_swap(pool_key, x_to_y, amount, by_amount_in, sqrt_price_limit)?;
 
             for tick in calculate_swap_result.ticks.iter() {
-                self.ticks.update_tick(pool_key, tick.index, tick);
+                self.ticks.update(pool_key, tick.index, tick);
             }
 
             self.pools.update(pool_key, &calculate_swap_result.pool)?;
@@ -669,12 +669,12 @@ pub mod contract {
 
             let lower_tick = self
                 .ticks
-                .get_tick(pool_key, position.lower_tick_index)
+                .get(pool_key, position.lower_tick_index)
                 .ok_or(InvariantError::TickNotFound)?;
 
             let upper_tick = self
                 .ticks
-                .get_tick(pool_key, position.upper_tick_index)
+                .get(pool_key, position.upper_tick_index)
                 .ok_or(InvariantError::TickNotFound)?;
 
             let pool = self
@@ -706,12 +706,12 @@ pub mod contract {
 
             let mut lower_tick = self
                 .ticks
-                .get_tick(position.pool_key, position.lower_tick_index)
+                .get(position.pool_key, position.lower_tick_index)
                 .ok_or(InvariantError::TickNotFound)?;
 
             let mut upper_tick = self
                 .ticks
-                .get_tick(position.pool_key, position.upper_tick_index)
+                .get(position.pool_key, position.upper_tick_index)
                 .ok_or(InvariantError::TickNotFound)?;
 
             let mut pool = self
@@ -729,9 +729,9 @@ pub mod contract {
             self.positions.update(caller, index, &position);
             self.pools.update(position.pool_key, &pool)?;
             self.ticks
-                .update_tick(position.pool_key, upper_tick.index, &upper_tick)?;
+                .update(position.pool_key, upper_tick.index, &upper_tick)?;
             self.ticks
-                .update_tick(position.pool_key, lower_tick.index, &lower_tick)?;
+                .update(position.pool_key, lower_tick.index, &lower_tick)?;
 
             if x.get() > 0 {
                 let mut token_x: contract_ref!(PSP22) = position.pool_key.token_x.into();
@@ -765,12 +765,12 @@ pub mod contract {
 
             let mut lower_tick = self
                 .ticks
-                .get_tick(position.pool_key, position.lower_tick_index)
+                .get(position.pool_key, position.lower_tick_index)
                 .ok_or(InvariantError::TickNotFound)?;
 
             let mut upper_tick = self
                 .ticks
-                .get_tick(position.pool_key, position.upper_tick_index)
+                .get(position.pool_key, position.upper_tick_index)
                 .ok_or(InvariantError::TickNotFound)?;
 
             let pool = &mut self
@@ -797,11 +797,11 @@ pub mod contract {
                     position.pool_key,
                 );
                 self.ticks
-                    .remove_tick(position.pool_key, position.lower_tick_index)
+                    .remove(position.pool_key, position.lower_tick_index)
                     .unwrap();
             } else {
                 self.ticks
-                    .update_tick(position.pool_key, position.lower_tick_index, &lower_tick)
+                    .update(position.pool_key, position.lower_tick_index, &lower_tick)
                     .unwrap();
             }
 
@@ -813,11 +813,11 @@ pub mod contract {
                     position.pool_key,
                 );
                 self.ticks
-                    .remove_tick(position.pool_key, position.upper_tick_index)
+                    .remove(position.pool_key, position.upper_tick_index)
                     .unwrap();
             } else {
                 self.ticks
-                    .update_tick(position.pool_key, position.upper_tick_index, &upper_tick)
+                    .update(position.pool_key, position.upper_tick_index, &upper_tick)
                     .unwrap();
             }
 
@@ -923,12 +923,12 @@ pub mod contract {
 
         // Ticks
         fn add_tick(&mut self, key: PoolKey, index: i32, tick: Tick) {
-            self.ticks.add_tick(key, index, tick);
+            self.ticks.add(key, index, &tick);
         }
 
         #[ink(message)]
         pub fn get_tick(&self, key: PoolKey, index: i32) -> Option<Tick> {
-            self.ticks.get_tick(key, index)
+            self.ticks.get(key, index)
         }
 
         #[ink(message)]
@@ -936,7 +936,7 @@ pub mod contract {
             self.tickmap.get(index, key.fee_tier.tick_spacing, key)
         }
         fn remove_tick(&mut self, key: PoolKey, index: i32) {
-            self.ticks.remove_tick(key, index);
+            self.ticks.remove(key, index);
         }
 
         fn emit_swap_event(
