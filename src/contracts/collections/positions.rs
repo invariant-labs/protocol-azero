@@ -222,4 +222,26 @@ mod tests {
         assert_eq!(result, vec![position, new_position]);
         assert_eq!(result.len(), 2);
     }
+
+    #[ink::test]
+    fn get_length() {
+        let positions = &mut Positions::default();
+        let account_id = AccountId::from([0x01; 32]);
+        let position = Position::default();
+        let new_position = Position {
+            lower_tick_index: -1,
+            upper_tick_index: 1,
+            ..Position::default()
+        };
+
+        let result = positions.get_length(account_id);
+        assert_eq!(result, 0);
+
+        positions.add(account_id, position);
+
+        positions.add(account_id, new_position);
+
+        let result = positions.get_length(account_id);
+        assert_eq!(result, 2);
+    }
 }
