@@ -73,10 +73,10 @@ impl Positions {
         &mut self,
         account_id: AccountId,
         index: u32,
-        receiver: AccountId,
+        receiver_account_id: AccountId,
     ) -> Result<(), InvariantError> {
         let position = self.remove(account_id, index)?;
-        self.add(receiver, position);
+        self.add(receiver_account_id, position);
 
         Ok(())
     }
@@ -175,6 +175,28 @@ mod tests {
         assert_eq!(result, None);
 
         let result = positions.remove(account_id, 0);
+
+        assert_eq!(result, Err(InvariantError::PositionNotFound));
+    }
+
+    #[ink::test]
+    fn test_transfer() {
+        let positions = &mut Positions::default();
+        let account_id = AccountId::from([0x01; 32]);
+        let receiver_account_id = AccountId::from([0x02; 32]);
+        let position = Position::default();
+
+        positions.add(account_id, position);
+
+        let result = positions.transfer(account_id, 0, receiver_account_id);
+
+        assert_eq!(result, Ok(()));
+        let result = positions.get(account_id, 0);
+        assert_eq!(result, None);
+        let result = positions.get(receiver_account_id, 0);
+        assert_eq!(result, Some(position));
+
+        let result = positions.transfer(account_id, 0, receiver_account_id);
 
         assert_eq!(result, Err(InvariantError::PositionNotFound));
     }
