@@ -115,10 +115,10 @@ mod tests {
 
         positions.add(account_id, position);
 
-        let position = positions.get(account_id, 0);
-        assert_eq!(position, Some(Position::default()));
-        let position = positions.get(account_id, 1);
-        assert_eq!(position, None);
+        let result = positions.get(account_id, 0);
+        assert_eq!(result, Some(Position::default()));
+        let result = positions.get(account_id, 1);
+        assert_eq!(result, None);
     }
 
     #[ink::test]
@@ -138,8 +138,8 @@ mod tests {
         let result = positions.update(account_id, 0, &new_position);
 
         assert_eq!(result, Ok(()));
-        let position = positions.get(account_id, 0);
-        assert_eq!(position, Some(new_position));
+        let result = positions.get(account_id, 0);
+        assert_eq!(result, Some(new_position));
 
         let result = positions.update(account_id, 1, &new_position);
 
