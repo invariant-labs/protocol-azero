@@ -1,5 +1,9 @@
 use crate::{contracts::Position, InvariantError};
-use ink::{primitives::AccountId, storage::Mapping};
+use ink::{
+    prelude::{vec, vec::Vec},
+    primitives::AccountId,
+    storage::Mapping,
+};
 
 #[ink::storage_item]
 #[derive(Debug, Default)]
@@ -7,6 +11,8 @@ pub struct Positions {
     positions_length: Mapping<AccountId, u32>,
     positions: Mapping<(AccountId, u32), Position>,
 }
+
+impl scale::EncodeLike<Vec<Position>> for Position {}
 
 impl Positions {
     pub fn add(&mut self, account_id: AccountId, position: Position) {
