@@ -12,8 +12,6 @@ pub struct Positions {
     positions: Mapping<(AccountId, u32), Position>,
 }
 
-impl scale::EncodeLike<Vec<Position>> for Position {}
-
 impl Positions {
     pub fn add(&mut self, account_id: AccountId, position: Position) {
         let positions_length = self.get_length(account_id);
@@ -102,5 +100,24 @@ impl Positions {
     fn get_length(&self, account_id: AccountId) -> u32 {
         let positions_length = self.positions_length.get(account_id).unwrap_or(0);
         positions_length
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[ink::test]
+    fn test_add() {
+        let positions = &mut Positions::default();
+        let account_id = AccountId::from([0x01; 32]);
+        let position = Position::default();
+
+        positions.add(account_id, position);
+
+        let position = positions.get(account_id, 0);
+        assert_eq!(position, Some(Position::default()));
+        let position = positions.get(account_id, 1);
+        assert_eq!(position, None);
     }
 }
