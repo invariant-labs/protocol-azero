@@ -8,12 +8,6 @@ pub mod math;
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum InvariantError {
-    InsufficientSenderBalance,
-    InsufficientLPLocked,
-    PairNotFound,
-    MintFailed,
-    BurnFailed,
-    SwapFailed,
     UnauthorizedAdmin,
     PoolAlreadyExist,
     PoolNotFound,
@@ -28,7 +22,7 @@ pub enum InvariantError {
     NoGainSwap,
     InvalidTickSpacing,
     FeeTierAlreadyAdded,
-    UnauthorizedFeeReceriver,
+    UnauthorizedFeeReceiver,
     ZeroLiquidity,
     TransferError,
     TokensAreTheSame,
@@ -37,7 +31,6 @@ pub enum InvariantError {
 #[ink::contract]
 pub mod contract {
     use crate::InvariantError;
-    // use math::fee_growth::FeeGrowth;
     use traceable_result::unwrap;
 
     use crate::contracts::state::State;
@@ -104,13 +97,6 @@ pub mod contract {
         x_to_y: bool,
     }
 
-    #[ink(event)]
-    #[derive(Debug)]
-    pub struct OrderPair {
-        pub x: (AccountId, Balance),
-        pub y: (AccountId, Balance),
-    }
-
     #[derive(scale::Decode, Default, scale::Encode, Clone, Debug)]
     #[cfg_attr(
         feature = "std",
@@ -135,13 +121,6 @@ pub mod contract {
         pool_key: PoolKey,
         x_to_y: bool,
     }
-
-    #[derive(scale::Decode, Default, scale::Encode, Clone, Debug)]
-    #[cfg_attr(
-        feature = "std",
-        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout,)
-    )]
-    pub struct TokenPairs(pub Vec<(AccountId, AccountId)>);
 
     #[ink(storage)]
     #[derive(Default)]
@@ -180,7 +159,7 @@ pub mod contract {
             let mut pool = self.pools.get(pool_key)?;
 
             if pool.fee_receiver != caller {
-                return Err(InvariantError::UnauthorizedFeeReceriver);
+                return Err(InvariantError::UnauthorizedFeeReceiver);
             }
 
             let (fee_protocol_token_x, fee_protocol_token_y) = pool.withdraw_protocol_fee(pool_key);
@@ -617,13 +596,6 @@ pub mod contract {
             Ok(())
         }
 
-        // positions list features
-        // #[ink(message)]
-        // pub fn add_position(&mut self) {
-        //     let caller = self.env().caller();
-        //     self.positions.add(caller, Position::default());
-        // }
-
         #[ink(message)]
         pub fn get_position(&mut self, index: u32) -> Option<Position> {
             let caller = self.env().caller();
@@ -890,16 +862,6 @@ pub mod contract {
             self.pools.get(key)
         }
 
-        fn remove_pool(&mut self, key: PoolKey) {
-            self.pools.remove(key);
-            self.pool_keys.retain(|&x| x != key);
-        }
-
-        // Ticks
-        fn add_tick(&mut self, key: PoolKey, index: i32, tick: Tick) {
-            self.ticks.add_tick(key, index, tick);
-        }
-
         #[ink(message)]
         pub fn get_tick(&self, key: PoolKey, index: i32) -> Option<Tick> {
             self.ticks.get_tick(key, index)
@@ -909,10 +871,6 @@ pub mod contract {
         pub fn get_tickmap_bit(&self, key: PoolKey, index: i32) -> bool {
             self.tickmap.get(index, key.fee_tier.tick_spacing, key)
         }
-        fn remove_tick(&mut self, key: PoolKey, index: i32) {
-            self.ticks.remove_tick(key, index);
-        }
-
         fn emit_swap_event(
             &self,
             address: AccountId,
@@ -1001,25 +959,6 @@ pub mod contract {
 
         fn get_timestamp(&self) -> u64 {
             self.env().block_timestamp()
-        }
-
-        fn _order_tokens(
-            &self,
-            token_0: AccountId,
-            token_1: AccountId,
-            balance_0: Balance,
-            balance_1: Balance,
-        ) -> OrderPair {
-            match token_0.lt(&token_1) {
-                true => OrderPair {
-                    x: (token_0, balance_0),
-                    y: (token_1, balance_1),
-                },
-                false => OrderPair {
-                    x: (token_1, balance_1),
-                    y: (token_0, balance_0),
-                },
-            }
         }
     }
 
@@ -1142,28 +1081,6 @@ pub mod contract {
             contract.add_fee_tier(fee_tier_value).unwrap_err();
             contract.remove_fee_tier(fee_tier_key);
             assert_eq!(contract.fee_tier_keys.len(), 0);
-        }
-
-        #[ink::test]
-        fn test_ticks() {
-            let mut contract = Contract::new(Percentage::new(0));
-            let fee_tier = FeeTier {
-                fee: Percentage::new(1),
-                tick_spacing: 50u16,
-            };
-            let pool_key = PoolKey {
-                token_x: AccountId::from([0x0; 32]),
-                token_y: AccountId::from([0x0; 32]),
-                fee_tier,
-            };
-            let tick = Tick::default();
-            let index = 10i32;
-            contract.add_tick(pool_key, index, tick);
-            let recieved_tick = contract.get_tick(pool_key, index);
-            assert_eq!(Some(tick), recieved_tick);
-            contract.remove_tick(pool_key, index);
-            let recieved_tick = contract.get_tick(pool_key, index);
-            assert_eq!(None, recieved_tick);
         }
     }
 
