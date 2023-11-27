@@ -9,11 +9,11 @@ pub struct Positions {
 }
 
 impl Positions {
-    pub fn add(&mut self, account_id: AccountId, position: Position) {
+    pub fn add(&mut self, account_id: AccountId, position: &Position) {
         let positions_length = self.get_length(account_id);
 
         self.positions
-            .insert((account_id, positions_length), &position);
+            .insert((account_id, positions_length), position);
 
         self.positions_length
             .insert(account_id, &(positions_length + 1));
@@ -72,7 +72,7 @@ impl Positions {
         receiver_account_id: AccountId,
     ) -> Result<(), InvariantError> {
         let position = self.remove(account_id, index)?;
-        self.add(receiver_account_id, position);
+        self.add(receiver_account_id, &position);
 
         Ok(())
     }
@@ -109,8 +109,8 @@ mod tests {
             ..Position::default()
         };
 
-        positions.add(account_id, position);
-        positions.add(account_id, new_position);
+        positions.add(account_id, &position);
+        positions.add(account_id, &new_position);
         assert_eq!(positions.get(account_id, 0), Some(position));
         assert_eq!(positions.get(account_id, 1), Some(new_position));
         assert_eq!(positions.get(account_id, 2), None);
@@ -128,7 +128,7 @@ mod tests {
             ..Position::default()
         };
 
-        positions.add(account_id, position);
+        positions.add(account_id, &position);
 
         positions.update(account_id, 0, &new_position).unwrap();
         assert_eq!(positions.get(account_id, 0), Some(new_position));
@@ -149,8 +149,8 @@ mod tests {
             ..Position::default()
         };
 
-        positions.add(account_id, position);
-        positions.add(account_id, new_position);
+        positions.add(account_id, &position);
+        positions.add(account_id, &new_position);
 
         let result = positions.remove(account_id, 0);
         assert_eq!(result, Ok(position));
@@ -173,7 +173,7 @@ mod tests {
         let receiver_account_id = AccountId::from([0x02; 32]);
         let position = Position::default();
 
-        positions.add(account_id, position);
+        positions.add(account_id, &position);
 
         positions
             .transfer(account_id, 0, receiver_account_id)
@@ -203,8 +203,8 @@ mod tests {
         assert_eq!(result.len(), 0);
         assert_eq!(positions.get_length(account_id), 0);
 
-        positions.add(account_id, position);
-        positions.add(account_id, new_position);
+        positions.add(account_id, &position);
+        positions.add(account_id, &new_position);
 
         let result = positions.get_all(account_id);
         assert_eq!(result, vec![position, new_position]);
@@ -226,8 +226,8 @@ mod tests {
         let result = positions.get_length(account_id);
         assert_eq!(result, 0);
 
-        positions.add(account_id, position);
-        positions.add(account_id, new_position);
+        positions.add(account_id, &position);
+        positions.add(account_id, &new_position);
 
         let result = positions.get_length(account_id);
         assert_eq!(result, 2);

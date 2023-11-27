@@ -317,7 +317,7 @@ pub mod contract {
 
             self.pools.update(pool_key, &pool)?;
 
-            self.positions.add(caller, position);
+            self.positions.add(caller, &position);
 
             self.ticks.add_tick(pool_key, lower_tick.index, lower_tick);
             self.ticks.add_tick(pool_key, upper_tick.index, upper_tick);
