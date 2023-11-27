@@ -1,3 +1,4 @@
+use crate::InvariantError;
 use ink::storage::Mapping;
 
 use crate::math::types::percentage::Percentage;
@@ -17,13 +18,25 @@ pub struct FeeTiers {
 }
 
 impl FeeTiers {
-    pub fn get_fee_tier(&self, key: FeeTierKey) -> Option<()> {
-        self.fee_tiers.get(&key)
+    pub fn get_fee_tier(&self, key: FeeTierKey) -> Result<(), InvariantError> {
+        let fee_tier = self
+            .fee_tiers
+            .get(&key)
+            .ok_or(InvariantError::FeeTierNotFound)?;
+        Ok(fee_tier)
     }
-    pub fn add_fee_tier(&mut self, key: FeeTierKey) {
+    pub fn add_fee_tier(&mut self, key: FeeTierKey) -> Result<(), InvariantError> {
+        if self.fee_tiers.get(&key).is_some() {
+            return Err(InvariantError::FeeTierAlreadyAdded);
+        }
         self.fee_tiers.insert(&key, &());
+        Ok(())
     }
-    pub fn remove_fee_tier(&mut self, key: FeeTierKey) {
+    pub fn remove_fee_tier(&mut self, key: FeeTierKey) -> Result<(), InvariantError> {
+        self.fee_tiers
+            .get(&key)
+            .ok_or(InvariantError::FeeTierNotFound)?;
         self.fee_tiers.remove(&key);
+        Ok(())
     }
 }

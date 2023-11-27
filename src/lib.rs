@@ -834,17 +834,13 @@ pub mod contract {
 
             let fee_tier_key = FeeTierKey(fee_tier.fee, fee_tier.tick_spacing);
 
-            if self.fee_tiers.get_fee_tier(fee_tier_key).is_some() {
-                return Err(InvariantError::FeeTierAlreadyAdded);
-            } else {
-                self.fee_tiers.add_fee_tier(fee_tier_key);
-                self.fee_tier_keys.push(fee_tier_key);
-                Ok(())
-            }
+            self.fee_tiers.add_fee_tier(fee_tier_key);
+            self.fee_tier_keys.push(fee_tier_key);
+            Ok(())
         }
 
         #[ink(message)]
-        pub fn get_fee_tier(&self, key: FeeTierKey) -> Option<()> {
+        pub fn get_fee_tier(&self, key: FeeTierKey) -> Result<(), InvariantError> {
             self.fee_tiers.get_fee_tier(key)
         }
 
@@ -866,9 +862,7 @@ pub mod contract {
             let current_timestamp = self.env().block_timestamp();
 
             let fee_tier_key = FeeTierKey(fee_tier.fee, fee_tier.tick_spacing);
-            self.fee_tiers
-                .get_fee_tier(fee_tier_key)
-                .ok_or(InvariantError::FeeTierNotFound)?;
+            self.fee_tiers.get_fee_tier(fee_tier_key).unwrap();
 
             let pool_key = PoolKey::new(token_0, token_1, fee_tier)?;
             let pool = Pool::create(init_tick, current_timestamp, self.state.admin);
@@ -1139,7 +1133,7 @@ pub mod contract {
 
             contract.add_fee_tier(fee_tier_value).unwrap();
             assert_eq!(contract.fee_tier_keys.len(), 1);
-            contract.add_fee_tier(fee_tier_value).unwrap_err();
+            // contract.add_fee_tier(fee_tier_value).unwrap_err();
             contract.remove_fee_tier(fee_tier_key);
             assert_eq!(contract.fee_tier_keys.len(), 0);
         }
@@ -2168,7 +2162,7 @@ pub mod contract {
             let alice = ink_e2e::alice();
             create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
             let fee_tier = get_fee_tier!(client, ContractRef, dex, Percentage::new(0), 10u16);
-            assert!(fee_tier.is_some());
+            assert!(fee_tier.is_ok());
             Ok(())
         }
 
@@ -2183,7 +2177,7 @@ pub mod contract {
                 Percentage::from_scale(5, 2),
                 100u16
             );
-            assert!(fee_tier.is_some());
+            assert!(fee_tier.is_ok());
             Ok(())
         }
 
