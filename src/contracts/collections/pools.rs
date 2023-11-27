@@ -19,15 +19,6 @@ impl Pools {
         Ok(())
     }
 
-    pub fn get(&self, pool_key: PoolKey) -> Result<Pool, InvariantError> {
-        let pool = self
-            .pools
-            .get(pool_key)
-            .ok_or(InvariantError::PoolNotFound)?;
-
-        Ok(pool)
-    }
-
     pub fn update(&mut self, pool_key: PoolKey, pool: &Pool) -> Result<(), InvariantError> {
         self.pools
             .get(pool_key)
@@ -44,5 +35,10 @@ impl Pools {
 
         self.pools.remove(&pool_key);
         Ok(())
+    }
+
+    pub fn get(&self, pool_key: PoolKey) -> Option<Pool> {
+        let pool = self.pools.get(pool_key);
+        pool
     }
 }

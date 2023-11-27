@@ -177,7 +177,10 @@ pub mod contract {
         pub fn withdraw_protocol_fee(&mut self, pool_key: PoolKey) -> Result<(), InvariantError> {
             let caller = self.env().caller();
 
-            let mut pool = self.pools.get(pool_key)?;
+            let mut pool = self
+                .pools
+                .get(pool_key)
+                .ok_or(InvariantError::PoolNotFound)?;
 
             if pool.fee_receiver != caller {
                 return Err(InvariantError::UnauthorizedFeeReceriver);
@@ -225,7 +228,10 @@ pub mod contract {
                 return Err(InvariantError::UnauthorizedAdmin);
             }
 
-            let mut pool = self.pools.get(pool_key)?;
+            let mut pool = self
+                .pools
+                .get(pool_key)
+                .ok_or(InvariantError::PoolNotFound)?;
             pool.fee_receiver = fee_receiver;
             self.pools.update(pool_key, &pool)?;
 
@@ -242,7 +248,10 @@ pub mod contract {
             check_tick(index, pool_key.fee_tier.tick_spacing)
                 .map_err(|_| InvariantError::InvalidTickIndexOrTickSpacing)?;
 
-            let pool = self.pools.get(pool_key)?;
+            let pool = self
+                .pools
+                .get(pool_key)
+                .ok_or(InvariantError::PoolNotFound)?;
 
             let tick_option = self.ticks.get_tick(pool_key, index);
             if tick_option.is_some() {
@@ -278,7 +287,10 @@ pub mod contract {
                 return Err(InvariantError::ZeroLiquidity);
             }
 
-            let mut pool = self.pools.get(pool_key)?;
+            let mut pool = self
+                .pools
+                .get(pool_key)
+                .ok_or(InvariantError::PoolNotFound)?;
 
             let mut lower_tick = self
                 .ticks
@@ -346,7 +358,10 @@ pub mod contract {
 
             let mut ticks: Vec<Tick> = vec![];
 
-            let mut pool = self.pools.get(pool_key)?;
+            let mut pool = self
+                .pools
+                .get(pool_key)
+                .ok_or(InvariantError::PoolNotFound)?;
 
             if x_to_y {
                 if pool.sqrt_price <= sqrt_price_limit
@@ -662,7 +677,10 @@ pub mod contract {
                 .get_tick(pool_key, position.upper_tick_index)
                 .ok_or(InvariantError::TickNotFound)?;
 
-            let pool = self.pools.get(pool_key)?;
+            let pool = self
+                .pools
+                .get(pool_key)
+                .ok_or(InvariantError::PoolNotFound)?;
 
             position.update_seconds_per_liquidity(
                 pool,
@@ -696,7 +714,10 @@ pub mod contract {
                 .get_tick(position.pool_key, position.upper_tick_index)
                 .ok_or(InvariantError::TickNotFound)?;
 
-            let mut pool = self.pools.get(position.pool_key)?;
+            let mut pool = self
+                .pools
+                .get(position.pool_key)
+                .ok_or(InvariantError::PoolNotFound)?;
 
             let (x, y) = position.claim_fee(
                 &mut pool,
@@ -752,7 +773,10 @@ pub mod contract {
                 .get_tick(position.pool_key, position.upper_tick_index)
                 .ok_or(InvariantError::TickNotFound)?;
 
-            let pool = &mut self.pools.get(position.pool_key)?;
+            let pool = &mut self
+                .pools
+                .get(position.pool_key)
+                .ok_or(InvariantError::PoolNotFound)?;
 
             let (amount_x, amount_y, deinitialize_lower_tick, deinitialize_upper_tick) = position
                 .remove(
@@ -887,7 +911,9 @@ pub mod contract {
             fee_tier: FeeTier,
         ) -> Result<Pool, InvariantError> {
             let key: PoolKey = PoolKey::new(token_0, token_1, fee_tier)?;
-            self.pools.get(key)
+            let pool = self.pools.get(key).ok_or(InvariantError::PoolNotFound)?;
+
+            Ok(pool)
         }
 
         fn remove_pool(&mut self, key: PoolKey) {
