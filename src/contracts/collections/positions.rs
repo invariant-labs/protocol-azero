@@ -1,9 +1,5 @@
 use crate::{contracts::Position, InvariantError};
-use ink::{
-    prelude::{vec, vec::Vec},
-    primitives::AccountId,
-    storage::Mapping,
-};
+use ink::{prelude::vec::Vec, primitives::AccountId, storage::Mapping};
 
 #[ink::storage_item]
 #[derive(Debug, Default)]
