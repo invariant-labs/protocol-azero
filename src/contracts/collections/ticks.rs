@@ -10,8 +10,12 @@ pub struct Ticks {
 }
 
 impl Ticks {
-    pub fn get_tick(&self, key: PoolKey, index: i32) -> Option<Tick> {
-        self.ticks.get(&(key, index))
+    pub fn get_tick(&self, key: PoolKey, index: i32) -> Result<Tick, InvariantError> {
+        let tick = self
+            .ticks
+            .get(&(key, index))
+            .ok_or(InvariantError::TickNotFound)?;
+        Ok(tick)
     }
     // pub fn update_tick(&mut self, key: PoolKey, index: i32, tick: Tick) {}
     pub fn remove_tick(&mut self, key: PoolKey, index: i32) -> Result<(), InvariantError> {
@@ -23,8 +27,13 @@ impl Ticks {
         Ok(())
     }
 
-    pub fn add_tick(&mut self, key: PoolKey, index: i32, tick: Tick) {
+    pub fn add_tick(&mut self, key: PoolKey, index: i32, tick: Tick) -> Result<(), InvariantError> {
+        if self.ticks.get(&(key, index)).is_some() {
+            return Err(InvariantError::TickAlreadyExist);
+        }
+
         self.ticks.insert(&(key, index), &tick);
+        Ok(())
     }
 
     pub fn update_tick(
@@ -33,9 +42,9 @@ impl Ticks {
         index: i32,
         tick: &Tick,
     ) -> Result<(), InvariantError> {
-        self.ticks
-            .get(&(key, index))
-            .ok_or(InvariantError::TickNotFound)?;
+        // self.ticks
+        //     .get(&(key, index))
+        //     .ok_or(InvariantError::TickNotFound)?;
 
         self.ticks.insert((&key, index), tick);
 

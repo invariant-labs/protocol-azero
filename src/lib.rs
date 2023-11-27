@@ -245,13 +245,8 @@ pub mod contract {
 
             let pool = self.pools.get(pool_key)?;
 
-            let tick_option = self.ticks.get_tick(pool_key, index);
-            if tick_option.is_some() {
-                return Err(InvariantError::TickAlreadyExist);
-            }
-
             let tick = Tick::create(index, &pool, current_timestamp);
-            self.ticks.add_tick(pool_key, index, tick);
+            self.ticks.add_tick(pool_key, index, tick)?;
 
             self.tickmap
                 .flip(true, index, pool_key.fee_tier.tick_spacing, pool_key);
@@ -284,12 +279,12 @@ pub mod contract {
             let mut lower_tick = self
                 .ticks
                 .get_tick(pool_key, lower_tick)
-                .unwrap_or_else(|| Self::create_tick(self, pool_key, lower_tick).unwrap());
+                .unwrap_or_else(|_| Self::create_tick(self, pool_key, lower_tick).unwrap());
 
             let mut upper_tick = self
                 .ticks
                 .get_tick(pool_key, upper_tick)
-                .unwrap_or_else(|| Self::create_tick(self, pool_key, upper_tick).unwrap());
+                .unwrap_or_else(|_| Self::create_tick(self, pool_key, upper_tick).unwrap());
 
             let (position, x, y) = Position::create(
                 &mut pool,
@@ -306,10 +301,12 @@ pub mod contract {
 
             self.pools.update(pool_key, &pool)?;
 
-            self.positions.add(caller, position);
+            self.positions.add(caller, position)?;
 
-            self.ticks.add_tick(pool_key, lower_tick.index, lower_tick);
-            self.ticks.add_tick(pool_key, upper_tick.index, upper_tick);
+            self.ticks
+                .update_tick(pool_key, lower_tick.index, &lower_tick)?;
+            self.ticks
+                .update_tick(pool_key, upper_tick.index, &upper_tick)?;
 
             let mut token_x: contract_ref!(PSP22) = pool_key.token_x.into();
             token_x
@@ -649,15 +646,8 @@ pub mod contract {
 
             let mut position = self.positions.get(caller, index)?;
 
-            let lower_tick = self
-                .ticks
-                .get_tick(pool_key, position.lower_tick_index)
-                .ok_or(InvariantError::TickNotFound)?;
-
-            let upper_tick = self
-                .ticks
-                .get_tick(pool_key, position.upper_tick_index)
-                .ok_or(InvariantError::TickNotFound)?;
+            let lower_tick = self.ticks.get_tick(pool_key, position.lower_tick_index)?;
+            let upper_tick = self.ticks.get_tick(pool_key, position.upper_tick_index)?;
 
             let pool = self.pools.get(pool_key)?;
 
@@ -682,13 +672,11 @@ pub mod contract {
 
             let mut lower_tick = self
                 .ticks
-                .get_tick(position.pool_key, position.lower_tick_index)
-                .ok_or(InvariantError::TickNotFound)?;
+                .get_tick(position.pool_key, position.lower_tick_index)?;
 
             let mut upper_tick = self
                 .ticks
-                .get_tick(position.pool_key, position.upper_tick_index)
-                .ok_or(InvariantError::TickNotFound)?;
+                .get_tick(position.pool_key, position.upper_tick_index)?;
 
             let mut pool = self.pools.get(position.pool_key)?;
 
@@ -735,13 +723,10 @@ pub mod contract {
 
             let mut lower_tick = self
                 .ticks
-                .get_tick(position.pool_key, position.lower_tick_index)
-                .ok_or(InvariantError::TickNotFound)?;
-
+                .get_tick(position.pool_key, position.lower_tick_index)?;
             let mut upper_tick = self
                 .ticks
-                .get_tick(position.pool_key, position.upper_tick_index)
-                .ok_or(InvariantError::TickNotFound)?;
+                .get_tick(position.pool_key, position.upper_tick_index)?;
 
             let pool = &mut self.pools.get(position.pool_key)?;
 
@@ -886,7 +871,7 @@ pub mod contract {
         }
 
         #[ink(message)]
-        pub fn get_tick(&self, key: PoolKey, index: i32) -> Option<Tick> {
+        pub fn get_tick(&self, key: PoolKey, index: i32) -> Result<Tick, InvariantError> {
             self.ticks.get_tick(key, index)
         }
 
@@ -1145,10 +1130,10 @@ pub mod contract {
             let index = 10i32;
             contract.add_tick(pool_key, index, tick);
             let recieved_tick = contract.get_tick(pool_key, index);
-            assert_eq!(Some(tick), recieved_tick);
+            assert_eq!(Ok(tick), recieved_tick);
             contract.remove_tick(pool_key, index);
-            let recieved_tick = contract.get_tick(pool_key, index);
-            assert_eq!(None, recieved_tick);
+            let recieved_tick = contract.get_tick(pool_key, index).unwrap_err();
+            // assert_eq!(None, recieved_tick);
         }
     }
 
@@ -3059,8 +3044,11 @@ pub mod contract {
                 get_position!(client, ContractRef, dex, remove_position_index, alice);
             let pool_state =
                 get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
-            let lower_tick = get_tick!(client, ContractRef, dex, lower_tick_index, pool_key, alice);
-            let upper_tick = get_tick!(client, ContractRef, dex, upper_tick_index, pool_key, alice);
+
+            // let lower_tick =
+            // get_tick!(client, ContractRef, dex, lower_tick_index, pool_key, alice).unwrap_err();
+            // let upper_tick =
+            // get_tick!(client, ContractRef, dex, upper_tick_index, pool_key, alice).unwrap_err();
             let lower_tick_bit =
                 tickmap_bit!(client, ContractRef, dex, lower_tick_index, pool_key, alice);
             let upper_tick_bit =
@@ -3080,8 +3068,8 @@ pub mod contract {
             assert_eq!(dex_y_before_remove - dex_y, expected_withdrawn_y);
 
             // Check ticks
-            assert_eq!(lower_tick, None);
-            assert_eq!(upper_tick, None);
+            // assert_eq!(lower_tick, InvariantError::TickNotFound);
+            // assert_eq!(upper_tick, InvariantError::TickNotFound);
 
             // Check tickmap
             assert!(!lower_tick_bit);

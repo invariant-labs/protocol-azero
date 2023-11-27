@@ -29,6 +29,9 @@ impl FeeTiers {
         if self.fee_tiers.get(&key).is_some() {
             return Err(InvariantError::FeeTierAlreadyAdded);
         }
+        // self.fee_tiers
+        //     .get(&key)
+        //     .ok_or(InvariantError::FeeTierAlreadyAdded)?;
         self.fee_tiers.insert(&key, &());
         Ok(())
     }
