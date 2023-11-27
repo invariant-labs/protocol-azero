@@ -74,4 +74,34 @@ mod tests {
         let result = pools.add(pool_key, &pool);
         assert_eq!(result, Err(InvariantError::PoolAlreadyExist));
     }
+
+    #[ink::test]
+    fn test_update() {
+        let pools = &mut Pools::default();
+        let token_x = AccountId::from([0x01; 32]);
+        let token_y = AccountId::from([0x02; 32]);
+        let fee_tier = FeeTier {
+            fee: Percentage::new(0),
+            tick_spacing: 1,
+        };
+        let new_fee_tier = FeeTier {
+            fee: Percentage::new(0),
+            tick_spacing: 2,
+        };
+        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+        let new_pool_key = PoolKey::new(token_x, token_y, new_fee_tier).unwrap();
+        let pool = Pool::default();
+        let new_pool = Pool {
+            current_tick_index: 1,
+            ..Pool::default()
+        };
+
+        pools.add(pool_key, &pool).unwrap();
+
+        pools.update(pool_key, &new_pool).unwrap();
+        assert_eq!(pools.get(pool_key), Some(new_pool.clone()));
+
+        let result = pools.update(new_pool_key, &new_pool);
+        assert_eq!(result, Err(InvariantError::PoolNotFound));
+    }
 }
