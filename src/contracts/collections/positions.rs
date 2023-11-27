@@ -116,7 +116,7 @@ mod tests {
         positions.add(account_id, position);
 
         let result = positions.get(account_id, 0);
-        assert_eq!(result, Some(Position::default()));
+        assert_eq!(result, Some(position));
         let result = positions.get(account_id, 1);
         assert_eq!(result, None);
     }
@@ -126,14 +126,13 @@ mod tests {
         let positions = &mut Positions::default();
         let account_id = AccountId::from([0x01; 32]);
         let position = Position::default();
-
-        positions.add(account_id, position);
-
         let new_position = Position {
             lower_tick_index: -1,
             upper_tick_index: 1,
             ..Position::default()
         };
+
+        positions.add(account_id, position);
 
         let result = positions.update(account_id, 0, &new_position);
 
@@ -151,14 +150,13 @@ mod tests {
         let positions = &mut Positions::default();
         let account_id = AccountId::from([0x01; 32]);
         let position = Position::default();
-
-        positions.add(account_id, position);
-
         let new_position = Position {
             lower_tick_index: -1,
             upper_tick_index: 1,
             ..Position::default()
         };
+
+        positions.add(account_id, position);
 
         positions.add(account_id, new_position);
 
@@ -199,5 +197,29 @@ mod tests {
         let result = positions.transfer(account_id, 0, receiver_account_id);
 
         assert_eq!(result, Err(InvariantError::PositionNotFound));
+    }
+
+    #[ink::test]
+    fn get_all() {
+        let positions = &mut Positions::default();
+        let account_id = AccountId::from([0x01; 32]);
+        let position = Position::default();
+        let new_position = Position {
+            lower_tick_index: -1,
+            upper_tick_index: 1,
+            ..Position::default()
+        };
+
+        let result = positions.get_all(account_id);
+        assert_eq!(result, vec![]);
+        assert_eq!(result.len(), 0);
+
+        positions.add(account_id, position);
+
+        positions.add(account_id, new_position);
+
+        let result = positions.get_all(account_id);
+        assert_eq!(result, vec![position, new_position]);
+        assert_eq!(result.len(), 2);
     }
 }
