@@ -192,7 +192,7 @@ mod tests {
     }
 
     #[ink::test]
-    fn get_all() {
+    fn test_get_all() {
         let positions = &mut Positions::default();
         let account_id = AccountId::from([0x01; 32]);
         let position = Position::default();
@@ -217,7 +217,7 @@ mod tests {
     }
 
     #[ink::test]
-    fn get_length() {
+    fn test_get_length() {
         let positions = &mut Positions::default();
         let account_id = AccountId::from([0x01; 32]);
         let position = Position::default();
