@@ -120,4 +120,29 @@ mod tests {
         let position = positions.get(account_id, 1);
         assert_eq!(position, None);
     }
+
+    #[ink::test]
+    fn test_update() {
+        let positions = &mut Positions::default();
+        let account_id = AccountId::from([0x01; 32]);
+        let position = Position::default();
+
+        positions.add(account_id, position);
+
+        let new_position = Position {
+            lower_tick_index: -1,
+            upper_tick_index: 1,
+            ..Position::default()
+        };
+
+        let result = positions.update(account_id, 0, &new_position);
+
+        assert_eq!(result, Ok(()));
+        let position = positions.get(account_id, 0);
+        assert_eq!(position, Some(new_position));
+
+        let result = positions.update(account_id, 1, &new_position);
+
+        assert_eq!(result, Err(InvariantError::PositionNotFound));
+    }
 }
