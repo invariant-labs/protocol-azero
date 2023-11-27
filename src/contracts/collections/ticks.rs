@@ -74,4 +74,29 @@ mod tests {
         // let result = ticks.add(pool_key, 0, &tick);
         // assert_eq!(result, Err(InvariantError::TickAlreadyExist));
     }
+
+    #[ink::test]
+    fn test_update() {
+        let ticks = &mut Ticks::default();
+        let token_x = AccountId::from([0x01; 32]);
+        let token_y = AccountId::from([0x02; 32]);
+        let fee_tier = FeeTier {
+            fee: Percentage::new(0),
+            tick_spacing: 1,
+        };
+        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+        let tick = Tick::default();
+        let new_tick = Tick {
+            seconds_outside: 1,
+            ..Tick::default()
+        };
+
+        ticks.add(pool_key, 0, &tick).unwrap();
+
+        ticks.update(pool_key, 0, &new_tick).unwrap();
+        assert_eq!(ticks.get(pool_key, 0), Some(new_tick));
+
+        let result = ticks.update(pool_key, 1, &new_tick);
+        assert_eq!(result, Err(InvariantError::TickNotFound));
+    }
 }
