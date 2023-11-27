@@ -112,11 +112,19 @@ mod tests {
         let positions = &mut Positions::default();
         let account_id = AccountId::from([0x01; 32]);
         let position = Position::default();
+        let new_position = Position {
+            lower_tick_index: -1,
+            upper_tick_index: 1,
+            ..Position::default()
+        };
 
         positions.add(account_id, position);
 
+        positions.add(account_id, new_position);
+
         assert_eq!(positions.get(account_id, 0), Some(position));
-        assert_eq!(positions.get(account_id, 1), None);
+        assert_eq!(positions.get(account_id, 1), Some(new_position));
+        assert_eq!(positions.get(account_id, 2), None)
     }
 
     #[ink::test]
