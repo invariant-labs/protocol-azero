@@ -47,11 +47,11 @@ impl Positions {
     ) -> Result<Position, InvariantError> {
         let positions_length = self.get_length(account_id);
 
-        let position = self.positions.get((account_id, index));
-
-        if position.is_none() {
+        if index >= positions_length {
             return Err(InvariantError::PositionNotFound);
         }
+
+        let position = self.positions.get((account_id, index));
 
         if index < positions_length - 1 {
             let last_position = self
@@ -85,7 +85,7 @@ impl Positions {
         let mut positions = vec![];
 
         for index in 0..self.get_length(account_id) {
-            let position = self.positions.get((account_id, index)).unwrap_or_default();
+            let position = self.positions.get((account_id, index)).unwrap();
             positions.push(position);
         }
 
@@ -97,7 +97,7 @@ impl Positions {
         position
     }
 
-    fn get_length(&self, account_id: AccountId) -> u32 {
+    pub fn get_length(&self, account_id: AccountId) -> u32 {
         let positions_length = self.positions_length.get(account_id).unwrap_or(0);
         positions_length
     }
@@ -115,10 +115,8 @@ mod tests {
 
         positions.add(account_id, position);
 
-        let result = positions.get(account_id, 0);
-        assert_eq!(result, Some(position));
-        let result = positions.get(account_id, 1);
-        assert_eq!(result, None);
+        assert_eq!(positions.get(account_id, 0), Some(position));
+        assert_eq!(positions.get(account_id, 1), None);
     }
 
     #[ink::test]
@@ -137,8 +135,7 @@ mod tests {
         let result = positions.update(account_id, 0, &new_position);
 
         assert_eq!(result, Ok(()));
-        let result = positions.get(account_id, 0);
-        assert_eq!(result, Some(new_position));
+        assert_eq!(positions.get(account_id, 0), Some(new_position));
 
         let result = positions.update(account_id, 1, &new_position);
 
@@ -163,14 +160,12 @@ mod tests {
         let result = positions.remove(account_id, 0);
 
         assert_eq!(result, Ok(position));
-        let result = positions.get(account_id, 0);
-        assert_eq!(result, Some(new_position));
+        assert_eq!(positions.get(account_id, 0), Some(new_position));
 
         let result = positions.remove(account_id, 0);
 
         assert_eq!(result, Ok(new_position));
-        let result = positions.get(account_id, 0);
-        assert_eq!(result, None);
+        assert_eq!(positions.get(account_id, 0), None);
 
         let result = positions.remove(account_id, 0);
 
@@ -189,10 +184,8 @@ mod tests {
         let result = positions.transfer(account_id, 0, receiver_account_id);
 
         assert_eq!(result, Ok(()));
-        let result = positions.get(account_id, 0);
-        assert_eq!(result, None);
-        let result = positions.get(receiver_account_id, 0);
-        assert_eq!(result, Some(position));
+        assert_eq!(positions.get(account_id, 0), None);
+        assert_eq!(positions.get(receiver_account_id, 0), Some(position));
 
         let result = positions.transfer(account_id, 0, receiver_account_id);
 
@@ -211,6 +204,7 @@ mod tests {
         };
 
         let result = positions.get_all(account_id);
+
         assert_eq!(result, vec![]);
         assert_eq!(result.len(), 0);
 
@@ -219,6 +213,7 @@ mod tests {
         positions.add(account_id, new_position);
 
         let result = positions.get_all(account_id);
+
         assert_eq!(result, vec![position, new_position]);
         assert_eq!(result.len(), 2);
     }
@@ -235,6 +230,7 @@ mod tests {
         };
 
         let result = positions.get_length(account_id);
+
         assert_eq!(result, 0);
 
         positions.add(account_id, position);
@@ -242,6 +238,7 @@ mod tests {
         positions.add(account_id, new_position);
 
         let result = positions.get_length(account_id);
+
         assert_eq!(result, 2);
     }
 }
