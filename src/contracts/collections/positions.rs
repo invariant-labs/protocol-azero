@@ -145,4 +145,37 @@ mod tests {
 
         assert_eq!(result, Err(InvariantError::PositionNotFound));
     }
+
+    #[ink::test]
+    fn test_remove() {
+        let positions = &mut Positions::default();
+        let account_id = AccountId::from([0x01; 32]);
+        let position = Position::default();
+
+        positions.add(account_id, position);
+
+        let new_position = Position {
+            lower_tick_index: -1,
+            upper_tick_index: 1,
+            ..Position::default()
+        };
+
+        positions.add(account_id, new_position);
+
+        let result = positions.remove(account_id, 0);
+
+        assert_eq!(result, Ok(position));
+        let result = positions.get(account_id, 0);
+        assert_eq!(result, Some(new_position));
+
+        let result = positions.remove(account_id, 0);
+
+        assert_eq!(result, Ok(new_position));
+        let result = positions.get(account_id, 0);
+        assert_eq!(result, None);
+
+        let result = positions.remove(account_id, 0);
+
+        assert_eq!(result, Err(InvariantError::PositionNotFound));
+    }
 }
