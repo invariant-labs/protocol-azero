@@ -1,0 +1,65 @@
+name: Unit and e2e tests
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  checks:
+    name: Run clippy and unit tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Install Rust toolchain
+        uses: Cardinal-Cryptography/github-actions/install-rust-toolchain@v1
+
+      - name: Run cargo fmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+      - name: Run clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          # args: --all-targets -- --no-deps -D warnings (TODO: fix clippy warnings first)
+
+      - name: Run unit tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: cargo test --features e2e-tests
+
+  build:
+    name: Build the contract
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Cache Crates
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo
+          key: ${{ runner.os }}-contract-build-env-${{ hashFiles('rust-toolchain.toml') }}
+
+      - name: Install Rust toolchain
+        uses: Cardinal-Cryptography/github-actions/install-rust-toolchain@v1
+
+      - name: Install cargo contract
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: --locked cargo-contract
+
+      - name: Build contract
+        uses: actions-rs/cargo@v1
+        with:
+          command: contract
+          args: build --release
