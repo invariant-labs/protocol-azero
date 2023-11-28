@@ -32,30 +32,17 @@ impl SecondsPerLiquidity {
         }
         let delta_time_in_seconds = (current_timestamp - last_timestamp) / 1000;
 
-        let multiplication = U256::from(delta_time_in_seconds).checked_mul(Liquidity::one()).ok_or_else(|| err!(TrackableError::MUL))?;
-        
-        let multiplication = multiplication.checked_mul(SecondsPerLiquidity::one()).ok_or_else(|| err!(TrackableError::MUL))?;
-
-        let division = multiplication.checked_div(liquidity.here()).ok_or_else(|| err!(TrackableError::DIV))?;
-
-        let result: u128 = division.try_into()
-                        .map_err(|_| err!(TrackableError::cast::<Self>().as_str()))?;
-
-        Ok(Self::new(result))
-
-
-        // Ok(Self::new(
-        //     U256::from(delta_time)
-        //         .checked_mul(SecondsPerLiquidity::one())
-        //         .ok_or_else(|| err!(TrackableError::MUL))?
-        //         .checked_mul(Liquidity::one())
-        //         .ok_or_else(|| err!(TrackableError::MUL))?
-        //         .checked_div(liquidity.here())
-        //         .ok_or_else(|| err!(TrackableError::DIV))?
-        //         .try_into()
-        //         .map_err(|_| err!(TrackableError::cast::<Self>().as_str()))?,
-        // ))
-        // Ok(Self::new(0))
+        Ok(Self::new(
+            U256::from(delta_time_in_seconds)
+                .checked_mul(SecondsPerLiquidity::one())
+                .ok_or_else(|| err!(TrackableError::MUL))?
+                .checked_mul(Liquidity::one())
+                .ok_or_else(|| err!(TrackableError::MUL))?
+                .checked_div(liquidity.here())
+                .ok_or_else(|| err!(TrackableError::DIV))?
+                .try_into()
+                .map_err(|_| err!(TrackableError::cast::<Self>().as_str()))?,
+        ))
     }
 }
 
