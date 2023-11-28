@@ -14,6 +14,14 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v3
 
+      - name: Cache Crates
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo 
+          key: ${{ runner.os }}-rust-${{ hashFiles('rust-toolchain.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-rust
+
       # - name: Install Rust toolchain
       #   uses: Cardinal-Cryptography/github-actions/install-rust-toolchain@v1
 
@@ -34,13 +42,7 @@ jobs:
           command: clippy
           # args: --all-targets -- --no-deps -D warnings (TODO: fix clippy warnings first)
 
-      - name: Cache Crates
-        uses: actions/cache@v3
-        with:
-          path: ~/.cargo 
-          key: ${{ runner.os }}-rust-${{ hashFiles('rust-toolchain.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-rust
+
 
       - name: Check if cargo-contract exists
         id: check-cargo-contract
