@@ -12,15 +12,19 @@ use ink::primitives::AccountId;
 
 #[ink::trait_definition]
 pub trait Invariant {
+    /// Returns the protocol fee represented as a percentage.
     #[ink(message)]
     fn get_protocol_fee(&self) -> Percentage;
 
+    /// Allows an authorized user to withdraw collected fees.
     #[ink(message)]
     fn withdraw_protocol_fee(&mut self, pool_key: PoolKey) -> Result<(), InvariantError>;
 
+    /// Allows an authorized user to adjust the protocol fee.
     #[ink(message)]
     fn change_protocol_fee(&mut self, protocol_fee: Percentage) -> Result<(), InvariantError>;
 
+    /// Transfers fee receiver authorization to another user.
     #[ink(message)]
     fn change_fee_receiver(
         &mut self,
@@ -28,6 +32,7 @@ pub trait Invariant {
         fee_receiver: AccountId,
     ) -> Result<(), InvariantError>;
 
+    /// This function is used to open a position.
     #[ink(message)]
     fn create_position(
         &mut self,
@@ -39,6 +44,7 @@ pub trait Invariant {
         slippage_limit_upper: SqrtPrice,
     ) -> Result<Position, InvariantError>;
 
+    /// Performs a single swap based on the provided parameters.
     #[ink(message)]
     fn swap(
         &mut self,
@@ -49,6 +55,7 @@ pub trait Invariant {
         sqrt_price_limit: SqrtPrice,
     ) -> Result<CalculateSwapResult, InvariantError>;
 
+    /// Performs multiple swaps based on the provided parameters.
     #[ink(message)]
     fn swap_route(
         &mut self,
@@ -58,6 +65,7 @@ pub trait Invariant {
         swaps: Vec<Hop>,
     ) -> Result<(), InvariantError>;
 
+    /// Calculates a single swap output off-chain.
     #[ink(message)]
     fn quote(
         &self,
@@ -68,6 +76,7 @@ pub trait Invariant {
         sqrt_price_limit: SqrtPrice,
     ) -> Result<(TokenAmount, TokenAmount, SqrtPrice, Vec<Tick>), InvariantError>;
 
+    /// Calculates multiple swaps output off-chain.
     #[ink(message)]
     fn quote_route(
         &mut self,
@@ -75,12 +84,15 @@ pub trait Invariant {
         swaps: Vec<Hop>,
     ) -> Result<TokenAmount, InvariantError>;
 
+    /// Transfers a position between users.
     #[ink(message)]
     fn transfer_position(&mut self, index: u32, receiver: AccountId) -> Result<(), InvariantError>;
 
+    /// Returns a single position.
     #[ink(message)]
     fn get_position(&mut self, index: u32) -> Result<Position, InvariantError>;
 
+    /// Returns a vector with all positions that the user has.
     #[ink(message)]
     fn get_all_positions(&mut self) -> Vec<Position>;
 
@@ -91,22 +103,28 @@ pub trait Invariant {
         pool_key: PoolKey,
     ) -> Result<(), InvariantError>;
 
+    /// Allows an authorized user to claim collected fees.
     #[ink(message)]
     fn claim_fee(&mut self, index: u32) -> Result<(TokenAmount, TokenAmount), InvariantError>;
 
+    /// Removes a position.
     #[ink(message)]
     fn remove_position(&mut self, index: u32)
         -> Result<(TokenAmount, TokenAmount), InvariantError>;
 
+    /// Allows a user to add a custom fee tier.
     #[ink(message)]
     fn add_fee_tier(&mut self, fee_tier: FeeTier) -> Result<(), InvariantError>;
 
+    /// Returns a fee tier.
     #[ink(message)]
     fn get_fee_tier(&self, key: FeeTierKey) -> Option<()>;
 
+    /// Removes an existing fee tier.
     #[ink(message)]
     fn remove_fee_tier(&mut self, key: FeeTierKey);
 
+    /// Allows a user to create a custom pool on a specified token pair and fee tier.
     #[ink(message)]
     fn create_pool(
         &mut self,
@@ -116,6 +134,7 @@ pub trait Invariant {
         init_tick: i32,
     ) -> Result<(), InvariantError>;
 
+    /// Returns a pool that is created on a specified token pair with an associated fee tier.
     #[ink(message)]
     fn get_pool(
         &self,
@@ -124,9 +143,11 @@ pub trait Invariant {
         fee_tier: FeeTier,
     ) -> Result<Pool, InvariantError>;
 
+    /// Returns a tick at a specified index.
     #[ink(message)]
     fn get_tick(&self, key: PoolKey, index: i32) -> Result<Tick, InvariantError>;
 
+    /// Returns a boolean that represents if the tick at a specified index is initialized.
     #[ink(message)]
     fn get_tickmap_bit(&self, key: PoolKey, index: i32) -> bool;
 }
