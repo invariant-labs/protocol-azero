@@ -37,7 +37,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: install
-          args: --force contracts-node
+          args: --force --locked contracts-node
 
           # TODO: cache substrate-contracts-node OR downlaod binary from github release
           # args: --locked substrate-contracts-node
