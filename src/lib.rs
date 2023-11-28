@@ -244,13 +244,8 @@ pub mod contract {
 
             let pool = self.pools.get(pool_key)?;
 
-            let tick_option = self.ticks.get(pool_key, index);
-            if tick_option.is_ok() {
-                return Err(InvariantError::TickAlreadyExist);
-            }
-
             let tick = Tick::create(index, &pool, current_timestamp);
-            self.ticks.add(pool_key, index, &tick);
+            self.ticks.add(pool_key, index, &tick)?;
 
             self.tickmap
                 .flip(true, index, pool_key.fee_tier.tick_spacing, pool_key);
@@ -307,8 +302,8 @@ pub mod contract {
 
             self.positions.add(caller, &position);
 
-            self.ticks.add(pool_key, lower_tick.index, &lower_tick);
-            self.ticks.add(pool_key, upper_tick.index, &upper_tick);
+            self.ticks.update(pool_key, lower_tick.index, &lower_tick)?;
+            self.ticks.update(pool_key, upper_tick.index, &upper_tick)?;
 
             let mut token_x: contract_ref!(PSP22) = pool_key.token_x.into();
             token_x
