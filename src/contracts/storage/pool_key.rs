@@ -37,7 +37,7 @@ impl PoolKey {
         fee_tier: FeeTier,
     ) -> Result<Self, InvariantError> {
         if token_0 == token_1 {
-            return Err(InvariantError::TokensAreTheSame);
+            return Err(InvariantError::TOKENS_ARE_SAME);
         }
 
         if token_0 < token_1 {

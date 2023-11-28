@@ -14,7 +14,7 @@ impl Pools {
     pub fn add(&mut self, pool_key: PoolKey, pool: &Pool) -> Result<(), InvariantError> {
         self.pools
             .get(&pool_key)
-            .map_or(Ok(()), |_| Err(InvariantError::PoolAlreadyExist))?;
+            .map_or(Ok(()), |_| Err(InvariantError::POOL_ALREADY_EXIST))?;
 
         self.pools.insert(pool_key, pool);
         Ok(())
@@ -38,7 +38,7 @@ impl Pools {
         let pool = self
             .pools
             .get(pool_key)
-            .ok_or(InvariantError::PoolNotFound)?;
+            .ok_or(InvariantError::POOL_NOT_FOUND)?;
 
         Ok(pool)
     }
@@ -70,10 +70,10 @@ mod tests {
 
         pools.add(pool_key, &pool).unwrap();
         assert_eq!(pools.get(pool_key), Ok(pool.clone()));
-        assert_eq!(pools.get(new_pool_key), Err(InvariantError::PoolNotFound));
+        assert_eq!(pools.get(new_pool_key), Err(InvariantError::POOL_NOT_FOUND));
 
         let result = pools.add(pool_key, &pool);
-        assert_eq!(result, Err(InvariantError::PoolAlreadyExist));
+        assert_eq!(result, Err(InvariantError::POOL_ALREADY_EXIST));
     }
 
     #[ink::test]
@@ -103,7 +103,7 @@ mod tests {
         assert_eq!(pools.get(pool_key), Ok(new_pool.clone()));
 
         let result = pools.update(new_pool_key, &new_pool);
-        assert_eq!(result, Err(InvariantError::PoolNotFound));
+        assert_eq!(result, Err(InvariantError::POOL_NOT_FOUND));
     }
 
     #[ink::test]
@@ -121,9 +121,9 @@ mod tests {
         pools.add(pool_key, &pool).unwrap();
 
         pools.remove(pool_key).unwrap();
-        assert_eq!(pools.get(pool_key), Err(InvariantError::PoolNotFound));
+        assert_eq!(pools.get(pool_key), Err(InvariantError::POOL_NOT_FOUND));
 
         let result = pools.remove(pool_key);
-        assert_eq!(result, Err(InvariantError::PoolNotFound));
+        assert_eq!(result, Err(InvariantError::POOL_NOT_FOUND));
     }
 }

@@ -283,7 +283,7 @@ impl Pool {
 
     //     // // Fail if price would go over swap limit
     //     // if { self.sqrt_price } == sqrt_price_limit && !remaining_amount.is_zero() {
-    //     //     panic!("PriceLimitReached");
+    //     //     panic!("PRICE_LIMIT_REACHED");
     //     // }
 
     //     // limiting_tick

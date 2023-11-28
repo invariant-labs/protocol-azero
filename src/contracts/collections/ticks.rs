@@ -19,7 +19,7 @@ impl Ticks {
     ) -> Result<(), InvariantError> {
         self.ticks
             .get(&(pool_key, index))
-            .map_or(Ok(()), |_| Err(InvariantError::TickAlreadyExist))?;
+            .map_or(Ok(()), |_| Err(InvariantError::TICK_ALREADY_EXIST))?;
 
         self.ticks.insert(&(pool_key, index), tick);
         Ok(())
@@ -48,7 +48,7 @@ impl Ticks {
         let tick = self
             .ticks
             .get(&(pool_key, index))
-            .ok_or(InvariantError::TickNotFound)?;
+            .ok_or(InvariantError::TICK_NOT_FOUND)?;
 
         Ok(tick)
     }
@@ -75,10 +75,10 @@ mod tests {
 
         ticks.add(pool_key, 0, &tick).unwrap();
         assert_eq!(ticks.get(pool_key, 0), Ok(tick));
-        assert_eq!(ticks.get(pool_key, 1), Err(InvariantError::TickNotFound));
+        assert_eq!(ticks.get(pool_key, 1), Err(InvariantError::TICK_NOT_FOUND));
 
         // let result = ticks.add(pool_key, 0, &tick);
-        // assert_eq!(result, Err(InvariantError::TickAlreadyExist));
+        // assert_eq!(result, Err(InvariantError::TICK_ALREADY_EXIST));
     }
 
     #[ink::test]
@@ -103,7 +103,7 @@ mod tests {
         assert_eq!(ticks.get(pool_key, 0), Ok(new_tick));
 
         let result = ticks.update(pool_key, 1, &new_tick);
-        assert_eq!(result, Err(InvariantError::TickNotFound));
+        assert_eq!(result, Err(InvariantError::TICK_NOT_FOUND));
     }
 
     #[ink::test]
@@ -121,9 +121,9 @@ mod tests {
         ticks.add(pool_key, 0, &tick).unwrap();
 
         ticks.remove(pool_key, 0).unwrap();
-        assert_eq!(ticks.get(pool_key, 0), Err(InvariantError::TickNotFound));
+        assert_eq!(ticks.get(pool_key, 0), Err(InvariantError::TICK_NOT_FOUND));
 
         let result = ticks.remove(pool_key, 0);
-        assert_eq!(result, Err(InvariantError::TickNotFound));
+        assert_eq!(result, Err(InvariantError::TICK_NOT_FOUND));
     }
 }

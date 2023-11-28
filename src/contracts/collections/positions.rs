@@ -28,7 +28,7 @@ impl Positions {
         let positions_length = self.get_length(account_id);
 
         if index >= positions_length {
-            return Err(InvariantError::PositionNotFound);
+            return Err(InvariantError::POSITION_NOT_FOUND);
         }
 
         self.positions.insert((account_id, index), position);
@@ -76,7 +76,7 @@ impl Positions {
         let position = self
             .positions
             .get((account_id, index))
-            .ok_or(InvariantError::PositionNotFound)?;
+            .ok_or(InvariantError::POSITION_NOT_FOUND)?;
 
         Ok(position)
     }
@@ -114,7 +114,7 @@ mod tests {
         assert_eq!(positions.get(account_id, 1), Ok(new_position));
         assert_eq!(
             positions.get(account_id, 2),
-            Err(InvariantError::PositionNotFound)
+            Err(InvariantError::POSITION_NOT_FOUND)
         );
         assert_eq!(positions.get_length(account_id), 2);
     }
@@ -137,7 +137,7 @@ mod tests {
         assert_eq!(positions.get_length(account_id), 1);
 
         let result = positions.update(account_id, 1, &new_position);
-        assert_eq!(result, Err(InvariantError::PositionNotFound));
+        assert_eq!(result, Err(InvariantError::POSITION_NOT_FOUND));
     }
 
     #[ink::test]
@@ -163,12 +163,12 @@ mod tests {
         assert_eq!(result, Ok(new_position));
         assert_eq!(
             positions.get(account_id, 0),
-            Err(InvariantError::PositionNotFound)
+            Err(InvariantError::POSITION_NOT_FOUND)
         );
         assert_eq!(positions.get_length(account_id), 0);
 
         let result = positions.remove(account_id, 0);
-        assert_eq!(result, Err(InvariantError::PositionNotFound));
+        assert_eq!(result, Err(InvariantError::POSITION_NOT_FOUND));
     }
 
     #[ink::test]
@@ -185,14 +185,14 @@ mod tests {
             .unwrap();
         assert_eq!(
             positions.get(account_id, 0),
-            Err(InvariantError::PositionNotFound)
+            Err(InvariantError::POSITION_NOT_FOUND)
         );
         assert_eq!(positions.get_length(account_id), 0);
         assert_eq!(positions.get(receiver_account_id, 0), Ok(position));
         assert_eq!(positions.get_length(receiver_account_id), 1);
 
         let result = positions.transfer(account_id, 0, receiver_account_id);
-        assert_eq!(result, Err(InvariantError::PositionNotFound));
+        assert_eq!(result, Err(InvariantError::POSITION_NOT_FOUND));
     }
 
     #[ink::test]

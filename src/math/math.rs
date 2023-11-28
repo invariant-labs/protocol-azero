@@ -353,7 +353,7 @@ pub fn check_tick(tick_index: i32, tick_spacing: u16) -> TrackableResult<()> {
     let (min_tick, max_tick) = (get_min_tick(tick_spacing), get_max_tick(tick_spacing));
     let tick_spacing = tick_spacing as i32;
     if tick_index % tick_spacing != 0 {
-        return Err(err!("InvalidTickSpacing"));
+        return Err(err!("INVALID_TICK_SPACING"));
     }
     if tick_index > max_tick || tick_index < min_tick {
         return Err(err!("InvalidTickIndex"));

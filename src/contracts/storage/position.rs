@@ -178,7 +178,7 @@ impl Position {
         tick_spacing: u16,
     ) -> Result<(Self, TokenAmount, TokenAmount), InvariantError> {
         if pool.sqrt_price < slippage_limit_lower || pool.sqrt_price > slippage_limit_upper {
-            return Err(InvariantError::PriceLimitReached);
+            return Err(InvariantError::PRICE_LIMIT_REACHED);
         }
 
         // if !tickmap.get(lower_tick.index, pool.tick_spacing) {

@@ -18,7 +18,7 @@ impl FeeTiers {
     pub fn add(&mut self, fee_tier_key: FeeTierKey) -> Result<(), InvariantError> {
         self.fee_tiers
             .get(&fee_tier_key)
-            .map_or(Ok(()), |_| Err(InvariantError::FeeTierAlreadyExist))?;
+            .map_or(Ok(()), |_| Err(InvariantError::FEE_TIER_ALREADY_EXIST))?;
 
         self.fee_tiers.insert(&fee_tier_key, &());
         Ok(())
@@ -27,7 +27,7 @@ impl FeeTiers {
     pub fn remove(&mut self, fee_tier_key: FeeTierKey) -> Result<(), InvariantError> {
         self.fee_tiers
             .get(fee_tier_key)
-            .ok_or(InvariantError::FeeTierNotFound)?;
+            .ok_or(InvariantError::FEE_TIER_NOT_FOUND)?;
 
         self.fee_tiers.remove(&fee_tier_key);
         Ok(())
@@ -55,7 +55,7 @@ mod tests {
         assert_eq!(fee_tiers.get(new_fee_tier_key), None);
 
         let result = fee_tiers.add(fee_tier_key);
-        assert_eq!(result, Err(InvariantError::FeeTierAlreadyExist));
+        assert_eq!(result, Err(InvariantError::FEE_TIER_ALREADY_EXIST));
     }
 
     #[ink::test]
@@ -69,6 +69,6 @@ mod tests {
         assert_eq!(fee_tiers.get(fee_tier_key), None);
 
         let result = fee_tiers.remove(fee_tier_key);
-        assert_eq!(result, Err(InvariantError::FeeTierNotFound));
+        assert_eq!(result, Err(InvariantError::FEE_TIER_NOT_FOUND));
     }
 }
