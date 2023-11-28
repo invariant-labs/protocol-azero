@@ -33,8 +33,10 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: install
-          args: --locked substrate-contracts-node
+          args: substrate-contracts-node
+          
           # TODO: cache substrate-contracts-node
+          # args: --locked substrate-contracts-node
 
       - name: Run unit tests
         uses: actions-rs/cargo@v1
