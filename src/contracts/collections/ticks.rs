@@ -17,9 +17,9 @@ impl Ticks {
         index: i32,
         tick: &Tick,
     ) -> Result<(), InvariantError> {
-        if self.ticks.get(&(pool_key, index)).is_some() {
-            return Err(InvariantError::TickAlreadyExist);
-        }
+        self.ticks
+            .get(&(pool_key, index))
+            .map_or(Ok(()), |_| Err(InvariantError::TickAlreadyExist))?;
 
         self.ticks.insert(&(pool_key, index), tick);
         Ok(())
