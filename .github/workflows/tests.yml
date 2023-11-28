@@ -29,6 +29,13 @@ jobs:
           command: clippy
           # args: --all-targets -- --no-deps -D warnings (TODO: fix clippy warnings first)
 
+      - name: Install substrate-contracts-node
+        uses: actions-rs/cargo@v1
+        with:
+          command: insatll
+          args: --locked substrate-contracts-node
+          # TODO: cache substrate-contracts-node
+
       - name: Run unit tests
         uses: actions-rs/cargo@v1
         with:
