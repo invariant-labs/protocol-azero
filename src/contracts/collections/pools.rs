@@ -21,26 +21,26 @@ impl Pools {
     }
 
     pub fn update(&mut self, pool_key: PoolKey, pool: &Pool) -> Result<(), InvariantError> {
-        self.pools
-            .get(pool_key)
-            .ok_or(InvariantError::PoolNotFound)?;
+        self.get(pool_key)?;
 
         self.pools.insert(pool_key, pool);
         Ok(())
     }
 
     pub fn remove(&mut self, pool_key: PoolKey) -> Result<(), InvariantError> {
-        self.pools
-            .get(pool_key)
-            .ok_or(InvariantError::PoolNotFound)?;
+        self.get(pool_key)?;
 
         self.pools.remove(&pool_key);
         Ok(())
     }
 
-    pub fn get(&self, pool_key: PoolKey) -> Option<Pool> {
+    pub fn get(&self, pool_key: PoolKey) -> Result<Pool, InvariantError> {
         let pool = self.pools.get(pool_key);
-        pool
+
+        match pool {
+            Some(pool) => Ok(pool),
+            None => Err(InvariantError::PoolNotFound),
+        }
     }
 }
 
@@ -69,8 +69,8 @@ mod tests {
         let pool = Pool::default();
 
         pools.add(pool_key, &pool).unwrap();
-        assert_eq!(pools.get(pool_key), Some(pool.clone()));
-        assert_eq!(pools.get(new_pool_key), None);
+        assert_eq!(pools.get(pool_key), Ok(pool.clone()));
+        assert_eq!(pools.get(new_pool_key), Err(InvariantError::PoolNotFound));
 
         let result = pools.add(pool_key, &pool);
         assert_eq!(result, Err(InvariantError::PoolAlreadyExist));
@@ -100,7 +100,7 @@ mod tests {
         pools.add(pool_key, &pool).unwrap();
 
         pools.update(pool_key, &new_pool).unwrap();
-        assert_eq!(pools.get(pool_key), Some(new_pool.clone()));
+        assert_eq!(pools.get(pool_key), Ok(new_pool.clone()));
 
         let result = pools.update(new_pool_key, &new_pool);
         assert_eq!(result, Err(InvariantError::PoolNotFound));
@@ -121,7 +121,7 @@ mod tests {
         pools.add(pool_key, &pool).unwrap();
 
         pools.remove(pool_key).unwrap();
-        assert_eq!(pools.get(pool_key), None);
+        assert_eq!(pools.get(pool_key), Err(InvariantError::PoolNotFound));
 
         let result = pools.remove(pool_key);
         assert_eq!(result, Err(InvariantError::PoolNotFound));
