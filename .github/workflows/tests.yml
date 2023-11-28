@@ -29,13 +29,17 @@ jobs:
           command: clippy
           # args: --all-targets -- --no-deps -D warnings (TODO: fix clippy warnings first)
 
+      # - name: Add required dependancy
+      #   run: |
+      #     cargo install cargo-dylint dylint-link
+
       - name: Install substrate-contracts-node
         uses: actions-rs/cargo@v1
         with:
           command: install
-          args: contracts-node
-          
-          # TODO: cache substrate-contracts-node
+          args: --force contracts-node
+
+          # TODO: cache substrate-contracts-node OR downlaod binary from github release
           # args: --locked substrate-contracts-node
 
       - name: Run unit tests
