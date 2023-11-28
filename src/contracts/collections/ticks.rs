@@ -27,25 +27,26 @@ impl Ticks {
         index: i32,
         tick: &Tick,
     ) -> Result<(), InvariantError> {
-        self.ticks
-            .get(&(pool_key, index))
-            .ok_or(InvariantError::TickNotFound)?;
+        self.get(pool_key, index)?;
 
         self.ticks.insert((&pool_key, index), tick);
         Ok(())
     }
 
     pub fn remove(&mut self, pool_key: PoolKey, index: i32) -> Result<(), InvariantError> {
-        self.ticks
-            .get(&(pool_key, index))
-            .ok_or(InvariantError::TickNotFound)?;
+        self.get(pool_key, index)?;
 
         self.ticks.remove(&(pool_key, index));
         Ok(())
     }
 
-    pub fn get(&self, pool_key: PoolKey, index: i32) -> Option<Tick> {
-        self.ticks.get(&(pool_key, index))
+    pub fn get(&self, pool_key: PoolKey, index: i32) -> Result<Tick, InvariantError> {
+        let tick = self.ticks.get(&(pool_key, index));
+
+        match tick {
+            Some(tick) => Ok(tick),
+            None => Err(InvariantError::TickNotFound),
+        }
     }
 }
 
@@ -69,8 +70,8 @@ mod tests {
         let tick = Tick::default();
 
         ticks.add(pool_key, 0, &tick).unwrap();
-        assert_eq!(ticks.get(pool_key, 0), Some(tick));
-        assert_eq!(ticks.get(pool_key, 1), None);
+        assert_eq!(ticks.get(pool_key, 0), Ok(tick));
+        assert_eq!(ticks.get(pool_key, 1), Err(InvariantError::TickNotFound));
 
         // let result = ticks.add(pool_key, 0, &tick);
         // assert_eq!(result, Err(InvariantError::TickAlreadyExist));
@@ -95,7 +96,7 @@ mod tests {
         ticks.add(pool_key, 0, &tick).unwrap();
 
         ticks.update(pool_key, 0, &new_tick).unwrap();
-        assert_eq!(ticks.get(pool_key, 0), Some(new_tick));
+        assert_eq!(ticks.get(pool_key, 0), Ok(new_tick));
 
         let result = ticks.update(pool_key, 1, &new_tick);
         assert_eq!(result, Err(InvariantError::TickNotFound));
@@ -116,7 +117,7 @@ mod tests {
         ticks.add(pool_key, 0, &tick).unwrap();
 
         ticks.remove(pool_key, 0).unwrap();
-        assert_eq!(ticks.get(pool_key, 0), None);
+        assert_eq!(ticks.get(pool_key, 0), Err(InvariantError::TickNotFound));
 
         let result = ticks.remove(pool_key, 0);
         assert_eq!(result, Err(InvariantError::TickNotFound));

@@ -245,7 +245,7 @@ pub mod contract {
             let pool = self.pools.get(pool_key)?;
 
             let tick_option = self.ticks.get(pool_key, index);
-            if tick_option.is_some() {
+            if tick_option.is_ok() {
                 return Err(InvariantError::TickAlreadyExist);
             }
 
@@ -283,12 +283,12 @@ pub mod contract {
             let mut lower_tick = self
                 .ticks
                 .get(pool_key, lower_tick)
-                .unwrap_or_else(|| Self::create_tick(self, pool_key, lower_tick).unwrap());
+                .unwrap_or_else(|_| Self::create_tick(self, pool_key, lower_tick).unwrap());
 
             let mut upper_tick = self
                 .ticks
                 .get(pool_key, upper_tick)
-                .unwrap_or_else(|| Self::create_tick(self, pool_key, upper_tick).unwrap());
+                .unwrap_or_else(|_| Self::create_tick(self, pool_key, upper_tick).unwrap());
 
             let (position, x, y) = Position::create(
                 &mut pool,
@@ -649,15 +649,9 @@ pub mod contract {
 
             let mut position = self.positions.get(caller, index)?;
 
-            let lower_tick = self
-                .ticks
-                .get(pool_key, position.lower_tick_index)
-                .ok_or(InvariantError::TickNotFound)?;
+            let lower_tick = self.ticks.get(pool_key, position.lower_tick_index)?;
 
-            let upper_tick = self
-                .ticks
-                .get(pool_key, position.upper_tick_index)
-                .ok_or(InvariantError::TickNotFound)?;
+            let upper_tick = self.ticks.get(pool_key, position.upper_tick_index)?;
 
             let pool = self.pools.get(pool_key)?;
 
@@ -682,13 +676,11 @@ pub mod contract {
 
             let mut lower_tick = self
                 .ticks
-                .get(position.pool_key, position.lower_tick_index)
-                .ok_or(InvariantError::TickNotFound)?;
+                .get(position.pool_key, position.lower_tick_index)?;
 
             let mut upper_tick = self
                 .ticks
-                .get(position.pool_key, position.upper_tick_index)
-                .ok_or(InvariantError::TickNotFound)?;
+                .get(position.pool_key, position.upper_tick_index)?;
 
             let mut pool = self.pools.get(position.pool_key)?;
 
@@ -735,13 +727,11 @@ pub mod contract {
 
             let mut lower_tick = self
                 .ticks
-                .get(position.pool_key, position.lower_tick_index)
-                .ok_or(InvariantError::TickNotFound)?;
+                .get(position.pool_key, position.lower_tick_index)?;
 
             let mut upper_tick = self
                 .ticks
-                .get(position.pool_key, position.upper_tick_index)
-                .ok_or(InvariantError::TickNotFound)?;
+                .get(position.pool_key, position.upper_tick_index)?;
 
             let pool = &mut self.pools.get(position.pool_key)?;
 
@@ -895,7 +885,10 @@ pub mod contract {
 
         #[ink(message)]
         pub fn get_tick(&self, key: PoolKey, index: i32) -> Option<Tick> {
-            self.ticks.get(key, index)
+            match self.ticks.get(key, index) {
+                Ok(tick) => Some(tick),
+                Err(_) => None,
+            }
         }
 
         #[ink(message)]
