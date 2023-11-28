@@ -1,4 +1,7 @@
-use crate::{contracts::Position, InvariantError};
+use crate::{
+    contracts::{position, Position},
+    InvariantError,
+};
 use ink::{prelude::vec::Vec, primitives::AccountId, storage::Mapping};
 
 #[ink::storage_item]
@@ -77,15 +80,19 @@ impl Positions {
         Ok(())
     }
 
+    pub fn get(&self, account_id: AccountId, index: u32) -> Result<Position, InvariantError> {
+        let position = self.positions.get((account_id, index));
+
+        match position {
+            Some(position) => Ok(position),
+            None => Err(InvariantError::PositionNotFound),
+        }
+    }
+
     pub fn get_all(&self, account_id: AccountId) -> Vec<Position> {
         (0..self.get_length(account_id))
             .map(|index| self.positions.get((account_id, index)).unwrap())
             .collect()
-    }
-
-    pub fn get(&self, account_id: AccountId, index: u32) -> Option<Position> {
-        let position = self.positions.get((account_id, index));
-        position
     }
 
     pub fn get_length(&self, account_id: AccountId) -> u32 {
@@ -111,9 +118,12 @@ mod tests {
 
         positions.add(account_id, &position);
         positions.add(account_id, &new_position);
-        assert_eq!(positions.get(account_id, 0), Some(position));
-        assert_eq!(positions.get(account_id, 1), Some(new_position));
-        assert_eq!(positions.get(account_id, 2), None);
+        assert_eq!(positions.get(account_id, 0), Ok(position));
+        assert_eq!(positions.get(account_id, 1), Ok(new_position));
+        assert_eq!(
+            positions.get(account_id, 2),
+            Err(InvariantError::PositionNotFound)
+        );
         assert_eq!(positions.get_length(account_id), 2);
     }
 
@@ -131,7 +141,7 @@ mod tests {
         positions.add(account_id, &position);
 
         positions.update(account_id, 0, &new_position).unwrap();
-        assert_eq!(positions.get(account_id, 0), Some(new_position));
+        assert_eq!(positions.get(account_id, 0), Ok(new_position));
         assert_eq!(positions.get_length(account_id), 1);
 
         let result = positions.update(account_id, 1, &new_position);
@@ -154,12 +164,15 @@ mod tests {
 
         let result = positions.remove(account_id, 0);
         assert_eq!(result, Ok(position));
-        assert_eq!(positions.get(account_id, 0), Some(new_position));
+        assert_eq!(positions.get(account_id, 0), Ok(new_position));
         assert_eq!(positions.get_length(account_id), 1);
 
         let result = positions.remove(account_id, 0);
         assert_eq!(result, Ok(new_position));
-        assert_eq!(positions.get(account_id, 0), None);
+        assert_eq!(
+            positions.get(account_id, 0),
+            Err(InvariantError::PositionNotFound)
+        );
         assert_eq!(positions.get_length(account_id), 0);
 
         let result = positions.remove(account_id, 0);
@@ -178,9 +191,12 @@ mod tests {
         positions
             .transfer(account_id, 0, receiver_account_id)
             .unwrap();
-        assert_eq!(positions.get(account_id, 0), None);
+        assert_eq!(
+            positions.get(account_id, 0),
+            Err(InvariantError::PositionNotFound)
+        );
         assert_eq!(positions.get_length(account_id), 0);
-        assert_eq!(positions.get(receiver_account_id, 0), Some(position));
+        assert_eq!(positions.get(receiver_account_id, 0), Ok(position));
         assert_eq!(positions.get_length(receiver_account_id), 1);
 
         let result = positions.transfer(account_id, 0, receiver_account_id);

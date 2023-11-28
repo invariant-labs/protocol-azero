@@ -640,7 +640,7 @@ pub mod contract {
         // }
 
         #[ink(message)]
-        pub fn get_position(&mut self, index: u32) -> Option<Position> {
+        pub fn get_position(&mut self, index: u32) -> Result<Position, InvariantError> {
             let caller = self.env().caller();
 
             self.positions.get(caller, index)
@@ -662,10 +662,7 @@ pub mod contract {
             let caller = self.env().caller();
             let current_timestamp = self.env().block_timestamp();
 
-            let mut position = self
-                .positions
-                .get(caller, index)
-                .ok_or(InvariantError::PositionNotFound)?;
+            let mut position = self.positions.get(caller, index)?;
 
             let lower_tick = self
                 .ticks
@@ -699,10 +696,7 @@ pub mod contract {
             let caller = self.env().caller();
             let current_timestamp = self.env().block_timestamp();
 
-            let mut position = self
-                .positions
-                .get(caller, index)
-                .ok_or(InvariantError::PositionNotFound)?;
+            let mut position = self.positions.get(caller, index)?;
 
             let mut lower_tick = self
                 .ticks
@@ -758,10 +752,7 @@ pub mod contract {
             let caller = self.env().caller();
             let current_timestamp = self.env().block_timestamp();
 
-            let mut position = self
-                .positions
-                .get(caller, index)
-                .ok_or(InvariantError::PositionNotFound)?;
+            let mut position = self.positions.get(caller, index)?;
 
             let mut lower_tick = self
                 .ticks
