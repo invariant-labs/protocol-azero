@@ -45,12 +45,12 @@ impl Ticks {
     }
 
     pub fn get(&self, pool_key: PoolKey, index: i32) -> Result<Tick, InvariantError> {
-        let tick = self.ticks.get(&(pool_key, index));
+        let tick = self
+            .ticks
+            .get(&(pool_key, index))
+            .ok_or(InvariantError::TickNotFound)?;
 
-        match tick {
-            Some(tick) => Ok(tick),
-            None => Err(InvariantError::TickNotFound),
-        }
+        Ok(tick)
     }
 }
 

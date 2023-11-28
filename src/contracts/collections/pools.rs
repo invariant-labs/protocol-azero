@@ -35,12 +35,12 @@ impl Pools {
     }
 
     pub fn get(&self, pool_key: PoolKey) -> Result<Pool, InvariantError> {
-        let pool = self.pools.get(pool_key);
+        let pool = self
+            .pools
+            .get(pool_key)
+            .ok_or(InvariantError::PoolNotFound)?;
 
-        match pool {
-            Some(pool) => Ok(pool),
-            None => Err(InvariantError::PoolNotFound),
-        }
+        Ok(pool)
     }
 }
 

@@ -73,12 +73,12 @@ impl Positions {
     }
 
     pub fn get(&self, account_id: AccountId, index: u32) -> Result<Position, InvariantError> {
-        let position = self.positions.get((account_id, index));
+        let position = self
+            .positions
+            .get((account_id, index))
+            .ok_or(InvariantError::PositionNotFound)?;
 
-        match position {
-            Some(position) => Ok(position),
-            None => Err(InvariantError::PositionNotFound),
-        }
+        Ok(position)
     }
 
     pub fn get_all(&self, account_id: AccountId) -> Vec<Position> {
