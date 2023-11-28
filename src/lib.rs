@@ -884,11 +884,8 @@ pub mod contract {
         }
 
         #[ink(message)]
-        pub fn get_tick(&self, key: PoolKey, index: i32) -> Option<Tick> {
-            match self.ticks.get(key, index) {
-                Ok(tick) => Some(tick),
-                Err(_) => None,
-            }
+        pub fn get_tick(&self, key: PoolKey, index: i32) -> Result<Tick, InvariantError> {
+            self.ticks.get(key, index)
         }
 
         #[ink(message)]
@@ -1146,10 +1143,10 @@ pub mod contract {
             let index = 10i32;
             contract.add_tick(pool_key, index, tick);
             let recieved_tick = contract.get_tick(pool_key, index);
-            assert_eq!(Some(tick), recieved_tick);
+            assert_eq!(Ok(tick), recieved_tick);
             contract.remove_tick(pool_key, index);
             let recieved_tick = contract.get_tick(pool_key, index);
-            assert_eq!(None, recieved_tick);
+            assert_eq!(Err(InvariantError::TickNotFound), recieved_tick);
         }
     }
 
@@ -3081,8 +3078,8 @@ pub mod contract {
             assert_eq!(dex_y_before_remove - dex_y, expected_withdrawn_y);
 
             // Check ticks
-            assert_eq!(lower_tick, None);
-            assert_eq!(upper_tick, None);
+            assert_eq!(lower_tick, Err(InvariantError::TickNotFound));
+            assert_eq!(upper_tick, Err(InvariantError::TickNotFound));
 
             // Check tickmap
             assert!(!lower_tick_bit);

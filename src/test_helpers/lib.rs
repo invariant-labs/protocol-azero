@@ -616,9 +616,8 @@ macro_rules! get_tick {
         let _msg = build_message::<$dex>($dex_address.clone())
             .call(|contract| contract.get_tick($pool_key, $index));
         $client
-            .call(&$caller, _msg, 0, None)
+            .call_dry_run(&$caller, &_msg, 0, None)
             .await
-            .expect("Tick recieving failed")
             .return_value()
     }};
 }
