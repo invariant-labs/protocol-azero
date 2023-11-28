@@ -26,6 +26,7 @@ pub enum InvariantError {
     TransferError,
     TokensAreTheSame,
     AmountUnderMinimumAmountOut,
+    InvalidFee,
 }
 #[ink::contract]
 pub mod contract {
@@ -37,7 +38,7 @@ pub mod contract {
     use crate::contracts::Pool;
     use crate::contracts::Tick;
     use crate::contracts::Tickmap;
-    use crate::contracts::{FeeTier, FeeTiers, PoolKey, Pools, Position, Positions, Ticks}; //
+    use crate::contracts::{FeeTier, FeeTierKeys, PoolKey, Pools, Position, Positions, Ticks}; //
     use crate::math::calculate_min_amount_out;
     use crate::math::check_tick;
     use crate::math::percentage::Percentage;
@@ -126,11 +127,10 @@ pub mod contract {
     #[derive(Default)]
     pub struct Contract {
         positions: Positions,
-        fee_tiers: FeeTiers,
         pools: Pools,
         tickmap: Tickmap,
         ticks: Ticks,
-        fee_tier_keys: Vec<FeeTierKey>,
+        fee_tier_keys: FeeTierKeys,
         pool_keys: Vec<PoolKey>,
         state: State,
     }
@@ -856,7 +856,6 @@ pub mod contract {
             Ok((amount_x, amount_y))
         }
 
-        // Fee tiers
         #[ink(message)]
         fn add_fee_tier(&mut self, fee_tier: FeeTier) -> Result<(), InvariantError> {
             let caller = self.env().caller();
@@ -865,30 +864,28 @@ pub mod contract {
                 return Err(InvariantError::UnauthorizedAdmin);
             }
 
-            if fee_tier.tick_spacing == 0 {
-                return Err(InvariantError::InvalidTickSpacing);
-            }
+            let fee_tier_key = FeeTierKey::new(fee_tier.fee, fee_tier.tick_spacing)?;
+            self.fee_tier_keys.add(fee_tier_key)?;
 
-            let fee_tier_key = FeeTierKey(fee_tier.fee, fee_tier.tick_spacing);
-
-            if self.fee_tiers.get(fee_tier_key).is_some() {
-                return Err(InvariantError::FeeTierAlreadyExist);
-            } else {
-                self.fee_tiers.add(fee_tier_key);
-                self.fee_tier_keys.push(fee_tier_key);
-                Ok(())
-            }
+            Ok(())
         }
 
         #[ink(message)]
-        fn get_fee_tier(&self, key: FeeTierKey) -> Option<()> {
-            self.fee_tiers.get(key)
+        fn remove_fee_tier(&mut self, key: FeeTierKey) -> Result<(), InvariantError> {
+            let caller = self.env().caller();
+
+            if caller != self.state.admin {
+                return Err(InvariantError::UnauthorizedAdmin);
+            }
+
+            self.fee_tier_keys.remove(key)?;
+
+            Ok(())
         }
 
         #[ink(message)]
-        fn remove_fee_tier(&mut self, key: FeeTierKey) {
-            self.fee_tiers.remove(key);
-            self.fee_tier_keys.retain(|&x| x != key);
+        fn fee_tier_exist(&self, key: FeeTierKey) -> bool {
+            self.fee_tier_keys.contains(key)
         }
 
         // Pools
@@ -903,9 +900,9 @@ pub mod contract {
             let current_timestamp = self.env().block_timestamp();
 
             let fee_tier_key = FeeTierKey(fee_tier.fee, fee_tier.tick_spacing);
-            self.fee_tiers
-                .get(fee_tier_key)
-                .ok_or(InvariantError::FeeTierNotFound)?;
+            if !self.fee_tier_keys.contains(fee_tier_key) {
+                return Err(InvariantError::FeeTierNotFound);
+            };
 
             let pool_key = PoolKey::new(token_0, token_1, fee_tier)?;
             let pool = Pool::create(init_tick, current_timestamp, self.state.admin);
@@ -1177,10 +1174,10 @@ pub mod contract {
             };
 
             contract.add_fee_tier(fee_tier_value).unwrap();
-            assert_eq!(contract.fee_tier_keys.len(), 1);
+            assert_eq!(contract.fee_tier_keys.get_all().len(), 1);
             contract.add_fee_tier(fee_tier_value).unwrap_err();
             contract.remove_fee_tier(fee_tier_key);
-            assert_eq!(contract.fee_tier_keys.len(), 0);
+            assert_eq!(contract.fee_tier_keys.get_all().len(), 0);
         }
     }
 
@@ -1200,7 +1197,7 @@ pub mod contract {
             address_of, approve, balance_of, big_deposit_and_swap, change_fee_receiver, claim_fee,
             create_3_tokens, create_dex, create_fee_tier, create_pool, create_position,
             create_slippage_pool_with_liquidity, create_standard_fee_tiers, create_tokens,
-            dex_balance, get_all_positions, get_fee_tier, get_pool, get_position, get_tick,
+            dex_balance, fee_tier_exist, get_all_positions, get_pool, get_position, get_tick,
             init_basic_pool, init_basic_position, init_basic_swap, init_cross_position,
             init_cross_swap, init_dex_and_3_tokens, init_dex_and_tokens,
             init_dex_and_tokens_max_mint_amount, init_slippage_dex_and_tokens, mint,
@@ -2184,8 +2181,8 @@ pub mod contract {
             };
             let alice = ink_e2e::alice();
             create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
-            let fee_tier = get_fee_tier!(client, ContractRef, dex, Percentage::new(0), 10u16);
-            assert!(fee_tier.is_some());
+            let fee_tier = fee_tier_exist!(client, ContractRef, dex, Percentage::new(0), 10u16);
+            assert_eq!(fee_tier, true);
             Ok(())
         }
 
@@ -2193,14 +2190,14 @@ pub mod contract {
         async fn create_standard_fee_tier_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let dex = create_dex!(client, ContractRef, Percentage::new(0));
             create_standard_fee_tiers!(client, ContractRef, dex);
-            let fee_tier = get_fee_tier!(
+            let fee_tier = fee_tier_exist!(
                 client,
                 ContractRef,
                 dex,
                 Percentage::from_scale(5, 2),
                 100u16
             );
-            assert!(fee_tier.is_some());
+            assert_eq!(fee_tier, true);
             Ok(())
         }
 
