@@ -20,7 +20,7 @@ pub enum InvariantError {
     PriceLimitReached,
     NoGainSwap,
     InvalidTickSpacing,
-    FeeTierAlreadyAdded,
+    FeeTierAlreadyExist,
     UnauthorizedFeeReceiver,
     ZeroLiquidity,
     TransferError,
@@ -155,13 +155,8 @@ pub mod contract {
 
             let pool = self.pools.get(pool_key)?;
 
-            let tick_option = self.ticks.get_tick(pool_key, index);
-            if tick_option.is_some() {
-                return Err(InvariantError::TickAlreadyExist);
-            }
-
             let tick = Tick::create(index, &pool, current_timestamp);
-            self.ticks.add_tick(pool_key, index, tick);
+            self.ticks.add(pool_key, index, &tick)?;
 
             self.tickmap
                 .flip(true, index, pool_key.fee_tier.tick_spacing, pool_key);
@@ -252,7 +247,7 @@ pub mod contract {
 
                 let update_limiting_tick = limiting_tick.map(|(index, bool)| {
                     if bool {
-                        tick = self.ticks.get_tick(pool_key, index).unwrap();
+                        tick = self.ticks.get(pool_key, index).unwrap();
                         (index, Some(&mut tick))
                     } else {
                         (index, None)
@@ -294,7 +289,7 @@ pub mod contract {
         }
 
         fn remove_tick(&mut self, key: PoolKey, index: i32) {
-            self.ticks.remove_tick(key, index);
+            self.ticks.remove(key, index);
         }
 
         fn emit_swap_event(
@@ -477,13 +472,13 @@ pub mod contract {
 
             let mut lower_tick = self
                 .ticks
-                .get_tick(pool_key, lower_tick)
-                .unwrap_or_else(|| Self::create_tick(self, pool_key, lower_tick).unwrap());
+                .get(pool_key, lower_tick)
+                .unwrap_or_else(|_| Self::create_tick(self, pool_key, lower_tick).unwrap());
 
             let mut upper_tick = self
                 .ticks
-                .get_tick(pool_key, upper_tick)
-                .unwrap_or_else(|| Self::create_tick(self, pool_key, upper_tick).unwrap());
+                .get(pool_key, upper_tick)
+                .unwrap_or_else(|_| Self::create_tick(self, pool_key, upper_tick).unwrap());
 
             let (position, x, y) = Position::create(
                 &mut pool,
@@ -500,10 +495,10 @@ pub mod contract {
 
             self.pools.update(pool_key, &pool)?;
 
-            self.positions.add(caller, position);
+            self.positions.add(caller, &position);
 
-            self.ticks.add_tick(pool_key, lower_tick.index, lower_tick);
-            self.ticks.add_tick(pool_key, upper_tick.index, upper_tick);
+            self.ticks.update(pool_key, lower_tick.index, &lower_tick)?;
+            self.ticks.update(pool_key, upper_tick.index, &upper_tick)?;
 
             let mut token_x: contract_ref!(PSP22) = pool_key.token_x.into();
             token_x
@@ -541,7 +536,7 @@ pub mod contract {
                 self.calculate_swap(pool_key, x_to_y, amount, by_amount_in, sqrt_price_limit)?;
 
             for tick in calculate_swap_result.ticks.iter() {
-                self.ticks.update_tick(pool_key, tick.index, tick);
+                self.ticks.update(pool_key, tick.index, tick);
             }
 
             self.pools.update(pool_key, &calculate_swap_result.pool)?;
@@ -689,7 +684,7 @@ pub mod contract {
         }
 
         #[ink(message)]
-        fn get_position(&mut self, index: u32) -> Option<Position> {
+        fn get_position(&mut self, index: u32) -> Result<Position, InvariantError> {
             let caller = self.env().caller();
 
             self.positions.get(caller, index)
@@ -711,20 +706,11 @@ pub mod contract {
             let caller = self.env().caller();
             let current_timestamp = self.env().block_timestamp();
 
-            let mut position = self
-                .positions
-                .get(caller, index)
-                .ok_or(InvariantError::PositionNotFound)?;
+            let mut position = self.positions.get(caller, index)?;
 
-            let lower_tick = self
-                .ticks
-                .get_tick(pool_key, position.lower_tick_index)
-                .ok_or(InvariantError::TickNotFound)?;
+            let lower_tick = self.ticks.get(pool_key, position.lower_tick_index)?;
 
-            let upper_tick = self
-                .ticks
-                .get_tick(pool_key, position.upper_tick_index)
-                .ok_or(InvariantError::TickNotFound)?;
+            let upper_tick = self.ticks.get(pool_key, position.upper_tick_index)?;
 
             let pool = self.pools.get(pool_key)?;
 
@@ -742,20 +728,15 @@ pub mod contract {
             let caller = self.env().caller();
             let current_timestamp = self.env().block_timestamp();
 
-            let mut position = self
-                .positions
-                .get(caller, index)
-                .ok_or(InvariantError::PositionNotFound)?;
+            let mut position = self.positions.get(caller, index)?;
 
             let mut lower_tick = self
                 .ticks
-                .get_tick(position.pool_key, position.lower_tick_index)
-                .ok_or(InvariantError::TickNotFound)?;
+                .get(position.pool_key, position.lower_tick_index)?;
 
             let mut upper_tick = self
                 .ticks
-                .get_tick(position.pool_key, position.upper_tick_index)
-                .ok_or(InvariantError::TickNotFound)?;
+                .get(position.pool_key, position.upper_tick_index)?;
 
             let mut pool = self.pools.get(position.pool_key)?;
 
@@ -769,9 +750,9 @@ pub mod contract {
             self.positions.update(caller, index, &position);
             self.pools.update(position.pool_key, &pool)?;
             self.ticks
-                .update_tick(position.pool_key, upper_tick.index, &upper_tick)?;
+                .update(position.pool_key, upper_tick.index, &upper_tick)?;
             self.ticks
-                .update_tick(position.pool_key, lower_tick.index, &lower_tick)?;
+                .update(position.pool_key, lower_tick.index, &lower_tick)?;
 
             if x.get() > 0 {
                 let mut token_x: contract_ref!(PSP22) = position.pool_key.token_x.into();
@@ -798,20 +779,15 @@ pub mod contract {
             let caller = self.env().caller();
             let current_timestamp = self.env().block_timestamp();
 
-            let mut position = self
-                .positions
-                .get(caller, index)
-                .ok_or(InvariantError::PositionNotFound)?;
+            let mut position = self.positions.get(caller, index)?;
 
             let mut lower_tick = self
                 .ticks
-                .get_tick(position.pool_key, position.lower_tick_index)
-                .ok_or(InvariantError::TickNotFound)?;
+                .get(position.pool_key, position.lower_tick_index)?;
 
             let mut upper_tick = self
                 .ticks
-                .get_tick(position.pool_key, position.upper_tick_index)
-                .ok_or(InvariantError::TickNotFound)?;
+                .get(position.pool_key, position.upper_tick_index)?;
 
             let pool = &mut self.pools.get(position.pool_key)?;
 
@@ -834,11 +810,11 @@ pub mod contract {
                     position.pool_key,
                 );
                 self.ticks
-                    .remove_tick(position.pool_key, position.lower_tick_index)
+                    .remove(position.pool_key, position.lower_tick_index)
                     .unwrap();
             } else {
                 self.ticks
-                    .update_tick(position.pool_key, position.lower_tick_index, &lower_tick)
+                    .update(position.pool_key, position.lower_tick_index, &lower_tick)
                     .unwrap();
             }
 
@@ -850,11 +826,11 @@ pub mod contract {
                     position.pool_key,
                 );
                 self.ticks
-                    .remove_tick(position.pool_key, position.upper_tick_index)
+                    .remove(position.pool_key, position.upper_tick_index)
                     .unwrap();
             } else {
                 self.ticks
-                    .update_tick(position.pool_key, position.upper_tick_index, &upper_tick)
+                    .update(position.pool_key, position.upper_tick_index, &upper_tick)
                     .unwrap();
             }
 
@@ -894,10 +870,11 @@ pub mod contract {
             }
 
             let fee_tier_key = FeeTierKey(fee_tier.fee, fee_tier.tick_spacing);
-            if self.fee_tiers.get_fee_tier(fee_tier_key).is_some() {
-                Err(InvariantError::FeeTierAlreadyAdded)
+
+            if self.fee_tiers.get(fee_tier_key).is_some() {
+                return Err(InvariantError::FeeTierAlreadyExist);
             } else {
-                self.fee_tiers.add_fee_tier(fee_tier_key);
+                self.fee_tiers.add(fee_tier_key);
                 self.fee_tier_keys.push(fee_tier_key);
                 Ok(())
             }
@@ -905,12 +882,12 @@ pub mod contract {
 
         #[ink(message)]
         fn get_fee_tier(&self, key: FeeTierKey) -> Option<()> {
-            self.fee_tiers.get_fee_tier(key)
+            self.fee_tiers.get(key)
         }
 
         #[ink(message)]
         fn remove_fee_tier(&mut self, key: FeeTierKey) {
-            self.fee_tiers.remove_fee_tier(key);
+            self.fee_tiers.remove(key);
             self.fee_tier_keys.retain(|&x| x != key);
         }
 
@@ -927,7 +904,7 @@ pub mod contract {
 
             let fee_tier_key = FeeTierKey(fee_tier.fee, fee_tier.tick_spacing);
             self.fee_tiers
-                .get_fee_tier(fee_tier_key)
+                .get(fee_tier_key)
                 .ok_or(InvariantError::FeeTierNotFound)?;
 
             let pool_key = PoolKey::new(token_0, token_1, fee_tier)?;
@@ -947,17 +924,141 @@ pub mod contract {
             fee_tier: FeeTier,
         ) -> Result<Pool, InvariantError> {
             let key: PoolKey = PoolKey::new(token_0, token_1, fee_tier)?;
-            self.pools.get(key)
+            let pool = self.pools.get(key)?;
+
+            Ok(pool)
+        }
+
+        fn remove_pool(&mut self, key: PoolKey) {
+            self.pools.remove(key);
+            self.pool_keys.retain(|&x| x != key);
+        }
+
+        // Ticks
+        fn add_tick(&mut self, key: PoolKey, index: i32, tick: Tick) {
+            self.ticks.add(key, index, &tick);
         }
 
         #[ink(message)]
-        fn get_tick(&self, key: PoolKey, index: i32) -> Option<Tick> {
-            self.ticks.get_tick(key, index)
+        fn get_tick(&self, key: PoolKey, index: i32) -> Result<Tick, InvariantError> {
+            self.ticks.get(key, index)
         }
 
         #[ink(message)]
         fn get_tickmap_bit(&self, key: PoolKey, index: i32) -> bool {
             self.tickmap.get(index, key.fee_tier.tick_spacing, key)
+        }
+        fn remove_tick(&mut self, key: PoolKey, index: i32) {
+            self.ticks.remove(key, index);
+        }
+
+        fn emit_swap_event(
+            &self,
+            address: AccountId,
+            pool: PoolKey,
+            amount_in: TokenAmount,
+            amount_out: TokenAmount,
+            fee: TokenAmount,
+            start_sqrt_price: SqrtPrice,
+            target_sqrt_price: SqrtPrice,
+            x_to_y: bool,
+        ) {
+            let timestamp = self.get_timestamp();
+            ink::codegen::EmitEvent::<Contract>::emit_event(
+                self.env(),
+                SwapEvent {
+                    timestamp,
+                    address,
+                    pool,
+                    amount_in,
+                    amount_out,
+                    fee,
+                    start_sqrt_price,
+                    target_sqrt_price,
+                    x_to_y,
+                },
+            );
+        }
+        fn emit_create_position_event(
+            &self,
+            address: AccountId,
+            pool: PoolKey,
+            liquidity: Liquidity,
+            lower_tick: i32,
+            upper_tick: i32,
+            current_sqrt_price: SqrtPrice,
+        ) {
+            let timestamp = self.get_timestamp();
+            ink::codegen::EmitEvent::<Contract>::emit_event(
+                self.env(),
+                CreatePositionEvent {
+                    timestamp,
+                    address,
+                    pool,
+                    liquidity,
+                    lower_tick,
+                    upper_tick,
+                    current_sqrt_price,
+                },
+            );
+        }
+        fn emit_remove_position_event(
+            &self,
+            address: AccountId,
+            pool: PoolKey,
+            liquidity: Liquidity,
+            lower_tick: i32,
+            upper_tick: i32,
+            current_sqrt_price: SqrtPrice,
+        ) {
+            let timestamp = self.get_timestamp();
+            ink::codegen::EmitEvent::<Contract>::emit_event(
+                self.env(),
+                RemovePositionEvent {
+                    timestamp,
+                    address,
+                    pool,
+                    liquidity,
+                    lower_tick,
+                    upper_tick,
+                    current_sqrt_price,
+                },
+            );
+        }
+        fn emit_cross_tick_event(&self, address: AccountId, pool: PoolKey, index: i32) {
+            let timestamp = self.get_timestamp();
+            ink::codegen::EmitEvent::<Contract>::emit_event(
+                self.env(),
+                CrossTickEvent {
+                    timestamp,
+                    address,
+                    pool,
+                    index,
+                },
+            );
+        }
+
+        fn get_timestamp(&self) -> u64 {
+            self.env().block_timestamp()
+        }
+
+        fn _order_tokens(
+            &self,
+            token_0: AccountId,
+            token_1: AccountId,
+            balance_0: Balance,
+            balance_1: Balance,
+        ) -> OrderPair {
+            match token_0.lt(&token_1) {
+                true => OrderPair {
+                    x: (token_0, balance_0),
+                    y: (token_1, balance_1),
+                },
+                false => OrderPair {
+                    x: (token_1, balance_1),
+                    y: (token_0, balance_0),
+                },
+            }
         }
     }
 
@@ -3011,8 +3112,8 @@ pub mod contract {
             assert_eq!(dex_y_before_remove - dex_y, expected_withdrawn_y);
 
             // Check ticks
-            assert_eq!(lower_tick, None);
-            assert_eq!(upper_tick, None);
+            assert_eq!(lower_tick, Err(InvariantError::TickNotFound));
+            assert_eq!(upper_tick, Err(InvariantError::TickNotFound));
 
             // Check tickmap
             assert!(!lower_tick_bit);
