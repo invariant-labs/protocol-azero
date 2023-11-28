@@ -1406,6 +1406,15 @@ pub mod contract {
                 slippage_limit_upper,
                 alice
             );
+
+            let contract_amount_x = dex_balance!(TokenRef, client, token_x, dex);
+            let contract_amount_y = dex_balance!(TokenRef, client, token_y, dex);
+            println!("X = {:?} | Y = {:?}", contract_amount_x, contract_amount_y);
+
+            let expected_x = 0;
+            let expected_y = 42534896005851865508212194815854;
+            assert_eq!(contract_amount_x, expected_x);
+            assert_eq!(contract_amount_y, expected_y);
         }
 
         #[ink_e2e::test]
