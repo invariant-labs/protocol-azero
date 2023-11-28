@@ -35,6 +35,7 @@ pub mod contract {
     use crate::contracts::FeeTierKey;
     use crate::contracts::Invariant;
     use crate::contracts::Pool;
+    use crate::contracts::PoolKeys;
     use crate::contracts::Tick;
     use crate::contracts::Tickmap;
     use crate::contracts::{FeeTier, FeeTiers, PoolKey, Pools, Position, Positions, Ticks}; //
@@ -131,7 +132,7 @@ pub mod contract {
         tickmap: Tickmap,
         ticks: Ticks,
         fee_tier_keys: Vec<FeeTierKey>,
-        pool_keys: Vec<PoolKey>,
+        pool_keys: PoolKeys,
         state: State,
     }
 
@@ -910,8 +911,7 @@ pub mod contract {
             let pool_key = PoolKey::new(token_0, token_1, fee_tier)?;
             let pool = Pool::create(init_tick, current_timestamp, self.state.admin);
             self.pools.add(pool_key, &pool)?;
-
-            self.pool_keys.push(pool_key);
+            self.pool_keys.add(pool_key)?;
 
             Ok(())
         }
@@ -929,16 +929,6 @@ pub mod contract {
             Ok(pool)
         }
 
-        fn remove_pool(&mut self, key: PoolKey) {
-            self.pools.remove(key);
-            self.pool_keys.retain(|&x| x != key);
-        }
-
-        // Ticks
-        fn add_tick(&mut self, key: PoolKey, index: i32, tick: Tick) {
-            self.ticks.add(key, index, &tick);
-        }
-
         #[ink(message)]
         fn get_tick(&self, key: PoolKey, index: i32) -> Result<Tick, InvariantError> {
             self.ticks.get(key, index)
@@ -948,117 +938,10 @@ pub mod contract {
         fn get_tickmap_bit(&self, key: PoolKey, index: i32) -> bool {
             self.tickmap.get(index, key.fee_tier.tick_spacing, key)
         }
-        fn remove_tick(&mut self, key: PoolKey, index: i32) {
-            self.ticks.remove(key, index);
-        }
 
-        fn emit_swap_event(
-            &self,
-            address: AccountId,
-            pool: PoolKey,
-            amount_in: TokenAmount,
-            amount_out: TokenAmount,
-            fee: TokenAmount,
-            start_sqrt_price: SqrtPrice,
-            target_sqrt_price: SqrtPrice,
-            x_to_y: bool,
-        ) {
-            let timestamp = self.get_timestamp();
-            ink::codegen::EmitEvent::<Contract>::emit_event(
-                self.env(),
-                SwapEvent {
-                    timestamp,
-                    address,
-                    pool,
-                    amount_in,
-                    amount_out,
-                    fee,
-                    start_sqrt_price,
-                    target_sqrt_price,
-                    x_to_y,
-                },
-            );
-        }
-        fn emit_create_position_event(
-            &self,
-            address: AccountId,
-            pool: PoolKey,
-            liquidity: Liquidity,
-            lower_tick: i32,
-            upper_tick: i32,
-            current_sqrt_price: SqrtPrice,
-        ) {
-            let timestamp = self.get_timestamp();
-            ink::codegen::EmitEvent::<Contract>::emit_event(
-                self.env(),
-                CreatePositionEvent {
-                    timestamp,
-                    address,
-                    pool,
-                    liquidity,
-                    lower_tick,
-                    upper_tick,
-                    current_sqrt_price,
-                },
-            );
-        }
-        fn emit_remove_position_event(
-            &self,
-            address: AccountId,
-            pool: PoolKey,
-            liquidity: Liquidity,
-            lower_tick: i32,
-            upper_tick: i32,
-            current_sqrt_price: SqrtPrice,
-        ) {
-            let timestamp = self.get_timestamp();
-            ink::codegen::EmitEvent::<Contract>::emit_event(
-                self.env(),
-                RemovePositionEvent {
-                    timestamp,
-                    address,
-                    pool,
-                    liquidity,
-                    lower_tick,
-                    upper_tick,
-                    current_sqrt_price,
-                },
-            );
-        }
-        fn emit_cross_tick_event(&self, address: AccountId, pool: PoolKey, index: i32) {
-            let timestamp = self.get_timestamp();
-            ink::codegen::EmitEvent::<Contract>::emit_event(
-                self.env(),
-                CrossTickEvent {
-                    timestamp,
-                    address,
-                    pool,
-                    index,
-                },
-            );
-        }
-
-        fn get_timestamp(&self) -> u64 {
-            self.env().block_timestamp()
-        }
-
-        fn _order_tokens(
-            &self,
-            token_0: AccountId,
-            token_1: AccountId,
-            balance_0: Balance,
-            balance_1: Balance,
-        ) -> OrderPair {
-            match token_0.lt(&token_1) {
-                true => OrderPair {
-                    x: (token_0, balance_0),
-                    y: (token_1, balance_1),
-                },
-                false => OrderPair {
-                    x: (token_1, balance_1),
-                    y: (token_0, balance_0),
-                },
-            }
+        #[ink(message)]
+        fn get_pools(&self) -> Vec<PoolKey> {
+            self.pool_keys.get_all()
         }
     }
 

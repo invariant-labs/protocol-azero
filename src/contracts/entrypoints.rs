@@ -125,6 +125,9 @@ pub trait Invariant {
     ) -> Result<Pool, InvariantError>;
 
     #[ink(message)]
+    fn get_pools(&self) -> Vec<PoolKey>;
+
+    #[ink(message)]
     fn get_tick(&self, key: PoolKey, index: i32) -> Result<Tick, InvariantError>;
 
     #[ink(message)]
