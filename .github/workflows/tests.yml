@@ -103,3 +103,9 @@ jobs:
         with:
           command: contract
           args: build --release
+
+      - name: Run unit tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --features e2e-tests
