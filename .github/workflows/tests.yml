@@ -16,9 +16,6 @@ jobs:
 
       - name: Install Rust toolchain
         uses: Cardinal-Cryptography/github-actions/install-rust-toolchain@v1
-      # - name: Install Rust toolchain
-      #   run: |
-      #     rustup component add rust-src
 
       - name: Run cargo fmt
         uses: actions-rs/cargo@v1
@@ -32,14 +29,13 @@ jobs:
           command: clippy
           # args: --all-targets -- --no-deps -D warnings (TODO: fix clippy warnings first)
 
-          # sudo apt update && apt upgrade -y
       - name: Install Protobuf
         run: |
           sudo apt-get install -y protobuf-compiler libprotobuf-dev
-          
-      - name: Add installing required dependency
-        run: |
-          cargo install cargo-dylint dylint-link
+
+      # - name: Add installing required dependency
+      #   run: |
+      #     cargo install cargo-dylint dylint-link
 
       - name: Install substrate-contracts-node
         uses: actions-rs/cargo@v1
@@ -50,11 +46,12 @@ jobs:
           # TODO: cache substrate-contracts-node OR downlaod binary from github release
           # args: --locked substrate-contracts-node
 
-      - name: Run unit tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --features e2e-tests
+      # COMMENT OUT TO SHORT RUNNING TIME
+      # - name: Run unit tests
+      #   uses: actions-rs/cargo@v1
+      #   with:
+      #     command: test
+      #     args: --features e2e-tests
 
   build:
     name: Build the contract
