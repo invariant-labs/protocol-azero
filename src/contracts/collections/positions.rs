@@ -1,7 +1,4 @@
-use crate::{
-    contracts::{position, Position},
-    InvariantError,
-};
+use crate::{contracts::Position, InvariantError};
 use ink::{prelude::vec::Vec, primitives::AccountId, storage::Mapping};
 
 #[ink::storage_item]
@@ -45,12 +42,7 @@ impl Positions {
         index: u32,
     ) -> Result<Position, InvariantError> {
         let positions_length = self.get_length(account_id);
-
-        if index >= positions_length {
-            return Err(InvariantError::PositionNotFound);
-        }
-
-        let position = self.positions.get((account_id, index));
+        let position = self.get(account_id, index)?;
 
         if index < positions_length - 1 {
             let last_position = self
@@ -65,7 +57,7 @@ impl Positions {
         self.positions_length
             .insert(account_id, &(positions_length - 1));
 
-        Ok(position.unwrap())
+        Ok(position)
     }
 
     pub fn transfer(
