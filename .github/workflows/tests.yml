@@ -29,9 +29,9 @@ jobs:
           command: clippy
           # args: --all-targets -- --no-deps -D warnings (TODO: fix clippy warnings first)
 
-      # - name: Add required dependancy
-      #   run: |
-      #     cargo install cargo-dylint dylint-link
+      - name: Add installing required dependency
+        run: |
+          cargo install cargo-dylint dylint-link
 
       - name: Install substrate-contracts-node
         uses: actions-rs/cargo@v1
