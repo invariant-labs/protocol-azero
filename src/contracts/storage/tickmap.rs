@@ -190,9 +190,10 @@ impl Tickmap {
         match closes_tick_index {
             Some(index) => {
                 let sqrt_price = calculate_sqrt_price(index).unwrap();
-                if x_to_y && sqrt_price > sqrt_price_limit {
-                    (sqrt_price, Some((index, true)))
-                } else if !x_to_y && sqrt_price < sqrt_price_limit {
+
+                if (x_to_y && sqrt_price > sqrt_price_limit)
+                    || (!x_to_y && sqrt_price < sqrt_price_limit)
+                {
                     (sqrt_price, Some((index, true)))
                 } else {
                     (sqrt_price_limit, None)
@@ -204,9 +205,9 @@ impl Tickmap {
 
                 assert!(current_tick != index, "LimitReached");
 
-                if x_to_y && sqrt_price > sqrt_price_limit {
-                    (sqrt_price, Some((index, false)))
-                } else if !x_to_y && sqrt_price < sqrt_price_limit {
+                if (x_to_y && sqrt_price > sqrt_price_limit)
+                    || (!x_to_y && sqrt_price < sqrt_price_limit)
+                {
                     (sqrt_price, Some((index, false)))
                 } else {
                     (sqrt_price_limit, None)
