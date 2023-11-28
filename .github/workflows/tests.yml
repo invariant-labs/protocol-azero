@@ -33,7 +33,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: cargo test --features e2e-tests
+          args: --features e2e-tests
 
   build:
     name: Build the contract
