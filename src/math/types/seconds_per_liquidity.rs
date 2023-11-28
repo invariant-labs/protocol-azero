@@ -33,7 +33,7 @@ impl SecondsPerLiquidity {
         let delta_time_in_seconds = (current_timestamp - last_timestamp) / 1000;
 
         Ok(Self::new(
-            U256::from(delta_time_in_seconds)
+            (delta_time_in_seconds as u128)
                 .checked_mul(SecondsPerLiquidity::one())
                 .ok_or_else(|| err!(TrackableError::MUL))?
                 .checked_mul(Liquidity::one())
@@ -80,7 +80,6 @@ pub mod tests {
     use super::*;
 
     use crate::math::types::seconds_per_liquidity::SecondsPerLiquidity;
-    
     #[test]
     fn test_domain_calculate_seconds_per_liquidity_global() {
         // current_timestamp <= last_timestamp
@@ -156,7 +155,7 @@ pub mod tests {
             )
             .unwrap_err()
             .get();
-            assert_eq!(cause, "conversion to contract::math::types::seconds_per_liquidity::SecondsPerLiquidity type failed");
+            assert_eq!(cause, "multiplication overflow");
             assert_eq!(stack.len(), 1);
         }
 

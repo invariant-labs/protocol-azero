@@ -148,7 +148,7 @@ pub mod contract {
         }
 
         fn create_tick(&mut self, pool_key: PoolKey, index: i32) -> Result<Tick, InvariantError> {
-            let current_timestamp = self.env().block_timestamp();
+            let current_timestamp = self.env().block_timestamp() / 1000;
 
             check_tick(index, pool_key.fee_tier.tick_spacing)
                 .map_err(|_| InvariantError::InvalidTickIndexOrTickSpacing)?;
@@ -172,7 +172,7 @@ pub mod contract {
             by_amount_in: bool,
             sqrt_price_limit: SqrtPrice,
         ) -> Result<CalculateSwapResult, InvariantError> {
-            let current_timestamp = self.env().block_timestamp();
+            let current_timestamp = self.env().block_timestamp() / 1000;
             let caller = self.env().caller();
             if amount.is_zero() {
                 return Err(InvariantError::AmountIsZero);
@@ -460,7 +460,7 @@ pub mod contract {
         ) -> Result<Position, InvariantError> {
             let caller = self.env().caller();
             let contract = self.env().account_id();
-            let current_timestamp = self.env().block_timestamp();
+            let current_timestamp = self.env().block_timestamp() / 1000;
             let current_block_number = self.env().block_number() as u64;
 
             // liquidity delta = 0 => return
@@ -704,7 +704,7 @@ pub mod contract {
             pool_key: PoolKey,
         ) -> Result<(), InvariantError> {
             let caller = self.env().caller();
-            let current_timestamp = self.env().block_timestamp();
+            let current_timestamp = self.env().block_timestamp() / 1000;
 
             let mut position = self.positions.get(caller, index)?;
 
@@ -726,7 +726,7 @@ pub mod contract {
         #[ink(message)]
         fn claim_fee(&mut self, index: u32) -> Result<(TokenAmount, TokenAmount), InvariantError> {
             let caller = self.env().caller();
-            let current_timestamp = self.env().block_timestamp();
+            let current_timestamp = self.env().block_timestamp() / 1000;
 
             let mut position = self.positions.get(caller, index)?;
 
@@ -777,7 +777,7 @@ pub mod contract {
             index: u32,
         ) -> Result<(TokenAmount, TokenAmount), InvariantError> {
             let caller = self.env().caller();
-            let current_timestamp = self.env().block_timestamp();
+            let current_timestamp = self.env().block_timestamp() / 1000;
 
             let mut position = self.positions.get(caller, index)?;
 
@@ -900,7 +900,7 @@ pub mod contract {
             fee_tier: FeeTier,
             init_tick: i32,
         ) -> Result<(), InvariantError> {
-            let current_timestamp = self.env().block_timestamp();
+            let current_timestamp = self.env().block_timestamp() / 1000;
 
             let fee_tier_key = FeeTierKey(fee_tier.fee, fee_tier.tick_spacing);
             self.fee_tiers
@@ -1252,7 +1252,7 @@ pub mod contract {
             let pool_state =
                 get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
 
-            for n in 1..80 {
+            for n in 1..100 {
                 println!("Current loop = {:?}", n);
                 create_position!(
                     client,

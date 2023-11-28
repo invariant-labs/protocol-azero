@@ -146,7 +146,6 @@ impl Pool {
         self.seconds_per_liquidity_global = self
             .seconds_per_liquidity_global
             .unchecked_add(seconds_per_liquidity_global);
-        
         self.last_timestamp = current_timestamp;
         Ok(())
     }
