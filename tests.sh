@@ -20,6 +20,8 @@ cargo test
 cd decimal_core
 cd ../../..
 
+cargo fmt --all -- --check
+cargo clippy
 
 cargo test --features e2e-tests
 
