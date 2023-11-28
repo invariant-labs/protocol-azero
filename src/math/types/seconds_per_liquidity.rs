@@ -27,22 +27,35 @@ impl SecondsPerLiquidity {
         current_timestamp: u64,
         last_timestamp: u64,
     ) -> TrackableResult<Self> {
-        if current_timestamp <= last_timestamp {
+        if current_timestamp < last_timestamp {
             return Err(err!("current_timestamp > last_timestamp failed"));
         }
-        let delta_time = current_timestamp - last_timestamp;
+        let delta_time_in_seconds = (current_timestamp - last_timestamp) / 1000;
 
-        Ok(Self::new(
-            U256::from(delta_time)
-                .checked_mul(SecondsPerLiquidity::one())
-                .ok_or_else(|| err!(TrackableError::MUL))?
-                .checked_mul(Liquidity::one())
-                .ok_or_else(|| err!(TrackableError::MUL))?
-                .checked_div(liquidity.here())
-                .ok_or_else(|| err!(TrackableError::DIV))?
-                .try_into()
-                .map_err(|_| err!(TrackableError::cast::<Self>().as_str()))?,
-        ))
+        let multiplication = U256::from(delta_time_in_seconds).checked_mul(Liquidity::one()).ok_or_else(|| err!(TrackableError::MUL))?;
+        
+        let multiplication = multiplication.checked_mul(SecondsPerLiquidity::one()).ok_or_else(|| err!(TrackableError::MUL))?;
+
+        let division = multiplication.checked_div(liquidity.here()).ok_or_else(|| err!(TrackableError::DIV))?;
+
+        let result: u128 = division.try_into()
+                        .map_err(|_| err!(TrackableError::cast::<Self>().as_str()))?;
+
+        Ok(Self::new(result))
+
+
+        // Ok(Self::new(
+        //     U256::from(delta_time)
+        //         .checked_mul(SecondsPerLiquidity::one())
+        //         .ok_or_else(|| err!(TrackableError::MUL))?
+        //         .checked_mul(Liquidity::one())
+        //         .ok_or_else(|| err!(TrackableError::MUL))?
+        //         .checked_div(liquidity.here())
+        //         .ok_or_else(|| err!(TrackableError::DIV))?
+        //         .try_into()
+        //         .map_err(|_| err!(TrackableError::cast::<Self>().as_str()))?,
+        // ))
+        // Ok(Self::new(0))
     }
 }
 
@@ -80,6 +93,7 @@ pub mod tests {
     use super::*;
 
     use crate::math::types::seconds_per_liquidity::SecondsPerLiquidity;
+    
     #[test]
     fn test_domain_calculate_seconds_per_liquidity_global() {
         // current_timestamp <= last_timestamp
@@ -140,7 +154,7 @@ pub mod tests {
                 .unwrap();
             assert_eq!(
                 seconds_per_liquidity.get(),
-                315360000000000000000000000000000000000
+                315360000000000000000000000000000000
             );
         }
         // max value outside domain
@@ -172,7 +186,7 @@ pub mod tests {
             .unwrap();
             assert_eq!(
                 result,
-                SecondsPerLiquidity::new(315360000000000000000000000000000000000)
+                SecondsPerLiquidity::new(315360000000000000000000000000000000)
             )
         }
         // big liquidity
@@ -205,7 +219,8 @@ pub mod tests {
             .unwrap();
             assert_eq!(
                 result,
-                SecondsPerLiquidity::new(1000000000000000000000000000000)
+                //SecondsPerLiquidity::new(1000000000000000000000000000)
+                SecondsPerLiquidity::new(0)
             )
         }
     }

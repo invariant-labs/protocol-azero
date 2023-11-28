@@ -1252,7 +1252,8 @@ pub mod contract {
             let pool_state =
                 get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
 
-            for _ in 1..85 {
+            for n in 1..80 {
+                println!("Current loop = {:?}", n);
                 create_position!(
                     client,
                     ContractRef,

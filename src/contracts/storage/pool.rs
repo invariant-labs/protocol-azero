@@ -136,16 +136,17 @@ impl Pool {
         &mut self,
         current_timestamp: u64,
     ) -> TrackableResult<()> {
-        // let seconds_per_liquidity_global =
-        //     SecondsPerLiquidity::calculate_seconds_per_liquidity_global(
-        //         self.liquidity,
-        //         current_timestamp,
-        //         self.last_timestamp,
-        //     )?;
+        let seconds_per_liquidity_global =
+            SecondsPerLiquidity::calculate_seconds_per_liquidity_global(
+                self.liquidity,
+                current_timestamp,
+                self.last_timestamp,
+            )?;
 
-        // self.seconds_per_liquidity_global = self
-        //     .seconds_per_liquidity_global
-        //     .unchecked_add(seconds_per_liquidity_global);
+        self.seconds_per_liquidity_global = self
+            .seconds_per_liquidity_global
+            .unchecked_add(seconds_per_liquidity_global);
+        
         self.last_timestamp = current_timestamp;
         Ok(())
     }
