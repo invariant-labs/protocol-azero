@@ -950,9 +950,8 @@ pub mod contract {
             }
 
             let fee_tier_key = FeeTierKey(fee_tier.fee, fee_tier.tick_spacing);
-
             if self.fee_tiers.get_fee_tier(fee_tier_key).is_some() {
-                 Err(InvariantError::FeeTierAlreadyAdded)
+                Err(InvariantError::FeeTierAlreadyAdded)
             } else {
                 self.fee_tiers.add_fee_tier(fee_tier_key);
                 self.fee_tier_keys.push(fee_tier_key);
