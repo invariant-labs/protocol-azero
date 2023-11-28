@@ -14,11 +14,11 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v3
 
-      # - name: Install Rust toolchain
-      #   uses: Cardinal-Cryptography/github-actions/install-rust-toolchain@v1
       - name: Install Rust toolchain
-        run: |
-          rustup component add rust-src
+        uses: Cardinal-Cryptography/github-actions/install-rust-toolchain@v1
+      # - name: Install Rust toolchain
+      #   run: |
+      #     rustup component add rust-src
 
       - name: Run cargo fmt
         uses: actions-rs/cargo@v1
@@ -31,6 +31,11 @@ jobs:
         with:
           command: clippy
           # args: --all-targets -- --no-deps -D warnings (TODO: fix clippy warnings first)
+
+      - name: Install Protobuf
+        run: /
+          apt update && apt upgrade -y
+          sudo apt-get install -y protobuf-compiler libprotobuf-dev
 
       - name: Add installing required dependency
         run: |
