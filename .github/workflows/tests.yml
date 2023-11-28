@@ -36,12 +36,6 @@ jobs:
           key: ${{ runner.os }}-rust-${{ hashFiles('rust-toolchain.toml') }}
           restore-keys: |
             ${{ runner.os }}-rust
-        
-
-      # TODO: possible optimization: also cache such as cargo-contract
-      - name: Install Protobuf
-        run: |
-          sudo apt-get install -y protobuf-compiler libprotobuf-dev
 
       # - name: Add installing required dependency
       #   run: |
@@ -51,6 +45,12 @@ jobs:
         id: check-cargo-contract
         continue-on-error: true
         run: cargo contract --version
+
+      # TODO: possible optimization: also cache such as cargo-contract
+      - name: Install Protobuf
+        if: ${{ steps.check-cargo-contract.outcome == 'failure' }}
+        run: |
+          sudo apt-get install -y protobuf-compiler libprotobuf-dev
       
       - name: Install substrate-contracts-node
         if: ${{ steps.check-cargo-contract.outcome == 'failure' }}
@@ -62,12 +62,11 @@ jobs:
           # TODO: cache substrate-contracts-node OR downlaod binary from github release
           # args: --locked substrate-contracts-node
 
-      # COMMENT OUT TO SHORT RUNNING TIME
-      # - name: Run unit tests
-      #   uses: actions-rs/cargo@v1
-      #   with:
-      #     command: test
-      #     args: --features e2e-tests
+      - name: Run unit tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --features e2e-tests
 
   build:
     name: Build the contract
