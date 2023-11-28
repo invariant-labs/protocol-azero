@@ -79,7 +79,7 @@ pub trait Invariant {
     fn transfer_position(&mut self, index: u32, receiver: AccountId) -> Result<(), InvariantError>;
 
     #[ink(message)]
-    fn get_position(&mut self, index: u32) -> Option<Position>;
+    fn get_position(&mut self, index: u32) -> Result<Position, InvariantError>;
 
     #[ink(message)]
     fn get_all_positions(&mut self) -> Vec<Position>;
@@ -125,7 +125,7 @@ pub trait Invariant {
     ) -> Result<Pool, InvariantError>;
 
     #[ink(message)]
-    fn get_tick(&self, key: PoolKey, index: i32) -> Option<Tick>;
+    fn get_tick(&self, key: PoolKey, index: i32) -> Result<Tick, InvariantError>;
 
     #[ink(message)]
     fn get_tickmap_bit(&self, key: PoolKey, index: i32) -> bool;
