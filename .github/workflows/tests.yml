@@ -102,11 +102,16 @@ jobs:
         run: |
           sudo apt-get install -y protobuf-compiler libprotobuf-dev
 
+      # - name: Install substrate-contracts-node
+      #   uses: actions-rs/cargo@v1
+      #   with:
+      #     command: install
+      #     args: --locked contracts-node
+
       - name: Install substrate-contracts-node
-        uses: actions-rs/cargo@v1
-        with:
-          command: install
-          args: --locked contracts-node
+        run: |
+          cargo install cargo-dylint dylint-link
+          cargo install --force --locked cargo-contract
 
       - name: Build contract
         uses: actions-rs/cargo@v1
