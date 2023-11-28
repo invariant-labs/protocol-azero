@@ -1228,10 +1228,11 @@ pub mod contract {
             mint_with_aprove_for_bob!(client, TokenRef, token_x, dex, amount);
             approve!(client, TokenRef, token_y, dex, u64::MAX as u128, bob);
 
-            let fee = Percentage::from_scale(6, 3);
-            let tick_spacing = 1;
+            let fee_tier = FeeTier {
+                fee: Percentage::from_scale(6, 3),
+                tick_spacing: 1,
+            };
 
-            let fee_tier = FeeTier { fee, tick_spacing };
             create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
 
             let init_tick = 0;
@@ -1367,13 +1368,13 @@ pub mod contract {
             approve!(client, TokenRef, token_x, dex, u128::MAX, alice);
             approve!(client, TokenRef, token_y, dex, u128::MAX, alice);
 
-            let fee = Percentage::from_scale(6, 3);
-            let tick_spacing = 1;
-
-            let fee_tier = FeeTier { fee, tick_spacing };
+            let fee_tier = FeeTier {
+                fee: Percentage::from_scale(6, 3),
+                tick_spacing: 1,
+            };
             create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
 
-            let init_tick = get_max_tick(tick_spacing);
+            let init_tick = get_max_tick(1);
             create_pool!(
                 client,
                 ContractRef,
@@ -1417,13 +1418,13 @@ pub mod contract {
             approve!(client, TokenRef, token_x, dex, u128::MAX, alice);
             approve!(client, TokenRef, token_y, dex, u128::MAX, alice);
 
-            let fee = Percentage::from_scale(6, 3);
-            let tick_spacing = 1;
-
-            let fee_tier = FeeTier { fee, tick_spacing };
+            let fee_tier = FeeTier {
+                fee: Percentage::from_scale(6, 3),
+                tick_spacing: 1,
+            };
             create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
 
-            let init_tick = get_max_tick(tick_spacing);
+            let init_tick = get_max_tick(1);
             create_pool!(
                 client,
                 ContractRef,
@@ -1690,6 +1691,7 @@ pub mod contract {
             approve!(client, TokenRef, token_y, dex, mint_amount, alice);
 
             let liquidity = Liquidity::from_integer(10000000);
+
             let fee_tier = FeeTier {
                 fee: Percentage::from_scale(6, 3),
                 tick_spacing: 10,
@@ -2575,8 +2577,6 @@ pub mod contract {
                 );
 
                 let second_position = get_position!(client, ContractRef, dex, 4, alice).unwrap();
-                println!("First position = {:?}", first_position);
-                println!("Seconds position = {:?}", second_position);
 
                 // Check second position
                 assert!(second_position.pool_key == pool_key);
@@ -3710,12 +3710,12 @@ pub mod contract {
 
             assert_eq!(pool.liquidity, liquidity_delta);
 
-            let limit_wihtout_cross_tick_amount = TokenAmount(10_068);
+            let limit_without_cross_tick_amount = TokenAmount(10_068);
             let not_cross_amount = TokenAmount(1);
             let min_amount_to_cross_from_tick_price = TokenAmount(3);
             let crossing_amount_by_amount_out = TokenAmount(20136101434);
 
-            let mint_amount = limit_wihtout_cross_tick_amount.get()
+            let mint_amount = limit_without_cross_tick_amount.get()
                 + not_cross_amount.get()
                 + min_amount_to_cross_from_tick_price.get()
                 + crossing_amount_by_amount_out.get();
@@ -3737,7 +3737,7 @@ pub mod contract {
                 dex,
                 pool_key,
                 true,
-                limit_wihtout_cross_tick_amount,
+                limit_without_cross_tick_amount,
                 true,
                 limit_sqrt_price,
                 alice
@@ -3943,12 +3943,12 @@ pub mod contract {
 
             assert_eq!(pool.liquidity, liquidity_delta);
 
-            let limit_wihtout_cross_tick_amount = TokenAmount(10_068);
+            let limit_without_cross_tick_amount = TokenAmount(10_068);
             let not_cross_amount = TokenAmount(1);
             let min_amount_to_cross_from_tick_price = TokenAmount(3);
             let crossing_amount_by_amount_out = TokenAmount(20136101434);
 
-            let mint_amount = limit_wihtout_cross_tick_amount.get()
+            let mint_amount = limit_without_cross_tick_amount.get()
                 + not_cross_amount.get()
                 + min_amount_to_cross_from_tick_price.get()
                 + crossing_amount_by_amount_out.get();
@@ -3970,7 +3970,7 @@ pub mod contract {
                 dex,
                 pool_key,
                 true,
-                limit_wihtout_cross_tick_amount,
+                limit_without_cross_tick_amount,
                 true,
                 limit_sqrt_price,
                 alice
