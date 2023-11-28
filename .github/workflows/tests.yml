@@ -98,6 +98,12 @@ jobs:
           command: install
           args: --locked cargo-contract
 
+      - name: Install substrate-contracts-node
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: --locked contracts-node
+
       - name: Build contract
         uses: actions-rs/cargo@v1
         with:
