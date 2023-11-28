@@ -32,7 +32,7 @@ jobs:
       - name: Install substrate-contracts-node
         uses: actions-rs/cargo@v1
         with:
-          command: insatll
+          command: install
           args: --locked substrate-contracts-node
           # TODO: cache substrate-contracts-node
 
