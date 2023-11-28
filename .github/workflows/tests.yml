@@ -7,14 +7,13 @@ on:
 
 jobs:
   checks:
-    name: Run clippy and unit tests
+    name: Uint and e2e tests + linit
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout source code
         uses: actions/checkout@v3
 
-      # Maybe I should change toolchain
       # - name: Install Rust toolchain
       #   uses: Cardinal-Cryptography/github-actions/install-rust-toolchain@v1
 
@@ -43,10 +42,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-rust
 
-      # - name: Add installing required dependency
-      #   run: |
-      #     cargo install cargo-dylint dylint-link
-
       - name: Check if cargo-contract exists
         id: check-cargo-contract
         continue-on-error: true
@@ -57,16 +52,13 @@ jobs:
         run: |
           sudo apt-get install -y protobuf-compiler libprotobuf-dev
       
-        # TODO: cache substrate-contracts-node OR downlaod binary from github release
-        # args: --locked substrate-contracts-node
+        # TODO: try downlaod binary from github release
       - name: Install substrate-contracts-node
         if: ${{ steps.check-cargo-contract.outcome == 'failure' }}
         uses: actions-rs/cargo@v1
         with:
           command: install
           args: --force --locked contracts-node
-
-          
 
       - name: Run unit tests
         uses: actions-rs/cargo@v1
