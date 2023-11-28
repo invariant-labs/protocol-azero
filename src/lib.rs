@@ -737,13 +737,6 @@ pub mod contract {
             Ok(())
         }
 
-        // positions list features
-        // #[ink(message)]
-        // pub fn add_position(&mut self) {
-        //     let caller = self.env().caller();
-        //     self.positions.add(caller, Position::default());
-        // }
-
         #[ink(message)]
         fn get_position(&mut self, index: u32) -> Option<Position> {
             let caller = self.env().caller();
