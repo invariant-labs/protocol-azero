@@ -52,13 +52,20 @@ jobs:
         run: |
           sudo apt-get install -y protobuf-compiler libprotobuf-dev
       
-        # TODO: try downlaod binary from github release
+        
       - name: Install substrate-contracts-node
         if: ${{ steps.check-cargo-contract.outcome == 'failure' }}
-        uses: actions-rs/cargo@v1
-        with:
-          command: install
-          args: --force --locked contracts-node
+        run: |
+          cargo install cargo-dylint dylint-link
+          cargo install --force --locked cargo-contract
+
+      # TODO: try downlaod binary from github release
+      # - name: Install substrate-contracts-node
+      #   if: ${{ steps.check-cargo-contract.outcome == 'failure' }}
+      #   uses: actions-rs/cargo@v1
+      #   with:
+      #     command: install
+      #     args: --force --locked contracts-node
 
       - name: Run unit tests
         uses: actions-rs/cargo@v1
