@@ -1,4 +1,3 @@
-use decimal::*;
 #[macro_export]
 macro_rules! address_of {
     ($account:ident) => {

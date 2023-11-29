@@ -130,13 +130,13 @@ impl Tick {
     fn update_liquidity_change(&mut self, liquidity_delta: Liquidity, add: bool) {
         if self.sign ^ add {
             if { self.liquidity_change } > liquidity_delta {
-                self.liquidity_change = self.liquidity_change - liquidity_delta;
+                self.liquidity_change -= liquidity_delta;
             } else {
                 self.liquidity_change = liquidity_delta - self.liquidity_change;
                 self.sign = !self.sign;
             }
         } else {
-            self.liquidity_change = self.liquidity_change + liquidity_delta;
+            self.liquidity_change += liquidity_delta;
         }
     }
 
@@ -386,7 +386,7 @@ mod tests {
             let add = true;
             tick.update_liquidity_change(liquidity_delta, add);
 
-            assert_eq!(tick.sign, true);
+            assert!(tick.sign);
             assert_eq!({ tick.liquidity_change }, Liquidity::from_integer(5));
         }
         {
@@ -399,7 +399,7 @@ mod tests {
             let add = false;
             tick.update_liquidity_change(liquidity_delta, add);
 
-            assert_eq!(tick.sign, false);
+            assert!(!tick.sign);
             assert_eq!({ tick.liquidity_change }, Liquidity::from_integer(5));
         }
         // update when tick sign and sign of liquidity change are different
@@ -413,7 +413,7 @@ mod tests {
             let add = false;
             tick.update_liquidity_change(liquidity_delta, add);
 
-            assert_eq!(tick.sign, false);
+            assert!(!tick.sign);
             assert_eq!({ tick.liquidity_change }, Liquidity::from_integer(1));
         }
         {
@@ -426,7 +426,7 @@ mod tests {
             let add = true;
             tick.update_liquidity_change(liquidity_delta, add);
 
-            assert_eq!(tick.sign, true);
+            assert!(tick.sign);
             assert_eq!({ tick.liquidity_change }, Liquidity::from_integer(1));
         }
     }
@@ -451,7 +451,7 @@ mod tests {
             tick.update(liquidity_delta, max_liquidity, is_upper, is_deposit)
                 .unwrap();
 
-            assert_eq!(tick.sign, true);
+            assert!(tick.sign);
             assert_eq!({ tick.liquidity_change }, Liquidity::from_integer(3));
             assert_eq!({ tick.liquidity_gross }, Liquidity::from_integer(3));
             assert_eq!({ tick.fee_growth_outside_x }, FeeGrowth::from_integer(2));
@@ -474,7 +474,7 @@ mod tests {
             tick.update(liquidity_delta, max_liquidity, is_upper, is_deposit)
                 .unwrap();
 
-            assert_eq!(tick.sign, true);
+            assert!(tick.sign);
             assert_eq!({ tick.liquidity_change }, Liquidity::from_integer(2));
             assert_eq!({ tick.liquidity_gross }, Liquidity::from_integer(8));
             assert_eq!({ tick.fee_growth_outside_x }, FeeGrowth::from_integer(13));

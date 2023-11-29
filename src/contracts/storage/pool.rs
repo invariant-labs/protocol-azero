@@ -89,10 +89,10 @@ impl Pool {
 
         if in_x {
             self.fee_growth_global_x = self.fee_growth_global_x.unchecked_add(fee_growth);
-            self.fee_protocol_token_x = self.fee_protocol_token_x + protocol_fee;
+            self.fee_protocol_token_x += protocol_fee;
         } else {
             self.fee_growth_global_y = self.fee_growth_global_y.unchecked_add(fee_growth);
-            self.fee_protocol_token_y = self.fee_protocol_token_y + protocol_fee;
+            self.fee_protocol_token_y += protocol_fee;
         }
         Ok(())
     }
@@ -201,9 +201,8 @@ impl Pool {
             ));
 
             // crossing tick
-            if tick.is_some() {
+            if let Some(tick) = tick {
                 if !x_to_y || is_enough_amount_to_cross {
-                    let tick = tick.unwrap();
                     let _ = tick.cross(self, current_timestamp);
                     has_crossed = true;
                 } else if !remaining_amount.is_zero() {
@@ -410,7 +409,7 @@ mod tests {
         {
             let mut pool = Pool {
                 liquidity: Liquidity::from_integer(0),
-                sqrt_price: SqrtPrice::new(1000140000000_000000000000),
+                sqrt_price: SqrtPrice::new(1_000_140_000_000_000_000_000_000),
                 current_tick_index: 2,
                 ..Default::default()
             };
@@ -432,7 +431,7 @@ mod tests {
         {
             let mut pool = Pool {
                 liquidity: Liquidity::from_integer(0),
-                sqrt_price: SqrtPrice::new(1000140000000_000000000000),
+                sqrt_price: SqrtPrice::new(1_000_140_000_000_000_000_000_000),
                 current_tick_index: 2,
                 ..Default::default()
             };
@@ -456,7 +455,7 @@ mod tests {
             {
                 let mut pool = Pool {
                     liquidity: Liquidity::from_integer(1),
-                    sqrt_price: SqrtPrice::new(1000140000000_000000000000),
+                    sqrt_price: SqrtPrice::new(1_000_140_000_000_000_000_000_000),
                     current_tick_index: 6,
                     ..Default::default()
                 };
@@ -477,7 +476,7 @@ mod tests {
             {
                 let mut pool = Pool {
                     liquidity: Liquidity::from_integer(1),
-                    sqrt_price: SqrtPrice::new(1000140000000_000000000000),
+                    sqrt_price: SqrtPrice::new(1_000_140_000_000_000_000_000_000),
                     current_tick_index: -2,
                     ..Default::default()
                 };

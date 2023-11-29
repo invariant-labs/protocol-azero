@@ -13,8 +13,6 @@ use crate::{
     InvariantError,
 };
 use decimal::*;
-use ink::prelude::vec;
-use ink::primitives::AccountId;
 use traceable_result::*;
 #[derive(PartialEq, Default, Debug, Copy, Clone, scale::Decode, scale::Encode)]
 #[cfg_attr(
@@ -112,8 +110,8 @@ impl Position {
         self.fee_growth_inside_x = fee_growth_inside_x;
         self.fee_growth_inside_y = fee_growth_inside_y;
 
-        self.tokens_owed_x = self.tokens_owed_x + tokens_owed_x;
-        self.tokens_owed_y = self.tokens_owed_y + tokens_owed_y;
+        self.tokens_owed_x += tokens_owed_x;
+        self.tokens_owed_y += tokens_owed_y;
         Ok(())
     }
 

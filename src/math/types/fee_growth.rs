@@ -313,7 +313,7 @@ mod tests {
         }
         // huge liquidity
         {
-            let amount = TokenAmount(100_000_000__000000);
+            let amount = TokenAmount(100_000_000_000_000);
             let liquidity = Liquidity::from_integer(2u128.pow(77));
 
             let fee_growth = FeeGrowth::from_fee(liquidity, amount).unwrap();
@@ -324,7 +324,7 @@ mod tests {
             let out = fee_growth.to_fee(liquidity).unwrap();
             // real    9.99999999999999999853225897430980027744256 × 10^13
             // expected 99999999999999
-            assert_eq!(out, TokenAmount::new(99_999_999__999999))
+            assert_eq!(out, TokenAmount::new(99_999_999_999_999))
         }
     }
 

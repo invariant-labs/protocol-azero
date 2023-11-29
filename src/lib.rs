@@ -188,12 +188,10 @@ pub mod contract {
                 {
                     return Err(InvariantError::WrongLimit);
                 }
-            } else {
-                if pool.sqrt_price >= sqrt_price_limit
-                    || sqrt_price_limit < SqrtPrice::new(MIN_SQRT_PRICE)
-                {
-                    return Err(InvariantError::WrongLimit);
-                }
+            } else if pool.sqrt_price >= sqrt_price_limit
+                || sqrt_price_limit < SqrtPrice::new(MIN_SQRT_PRICE)
+            {
+                return Err(InvariantError::WrongLimit);
             }
 
             let mut remaining_amount = amount;
@@ -229,7 +227,7 @@ pub mod contract {
                     remaining_amount -= result.amount_out;
                 }
 
-                pool.add_fee(result.fee_amount, x_to_y, self.state.protocol_fee);
+                unwrap!(pool.add_fee(result.fee_amount, x_to_y, self.state.protocol_fee));
                 event_fee_amount += result.fee_amount;
 
                 pool.sqrt_price = result.next_sqrt_price;
@@ -288,8 +286,10 @@ pub mod contract {
             })
         }
 
-        fn remove_tick(&mut self, key: PoolKey, index: i32) {
-            self.ticks.remove(key, index);
+        fn remove_tick(&mut self, key: PoolKey, index: i32) -> Result<(), InvariantError> {
+            self.ticks.remove(key, index)?;
+
+            Ok(())
         }
 
         fn emit_swap_event(
@@ -536,7 +536,7 @@ pub mod contract {
                 self.calculate_swap(pool_key, x_to_y, amount, by_amount_in, sqrt_price_limit)?;
 
             for tick in calculate_swap_result.ticks.iter() {
-                self.ticks.update(pool_key, tick.index, tick);
+                let _ = self.ticks.update(pool_key, tick.index, tick);
             }
 
             self.pools.update(pool_key, &calculate_swap_result.pool)?;
@@ -714,12 +714,7 @@ pub mod contract {
 
             let pool = self.pools.get(pool_key)?;
 
-            position.update_seconds_per_liquidity(
-                pool,
-                lower_tick,
-                upper_tick,
-                current_timestamp as u64,
-            );
+            position.update_seconds_per_liquidity(pool, lower_tick, upper_tick, current_timestamp);
             Ok(())
         }
 
@@ -747,7 +742,7 @@ pub mod contract {
                 current_timestamp,
             );
 
-            self.positions.update(caller, index, &position);
+            self.positions.update(caller, index, &position)?;
             self.pools.update(position.pool_key, &pool)?;
             self.ticks
                 .update(position.pool_key, upper_tick.index, &upper_tick)?;
@@ -794,7 +789,7 @@ pub mod contract {
             let (amount_x, amount_y, deinitialize_lower_tick, deinitialize_upper_tick) = position
                 .remove(
                     pool,
-                    current_timestamp as u64,
+                    current_timestamp,
                     &mut lower_tick,
                     &mut upper_tick,
                     position.pool_key.fee_tier.tick_spacing,
@@ -872,9 +867,9 @@ pub mod contract {
             let fee_tier_key = FeeTierKey(fee_tier.fee, fee_tier.tick_spacing);
 
             if self.fee_tiers.get(fee_tier_key).is_some() {
-                return Err(InvariantError::FeeTierAlreadyExist);
+                Err(InvariantError::FeeTierAlreadyExist)
             } else {
-                self.fee_tiers.add(fee_tier_key);
+                self.fee_tiers.add(fee_tier_key)?;
                 self.fee_tier_keys.push(fee_tier_key);
                 Ok(())
             }
@@ -886,9 +881,11 @@ pub mod contract {
         }
 
         #[ink(message)]
-        fn remove_fee_tier(&mut self, key: FeeTierKey) {
-            self.fee_tiers.remove(key);
+        fn remove_fee_tier(&mut self, key: FeeTierKey) -> Result<(), InvariantError> {
+            self.fee_tiers.remove(key)?;
             self.fee_tier_keys.retain(|&x| x != key);
+
+            Ok(())
         }
 
         // Pools
@@ -1179,7 +1176,7 @@ pub mod contract {
             contract.add_fee_tier(fee_tier_value).unwrap();
             assert_eq!(contract.fee_tier_keys.len(), 1);
             contract.add_fee_tier(fee_tier_value).unwrap_err();
-            contract.remove_fee_tier(fee_tier_key);
+            contract.remove_fee_tier(fee_tier_key).unwrap();
             assert_eq!(contract.fee_tier_keys.len(), 0);
         }
     }
