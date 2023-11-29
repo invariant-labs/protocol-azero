@@ -24,18 +24,13 @@ impl PoolKeys {
             .position(|vec_pool_key| *vec_pool_key == pool_key)
             .ok_or(InvariantError::PoolKeyNotFound)?;
 
-        let length = self.pool_keys.len();
-
-        self.pool_keys.swap(index, length - 1);
-        self.pool_keys.pop();
+        self.pool_keys.remove(index);
 
         Ok(())
     }
 
     pub fn contains(&self, fee_tier_key: PoolKey) -> bool {
-        self.pool_keys
-            .iter()
-            .any(|vec_fee_tier_key| *vec_fee_tier_key == fee_tier_key)
+        self.pool_keys.contains(&fee_tier_key)
     }
 
     pub fn get_all(&self) -> Vec<PoolKey> {
