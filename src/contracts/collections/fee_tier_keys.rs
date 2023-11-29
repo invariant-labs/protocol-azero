@@ -10,7 +10,7 @@ pub struct FeeTierKeys {
 impl FeeTierKeys {
     pub fn add(&mut self, fee_tier_key: FeeTierKey) -> Result<(), InvariantError> {
         if self.contains(fee_tier_key) {
-            return Err(InvariantError::FeeTierAlreadyExist);
+            return Err(InvariantError::FeeTierKeyAlreadyExist);
         }
 
         self.fee_tier_keys.push(fee_tier_key);
@@ -22,7 +22,7 @@ impl FeeTierKeys {
             .fee_tier_keys
             .iter()
             .position(|vec_fee_tier_key| *vec_fee_tier_key == fee_tier_key)
-            .ok_or(InvariantError::FeeTierNotFound)?;
+            .ok_or(InvariantError::FeeTierKeyNotFound)?;
 
         let length = self.fee_tier_keys.len();
 
@@ -60,7 +60,7 @@ mod tests {
         assert_eq!(fee_tier_keys.contains(new_fee_tier_key), false);
 
         let result = fee_tier_keys.add(fee_tier_key);
-        assert_eq!(result, Err(InvariantError::FeeTierAlreadyExist));
+        assert_eq!(result, Err(InvariantError::FeeTierKeyAlreadyExist));
     }
 
     #[ink::test]
@@ -74,7 +74,7 @@ mod tests {
         assert_eq!(fee_tier_keys.contains(fee_tier_key), false);
 
         let result = fee_tier_keys.remove(fee_tier_key);
-        assert_eq!(result, Err(InvariantError::FeeTierNotFound));
+        assert_eq!(result, Err(InvariantError::FeeTierKeyNotFound));
     }
 
     #[ink::test]

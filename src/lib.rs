@@ -7,21 +7,21 @@ pub mod math;
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum InvariantError {
-    UnauthorizedAdmin,
+    NotAdmin,
+    NotFeeReceiver,
     PoolAlreadyExist,
     PoolNotFound,
     TickAlreadyExist,
     InvalidTickIndexOrTickSpacing,
     PositionNotFound,
     TickNotFound,
-    FeeTierNotFound,
+    FeeTierKeyNotFound,
     AmountIsZero,
     WrongLimit,
     PriceLimitReached,
     NoGainSwap,
     InvalidTickSpacing,
-    FeeTierAlreadyExist,
-    UnauthorizedFeeReceiver,
+    FeeTierKeyAlreadyExist,
     ZeroLiquidity,
     TransferError,
     TokensAreTheSame,
@@ -399,7 +399,7 @@ pub mod contract {
             let mut pool = self.pools.get(pool_key)?;
 
             if pool.fee_receiver != caller {
-                return Err(InvariantError::UnauthorizedFeeReceiver);
+                return Err(InvariantError::NotFeeReceiver);
             }
 
             let (fee_protocol_token_x, fee_protocol_token_y) = pool.withdraw_protocol_fee(pool_key);
@@ -422,7 +422,7 @@ pub mod contract {
             let caller = self.env().caller();
 
             if caller != self.state.admin {
-                return Err(InvariantError::UnauthorizedAdmin);
+                return Err(InvariantError::NotAdmin);
             }
 
             self.state.protocol_fee = protocol_fee;
@@ -438,7 +438,7 @@ pub mod contract {
             let caller = self.env().caller();
 
             if caller != self.state.admin {
-                return Err(InvariantError::UnauthorizedAdmin);
+                return Err(InvariantError::NotAdmin);
             }
 
             let mut pool = self.pools.get(pool_key)?;
@@ -861,7 +861,7 @@ pub mod contract {
             let caller = self.env().caller();
 
             if caller != self.state.admin {
-                return Err(InvariantError::UnauthorizedAdmin);
+                return Err(InvariantError::NotAdmin);
             }
 
             let fee_tier_key = FeeTierKey::new(fee_tier.fee, fee_tier.tick_spacing)?;
@@ -875,7 +875,7 @@ pub mod contract {
             let caller = self.env().caller();
 
             if caller != self.state.admin {
-                return Err(InvariantError::UnauthorizedAdmin);
+                return Err(InvariantError::NotAdmin);
             }
 
             self.fee_tier_keys.remove(key)?;
@@ -901,7 +901,7 @@ pub mod contract {
 
             let fee_tier_key = FeeTierKey(fee_tier.fee, fee_tier.tick_spacing);
             if !self.fee_tier_keys.contains(fee_tier_key) {
-                return Err(InvariantError::FeeTierNotFound);
+                return Err(InvariantError::FeeTierKeyNotFound);
             };
 
             let pool_key = PoolKey::new(token_0, token_1, fee_tier)?;
