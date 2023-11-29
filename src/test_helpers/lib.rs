@@ -1271,7 +1271,7 @@ macro_rules! swap_exact_limit {
             $x_to_y,
             $amount,
             $by_amount_in,
-            quote_result.2,
+            quote_result.target_sqrt_price,
             $caller
         );
     }};
