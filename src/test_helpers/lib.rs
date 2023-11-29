@@ -414,6 +414,24 @@ macro_rules! create_fee_tier {
     }};
 }
 #[macro_export]
+macro_rules! remove_fee_tier {
+    ($client:ident, $dex:ty, $dex_address:expr, $fee_tier:expr, $caller:ident) => {{
+        // client => ink_e2e_client
+        // x:ident || y:ident => Addresses of x and y tokens
+        // dex:ty => ContractRef
+        // dex_address:expr => Address of contract
+        // fee:expr => Percentage
+        // spacing:expr => tick_spacing as u16
+        let _msg = build_message::<$dex>($dex_address.clone())
+            .call(|contract| contract.remove_fee_tier($fee_tier));
+        $client
+            .call(&$caller, _msg, 0, None)
+            .await
+            .expect("Fee Tier removal failed")
+            .return_value()
+    }};
+}
+#[macro_export]
 macro_rules! get_fee_tier {
     ($client:ident, $dex:ty, $dex_address:expr, $fee:expr, $spacing:expr) => {{
         // client => ink_e2e_client

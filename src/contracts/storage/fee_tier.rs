@@ -8,3 +8,9 @@ pub struct FeeTier {
     pub fee: Percentage,
     pub tick_spacing: u16,
 }
+
+impl FeeTier {
+    pub fn new(fee: Percentage, tick_spacing: u16) -> FeeTier {
+        FeeTier { fee, tick_spacing }
+    }
+}

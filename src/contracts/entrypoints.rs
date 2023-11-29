@@ -105,7 +105,7 @@ pub trait Invariant {
     fn get_fee_tier(&self, key: FeeTierKey) -> Option<()>;
 
     #[ink(message)]
-    fn remove_fee_tier(&mut self, key: FeeTierKey);
+    fn remove_fee_tier(&mut self, key: FeeTierKey) -> Result<(), InvariantError>;
 
     #[ink(message)]
     fn create_pool(
