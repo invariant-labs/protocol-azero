@@ -10,7 +10,7 @@ pub struct PoolKeys {
 impl PoolKeys {
     pub fn add(&mut self, pool_key: PoolKey) -> Result<(), InvariantError> {
         if self.contains(pool_key) {
-            return Err(InvariantError::FeeTierAlreadyExist);
+            return Err(InvariantError::PoolKeyAlreadyExist);
         }
 
         self.pool_keys.push(pool_key);
@@ -22,7 +22,7 @@ impl PoolKeys {
             .pool_keys
             .iter()
             .position(|vec_pool_key| *vec_pool_key == pool_key)
-            .ok_or(InvariantError::FeeTierNotFound)?;
+            .ok_or(InvariantError::PoolKeyNotFound)?;
 
         let length = self.pool_keys.len();
 
@@ -67,7 +67,7 @@ mod tests {
         assert_eq!(pool_keys.contains(new_pool_key), false);
 
         let result = pool_keys.add(pool_key);
-        assert_eq!(result, Err(InvariantError::FeeTierAlreadyExist));
+        assert_eq!(result, Err(InvariantError::PoolKeyAlreadyExist));
     }
 
     #[ink::test]
@@ -81,7 +81,7 @@ mod tests {
         assert_eq!(pool_keys.contains(pool_key), false);
 
         let result = pool_keys.remove(pool_key);
-        assert_eq!(result, Err(InvariantError::FeeTierNotFound));
+        assert_eq!(result, Err(InvariantError::PoolKeyNotFound));
     }
 
     #[ink::test]
