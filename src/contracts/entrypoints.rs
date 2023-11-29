@@ -16,7 +16,7 @@ pub trait Invariant {
     #[ink(message)]
     fn get_protocol_fee(&self) -> Percentage;
 
-    /// Allows an authorized user to withdraw collected fees.
+    /// Allows an fee receiver to withdraw collected fees.
     ///
     /// # Parameters
     /// - `pool_key`: A unique key that identifies the specified pool.
