@@ -13,7 +13,7 @@ pub struct Pools {
 impl Pools {
     pub fn add(&mut self, pool_key: PoolKey, pool: &Pool) -> Result<(), InvariantError> {
         self.pools
-            .get(&pool_key)
+            .get(pool_key)
             .map_or(Ok(()), |_| Err(InvariantError::PoolAlreadyExist))?;
 
         self.pools.insert(pool_key, pool);
@@ -30,7 +30,7 @@ impl Pools {
     pub fn remove(&mut self, pool_key: PoolKey) -> Result<(), InvariantError> {
         self.get(pool_key)?;
 
-        self.pools.remove(&pool_key);
+        self.pools.remove(pool_key);
         Ok(())
     }
 

@@ -17,10 +17,10 @@ pub struct FeeTiers {
 impl FeeTiers {
     pub fn add(&mut self, fee_tier_key: FeeTierKey) -> Result<(), InvariantError> {
         self.fee_tiers
-            .get(&fee_tier_key)
+            .get(fee_tier_key)
             .map_or(Ok(()), |_| Err(InvariantError::FeeTierAlreadyExist))?;
 
-        self.fee_tiers.insert(&fee_tier_key, &());
+        self.fee_tiers.insert(fee_tier_key, &());
         Ok(())
     }
 
@@ -29,7 +29,7 @@ impl FeeTiers {
             .get(fee_tier_key)
             .ok_or(InvariantError::FeeTierNotFound)?;
 
-        self.fee_tiers.remove(&fee_tier_key);
+        self.fee_tiers.remove(fee_tier_key);
         Ok(())
     }
 

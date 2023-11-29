@@ -189,38 +189,38 @@ impl Pool {
     ) -> bool {
         let mut has_crossed = false;
         if result.next_sqrt_price == swap_limit && limiting_tick.is_some() {
-            let (tick_index, tick) = limiting_tick.unwrap();
+            if let Some((tick_index, tick)) = limiting_tick {
+                let is_enough_amount_to_cross = unwrap!(is_enough_amount_to_change_price(
+                    *remaining_amount,
+                    result.next_sqrt_price,
+                    self.liquidity,
+                    fee_tier.fee,
+                    by_amount_in,
+                    x_to_y,
+                ));
 
-            let is_enough_amount_to_cross = unwrap!(is_enough_amount_to_change_price(
-                *remaining_amount,
-                result.next_sqrt_price,
-                self.liquidity,
-                fee_tier.fee,
-                by_amount_in,
-                x_to_y,
-            ));
-
-            // crossing tick
-            if let Some(tick) = tick {
-                if !x_to_y || is_enough_amount_to_cross {
-                    let _ = tick.cross(self, current_timestamp);
-                    has_crossed = true;
-                } else if !remaining_amount.is_zero() {
-                    if by_amount_in {
-                        self.add_fee(*remaining_amount, x_to_y, protocol_fee)
-                            .unwrap();
-                        *total_amount_in += *remaining_amount
+                // crossing tick
+                if let Some(tick) = tick {
+                    if !x_to_y || is_enough_amount_to_cross {
+                        let _ = tick.cross(self, current_timestamp);
+                        has_crossed = true;
+                    } else if !remaining_amount.is_zero() {
+                        if by_amount_in {
+                            self.add_fee(*remaining_amount, x_to_y, protocol_fee)
+                                .unwrap();
+                            *total_amount_in += *remaining_amount
+                        }
+                        *remaining_amount = TokenAmount(0);
                     }
-                    *remaining_amount = TokenAmount(0);
                 }
-            }
 
-            // set tick to limit (below if price is going down, because current tick should always be below price)
-            self.current_tick_index = if x_to_y && is_enough_amount_to_cross {
-                tick_index - fee_tier.tick_spacing as i32
-            } else {
-                tick_index
-            };
+                // set tick to limit (below if price is going down, because current tick should always be below price)
+                self.current_tick_index = if x_to_y && is_enough_amount_to_cross {
+                    tick_index - fee_tier.tick_spacing as i32
+                } else {
+                    tick_index
+                };
+            }
         } else {
             self.current_tick_index = unwrap!(get_tick_at_sqrt_price(
                 result.next_sqrt_price,

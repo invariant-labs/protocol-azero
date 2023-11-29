@@ -18,10 +18,10 @@ impl Ticks {
         tick: &Tick,
     ) -> Result<(), InvariantError> {
         self.ticks
-            .get(&(pool_key, index))
+            .get((pool_key, index))
             .map_or(Ok(()), |_| Err(InvariantError::TickAlreadyExist))?;
 
-        self.ticks.insert(&(pool_key, index), tick);
+        self.ticks.insert((pool_key, index), tick);
         Ok(())
     }
 
@@ -33,21 +33,21 @@ impl Ticks {
     ) -> Result<(), InvariantError> {
         self.get(pool_key, index)?;
 
-        self.ticks.insert((&pool_key, index), tick);
+        self.ticks.insert((pool_key, index), tick);
         Ok(())
     }
 
     pub fn remove(&mut self, pool_key: PoolKey, index: i32) -> Result<(), InvariantError> {
         self.get(pool_key, index)?;
 
-        self.ticks.remove(&(pool_key, index));
+        self.ticks.remove((pool_key, index));
         Ok(())
     }
 
     pub fn get(&self, pool_key: PoolKey, index: i32) -> Result<Tick, InvariantError> {
         let tick = self
             .ticks
-            .get(&(pool_key, index))
+            .get((pool_key, index))
             .ok_or(InvariantError::TickNotFound)?;
 
         Ok(tick)
