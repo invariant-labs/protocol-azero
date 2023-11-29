@@ -1,5 +1,5 @@
 use crate::{
-    contract::{CalculateSwapResult, Hop},
+    contract::{CalculateSwapResult, Hop, QuoteResult},
     contracts::{FeeTier, FeeTierKey, Pool, PoolKey, Position, Tick},
     math::{
         liquidity::Liquidity, percentage::Percentage, sqrt_price::sqrt_price::SqrtPrice,
@@ -66,7 +66,7 @@ pub trait Invariant {
         amount: TokenAmount,
         by_amount_in: bool,
         sqrt_price_limit: SqrtPrice,
-    ) -> Result<(TokenAmount, TokenAmount, SqrtPrice, Vec<Tick>), InvariantError>;
+    ) -> Result<QuoteResult, InvariantError>;
 
     #[ink(message)]
     fn quote_route(

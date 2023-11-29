@@ -111,6 +111,17 @@ pub mod contract {
         pub pool: Pool,
         pub ticks: Vec<Tick>,
     }
+    #[derive(Default, Debug, scale::Decode, scale::Encode)]
+    #[cfg_attr(
+        feature = "std",
+        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+    )]
+    pub struct QuoteResult {
+        pub amount_in: TokenAmount,
+        pub amount_out: TokenAmount,
+        pub target_sqrt_price: SqrtPrice,
+        pub ticks: Vec<Tick>,
+    }
 
     #[derive(scale::Decode, Default, scale::Encode, Clone, Debug)]
     #[cfg_attr(
@@ -627,16 +638,16 @@ pub mod contract {
             amount: TokenAmount,
             by_amount_in: bool,
             sqrt_price_limit: SqrtPrice,
-        ) -> Result<(TokenAmount, TokenAmount, SqrtPrice, Vec<Tick>), InvariantError> {
+        ) -> Result<QuoteResult, InvariantError> {
             let calculate_swap_result =
                 self.calculate_swap(pool_key, x_to_y, amount, by_amount_in, sqrt_price_limit)?;
 
-            Ok((
-                calculate_swap_result.amount_in,
-                calculate_swap_result.amount_out,
-                calculate_swap_result.pool.sqrt_price,
-                calculate_swap_result.ticks,
-            ))
+            Ok(QuoteResult {
+                amount_in: calculate_swap_result.amount_in,
+                amount_out: calculate_swap_result.amount_out,
+                target_sqrt_price: calculate_swap_result.pool.sqrt_price,
+                ticks: calculate_swap_result.ticks,
+            })
         }
 
         #[ink(message)]
@@ -1214,7 +1225,7 @@ pub mod contract {
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
         #[ink_e2e::test]
-        async fn reversed(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn test_swap_y_to_x(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let dex = create_dex!(client, ContractRef, Percentage::from_scale(6, 3));
             let initial_amount = 10u128.pow(10);
             let (token_x, token_y) =
@@ -1288,7 +1299,7 @@ pub mod contract {
                 bob
             )
             .unwrap()
-            .2;
+            .target_sqrt_price;
 
             let before_dex_x = dex_balance!(TokenRef, client, token_x, dex);
             let before_dex_y = dex_balance!(TokenRef, client, token_y, dex);
@@ -1552,7 +1563,7 @@ pub mod contract {
             let contract_amount_y = dex_balance!(TokenRef, client, token_y, dex);
 
             let expected_x = 0;
-            let expected_y = 42534896005851865508212194815854;
+            let expected_y = 42534896005851865508212194815854; // < 2^106
             assert_eq!(contract_amount_x, expected_x);
             assert_eq!(contract_amount_y, expected_y);
         }
@@ -1905,7 +1916,7 @@ pub mod contract {
             let crosses_after_quote =
                 ((pool_after_quote.current_tick_index - pool_before.current_tick_index) / 10).abs();
             assert_eq!(crosses_after_quote, 0);
-            assert_eq!(quote_result.3.len() - 1, 146);
+            assert_eq!(quote_result.ticks.len() - 1, 146);
 
             swap!(
                 client,
@@ -1934,7 +1945,7 @@ pub mod contract {
             assert_eq!(crosses, 146);
             assert_eq!(
                 pool_after.current_tick_index,
-                get_tick_at_sqrt_price(quote_result.2, 10).unwrap()
+                get_tick_at_sqrt_price(quote_result.target_sqrt_price, 10).unwrap()
             );
 
             Ok(())
@@ -3454,7 +3465,7 @@ pub mod contract {
                 alice
             )
             .unwrap()
-            .2;
+            .target_sqrt_price;
 
             swap!(
                 client,
@@ -3510,7 +3521,7 @@ pub mod contract {
                 alice
             )
             .unwrap()
-            .2;
+            .target_sqrt_price;
             swap!(
                 client,
                 ContractRef,
@@ -3606,7 +3617,7 @@ pub mod contract {
                 alice
             )
             .unwrap()
-            .2;
+            .target_sqrt_price;
 
             swap!(
                 client,
@@ -3693,7 +3704,7 @@ pub mod contract {
                 alice
             )
             .unwrap()
-            .2;
+            .target_sqrt_price;
 
             swap!(
                 client,
@@ -4074,7 +4085,7 @@ pub mod contract {
                 alice
             )
             .unwrap()
-            .2;
+            .target_sqrt_price;
 
             swap!(
                 client,
