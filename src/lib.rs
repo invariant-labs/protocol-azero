@@ -908,6 +908,9 @@ pub mod contract {
                 .ok_or(InvariantError::FeeTierNotFound)?;
 
             let pool_key = PoolKey::new(token_0, token_1, fee_tier)?;
+            if self.pools.get(pool_key).is_ok() {
+                return Err(InvariantError::PoolAlreadyExist);
+            };
             let pool = Pool::create(init_tick, current_timestamp, self.state.admin);
             self.pools.add(pool_key, &pool)?;
 
@@ -4010,6 +4013,14 @@ pub mod contract {
                 target_sqrt_price,
                 alice
             );
+        }
+
+        #[ink_e2e::test]
+        #[should_panic]
+        async fn init_exactly_same_pools(mut client: ink_e2e::Client<C, E>) -> () {
+            let (dex, token_x, token_y) = init_dex_and_tokens!(client, ContractRef, TokenRef);
+            init_basic_pool!(client, ContractRef, TokenRef, dex, token_x, token_y);
+            init_basic_pool!(client, ContractRef, TokenRef, dex, token_x, token_y);
         }
     }
 }

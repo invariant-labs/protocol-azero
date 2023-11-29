@@ -26,7 +26,7 @@ pub trait Invariant {
     #[ink(message)]
     fn withdraw_protocol_fee(&mut self, pool_key: PoolKey) -> Result<(), InvariantError>;
 
-    /// Allows an authorized user to adjust the protocol fee.
+    /// Allows an admin to adjust the protocol fee.
     ///
     /// # Parameters
     /// - `protocol_fee`: The expected fee represented as a percentage.
@@ -36,7 +36,7 @@ pub trait Invariant {
     #[ink(message)]
     fn change_protocol_fee(&mut self, protocol_fee: Percentage) -> Result<(), InvariantError>;
 
-    /// Transfers fee receiver authorization to another user.
+    /// Allows admin to change current fee receiver.
     ///
     /// # Parameters
     /// - `pool_key`: A unique key that identifies the specified pool.
@@ -221,6 +221,7 @@ pub trait Invariant {
     /// # Errors
     /// - Fails if unable to deinitialize ticks.
     /// - Fails if the DEX has insufficient balance to perform the transfer.
+    /// - Fails if Position cannot be found
     #[ink(message)]
     fn remove_position(&mut self, index: u32)
         -> Result<(TokenAmount, TokenAmount), InvariantError>;
@@ -262,6 +263,7 @@ pub trait Invariant {
     /// # Errors
     /// - Fails if the specified fee tier cannot be found.
     /// - Fails if the user attempts to create a pool for the same tokens.
+    /// - Fails if Pool with same tokens and fee tier already exist.
     #[ink(message)]
     fn create_pool(
         &mut self,
@@ -280,6 +282,7 @@ pub trait Invariant {
     ///
     /// # Errors
     /// - Fails if the Pool key cannot be created.
+    /// - Fails if there is no pool associated with created key
     #[ink(message)]
     fn get_pool(
         &self,
