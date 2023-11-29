@@ -24,18 +24,12 @@ impl FeeTierKeys {
             .position(|vec_fee_tier_key| *vec_fee_tier_key == fee_tier_key)
             .ok_or(InvariantError::FeeTierKeyNotFound)?;
 
-        let length = self.fee_tier_keys.len();
-
-        self.fee_tier_keys.swap(index, length - 1);
-        self.fee_tier_keys.pop();
-
+        self.fee_tier_keys.remove(index);
         Ok(())
     }
 
     pub fn contains(&self, fee_tier_key: FeeTierKey) -> bool {
-        self.fee_tier_keys
-            .iter()
-            .any(|vec_fee_tier_key| *vec_fee_tier_key == fee_tier_key)
+        self.fee_tier_keys.contains(&fee_tier_key)
     }
 
     pub fn get_all(&self) -> Vec<FeeTierKey> {
