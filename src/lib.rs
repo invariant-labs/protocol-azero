@@ -1221,7 +1221,6 @@ pub mod contract {
 
             let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 2).unwrap();
             remove_fee_tier!(client, ContractRef, dex, fee_tier, admin);
-            // get_fee_tier!(client, ContractRef, dex, Percentage::from_scale(2, 4), 2u16);
         }
 
         #[ink_e2e::test]
