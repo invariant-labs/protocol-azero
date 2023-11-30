@@ -1,4 +1,5 @@
-use crate::math::types::percentage::Percentage;
+use crate::{math::types::percentage::Percentage, InvariantError};
+use decimal::*;
 #[derive(scale::Decode, scale::Encode, Debug, Copy, Clone, PartialEq)]
 #[cfg_attr(
     feature = "std",
@@ -10,7 +11,15 @@ pub struct FeeTier {
 }
 
 impl FeeTier {
-    pub fn new(fee: Percentage, tick_spacing: u16) -> FeeTier {
-        FeeTier { fee, tick_spacing }
+    pub fn new(fee: Percentage, tick_spacing: u16) -> Result<Self, InvariantError> {
+        if tick_spacing == 0 || tick_spacing > 100 {
+            return Err(InvariantError::InvalidTickSpacing);
+        }
+
+        if fee > Percentage::from_integer(1) {
+            return Err(InvariantError::InvalidFee);
+        }
+
+        Ok(Self { fee, tick_spacing })
     }
 }

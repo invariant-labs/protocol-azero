@@ -15,17 +15,20 @@ pub enum InvariantError {
     PositionNotFound,
     TickNotFound,
     FeeTierNotFound,
+    PoolKeyNotFound,
     AmountIsZero,
     WrongLimit,
     PriceLimitReached,
     NoGainSwap,
     InvalidTickSpacing,
     FeeTierAlreadyExist,
+    PoolKeyAlreadyExist,
     UnauthorizedFeeReceiver,
     ZeroLiquidity,
     TransferError,
     TokensAreTheSame,
     AmountUnderMinimumAmountOut,
+    InvalidFee,
 }
 #[ink::contract]
 pub mod contract {
@@ -35,6 +38,7 @@ pub mod contract {
     use crate::contracts::FeeTierKey;
     use crate::contracts::Invariant;
     use crate::contracts::Pool;
+    use crate::contracts::PoolKeys;
     use crate::contracts::Tick;
     use crate::contracts::Tickmap;
     use crate::contracts::{FeeTier, FeeTiers, PoolKey, Pools, Position, Positions, Ticks}; //
@@ -142,7 +146,7 @@ pub mod contract {
         tickmap: Tickmap,
         ticks: Ticks,
         fee_tier_keys: Vec<FeeTierKey>,
-        pool_keys: Vec<PoolKey>,
+        pool_keys: PoolKeys,
         state: State,
     }
 
@@ -928,8 +932,7 @@ pub mod contract {
             let pool_key = PoolKey::new(token_0, token_1, fee_tier)?;
             let pool = Pool::create(init_tick, current_timestamp, self.state.admin);
             self.pools.add(pool_key, &pool)?;
-
-            self.pool_keys.push(pool_key);
+            self.pool_keys.add(pool_key)?;
 
             Ok(())
         }
@@ -947,16 +950,6 @@ pub mod contract {
             Ok(pool)
         }
 
-        fn remove_pool(&mut self, key: PoolKey) {
-            self.pools.remove(key);
-            self.pool_keys.retain(|&x| x != key);
-        }
-
-        // Ticks
-        fn add_tick(&mut self, key: PoolKey, index: i32, tick: Tick) {
-            self.ticks.add(key, index, &tick);
-        }
-
         #[ink(message)]
         fn get_tick(&self, key: PoolKey, index: i32) -> Result<Tick, InvariantError> {
             self.ticks.get(key, index)
@@ -966,117 +959,10 @@ pub mod contract {
         fn get_tickmap_bit(&self, key: PoolKey, index: i32) -> bool {
             self.tickmap.get(index, key.fee_tier.tick_spacing, key)
         }
-        fn remove_tick(&mut self, key: PoolKey, index: i32) {
-            self.ticks.remove(key, index);
-        }
 
-        fn emit_swap_event(
-            &self,
-            address: AccountId,
-            pool: PoolKey,
-            amount_in: TokenAmount,
-            amount_out: TokenAmount,
-            fee: TokenAmount,
-            start_sqrt_price: SqrtPrice,
-            target_sqrt_price: SqrtPrice,
-            x_to_y: bool,
-        ) {
-            let timestamp = self.get_timestamp();
-            ink::codegen::EmitEvent::<Contract>::emit_event(
-                self.env(),
-                SwapEvent {
-                    timestamp,
-                    address,
-                    pool,
-                    amount_in,
-                    amount_out,
-                    fee,
-                    start_sqrt_price,
-                    target_sqrt_price,
-                    x_to_y,
-                },
-            );
-        }
-        fn emit_create_position_event(
-            &self,
-            address: AccountId,
-            pool: PoolKey,
-            liquidity: Liquidity,
-            lower_tick: i32,
-            upper_tick: i32,
-            current_sqrt_price: SqrtPrice,
-        ) {
-            let timestamp = self.get_timestamp();
-            ink::codegen::EmitEvent::<Contract>::emit_event(
-                self.env(),
-                CreatePositionEvent {
-                    timestamp,
-                    address,
-                    pool,
-                    liquidity,
-                    lower_tick,
-                    upper_tick,
-                    current_sqrt_price,
-                },
-            );
-        }
-        fn emit_remove_position_event(
-            &self,
-            address: AccountId,
-            pool: PoolKey,
-            liquidity: Liquidity,
-            lower_tick: i32,
-            upper_tick: i32,
-            current_sqrt_price: SqrtPrice,
-        ) {
-            let timestamp = self.get_timestamp();
-            ink::codegen::EmitEvent::<Contract>::emit_event(
-                self.env(),
-                RemovePositionEvent {
-                    timestamp,
-                    address,
-                    pool,
-                    liquidity,
-                    lower_tick,
-                    upper_tick,
-                    current_sqrt_price,
-                },
-            );
-        }
-        fn emit_cross_tick_event(&self, address: AccountId, pool: PoolKey, index: i32) {
-            let timestamp = self.get_timestamp();
-            ink::codegen::EmitEvent::<Contract>::emit_event(
-                self.env(),
-                CrossTickEvent {
-                    timestamp,
-                    address,
-                    pool,
-                    index,
-                },
-            );
-        }
-
-        fn get_timestamp(&self) -> u64 {
-            self.env().block_timestamp()
-        }
-
-        fn _order_tokens(
-            &self,
-            token_0: AccountId,
-            token_1: AccountId,
-            balance_0: Balance,
-            balance_1: Balance,
-        ) -> OrderPair {
-            match token_0.lt(&token_1) {
-                true => OrderPair {
-                    x: (token_0, balance_0),
-                    y: (token_1, balance_1),
-                },
-                false => OrderPair {
-                    x: (token_1, balance_1),
-                    y: (token_0, balance_0),
-                },
-            }
+        #[ink(message)]
+        fn get_pools(&self) -> Vec<PoolKey> {
+            self.pool_keys.get_all()
         }
     }
 
@@ -1353,7 +1239,7 @@ pub mod contract {
 
             let alice = ink_e2e::alice();
 
-            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10);
+            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
 
             create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
 
@@ -1499,7 +1385,7 @@ pub mod contract {
 
             let alice = ink_e2e::alice();
 
-            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10);
+            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
 
             create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
 
@@ -1652,7 +1538,7 @@ pub mod contract {
             mint_with_aprove_for_bob!(client, TokenRef, token_x, dex, amount);
             approve!(client, TokenRef, token_y, dex, u64::MAX as u128, bob);
 
-            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 1);
+            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 1).unwrap();
 
             create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
 
@@ -1789,7 +1675,7 @@ pub mod contract {
             approve!(client, TokenRef, token_x, dex, u128::MAX, alice);
             approve!(client, TokenRef, token_y, dex, u128::MAX, alice);
 
-            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 1);
+            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 1).unwrap();
             create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
 
             let init_tick = get_max_tick(1);
@@ -1844,7 +1730,7 @@ pub mod contract {
             approve!(client, TokenRef, token_x, dex, u128::MAX, alice);
             approve!(client, TokenRef, token_y, dex, u128::MAX, alice);
 
-            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 1);
+            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 1).unwrap();
             create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
 
             let init_tick = get_max_tick(1);
@@ -1904,7 +1790,7 @@ pub mod contract {
             approve!(client, TokenRef, token_x, dex, u128::MAX, alice);
             approve!(client, TokenRef, token_y, dex, u128::MAX, alice);
 
-            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 1);
+            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 1).unwrap();
             create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
 
             let init_tick = 0;
@@ -2034,7 +1920,7 @@ pub mod contract {
             approve!(client, TokenRef, token_x, dex, u128::MAX, alice);
             approve!(client, TokenRef, token_y, dex, u128::MAX, alice);
 
-            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 1);
+            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 1).unwrap();
 
             create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
 
@@ -2110,7 +1996,7 @@ pub mod contract {
 
             let liquidity = Liquidity::from_integer(10000000);
 
-            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10);
+            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
 
             let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
 
@@ -2223,7 +2109,7 @@ pub mod contract {
             init_basic_pool!(client, ContractRef, TokenRef, dex, token_x, token_y);
             init_basic_position!(client, ContractRef, TokenRef, dex, token_x, token_y);
 
-            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10);
+            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
 
             let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
 
@@ -2256,7 +2142,7 @@ pub mod contract {
             init_basic_position!(client, ContractRef, TokenRef, dex, token_x, token_y);
             init_basic_swap!(client, ContractRef, TokenRef, dex, token_x, token_y);
 
-            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10);
+            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
             let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
             let alice = ink_e2e::alice();
             let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
@@ -2368,7 +2254,7 @@ pub mod contract {
             init_cross_position!(client, ContractRef, TokenRef, dex, token_x, token_y);
             init_cross_swap!(client, ContractRef, TokenRef, dex, token_x, token_y);
 
-            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10);
+            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
             let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
             let alice = ink_e2e::alice();
 
@@ -2422,7 +2308,7 @@ pub mod contract {
             init_basic_position!(client, ContractRef, TokenRef, dex, token_x, token_y);
             init_basic_swap!(client, ContractRef, TokenRef, dex, token_x, token_y);
 
-            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10);
+            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
             let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
             let alice = ink_e2e::alice();
             withdraw_protocol_fee!(client, ContractRef, dex, pool_key, alice);
@@ -2552,7 +2438,7 @@ pub mod contract {
 
             let alice = ink_e2e::alice();
 
-            let fee_tier = FeeTier::new(Percentage::new(0), 1);
+            let fee_tier = FeeTier::new(Percentage::new(0), 1).unwrap();
 
             create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
 
@@ -2582,7 +2468,7 @@ pub mod contract {
         #[ink_e2e::test]
         async fn create_fee_tier_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let dex = create_dex!(client, ContractRef, Percentage::new(0));
-            let fee_tier = FeeTier::new(Percentage::new(0), 10u16);
+            let fee_tier = FeeTier::new(Percentage::new(0), 10u16).unwrap();
             let alice = ink_e2e::alice();
             create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
             let fee_tier = get_fee_tier!(client, ContractRef, dex, Percentage::new(0), 10u16);
@@ -2610,7 +2496,7 @@ pub mod contract {
             let dex = create_dex!(client, ContractRef, Percentage::new(0));
             let (token_x, token_y) = create_tokens!(client, TokenRef, TokenRef, 500, 500);
 
-            let fee_tier = FeeTier::new(Percentage::from_scale(5, 1), 100);
+            let fee_tier = FeeTier::new(Percentage::from_scale(5, 1), 100).unwrap();
             let init_tick = 0;
 
             let alice = ink_e2e::alice();
@@ -2636,7 +2522,7 @@ pub mod contract {
         async fn fee_tier_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             let dex = create_dex!(client, ContractRef, Percentage::new(0));
             let admin = ink_e2e::alice();
-            let fee_tier = FeeTier::new(Percentage::from_scale(5, 1), 100);
+            let fee_tier = FeeTier::new(Percentage::from_scale(5, 1), 100).unwrap();
             let result = create_fee_tier!(client, ContractRef, dex, fee_tier, admin);
             assert!(result.is_ok());
             Ok(())
@@ -2647,7 +2533,7 @@ pub mod contract {
             let dex = create_dex!(client, ContractRef, Percentage::new(0));
             let admin = ink_e2e::alice();
             // 0 tick spacing | should fail
-            let fee_tier = FeeTier::new(Percentage::from_scale(5, 1), 0);
+            let fee_tier = FeeTier::new(Percentage::from_scale(5, 1), 0).unwrap();
             let result = create_fee_tier!(client, ContractRef, dex, fee_tier, admin);
         }
 
@@ -2657,7 +2543,7 @@ pub mod contract {
             let dex = create_dex!(client, ContractRef, Percentage::new(0));
             let user = ink_e2e::bob();
             // not-admin
-            let fee_tier = FeeTier::new(Percentage::from_scale(5, 1), 10);
+            let fee_tier = FeeTier::new(Percentage::from_scale(5, 1), 10).unwrap();
             let result = create_fee_tier!(client, ContractRef, dex, fee_tier, user);
         }
 
@@ -2674,7 +2560,7 @@ pub mod contract {
             let (token_x, token_y) =
                 create_tokens!(client, TokenRef, TokenRef, initial_balance, initial_balance);
 
-            let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 4);
+            let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 4).unwrap();
 
             create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
 
@@ -2778,7 +2664,7 @@ pub mod contract {
             let (token_x, token_y) =
                 create_tokens!(client, TokenRef, TokenRef, initial_balance, initial_balance);
 
-            let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 10);
+            let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 10).unwrap();
 
             create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
 
@@ -3056,7 +2942,7 @@ pub mod contract {
             let (token_x, token_y) =
                 create_tokens!(client, TokenRef, TokenRef, initial_balance, initial_balance);
 
-            let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 4);
+            let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 4).unwrap();
 
             create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
 
@@ -3160,7 +3046,7 @@ pub mod contract {
             let (token_x, token_y) =
                 create_tokens!(client, TokenRef, TokenRef, initial_balance, initial_balance);
 
-            let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 4);
+            let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 4).unwrap();
 
             create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
 
@@ -3257,7 +3143,7 @@ pub mod contract {
             let dex = create_dex!(client, ContractRef, Percentage::new(0));
             let (token_x, token_y) = create_tokens!(client, TokenRef, TokenRef, 500, 500);
 
-            let fee_tier = FeeTier::new(Percentage::from_scale(5, 1), 1);
+            let fee_tier = FeeTier::new(Percentage::from_scale(5, 1), 1).unwrap();
             let init_tick = 0;
 
             let alice = ink_e2e::alice();
@@ -3291,7 +3177,7 @@ pub mod contract {
             let dex = create_dex!(client, ContractRef, Percentage::new(0));
             let (token_x, token_y) = create_tokens!(client, TokenRef, TokenRef, 500, 500);
 
-            let fee_tier = FeeTier::new(Percentage::from_scale(5, 1), 100);
+            let fee_tier = FeeTier::new(Percentage::from_scale(5, 1), 100).unwrap();
             let init_tick = 0;
 
             let admin = ink_e2e::alice();
@@ -3317,7 +3203,7 @@ pub mod contract {
 
         #[ink_e2e::test]
         async fn remove_position_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10);
+            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
             let alice = ink_e2e::alice();
             let bob = ink_e2e::bob();
             let init_tick = 0;
@@ -3651,7 +3537,7 @@ pub mod contract {
         #[ink_e2e::test]
         #[should_panic]
         async fn no_liquidity_swap(mut client: ink_e2e::Client<C, E>) -> () {
-            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10);
+            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
             let alice = ink_e2e::alice();
             let bob = ink_e2e::bob();
             let init_tick = 0;
@@ -3803,7 +3689,7 @@ pub mod contract {
 
         #[ink_e2e::test]
         async fn liquidity_gap_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10);
+            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
             let alice = ink_e2e::alice();
             let bob = ink_e2e::bob();
             let init_tick = 0;
@@ -3997,7 +3883,7 @@ pub mod contract {
 
         #[ink_e2e::test]
         async fn cross_both_side_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10);
+            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
             let alice = ink_e2e::alice();
             let bob = ink_e2e::bob();
             let init_tick = 0;
@@ -4227,7 +4113,7 @@ pub mod contract {
         #[ink_e2e::test]
         #[should_panic]
         async fn cross_both_side_not_cross_case_test(mut client: ink_e2e::Client<C, E>) -> () {
-            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10);
+            let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
             let alice = ink_e2e::alice();
             let bob = ink_e2e::bob();
             let init_tick = 0;
