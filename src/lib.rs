@@ -948,7 +948,7 @@ pub mod contract {
         }
 
         #[ink(message)]
-        fn get_tickmap_bit(&self, key: PoolKey, index: i32) -> bool {
+        fn is_tick_initialized(&self, key: PoolKey, index: i32) -> bool {
             self.tickmap.get(index, key.fee_tier.tick_spacing, key)
         }
         fn remove_tick(&mut self, key: PoolKey, index: i32) {

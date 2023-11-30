@@ -632,7 +632,7 @@ macro_rules! tickmap_bit {
         // pool_key:expr => pool_key
         // caller => ink_e2e account to sign call
         let _msg = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.get_tickmap_bit($pool_key, $index));
+            .call(|contract| contract.is_tick_initialized($pool_key, $index));
         $client
             .call(&$caller, _msg, 0, None)
             .await

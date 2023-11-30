@@ -23,6 +23,9 @@ pub trait Invariant {
     ///
     /// # Errors
     /// - Reverts the call when the caller is an unauthorized receiver.
+    ///
+    /// # External contracts
+    /// - PSP22
     #[ink(message)]
     fn withdraw_protocol_fee(&mut self, pool_key: PoolKey) -> Result<(), InvariantError>;
 
@@ -69,6 +72,10 @@ pub trait Invariant {
     /// - Fails if the user attempts to create a position with invalid tick indexes or tick spacing.
     /// - Fails if the price has reached the slippage limit.
     /// - Fails if the allowance is insufficient or the user balance transfer fails.
+    /// - Fails if pool does not exist
+    ///
+    /// # External contracts
+    /// - PSP22
     #[ink(message)]
     fn create_position(
         &mut self,
@@ -87,7 +94,7 @@ pub trait Invariant {
     /// - `x_to_y`: A boolean specifying the swap direction.
     /// - `amount`: TokenAmount that the user wants to swap.
     /// - `by_amount_in`: A boolean specifying whether the user provides the amount to swap or expects the amount out.
-    /// - `sqrt_price_limit`: A price limit allowing the price to move for the swap to occur.
+    /// - `sqrt_price_limit`: A square root of price limit allowing the price to move for the swap to occur.
     ///
     /// # Events
     /// - On a successful swap, emits a `Swap` event for the freshly made swap.
@@ -95,9 +102,14 @@ pub trait Invariant {
     ///
     /// # Errors
     /// - Fails if the user attempts to perform a swap with zero amounts.
-    /// - Fails if the price has reached the specified limit.
+    /// - Fails if the price has reached the specified price limit (or price associated with specified square root of price).
     /// - Fails if the user would receive zero tokens.
     /// - Fails if the allowance is insufficient or the user balance transfer fails.
+    /// - Fails if there is insufficient liquidity in pool
+    /// - Fails if pool does not exist
+    ///
+    /// # External contracts
+    /// - PSP22
     #[ink(message)]
     fn swap(
         &mut self,
@@ -108,12 +120,12 @@ pub trait Invariant {
         sqrt_price_limit: SqrtPrice,
     ) -> Result<CalculateSwapResult, InvariantError>;
 
-    /// Performs multiple swaps based on the provided parameters.
+    /// Performs atomic swap involving several pools based on the provided parameters.
     ///
     /// # Parameters
     /// - `amount_in`: The amount of tokens that the user wants to swap.
     /// - `expected_amount_out`: The amount of tokens that the user wants to receive as a result of the swaps.
-    /// - `slippage`: The difference between the expected and actual outcome of a trade represented as a percentage.
+    /// - `slippage`: The max acceptable percentage difference between the expected and actual amount of output tokens in a trade, not considering target price or target_sqrt_price as in the case of a swap.
     /// - `swaps`: A vector containing all parameters needed to identify separate swap steps.
     ///
     /// # Events
@@ -125,6 +137,10 @@ pub trait Invariant {
     /// - Fails if the user would receive zero tokens.
     /// - Fails if the allowance is insufficient or the user balance transfer fails.
     /// - Fails if the minimum amount out after a single swap is insufficient to perform the next swap to achieve the expected amount out.
+    /// - Fails if pool does not exist
+    ///
+    /// # External contracts
+    /// - PSP22
     #[ink(message)]
     fn swap_route(
         &mut self,
@@ -134,19 +150,20 @@ pub trait Invariant {
         swaps: Vec<Hop>,
     ) -> Result<(), InvariantError>;
 
-    /// Calculates the output of a single off-chain swap.
+    /// Simulates the swap without its execution.
     ///
     /// # Parameters
     /// - `pool_key`: A unique key that identifies the specified pool.
     /// - `x_to_y`: A boolean specifying the swap direction.
     /// - `amount`: The amount of tokens that the user wants to swap.
     /// - `by_amount_in`: A boolean specifying whether the user provides the amount to swap or expects the amount out.
-    /// - `sqrt_price_limit`: A price limit allowing the price to move for the swap to occur.
+    /// - `sqrt_price_limit`: A square root of price limit allowing the price to move for the swap to occur.
     ///
     /// # Errors
     /// - Fails if the user attempts to perform a swap with zero amounts.
     /// - Fails if the price has reached the specified limit.
     /// - Fails if the user would receive zero tokens.
+    /// - Fails if pool does not exist
     #[ink(message)]
     fn quote(
         &self,
@@ -157,7 +174,7 @@ pub trait Invariant {
         sqrt_price_limit: SqrtPrice,
     ) -> Result<(TokenAmount, TokenAmount, SqrtPrice, Vec<Tick>), InvariantError>;
 
-    /// Calculates the output of multiple off-chain swaps.
+    /// Simulates multiple swaps without its execution.
     ///
     /// # Parameters
     /// - `amount_in`: The amount of tokens that the user wants to swap.
@@ -166,6 +183,7 @@ pub trait Invariant {
     /// # Errors
     /// - Fails if the user attempts to perform a swap with zero amounts.
     /// - Fails if the user would receive zero tokens.
+    /// - Fails if pool does not exist
     #[ink(message)]
     fn quote_route(
         &mut self,
@@ -185,6 +203,9 @@ pub trait Invariant {
     ///
     /// # Parameters
     /// - `index`: The index of the user position.
+    ///
+    /// # Errors
+    /// - Fails if position cannot be found
     #[ink(message)]
     fn get_position(&mut self, index: u32) -> Result<Position, InvariantError>;
 
@@ -199,7 +220,7 @@ pub trait Invariant {
         pool_key: PoolKey,
     ) -> Result<(), InvariantError>;
 
-    /// Allows an authorized user to claim collected fees.
+    /// Allows an authorized user (owner of the position) to claim collected fees.
     ///
     /// # Parameters
     /// - `index`: The index of the user position from which fees will be claimed.
@@ -207,10 +228,13 @@ pub trait Invariant {
     /// # Errors
     /// - Fails if the position cannot be found.
     /// - Fails if the DEX has insufficient balance to perform the transfer.
+    ///
+    /// # External contracts
+    /// - PSP22
     #[ink(message)]
     fn claim_fee(&mut self, index: u32) -> Result<(TokenAmount, TokenAmount), InvariantError>;
 
-    /// Removes a position.
+    /// Removes a position. Sends tokens associated with specified position to the owner.
     ///
     /// # Parameters
     /// - `index`: The index of the user position to be removed.
@@ -219,14 +243,15 @@ pub trait Invariant {
     /// - Emits a `Remove Position` event upon success.
     ///
     /// # Errors
-    /// - Fails if unable to deinitialize ticks.
-    /// - Fails if the DEX has insufficient balance to perform the transfer.
     /// - Fails if Position cannot be found
+    ///
+    /// # External contracts
+    /// - PSP22
     #[ink(message)]
     fn remove_position(&mut self, index: u32)
         -> Result<(TokenAmount, TokenAmount), InvariantError>;
 
-    /// Allows a user to add a custom fee tier.
+    /// Allows admin to add a custom fee tier.
     ///
     /// # Parameters
     /// - `fee_tier`: A struct identifying the pool fee and tick spacing.
@@ -235,15 +260,19 @@ pub trait Invariant {
     /// - Fails if an unauthorized user attempts to create a fee tier.
     /// - Fails if the tick spacing is invalid.
     /// - Fails if the fee tier already exists.
+    /// - Fails if fee is invalid
     #[ink(message)]
     fn add_fee_tier(&mut self, fee_tier: FeeTier) -> Result<(), InvariantError>;
 
-    /// Retrieves information about a fee tier.
+    /// Query of whether the fee tier exists.
     ///
     /// # Parameters
     /// - `fee_tier_key`: A struct identifying the pool fee and tick spacing.
+    ///
+    /// # Errors
+    /// - Fails if fee tier does not exist
     #[ink(message)]
-    fn get_fee_tier(&self, key: FeeTierKey) -> Option<()>;
+    fn get_fee_tier(&self, key: FeeTierKey) -> Option<()>; //Result<(), InvariantError>;
 
     /// Removes an existing fee tier.
     ///
@@ -253,6 +282,7 @@ pub trait Invariant {
     fn remove_fee_tier(&mut self, key: FeeTierKey);
 
     /// Allows a user to create a custom pool on a specified token pair and fee tier.
+    /// The contract specifies the order of tokens as x and y. The choice is deterministic.
     ///
     /// # Parameters
     /// - `token_0`: The address of the first token.
@@ -281,7 +311,6 @@ pub trait Invariant {
     /// - `fee_tier`: A struct identifying the pool fee and tick spacing.
     ///
     /// # Errors
-    /// - Fails if the Pool key cannot be created.
     /// - Fails if there is no pool associated with created key
     #[ink(message)]
     fn get_pool(
@@ -296,7 +325,9 @@ pub trait Invariant {
     /// # Parameters
     /// - `key`: A unique key that identifies the specified pool.
     /// - `index`: The tick index in the tickmap.
-
+    ///
+    /// # Errors
+    /// - Fails if tick cannot be found
     #[ink(message)]
     fn get_tick(&self, key: PoolKey, index: i32) -> Result<Tick, InvariantError>;
 
@@ -306,5 +337,9 @@ pub trait Invariant {
     /// - `key`: A unique key that identifies the specified pool.
     /// - `index`: The tick index in the tickmap.
     #[ink(message)]
-    fn get_tickmap_bit(&self, key: PoolKey, index: i32) -> bool;
+    fn is_tick_initialized(&self, key: PoolKey, index: i32) -> bool;
+
+    // /// Retrieves listed pools
+    // #[ink(message)]
+    // fn get_pools(&self) -> Vec<PoolKey>;
 }
