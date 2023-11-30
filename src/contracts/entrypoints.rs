@@ -1,6 +1,6 @@
 use crate::{
     contract::{CalculateSwapResult, Hop, QuoteResult},
-    contracts::{FeeTier, FeeTierKey, Pool, PoolKey, Position, Tick},
+    contracts::{FeeTier, Pool, PoolKey, Position, Tick},
     math::{
         liquidity::Liquidity, percentage::Percentage, sqrt_price::sqrt_price::SqrtPrice,
         token_amount::TokenAmount,
@@ -272,14 +272,14 @@ pub trait Invariant {
     /// # Errors
     /// - Fails if fee tier does not exist
     #[ink(message)]
-    fn get_fee_tier(&self, key: FeeTierKey) -> Option<()>; //Result<(), InvariantError>;
+    fn fee_tier_exist(&self, fee_tier: FeeTier) -> bool;
 
     /// Removes an existing fee tier.
     ///
     /// # Parameters
     /// - `fee_tier_key`: A struct identifying the pool fee and tick spacing.
     #[ink(message)]
-    fn remove_fee_tier(&mut self, key: FeeTierKey);
+    fn remove_fee_tier(&mut self, fee_tier: FeeTier) -> Result<(), InvariantError>;
 
     /// Allows a user to create a custom pool on a specified token pair and fee tier.
     /// The contract specifies the order of tokens as x and y. The choice is deterministic.
