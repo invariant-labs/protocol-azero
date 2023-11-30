@@ -125,7 +125,7 @@ pub trait Invariant {
     /// # Parameters
     /// - `amount_in`: The amount of tokens that the user wants to swap.
     /// - `expected_amount_out`: The amount of tokens that the user wants to receive as a result of the swaps.
-    /// - `slippage`: The max acceptable percentage difference between the expected and actual amount of output tokens in a trade, not considering target price or target_sqrt_price as in the case of a swap.
+    /// - `slippage`: The max acceptable percentage difference between the expected and actual amount of output tokens in a trade, not considering square root of target price as in the case of a swap.
     /// - `swaps`: A vector containing all parameters needed to identify separate swap steps.
     ///
     /// # Events
@@ -227,7 +227,6 @@ pub trait Invariant {
     ///
     /// # Errors
     /// - Fails if the position cannot be found.
-    /// - Fails if the DEX has insufficient balance to perform the transfer.
     ///
     /// # External contracts
     /// - PSP22
@@ -268,9 +267,6 @@ pub trait Invariant {
     ///
     /// # Parameters
     /// - `fee_tier_key`: A struct identifying the pool fee and tick spacing.
-    ///
-    /// # Errors
-    /// - Fails if fee tier does not exist
     #[ink(message)]
     fn fee_tier_exist(&self, fee_tier: FeeTier) -> bool;
 
@@ -278,6 +274,11 @@ pub trait Invariant {
     ///
     /// # Parameters
     /// - `fee_tier_key`: A struct identifying the pool fee and tick spacing.
+    ///
+    /// # Errors
+    /// - Fails if an unauthorized user attempts to remove a fee tier.
+    /// - Fails if fee tier does not exist
+    ///
     #[ink(message)]
     fn remove_fee_tier(&mut self, fee_tier: FeeTier) -> Result<(), InvariantError>;
 
