@@ -414,7 +414,7 @@ macro_rules! create_fee_tier {
     }};
 }
 #[macro_export]
-macro_rules! get_fee_tier {
+macro_rules! fee_tier_exist {
     ($client:ident, $dex:ty, $dex_address:expr, $fee:expr, $spacing:expr) => {{
         // client => ink_e2e_client
         // x:ident || y:ident => Addresses of x and y tokens
@@ -422,9 +422,28 @@ macro_rules! get_fee_tier {
         // dex_address:expr => Address of contract
         // fee:expr => Percentage
         // spacing:expr => tick_spacing as u16
-        let key = FeeTierKey($fee, $spacing);
+        let key = FeeTier::new($fee, $spacing).unwrap();
+        let _msg = build_message::<$dex>($dex_address.clone())
+            .call(|contract| contract.fee_tier_exist(key));
+        $client
+            .call(&ink_e2e::alice(), _msg, 0, None)
+            .await
+            .expect("Fee Tier creation failed")
+            .return_value()
+    }};
+}
+
+#[macro_export]
+macro_rules! get_fee_tiers {
+    ($client:ident, $dex:ty, $dex_address:expr) => {{
+        // client => ink_e2e_client
+        // x:ident || y:ident => Addresses of x and y tokens
+        // dex:ty => ContractRef
+        // dex_address:expr => Address of contract
+        // fee:expr => Percentage
+        // spacing:expr => tick_spacing as u16
         let _msg =
-            build_message::<$dex>($dex_address.clone()).call(|contract| contract.get_fee_tier(key));
+            build_message::<$dex>($dex_address.clone()).call(|contract| contract.get_fee_tiers());
         $client
             .call(&ink_e2e::alice(), _msg, 0, None)
             .await

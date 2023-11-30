@@ -10,6 +10,15 @@ pub struct FeeTier {
     pub tick_spacing: u16,
 }
 
+impl Default for FeeTier {
+    fn default() -> Self {
+        Self {
+            fee: Percentage::new(0),
+            tick_spacing: 1,
+        }
+    }
+}
+
 impl FeeTier {
     pub fn new(fee: Percentage, tick_spacing: u16) -> Result<Self, InvariantError> {
         if tick_spacing == 0 || tick_spacing > 100 {
