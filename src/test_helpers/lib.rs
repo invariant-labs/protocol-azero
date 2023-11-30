@@ -422,7 +422,7 @@ macro_rules! fee_tier_exist {
         // dex_address:expr => Address of contract
         // fee:expr => Percentage
         // spacing:expr => tick_spacing as u16
-        let key = FeeTierKey($fee, $spacing);
+        let key = FeeTier::new($fee, $spacing).unwrap();
         let _msg = build_message::<$dex>($dex_address.clone())
             .call(|contract| contract.fee_tier_exist(key));
         $client
@@ -521,6 +521,44 @@ macro_rules! remove_position {
 }
 
 #[macro_export]
+macro_rules! transfer_position {
+    ($client:ident, $dex:ty, $dex_address:expr, $index:expr, $receiver:expr, $caller:ident) => {{
+        // client => ink_e2e_client
+        // x:ident || y:ident => Addresses of x and y tokens
+        // dex:ty => ContractRef
+        // dex_address:expr => Address of contract
+        // index:expr => position index to remove
+        // receiver:expr => address of account to transfer
+        // caller => ink_e2e account to sign call
+        let _msg = build_message::<$dex>($dex_address.clone())
+            .call(|contract| contract.transfer_position($index, $receiver));
+        $client
+            .call(&$caller, _msg, 0, None)
+            .await
+            .expect("Position transfer failed")
+            .return_value()
+    }};
+}
+
+#[macro_export]
+macro_rules! positions_equals {
+    ($a:expr, $b:expr) => {{
+        assert_eq!($a.fee_growth_inside_x, $b.fee_growth_inside_x);
+        assert_eq!($a.fee_growth_inside_y, $b.fee_growth_inside_y);
+        assert_eq!($a.liquidity, $b.liquidity);
+        assert_eq!($a.lower_tick_index, $b.lower_tick_index);
+        assert_eq!($a.upper_tick_index, $b.upper_tick_index);
+        assert_eq!($a.pool_key, $b.pool_key);
+        assert_eq!(
+            $a.seconds_per_liquidity_inside,
+            $b.seconds_per_liquidity_inside
+        );
+        assert_eq!($a.tokens_owed_x, $b.tokens_owed_x);
+        assert_eq!($a.tokens_owed_y, $b.tokens_owed_y);
+    }};
+}
+
+#[macro_export]
 macro_rules! get_position {
     ($client:ident, $dex:ty, $dex_address:expr, $index:expr, $caller:ident) => {{
         // client => ink_e2e_client
@@ -538,7 +576,6 @@ macro_rules! get_position {
             .return_value()
     }};
 }
-
 #[macro_export]
 macro_rules! get_all_positions {
     ($client:ident, $dex:ty, $dex_address:expr, $caller:ident) => {{
@@ -632,7 +669,7 @@ macro_rules! tickmap_bit {
         // pool_key:expr => pool_key
         // caller => ink_e2e account to sign call
         let _msg = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.get_tickmap_bit($pool_key, $index));
+            .call(|contract| contract.is_tick_initialized($pool_key, $index));
         $client
             .call(&$caller, _msg, 0, None)
             .await
@@ -1253,7 +1290,7 @@ macro_rules! swap_exact_limit {
             $x_to_y,
             $amount,
             $by_amount_in,
-            quote_result.2,
+            quote_result.target_sqrt_price,
             $caller
         );
     }};
