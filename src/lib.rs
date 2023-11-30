@@ -1101,8 +1101,9 @@ pub mod contract {
             init_basic_pool, init_basic_position, init_basic_swap, init_cross_position,
             init_cross_swap, init_dex_and_3_tokens, init_dex_and_tokens,
             init_dex_and_tokens_max_mint_amount, init_slippage_dex_and_tokens, mint,
-            mint_with_aprove_for_bob, multiple_swap, quote, quote_route, remove_position, swap,
-            swap_exact_limit, swap_route, tickmap_bit, withdraw_protocol_fee,
+            mint_with_aprove_for_bob, multiple_swap, positions_equals, quote, quote_route,
+            remove_position, swap, swap_exact_limit, swap_route, tickmap_bit, transfer_position,
+            withdraw_protocol_fee,
         };
         use token::TokenRef;
 
@@ -1328,6 +1329,261 @@ pub mod contract {
                 );
                 let list_length_after = get_all_positions!(client, ContractRef, dex, alice).len();
                 assert_eq!(list_length_after, list_length_before + 1);
+            }
+            Ok(())
+        }
+
+        #[ink_e2e::test]
+        async fn test_transfer_position_ownership(
+            mut client: ink_e2e::Client<C, E>,
+        ) -> E2EResult<()> {
+            let alice = ink_e2e::alice();
+            let init_tick = -23028;
+
+            let dex = create_dex!(client, ContractRef, Percentage::new(0));
+            let initial_balance = 10u128.pow(10);
+
+            let (token_x, token_y) =
+                create_tokens!(client, TokenRef, TokenRef, initial_balance, initial_balance);
+
+            let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 3).unwrap();
+
+            create_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+
+            let pool = create_pool!(
+                client,
+                ContractRef,
+                dex,
+                token_x,
+                token_y,
+                fee_tier,
+                init_tick
+            );
+
+            approve!(client, TokenRef, token_x, dex, initial_balance, alice);
+            approve!(client, TokenRef, token_y, dex, initial_balance, alice);
+
+            let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+            let tick_indexes = [-9780, -42, 0, 9, 276, 32343, -50001];
+            let liquidity_delta = Liquidity::from_integer(1_000_000);
+            let pool_state =
+                get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+            {
+                create_position!(
+                    client,
+                    ContractRef,
+                    dex,
+                    pool_key,
+                    tick_indexes[0],
+                    tick_indexes[1],
+                    liquidity_delta,
+                    pool_state.sqrt_price,
+                    SqrtPrice::max_instance(),
+                    alice
+                );
+                let list_length = get_all_positions!(client, ContractRef, dex, alice).len();
+
+                assert_eq!(list_length, 1)
+            }
+
+            let bob_address = address_of!(Bob);
+            let bob = ink_e2e::bob();
+            // Open  additional positions
+            {
+                create_position!(
+                    client,
+                    ContractRef,
+                    dex,
+                    pool_key,
+                    tick_indexes[0],
+                    tick_indexes[1],
+                    liquidity_delta,
+                    pool_state.sqrt_price,
+                    SqrtPrice::max_instance(),
+                    alice
+                );
+                create_position!(
+                    client,
+                    ContractRef,
+                    dex,
+                    pool_key,
+                    tick_indexes[1],
+                    tick_indexes[2],
+                    liquidity_delta,
+                    pool_state.sqrt_price,
+                    SqrtPrice::max_instance(),
+                    alice
+                );
+                create_position!(
+                    client,
+                    ContractRef,
+                    dex,
+                    pool_key,
+                    tick_indexes[1],
+                    tick_indexes[3],
+                    liquidity_delta,
+                    pool_state.sqrt_price,
+                    SqrtPrice::max_instance(),
+                    alice
+                );
+            }
+            // Transfer first position
+            {
+                let transferred_index = 0;
+                let owner_list_before = get_all_positions!(client, ContractRef, dex, alice);
+                let recipient_list_before = get_all_positions!(client, ContractRef, dex, bob);
+                let removed_position =
+                    get_position!(client, ContractRef, dex, transferred_index, alice).unwrap();
+                let last_position_before = owner_list_before[owner_list_before.len() - 1];
+
+                transfer_position!(
+                    client,
+                    ContractRef,
+                    dex,
+                    transferred_index,
+                    bob_address,
+                    alice
+                );
+
+                let recipient_position =
+                    get_position!(client, ContractRef, dex, transferred_index, bob).unwrap();
+                let owner_list_after = get_all_positions!(client, ContractRef, dex, alice);
+                let recipient_list_after = get_all_positions!(client, ContractRef, dex, bob);
+                let owner_first_position_after =
+                    get_position!(client, ContractRef, dex, transferred_index, alice).unwrap();
+
+                assert_eq!(recipient_list_after.len(), recipient_list_before.len() + 1);
+                assert_eq!(owner_list_before.len() - 1, owner_list_after.len());
+
+                // move last position
+                positions_equals!(owner_first_position_after, last_position_before);
+
+                // Equals fiels od transferred position
+                positions_equals!(recipient_position, removed_position);
+            }
+
+            // Transfer middle position
+            {
+                let transferred_index = 1;
+                let owner_list_before = get_all_positions!(client, ContractRef, dex, alice);
+                let recipient_list_before = get_all_positions!(client, ContractRef, dex, bob);
+                let removed_position =
+                    get_position!(client, ContractRef, dex, transferred_index, alice).unwrap();
+                let last_position_before = owner_list_before[owner_list_before.len() - 1];
+
+                transfer_position!(
+                    client,
+                    ContractRef,
+                    dex,
+                    transferred_index,
+                    bob_address,
+                    alice
+                );
+
+                let recipient_position =
+                    get_position!(client, ContractRef, dex, transferred_index, bob).unwrap();
+                let owner_list_after = get_all_positions!(client, ContractRef, dex, alice);
+                let recipient_list_after = get_all_positions!(client, ContractRef, dex, bob);
+                let owner_first_position_after =
+                    get_position!(client, ContractRef, dex, transferred_index, alice).unwrap();
+
+                assert_eq!(recipient_list_after.len(), recipient_list_before.len() + 1);
+                assert_eq!(owner_list_before.len() - 1, owner_list_after.len());
+
+                // move last position
+                positions_equals!(owner_first_position_after, last_position_before);
+            }
+            // Transfer last position
+            {
+                let owner_list_before = get_all_positions!(client, ContractRef, dex, alice);
+                let transferred_index = (owner_list_before.len() - 1) as u32;
+                let recipient_list_before = get_all_positions!(client, ContractRef, dex, bob);
+                let removed_position =
+                    get_position!(client, ContractRef, dex, transferred_index, alice).unwrap();
+
+                transfer_position!(
+                    client,
+                    ContractRef,
+                    dex,
+                    transferred_index,
+                    bob_address,
+                    alice
+                );
+
+                let owner_list_after = get_all_positions!(client, ContractRef, dex, alice);
+                let recipient_list_after = get_all_positions!(client, ContractRef, dex, bob);
+                let recipient_position_index = (recipient_list_after.len() - 1) as u32;
+                let recipient_position =
+                    get_position!(client, ContractRef, dex, recipient_position_index, bob).unwrap();
+
+                positions_equals!(removed_position, recipient_position);
+            }
+
+            // Clear position
+            {
+                let transferred_index = 0;
+                let owner_list_before = get_all_positions!(client, ContractRef, dex, alice);
+                let recipient_list_before = get_all_positions!(client, ContractRef, dex, bob);
+                let removed_position =
+                    get_position!(client, ContractRef, dex, transferred_index, alice).unwrap();
+                let last_position_before = owner_list_before[owner_list_before.len() - 1];
+
+                transfer_position!(
+                    client,
+                    ContractRef,
+                    dex,
+                    transferred_index,
+                    bob_address,
+                    alice
+                );
+
+                let recipient_list_after = get_all_positions!(client, ContractRef, dex, bob);
+                let recipient_position_index = (recipient_list_after.len() - 1) as u32;
+                let recipient_position =
+                    get_position!(client, ContractRef, dex, recipient_position_index, bob).unwrap();
+                let owner_list_after = get_all_positions!(client, ContractRef, dex, alice);
+
+                assert_eq!(recipient_list_after.len(), recipient_list_before.len() + 1);
+                assert_eq!(0, owner_list_after.len());
+
+                // Equals fiels od transferred position
+                positions_equals!(recipient_position, removed_position);
+            }
+
+            // Get back position
+            {
+                let transferred_index = 0;
+                let owner_list_before = get_all_positions!(client, ContractRef, dex, alice);
+                let recipient_list_before = get_all_positions!(client, ContractRef, dex, bob);
+                let removed_position =
+                    get_position!(client, ContractRef, dex, transferred_index, bob).unwrap();
+                let last_position_before = recipient_list_before[recipient_list_before.len() - 1];
+
+                transfer_position!(
+                    client,
+                    ContractRef,
+                    dex,
+                    transferred_index,
+                    address_of!(Alice),
+                    bob
+                );
+
+                let owner_list_after = get_all_positions!(client, ContractRef, dex, alice);
+                let recipient_list_after = get_all_positions!(client, ContractRef, dex, bob);
+                let recipient_first_position_after =
+                    get_position!(client, ContractRef, dex, transferred_index, bob).unwrap();
+
+                let owner_new_position =
+                    get_position!(client, ContractRef, dex, transferred_index, alice).unwrap();
+
+                assert_eq!(recipient_list_after.len(), recipient_list_before.len() - 1);
+                assert_eq!(owner_list_before.len() + 1, owner_list_after.len());
+
+                // move last position
+                positions_equals!(last_position_before, recipient_first_position_after);
+
+                // Equals fiels od transferred position
+                positions_equals!(owner_new_position, removed_position);
             }
 
             Ok(())
