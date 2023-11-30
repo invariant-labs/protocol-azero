@@ -405,10 +405,10 @@ macro_rules! add_fee_tier {
 }
 
 #[macro_export]
-macro_rules! get_fee_tier {
+macro_rules! fee_tier_exist {
     ($client:ident, $dex:ty, $dex_address:expr, $key:expr, $caller:ident) => {{
         let message = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.get_fee_tier($key));
+            .call(|contract| contract.fee_tier_exist($key));
         $client
             .call_dry_run(&$caller, &message, 0, None)
             .await
@@ -421,13 +421,24 @@ macro_rules! remove_fee_tier {
     ($client:ident, $dex:ty, $dex_address:expr, $key:expr, $caller:ident) => {{
         let message = build_message::<$dex>($dex_address.clone())
             .call(|contract| contract.remove_fee_tier($key));
-        $client
+        let result = $client
             .call_dry_run(&$caller, &message, 0, None)
             .await
-            .return_value()
+            .return_value();
+
+        if result.is_ok() {
+            let message = build_message::<$dex>($dex_address.clone())
+                .call(|contract| contract.remove_fee_tier($key));
+            $client
+                .call(&$caller, message, 0, None)
+                .await
+                .expect("remove_fee_tier failed")
+                .return_value()
+        } else {
+            result
+        }
     }};
 }
-
 #[macro_export]
 macro_rules! create_pool {
     ($client:ident, $dex:ty, $dex_address:expr, $token_0:expr, $token_1:expr, $fee_tier:expr, $init_tick:expr, $caller:ident) => {{
@@ -513,10 +524,22 @@ macro_rules! get_tick {
 }
 
 #[macro_export]
-macro_rules! get_tickmap_bit {
+macro_rules! is_tick_initialized {
     ($client:ident, $dex:ty, $dex_address:expr, $key:expr, $index:expr, $caller:ident) => {{
         let message = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.get_tickmap_bit($key, $index));
+            .call(|contract| contract.is_tick_initialized($key, $index));
+        $client
+            .call_dry_run(&$caller, &message, 0, None)
+            .await
+            .return_value()
+    }};
+}
+
+#[macro_export]
+macro_rules! get_fee_tiers {
+    ($client:ident, $dex:ty, $dex_address:expr, $caller:ident) => {{
+        let message =
+            build_message::<$dex>($dex_address.clone()).call(|contract| contract.get_fee_tiers());
         $client
             .call_dry_run(&$caller, &message, 0, None)
             .await
