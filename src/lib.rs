@@ -1100,9 +1100,9 @@ pub mod contract {
             get_fee_tier, get_pool, get_position, get_tick, get_tickmap_bit, init_basic_pool,
             init_basic_position, init_basic_swap, init_cross_position, init_cross_swap,
             init_dex_and_3_tokens, init_dex_and_tokens, init_dex_and_tokens_max_mint_amount,
-            init_slippage_dex_and_tokens, init_slippage_pool_with_liquidity, mint,
-            mint_with_aprove_for_bob, multiple_swap, quote, quote_route, remove_position, swap,
-            swap_exact_limit, swap_route, withdraw_protocol_fee,
+            init_slippage_dex_and_tokens, init_slippage_pool_with_liquidity, mint, multiple_swap,
+            quote, quote_route, remove_position, swap, swap_exact_limit, swap_route,
+            withdraw_protocol_fee,
         };
         use token::TokenRef;
 
@@ -1179,7 +1179,8 @@ pub mod contract {
             let amount = 1000;
             let swap_amount = TokenAmount(amount);
             let bob = ink_e2e::bob();
-            mint_with_aprove_for_bob!(client, TokenRef, token_x, dex, amount);
+            mint!(client, TokenRef, token_x, address_of!(Bob), amount);
+            approve!(client, TokenRef, token_x, dex, amount, bob);
 
             let slippage = SqrtPrice::new(MIN_SQRT_PRICE);
             let target_sqrt_price = quote!(
@@ -1336,7 +1337,8 @@ pub mod contract {
             let amount = 1000;
             let swap_amount = TokenAmount(amount);
             let bob = ink_e2e::bob();
-            mint_with_aprove_for_bob!(client, TokenRef, token_y, dex, amount);
+            mint!(client, TokenRef, token_y, address_of!(Bob), amount);
+            approve!(client, TokenRef, token_y, dex, amount, bob);
 
             let target_sqrt_price = SqrtPrice::new(MAX_SQRT_PRICE);
 
@@ -1437,7 +1439,8 @@ pub mod contract {
 
             let amount = 1000;
             let bob = ink_e2e::bob();
-            mint_with_aprove_for_bob!(client, TokenRef, token_x, dex, amount);
+            mint!(client, TokenRef, token_x, address_of!(Bob), amount);
+            approve!(client, TokenRef, token_x, dex, amount, bob);
             approve!(client, TokenRef, token_y, dex, u64::MAX as u128, bob);
 
             let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 1).unwrap();
