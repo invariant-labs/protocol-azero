@@ -329,9 +329,6 @@ pub trait Invariant {
     /// # Errors
     /// - Fails if tick cannot be found
     #[ink(message)]
-    fn get_pools(&self) -> Vec<PoolKey>;
-
-    #[ink(message)]
     fn get_tick(&self, key: PoolKey, index: i32) -> Result<Tick, InvariantError>;
 
     /// Checks if the tick at a specified index is initialized.
@@ -342,7 +339,11 @@ pub trait Invariant {
     #[ink(message)]
     fn is_tick_initialized(&self, key: PoolKey, index: i32) -> bool;
 
-    // /// Retrieves listed pools
-    // #[ink(message)]
-    // fn get_pools(&self) -> Vec<PoolKey>;
+    /// Retrieves listed pools
+    #[ink(message)]
+    fn get_pools(&self) -> Vec<PoolKey>;
+
+    /// Retrieves added fee tiers
+    #[ink(message)]
+    fn get_fee_tiers(&self) -> Vec<FeeTier>;
 }

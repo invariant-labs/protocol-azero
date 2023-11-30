@@ -434,6 +434,25 @@ macro_rules! fee_tier_exist {
 }
 
 #[macro_export]
+macro_rules! get_fee_tiers {
+    ($client:ident, $dex:ty, $dex_address:expr) => {{
+        // client => ink_e2e_client
+        // x:ident || y:ident => Addresses of x and y tokens
+        // dex:ty => ContractRef
+        // dex_address:expr => Address of contract
+        // fee:expr => Percentage
+        // spacing:expr => tick_spacing as u16
+        let _msg =
+            build_message::<$dex>($dex_address.clone()).call(|contract| contract.get_fee_tiers());
+        $client
+            .call(&ink_e2e::alice(), _msg, 0, None)
+            .await
+            .expect("Fee Tier creation failed")
+            .return_value()
+    }};
+}
+
+#[macro_export]
 macro_rules! create_pool {
     ($client:ident, $dex:ty, $dex_address:expr, $x:ident, $y:ident, $fee_tier:expr, $init_tick:expr) => {{
         // client => ink_e2e_client
@@ -498,6 +517,25 @@ macro_rules! create_position {
             .call(&$caller, _msg, 0, None)
             .await
             .expect("Create position failed")
+            .return_value()
+    }};
+}
+
+#[macro_export]
+macro_rules! remove_fee_tier {
+    ($client:ident, $dex:ty, $dex_address:expr, $fee_tier:expr, $caller:ident) => {{
+        // client => ink_e2e_client
+        // x:ident || y:ident => Addresses of x and y tokens
+        // dex:ty => ContractRef
+        // dex_address:expr => Address of contract
+        // fee:expr => Percentage
+        // spacing:expr => tick_spacing as u16
+        let _msg = build_message::<$dex>($dex_address.clone())
+            .call(|contract| contract.remove_fee_tier($fee_tier));
+        $client
+            .call(&$caller, _msg, 0, None)
+            .await
+            .expect("Fee Tier removal failed")
             .return_value()
     }};
 }

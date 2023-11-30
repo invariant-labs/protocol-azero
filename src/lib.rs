@@ -954,6 +954,11 @@ pub mod contract {
         fn get_pools(&self) -> Vec<PoolKey> {
             self.pool_keys.get_all()
         }
+
+        #[ink(message)]
+        fn get_fee_tiers(&self) -> Vec<FeeTier> {
+            self.fee_tiers.get_all()
+        }
     }
 
     #[cfg(test)]
@@ -1094,19 +1099,146 @@ pub mod contract {
             address_of, approve, balance_of, big_deposit_and_swap, change_fee_receiver, claim_fee,
             create_3_tokens, create_dex, create_fee_tier, create_pool, create_position,
             create_slippage_pool_with_liquidity, create_standard_fee_tiers, create_tokens,
-            dex_balance, fee_tier_exist, get_all_positions, get_pool, get_position, get_tick,
-            init_basic_pool, init_basic_position, init_basic_swap, init_cross_position,
+            dex_balance, fee_tier_exist, get_all_positions, get_fee_tiers, get_pool, get_position,
+            get_tick, init_basic_pool, init_basic_position, init_basic_swap, init_cross_position,
             init_cross_swap, init_dex_and_3_tokens, init_dex_and_tokens,
             init_dex_and_tokens_max_mint_amount, init_slippage_dex_and_tokens, mint,
             mint_with_aprove_for_bob, multiple_swap, positions_equals, quote, quote_route,
-            remove_position, swap, swap_exact_limit, swap_route, tickmap_bit, transfer_position,
-            withdraw_protocol_fee,
+            remove_fee_tier, remove_position, swap, swap_exact_limit, swap_route, tickmap_bit,
+            transfer_position, withdraw_protocol_fee,
         };
         use token::TokenRef;
 
         use super::*;
 
         type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
+
+        #[ink_e2e::test]
+        async fn add_multiple_fee_tiers(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let admin = ink_e2e::alice();
+            let dex = create_dex!(client, ContractRef, Percentage::new(0));
+
+            let first_fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 1).unwrap();
+            create_fee_tier!(client, ContractRef, dex, first_fee_tier, admin);
+
+            let second_fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 2).unwrap();
+            create_fee_tier!(client, ContractRef, dex, second_fee_tier, admin);
+
+            let third_fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 4).unwrap();
+            create_fee_tier!(client, ContractRef, dex, third_fee_tier, admin);
+
+            let exist =
+                fee_tier_exist!(client, ContractRef, dex, Percentage::from_scale(2, 4), 1u16);
+            assert!(exist);
+
+            let exist =
+                fee_tier_exist!(client, ContractRef, dex, Percentage::from_scale(2, 4), 2u16);
+            assert!(exist);
+
+            let exist =
+                fee_tier_exist!(client, ContractRef, dex, Percentage::from_scale(2, 4), 4u16);
+            assert!(exist);
+
+            let fee_tiers = get_fee_tiers!(client, ContractRef, dex);
+            assert_eq!(fee_tiers.len(), 3);
+            assert_eq!(fee_tiers[0], first_fee_tier);
+            assert_eq!(fee_tiers[1], second_fee_tier);
+            assert_eq!(fee_tiers[2], third_fee_tier);
+
+            Ok(())
+        }
+
+        #[ink_e2e::test]
+        #[should_panic]
+        async fn add_existing_fee_tier(mut client: ink_e2e::Client<C, E>) -> () {
+            let admin = ink_e2e::alice();
+            let dex = create_dex!(client, ContractRef, Percentage::new(0));
+
+            let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 1).unwrap();
+            create_fee_tier!(client, ContractRef, dex, fee_tier, admin);
+
+            let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 1).unwrap();
+            create_fee_tier!(client, ContractRef, dex, fee_tier, admin);
+        }
+
+        #[ink_e2e::test]
+        #[should_panic]
+        async fn add_fee_tier_not_admin(mut client: ink_e2e::Client<C, E>) -> () {
+            let user = ink_e2e::bob();
+            let dex = create_dex!(client, ContractRef, Percentage::new(0));
+
+            let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 1).unwrap();
+            create_fee_tier!(client, ContractRef, dex, fee_tier, user);
+        }
+
+        #[ink_e2e::test]
+        async fn add_fee_tier_zero_fee(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let admin = ink_e2e::alice();
+            let dex = create_dex!(client, ContractRef, Percentage::new(0));
+
+            let fee_tier = FeeTier::new(Percentage::new(0), 10).unwrap();
+            create_fee_tier!(client, ContractRef, dex, fee_tier, admin);
+            Ok(())
+        }
+
+        #[ink_e2e::test]
+        #[should_panic]
+        async fn add_fee_tier_tick_spacing_zero(mut client: ink_e2e::Client<C, E>) -> () {
+            let admin = ink_e2e::alice();
+            let dex = create_dex!(client, ContractRef, Percentage::new(0));
+
+            let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 0).unwrap();
+            create_fee_tier!(client, ContractRef, dex, fee_tier, admin);
+        }
+        #[ink_e2e::test]
+        async fn remove_fee_tier_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            let admin = ink_e2e::alice();
+            let dex = create_dex!(client, ContractRef, Percentage::new(0));
+
+            let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 1).unwrap();
+            create_fee_tier!(client, ContractRef, dex, fee_tier, admin);
+
+            let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 2).unwrap();
+            create_fee_tier!(client, ContractRef, dex, fee_tier, admin);
+
+            remove_fee_tier!(client, ContractRef, dex, fee_tier, admin);
+
+            let exist =
+                fee_tier_exist!(client, ContractRef, dex, Percentage::from_scale(2, 4), 2u16);
+            assert!(!exist);
+
+            Ok(())
+        }
+
+        #[ink_e2e::test]
+        #[should_panic]
+        async fn remove_not_existing_fee_tier(mut client: ink_e2e::Client<C, E>) -> () {
+            let admin = ink_e2e::alice();
+            let dex = create_dex!(client, ContractRef, Percentage::new(0));
+
+            let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 1).unwrap();
+            create_fee_tier!(client, ContractRef, dex, fee_tier, admin);
+
+            let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 2).unwrap();
+            remove_fee_tier!(client, ContractRef, dex, fee_tier, admin);
+            // get_fee_tier!(client, ContractRef, dex, Percentage::from_scale(2, 4), 2u16);
+        }
+
+        #[ink_e2e::test]
+        #[should_panic]
+        async fn remove_fee_tier_not_admin(mut client: ink_e2e::Client<C, E>) -> () {
+            let admin = ink_e2e::alice();
+            let user = ink_e2e::bob();
+            let dex = create_dex!(client, ContractRef, Percentage::new(0));
+
+            let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 1).unwrap();
+            create_fee_tier!(client, ContractRef, dex, fee_tier, admin);
+
+            let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 2).unwrap();
+            create_fee_tier!(client, ContractRef, dex, fee_tier, admin);
+
+            remove_fee_tier!(client, ContractRef, dex, fee_tier, user);
+        }
 
         #[ink_e2e::test]
         #[should_panic]
