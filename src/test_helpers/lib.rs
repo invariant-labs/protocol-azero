@@ -1,4 +1,5 @@
-use decimal::*;
+pub mod entrypoints;
+
 #[macro_export]
 macro_rules! address_of {
     ($account:ident) => {
@@ -413,301 +414,6 @@ macro_rules! create_fee_tier {
             .return_value()
     }};
 }
-#[macro_export]
-macro_rules! get_fee_tier {
-    ($client:ident, $dex:ty, $dex_address:expr, $fee:expr, $spacing:expr) => {{
-        // client => ink_e2e_client
-        // x:ident || y:ident => Addresses of x and y tokens
-        // dex:ty => ContractRef
-        // dex_address:expr => Address of contract
-        // fee:expr => Percentage
-        // spacing:expr => tick_spacing as u16
-        let key = FeeTierKey($fee, $spacing);
-        let _msg =
-            build_message::<$dex>($dex_address.clone()).call(|contract| contract.get_fee_tier(key));
-        $client
-            .call(&ink_e2e::alice(), _msg, 0, None)
-            .await
-            .expect("Fee Tier creation failed")
-            .return_value()
-    }};
-}
-
-#[macro_export]
-macro_rules! create_pool {
-    ($client:ident, $dex:ty, $dex_address:expr, $x:ident, $y:ident, $fee_tier:expr, $init_tick:expr) => {{
-        // client => ink_e2e_client
-        // dex:ty => ContractRef
-        // dex_address:expr => Address of contract
-        // x:ident || y:ident => Addresses of x and y tokens
-        // fee_tier:expr => Pool fee tier
-        // init_tick:expr => init tick as i32
-        let _msg = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.create_pool($x, $y, $fee_tier, $init_tick));
-        $client
-            .call(&ink_e2e::alice(), _msg, 0, None)
-            .await
-            .expect("Pool creation failed")
-            .return_value()
-    }};
-}
-
-#[macro_export]
-macro_rules! get_pool {
-    ($client:ident, $dex:ty, $dex_address:expr, $x:ident, $y:ident, $fee_tier:expr) => {{
-        // client => ink_e2e_client
-        // x:ident || y:ident => Addresses of x and y tokens
-        // dex:ty => ContractRef
-        // dex_address:expr => Address of contract
-        // fee_tier:expr => Pool fee tier
-        let _msg = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.get_pool($x, $y, $fee_tier));
-        $client
-            .call(&ink_e2e::alice(), _msg, 0, None)
-            .await
-            .expect("Pool creation failed")
-            .return_value()
-    }};
-}
-
-///
-
-#[macro_export]
-macro_rules! create_position {
-    ($client:ident, $dex:ty, $dex_address:expr, $pool_key:expr, $lower_tick:expr, $upper_tick:expr, $l:expr, $limit_lower:expr, $limit_upper:expr,$caller:ident) => {{
-        // client => ink_e2e_client
-        // dex:ty => ContractRef
-        // dex_address:expr => Address of contract
-        // pool_key:expr => Pool key
-        // lower_tick:ident || upper_tick:ident => index of lower tick
-        // l => liquidity
-        // limit_lower | limit_upper => price limit slippage
-        // caller => ink_e2e account to sign call
-
-        let _msg = build_message::<$dex>($dex_address.clone()).call(|contract| {
-            contract.create_position(
-                $pool_key,
-                $lower_tick,
-                $upper_tick,
-                $l,
-                $limit_lower,
-                $limit_upper,
-            )
-        });
-        $client
-            .call(&$caller, _msg, 0, None)
-            .await
-            .expect("Create position failed")
-            .return_value()
-    }};
-}
-
-#[macro_export]
-macro_rules! remove_position {
-    ($client:ident, $dex:ty, $dex_address:expr, $index:expr, $caller:ident) => {{
-        // client => ink_e2e_client
-        // dex:ty => ContractRef
-        // dex_address:expr => Address of contract
-        // index:expr => position index to remove
-        // caller => ink_e2e account to sign call
-        let _msg = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.remove_position($index));
-        $client
-            .call(&$caller, _msg, 0, None)
-            .await
-            .expect("Remove position failed")
-            .return_value()
-    }};
-}
-
-#[macro_export]
-macro_rules! get_position {
-    ($client:ident, $dex:ty, $dex_address:expr, $index:expr, $caller:ident) => {{
-        // client => ink_e2e_client
-        // x:ident || y:ident => Addresses of x and y tokens
-        // dex:ty => ContractRef
-        // dex_address:expr => Address of contract
-        // index:expr => position index to remove
-        // caller => ink_e2e account to sign call
-        let _msg = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.get_position($index));
-        $client
-            .call(&$caller, _msg, 0, None)
-            .await
-            .expect("Position recieving failed")
-            .return_value()
-    }};
-}
-
-#[macro_export]
-macro_rules! get_all_positions {
-    ($client:ident, $dex:ty, $dex_address:expr, $caller:ident) => {{
-        // client => ink_e2e_client
-        // dex:ty => ContractRef
-        // dex_address:expr => Address of contract
-        // caller:expr => ink_e2e::account to sign the call
-        let _msg = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.get_all_positions());
-        $client
-            .call(&$caller, _msg, 0, None)
-            .await
-            .expect("getting posisitons failed")
-            .return_value()
-    }};
-}
-
-#[macro_export]
-macro_rules! claim_fee {
-    ($client:ident, $dex:ty, $dex_address:expr, $index:expr, $caller:ident) => {{
-        // client => ink_e2e_client
-        // dex:ty => ContractRef
-        // dex_address:expr => Address of contract
-        // index:expr => u32
-        // pool_key:expr => pool_key
-        // $caller => signer from ink_e2e env
-        let _msg =
-            build_message::<$dex>($dex_address.clone()).call(|contract| contract.claim_fee($index));
-        $client
-            .call(&$caller, _msg, 0, None)
-            .await
-            .expect("Pool creation failed")
-            .return_value()
-    }};
-}
-
-#[macro_export]
-macro_rules! swap {
-    ($client:ident, $dex:ty, $dex_address:expr, $pool_key:expr, $x_to_y:expr, $amount:expr, $by_amount_in:expr, $sqrt_price_limit:expr, $caller:ident) => {{
-        // client => ink_e2e_client
-        // dex:ty => ContractRef
-        // dex_address:expr => Address of contract
-        // pool_key:expr => pool_key
-        // x_to_y:expr => bool
-        // amount:expr => TokenAmount to swap
-        // by_amount_in:expr => bool
-        // sqrt_price_limit:expr => price limit
-        // caller => signer from ink_e2e env
-        let _msg = build_message::<$dex>($dex_address.clone()).call(|contract| {
-            contract.swap(
-                $pool_key,
-                $x_to_y,
-                $amount,
-                $by_amount_in,
-                $sqrt_price_limit,
-            )
-        });
-        $client
-            .call(&$caller, _msg, 0, None)
-            .await
-            .expect("Swap failed")
-            .return_value()
-    }};
-}
-
-#[macro_export]
-macro_rules! get_tick {
-    ($client:ident, $dex:ty, $dex_address:expr, $index:expr, $pool_key:expr, $caller:ident) => {{
-        // client => ink_e2e_client
-        // dex:ty => ContractRef
-        // dex_address:expr => Address of contract
-        // index:expr => tick index
-        // pool_key:expr => pool_key
-        // caller => ink_e2e account to sign call
-        let _msg = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.get_tick($pool_key, $index));
-        $client
-            .call_dry_run(&$caller, &_msg, 0, None)
-            .await
-            .return_value()
-    }};
-}
-
-#[macro_export]
-macro_rules! tickmap_bit {
-    ($client:ident, $dex:ty, $dex_address:expr, $index:expr, $pool_key:expr, $caller:ident) => {{
-        // client => ink_e2e_client
-        // dex:ty => ContractRef
-        // dex_address:expr => Address of contract
-        // index:expr => tick index
-        // pool_key:expr => pool_key
-        // caller => ink_e2e account to sign call
-        let _msg = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.get_tickmap_bit($pool_key, $index));
-        $client
-            .call(&$caller, _msg, 0, None)
-            .await
-            .expect("Tickmap byte failed")
-            .return_value()
-    }};
-}
-
-#[macro_export]
-macro_rules! withdraw_protocol_fee {
-    ($client:ident, $dex:ty, $dex_address:expr, $pool_key:expr, $caller:ident) => {{
-        // client => ink_e2e_client
-        // dex:ty => ContractRef
-        // dex_address:expr => Address of contract
-        // pool_key:expr => pool_key
-        // caller => ink_e2e account to sign call
-        let _msg = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.withdraw_protocol_fee($pool_key));
-        $client
-            .call(&$caller, _msg, 0, None)
-            .await
-            .expect("Tickmap byte failed")
-            .return_value()
-    }};
-}
-
-#[macro_export]
-macro_rules! change_fee_receiver {
-    ($client:ident, $dex:ty, $dex_address:expr, $pool_key:expr, $account:expr, $caller:ident) => {{
-        // client => ink_e2e_client
-        // x:ident || y:ident => Addresses of x and y tokens
-        // dex:ty => ContractRef
-        // dex_address:expr => Address of contract
-        // fee_tier:expr => Pool fee tier
-        let _msg = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.change_fee_receiver($pool_key, $account));
-        $client
-            .call(&$caller, _msg, 0, None)
-            .await
-            .expect("Changing fee reciever failed")
-            .return_value()
-    }};
-}
-
-#[macro_export]
-macro_rules! swap_route {
-    ($client:ident, $dex:ty, $dex_address:expr, $amount_in:expr, $expected_amount_out:expr, $slippage:expr, $swaps:expr, $caller:ident) => {{
-        // client => ink_e2e_client
-        // x:ident || y:ident => Addresses of x and y tokens
-        // dex:ty => ContractRef
-        // dex_address:expr => Address of contract
-        // fee_tier:expr => Pool fee tier
-        let _msg = build_message::<$dex>($dex_address.clone()).call(|contract| {
-            contract.swap_route($amount_in, $expected_amount_out, $slippage, $swaps)
-        });
-        $client
-            .call(&$caller, _msg, 0, None)
-            .await
-            .expect("Swap route failed")
-            .return_value()
-    }};
-}
-
-#[macro_export]
-macro_rules! quote_route {
-    ($client:ident, $dex:ty, $dex_address:expr, $amount_in:expr, $swaps:expr, $caller:ident) => {{
-        let _msg = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.quote_route($amount_in, $swaps));
-        $client
-            .call(&$caller, _msg, 0, None)
-            .await
-            .expect("Quote route failed")
-            .return_value()
-    }};
-}
 
 #[macro_export]
 macro_rules! init_dex_and_tokens {
@@ -790,7 +496,8 @@ macro_rules! init_basic_pool {
             $token_x_address,
             $token_y_address,
             fee_tier,
-            init_tick
+            init_tick,
+            alice
         );
     }};
 }
@@ -836,7 +543,8 @@ macro_rules! init_basic_position {
             $dex_address,
             $token_x_address,
             $token_y_address,
-            fee_tier
+            fee_tier,
+            alice
         )
         .unwrap();
         let slippage_limit_lower = pool_before.sqrt_price;
@@ -860,7 +568,8 @@ macro_rules! init_basic_position {
             $dex_address,
             $token_x_address,
             $token_y_address,
-            fee_tier
+            fee_tier,
+            alice
         )
         .unwrap();
 
@@ -909,7 +618,8 @@ macro_rules! init_cross_position {
             $dex_address,
             $token_x_address,
             $token_y_address,
-            fee_tier
+            fee_tier,
+            alice
         )
         .unwrap();
         let slippage_limit_lower = pool_before.sqrt_price;
@@ -933,7 +643,8 @@ macro_rules! init_cross_position {
             $dex_address,
             $token_x_address,
             $token_y_address,
-            fee_tier
+            fee_tier,
+            alice
         )
         .unwrap();
 
@@ -968,7 +679,8 @@ macro_rules! init_basic_swap {
             $dex_address,
             $token_x_address,
             $token_y_address,
-            pool_key.fee_tier
+            pool_key.fee_tier,
+            bob
         )
         .unwrap();
 
@@ -992,7 +704,8 @@ macro_rules! init_basic_swap {
             $dex_address,
             $token_x_address,
             $token_y_address,
-            fee_tier
+            fee_tier,
+            bob
         )
         .unwrap();
         assert_eq!(pool_after.liquidity, pool_before.liquidity);
@@ -1047,7 +760,8 @@ macro_rules! init_cross_swap {
             $dex_address,
             $token_x_address,
             $token_y_address,
-            fee_tier
+            fee_tier,
+            bob
         )
         .unwrap();
 
@@ -1071,7 +785,8 @@ macro_rules! init_cross_swap {
             $dex_address,
             $token_x_address,
             $token_y_address,
-            fee_tier
+            fee_tier,
+            bob
         )
         .unwrap();
         let position_liquidity = Liquidity::from_integer(1000000);
@@ -1121,7 +836,8 @@ macro_rules! create_slippage_pool_with_liquidity {
             $token_x_address,
             $token_y_address,
             fee_tier,
-            init_tick
+            init_tick,
+            alice
         );
         let fee_tier = FeeTier {
             fee: Percentage::from_scale(6, 3),
@@ -1158,7 +874,8 @@ macro_rules! create_slippage_pool_with_liquidity {
             $dex_address,
             $token_x_address,
             $token_y_address,
-            fee_tier
+            fee_tier,
+            alice
         )
         .unwrap();
         let slippage_limit_lower = pool_before.sqrt_price;
@@ -1182,7 +899,8 @@ macro_rules! create_slippage_pool_with_liquidity {
             $dex_address,
             $token_x_address,
             $token_y_address,
-            fee_tier
+            fee_tier,
+            alice
         )
         .unwrap();
 
@@ -1201,26 +919,6 @@ macro_rules! init_slippage_dex_and_tokens {
         let protocol_fee = Percentage::from_scale(1, 2);
         let dex = create_dex!($client, $dex, protocol_fee);
         (dex, token_x, token_y)
-    }};
-}
-
-#[macro_export]
-macro_rules! quote {
-    ($client:ident, $dex:ty, $dex_address:ident, $pool_key:expr, $x_to_y:expr, $amount:expr, $by_amount_in:expr, $sqrt_price_limit:expr, $caller:expr) => {{
-        let _msg = build_message::<$dex>($dex_address.clone()).call(|contract| {
-            contract.quote(
-                $pool_key,
-                $x_to_y,
-                $amount,
-                $by_amount_in,
-                $sqrt_price_limit,
-            )
-        });
-        $client
-            .call(&$caller, _msg, 0, None)
-            .await
-            .expect("Quote failed")
-            .return_value()
     }};
 }
 
@@ -1306,7 +1004,7 @@ macro_rules! big_deposit_and_swap {
         create_fee_tier!($client, $dex, dex, fee_tier, alice);
 
         let init_tick = 0;
-        create_pool!($client, $dex, dex, token_x, token_y, fee_tier, init_tick);
+        create_pool!($client, $dex, dex, token_x, token_y, fee_tier, init_tick, alice);
 
         let lower_tick = if $x_to_y {
             -(fee_tier.tick_spacing as i32)
@@ -1318,7 +1016,7 @@ macro_rules! big_deposit_and_swap {
         } else {
             fee_tier.tick_spacing as i32
         };
-        let pool = get_pool!($client, $dex, dex, token_x, token_y, fee_tier).unwrap();
+        let pool = get_pool!($client, $dex, dex, token_x, token_y, fee_tier, alice).unwrap();
 
         let liquidity_delta = if $x_to_y {
             get_liquidity_by_y(
@@ -1411,7 +1109,7 @@ macro_rules! multiple_swap {
         create_fee_tier!($client, $dex, dex, fee_tier, alice);
 
         let init_tick = 0;
-        create_pool!($client, $dex, dex, token_x, token_y, fee_tier, init_tick);
+        create_pool!($client, $dex, dex, token_x, token_y, fee_tier, init_tick, alice);
 
         let mint_amount = 10u128.pow(10);
         approve!($client, $token, token_x, dex, mint_amount, alice);
@@ -1422,7 +1120,7 @@ macro_rules! multiple_swap {
         let mut lower_tick = -upper_tick;
 
         let amount = 100;
-        let pool_data = get_pool!($client, $dex, dex, token_x, token_y, fee_tier).unwrap();
+        let pool_data = get_pool!($client, $dex, dex, token_x, token_y, fee_tier, alice).unwrap();
         let result = get_liquidity(
             TokenAmount(amount),
             TokenAmount(amount),
@@ -1478,7 +1176,7 @@ macro_rules! multiple_swap {
             );
         }
 
-        let pool = get_pool!($client, $dex, dex, token_x, token_y, fee_tier).unwrap();
+        let pool = get_pool!($client, $dex, dex, token_x, token_y, fee_tier, alice).unwrap();
         if $x_to_y {
             assert_eq!(pool.current_tick_index, -821);
         } else {
