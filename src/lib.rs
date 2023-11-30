@@ -1097,9 +1097,9 @@ pub mod contract {
             address_of, approve, balance_of, big_deposit_and_swap, change_fee_receiver, claim_fee,
             create_3_tokens, create_dex, create_fee_tier, create_pool, create_position,
             create_slippage_pool_with_liquidity, create_standard_fee_tiers, create_tokens,
-            dex_balance, get_all_positions, get_fee_tier, get_pool, get_position, get_tick,
-            get_tickmap_bit, init_basic_pool, init_basic_position, init_basic_swap,
-            init_cross_position, init_cross_swap, init_dex_and_3_tokens, init_dex_and_tokens,
+            get_all_positions, get_fee_tier, get_pool, get_position, get_tick, get_tickmap_bit,
+            init_basic_pool, init_basic_position, init_basic_swap, init_cross_position,
+            init_cross_swap, init_dex_and_3_tokens, init_dex_and_tokens,
             init_dex_and_tokens_max_mint_amount, init_slippage_dex_and_tokens, mint,
             mint_with_aprove_for_bob, multiple_swap, quote, quote_route, remove_position, swap,
             swap_exact_limit, swap_route, withdraw_protocol_fee,
@@ -1196,8 +1196,8 @@ pub mod contract {
             .unwrap()
             .target_sqrt_price;
 
-            let before_dex_x = dex_balance!(TokenRef, client, token_x, dex);
-            let before_dex_y = dex_balance!(TokenRef, client, token_y, dex);
+            let before_dex_x = balance_of!(client, TokenRef, token_x, dex);
+            let before_dex_y = balance_of!(client, TokenRef, token_y, dex);
 
             swap!(
                 client,
@@ -1226,10 +1226,10 @@ pub mod contract {
                 get_tickmap_bit!(client, ContractRef, dex, pool_key, middle_tick_index, alice);
             let upper_tick_bit =
                 get_tickmap_bit!(client, ContractRef, dex, pool_key, upper_tick_index, alice);
-            let bob_x = balance_of!(TokenRef, client, token_x, Bob);
-            let bob_y = balance_of!(TokenRef, client, token_y, Bob);
-            let dex_x = dex_balance!(TokenRef, client, token_x, dex);
-            let dex_y = dex_balance!(TokenRef, client, token_y, dex);
+            let bob_x = balance_of!(client, TokenRef, token_x, address_of!(Bob));
+            let bob_y = balance_of!(client, TokenRef, token_y, address_of!(Bob));
+            let dex_x = balance_of!(client, TokenRef, token_x, dex);
+            let dex_y = balance_of!(client, TokenRef, token_y, dex);
             let delta_dex_y = before_dex_y - dex_y;
             let delta_dex_x = dex_x - before_dex_x;
             let expected_y = amount - 10;
@@ -1354,8 +1354,8 @@ pub mod contract {
             .unwrap()
             .target_sqrt_price;
 
-            let before_dex_x = dex_balance!(TokenRef, client, token_x, dex);
-            let before_dex_y = dex_balance!(TokenRef, client, token_y, dex);
+            let before_dex_x = balance_of!(client, TokenRef, token_x, dex);
+            let before_dex_y = balance_of!(client, TokenRef, token_y, dex);
 
             swap!(
                 client,
@@ -1384,10 +1384,10 @@ pub mod contract {
                 get_tickmap_bit!(client, ContractRef, dex, pool_key, middle_tick_index, alice);
             let upper_tick_bit =
                 get_tickmap_bit!(client, ContractRef, dex, pool_key, upper_tick_index, alice);
-            let bob_x = balance_of!(TokenRef, client, token_x, Bob);
-            let bob_y = balance_of!(TokenRef, client, token_y, Bob);
-            let dex_x = dex_balance!(TokenRef, client, token_x, dex);
-            let dex_y = dex_balance!(TokenRef, client, token_y, dex);
+            let bob_x = balance_of!(client, TokenRef, token_x, address_of!(Bob));
+            let bob_y = balance_of!(client, TokenRef, token_y, address_of!(Bob));
+            let dex_x = balance_of!(client, TokenRef, token_x, dex);
+            let dex_y = balance_of!(client, TokenRef, token_y, dex);
             let delta_dex_x = before_dex_x - dex_x;
             let delta_dex_y = dex_y - before_dex_y;
             let expected_x = amount - 10;
@@ -1535,9 +1535,9 @@ pub mod contract {
                 bob
             );
 
-            let bob_amount_x = balance_of!(TokenRef, client, token_x, Bob);
-            let bob_amount_y = balance_of!(TokenRef, client, token_y, Bob);
-            let bob_amount_z = balance_of!(TokenRef, client, token_z, Bob);
+            let bob_amount_x = balance_of!(client, TokenRef, token_x, address_of!(Bob));
+            let bob_amount_y = balance_of!(client, TokenRef, token_y, address_of!(Bob));
+            let bob_amount_z = balance_of!(client, TokenRef, token_z, address_of!(Bob));
 
             assert_eq!(bob_amount_x, 0);
             assert_eq!(bob_amount_y, 0);
@@ -1553,16 +1553,16 @@ pub mod contract {
             assert_eq!(pool_2_after.fee_protocol_token_x, TokenAmount(1));
             assert_eq!(pool_2_after.fee_protocol_token_y, TokenAmount(0));
 
-            let alice_amount_x_before = balance_of!(TokenRef, client, token_x, Alice);
-            let alice_amount_y_before = balance_of!(TokenRef, client, token_y, Alice);
-            let alice_amount_z_before = balance_of!(TokenRef, client, token_z, Alice);
+            let alice_amount_x_before = balance_of!(client, TokenRef, token_x, address_of!(Alice));
+            let alice_amount_y_before = balance_of!(client, TokenRef, token_y, address_of!(Alice));
+            let alice_amount_z_before = balance_of!(client, TokenRef, token_z, address_of!(Alice));
 
             claim_fee!(client, ContractRef, dex, 0, alice);
             claim_fee!(client, ContractRef, dex, 1, alice);
 
-            let alice_amount_x_after = balance_of!(TokenRef, client, token_x, Alice);
-            let alice_amount_y_after = balance_of!(TokenRef, client, token_y, Alice);
-            let alice_amount_z_after = balance_of!(TokenRef, client, token_z, Alice);
+            let alice_amount_x_after = balance_of!(client, TokenRef, token_x, address_of!(Alice));
+            let alice_amount_y_after = balance_of!(client, TokenRef, token_y, address_of!(Alice));
+            let alice_amount_z_after = balance_of!(client, TokenRef, token_z, address_of!(Alice));
 
             assert_eq!(alice_amount_x_after - alice_amount_x_before, 4);
             assert_eq!(alice_amount_y_after - alice_amount_y_before, 4);
@@ -1619,8 +1619,8 @@ pub mod contract {
                 alice
             );
 
-            let contract_amount_x = dex_balance!(TokenRef, client, token_x, dex);
-            let contract_amount_y = dex_balance!(TokenRef, client, token_y, dex);
+            let contract_amount_x = balance_of!(client, TokenRef, token_x, dex);
+            let contract_amount_y = balance_of!(client, TokenRef, token_y, dex);
 
             let expected_x = 0;
             let expected_y = 42534896005851865508212194815854; // < 2^106
@@ -1755,13 +1755,13 @@ pub mod contract {
                 alice
             );
 
-            let user_amount_x = balance_of!(TokenRef, client, token_x, Alice);
-            let user_amount_y = balance_of!(TokenRef, client, token_y, Alice);
+            let user_amount_x = balance_of!(client, TokenRef, token_x, address_of!(Alice));
+            let user_amount_y = balance_of!(client, TokenRef, token_y, address_of!(Alice));
             assert_eq!(user_amount_x, u128::MAX - pos_amount);
             assert_eq!(user_amount_y, u128::MAX - y.get());
 
-            let contract_amount_x = dex_balance!(TokenRef, client, token_x, dex);
-            let contract_amount_y = dex_balance!(TokenRef, client, token_y, dex);
+            let contract_amount_x = balance_of!(client, TokenRef, token_x, dex);
+            let contract_amount_y = balance_of!(client, TokenRef, token_y, dex);
             assert_eq!(contract_amount_x, pos_amount);
             assert_eq!(contract_amount_y, y.get());
 
@@ -1885,13 +1885,13 @@ pub mod contract {
                 alice
             );
 
-            let user_amount_x = balance_of!(TokenRef, client, token_x, Alice);
-            let user_amount_y = balance_of!(TokenRef, client, token_y, Alice);
+            let user_amount_x = balance_of!(client, TokenRef, token_x, address_of!(Alice));
+            let user_amount_y = balance_of!(client, TokenRef, token_y, address_of!(Alice));
             assert_eq!(user_amount_x, u128::MAX - mint_amount);
             assert_eq!(user_amount_y, u128::MAX - y.get());
 
-            let contract_amount_x = dex_balance!(TokenRef, client, token_x, dex);
-            let contract_amount_y = dex_balance!(TokenRef, client, token_y, dex);
+            let contract_amount_x = balance_of!(client, TokenRef, token_x, dex);
+            let contract_amount_y = balance_of!(client, TokenRef, token_y, dex);
             assert_eq!(contract_amount_x, mint_amount);
             assert_eq!(contract_amount_y, y.get());
 
@@ -1941,8 +1941,8 @@ pub mod contract {
 
             let amount = 760_000;
             let bob = ink_e2e::bob();
-            mint!(TokenRef, client, token_x, Bob, amount);
-            let amount_x = balance_of!(TokenRef, client, token_x, Bob);
+            mint!(client, TokenRef, token_x, address_of!(Bob), amount);
+            let amount_x = balance_of!(client, TokenRef, token_x, address_of!(Bob));
             assert_eq!(amount_x, amount);
             approve!(client, TokenRef, token_x, dex, amount, bob);
 
@@ -2034,8 +2034,8 @@ pub mod contract {
 
             let amount = 1000;
             let bob = ink_e2e::bob();
-            mint!(TokenRef, client, token_x, Bob, amount);
-            let amount_x = balance_of!(TokenRef, client, token_x, Bob);
+            mint!(client, TokenRef, token_x, address_of!(Bob), amount);
+            let amount_x = balance_of!(client, TokenRef, token_x, address_of!(Bob));
             assert_eq!(amount_x, amount);
             approve!(client, TokenRef, token_x, dex, amount, bob);
 
@@ -2066,13 +2066,15 @@ pub mod contract {
             let alice = ink_e2e::alice();
             let pool =
                 get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier, alice).unwrap();
-            let user_amount_before_claim = balance_of!(TokenRef, client, token_x, Alice);
-            let dex_amount_before_claim = dex_balance!(TokenRef, client, token_x, dex);
+            let user_amount_before_claim =
+                balance_of!(client, TokenRef, token_x, address_of!(Alice));
+            let dex_amount_before_claim = balance_of!(client, TokenRef, token_x, dex);
 
             claim_fee!(client, ContractRef, dex, 0, alice);
 
-            let user_amount_after_claim = balance_of!(TokenRef, client, token_x, Alice);
-            let dex_amount_after_claim = dex_balance!(TokenRef, client, token_x, dex);
+            let user_amount_after_claim =
+                balance_of!(client, TokenRef, token_x, address_of!(Alice));
+            let dex_amount_after_claim = balance_of!(client, TokenRef, token_x, dex);
             let position = get_position!(client, ContractRef, dex, 0, alice).unwrap();
             let expected_tokens_claimed = 5;
 
@@ -2235,13 +2237,13 @@ pub mod contract {
             let alice = ink_e2e::alice();
             withdraw_protocol_fee!(client, ContractRef, dex, pool_key, alice);
 
-            let amount_x = balance_of!(TokenRef, client, token_x, Alice);
-            let amount_y = balance_of!(TokenRef, client, token_y, Alice);
+            let amount_x = balance_of!(client, TokenRef, token_x, address_of!(Alice));
+            let amount_y = balance_of!(client, TokenRef, token_y, address_of!(Alice));
             assert_eq!(amount_x, 9999999501);
             assert_eq!(amount_y, 9999999000);
 
-            let amount_x = dex_balance!(TokenRef, client, token_x, dex);
-            let amount_y = dex_balance!(TokenRef, client, token_y, dex);
+            let amount_x = balance_of!(client, TokenRef, token_x, dex);
+            let amount_y = balance_of!(client, TokenRef, token_y, dex);
             assert_eq!(amount_x, 1499);
             assert_eq!(amount_y, 7);
 
@@ -2551,10 +2553,10 @@ pub mod contract {
                 get_tickmap_bit!(client, ContractRef, dex, pool_key, lower_tick_index, alice);
             let upper_tick_bit =
                 get_tickmap_bit!(client, ContractRef, dex, pool_key, upper_tick_index, alice);
-            let alice_x = balance_of!(TokenRef, client, token_x, Alice);
-            let alice_y = balance_of!(TokenRef, client, token_y, Alice);
-            let dex_x = dex_balance!(TokenRef, client, token_x, dex);
-            let dex_y = dex_balance!(TokenRef, client, token_y, dex);
+            let alice_x = balance_of!(client, TokenRef, token_x, address_of!(Alice));
+            let alice_y = balance_of!(client, TokenRef, token_y, address_of!(Alice));
+            let dex_x = balance_of!(client, TokenRef, token_x, dex);
+            let dex_y = balance_of!(client, TokenRef, token_y, dex);
 
             let zero_fee = FeeGrowth::new(0);
             let expected_x_increase = 21549;
@@ -2936,10 +2938,10 @@ pub mod contract {
                 get_tickmap_bit!(client, ContractRef, dex, pool_key, lower_tick_index, alice);
             let upper_tick_bit =
                 get_tickmap_bit!(client, ContractRef, dex, pool_key, upper_tick_index, alice);
-            let alice_x = balance_of!(TokenRef, client, token_x, Alice);
-            let alice_y = balance_of!(TokenRef, client, token_y, Alice);
-            let dex_x = dex_balance!(TokenRef, client, token_x, dex);
-            let dex_y = dex_balance!(TokenRef, client, token_y, dex);
+            let alice_x = balance_of!(client, TokenRef, token_x, address_of!(Alice));
+            let alice_y = balance_of!(client, TokenRef, token_y, address_of!(Alice));
+            let dex_x = balance_of!(client, TokenRef, token_x, dex);
+            let dex_y = balance_of!(client, TokenRef, token_y, dex);
 
             let zero_fee = FeeGrowth::new(0);
             let expected_x_increase = 317;
@@ -3041,10 +3043,10 @@ pub mod contract {
                 get_tickmap_bit!(client, ContractRef, dex, pool_key, lower_tick_index, alice);
             let upper_tick_bit =
                 get_tickmap_bit!(client, ContractRef, dex, pool_key, upper_tick_index, alice);
-            let alice_x = balance_of!(TokenRef, client, token_x, Alice);
-            let alice_y = balance_of!(TokenRef, client, token_y, Alice);
-            let dex_x = dex_balance!(TokenRef, client, token_x, dex);
-            let dex_y = dex_balance!(TokenRef, client, token_y, dex);
+            let alice_x = balance_of!(client, TokenRef, token_x, address_of!(Alice));
+            let alice_y = balance_of!(client, TokenRef, token_y, address_of!(Alice));
+            let dex_x = balance_of!(client, TokenRef, token_x, dex);
+            let dex_y = balance_of!(client, TokenRef, token_y, dex);
 
             let zero_fee = FeeGrowth::new(0);
             let expected_x_increase = 0;
@@ -3233,8 +3235,8 @@ pub mod contract {
             }
 
             let amount = 1000;
-            mint!(TokenRef, client, token_x, Bob, amount);
-            let amount_x = balance_of!(TokenRef, client, token_x, Bob);
+            mint!(client, TokenRef, token_x, address_of!(Bob), amount);
+            let amount_x = balance_of!(client, TokenRef, token_x, address_of!(Bob));
             assert_eq!(amount_x, amount);
 
             approve!(client, TokenRef, token_x, dex, amount, bob);
@@ -3273,14 +3275,14 @@ pub mod contract {
             assert_eq!(pool_state_after.current_tick_index, -10);
             assert_ne!(pool_state_after.sqrt_price, pool_state_before.sqrt_price);
 
-            let amount_x = balance_of!(TokenRef, client, token_x, Bob);
-            let amount_y = balance_of!(TokenRef, client, token_y, Bob);
+            let amount_x = balance_of!(client, TokenRef, token_x, address_of!(Bob));
+            let amount_y = balance_of!(client, TokenRef, token_y, address_of!(Bob));
             assert_eq!(amount_x, 0);
             assert_eq!(amount_y, 993);
 
             // pre load dex balances
-            let dex_x_before_remove = dex_balance!(TokenRef, client, token_x, dex);
-            let dex_y_before_remove = dex_balance!(TokenRef, client, token_y, dex);
+            let dex_x_before_remove = balance_of!(client, TokenRef, token_x, dex);
+            let dex_y_before_remove = balance_of!(client, TokenRef, token_y, dex);
 
             // Remove position
             let remove_result =
@@ -3297,10 +3299,10 @@ pub mod contract {
                 get_tickmap_bit!(client, ContractRef, dex, pool_key, lower_tick_index, alice);
             let upper_tick_bit =
                 get_tickmap_bit!(client, ContractRef, dex, pool_key, upper_tick_index, alice);
-            let alice_x = balance_of!(TokenRef, client, token_x, Alice);
-            let alice_y = balance_of!(TokenRef, client, token_y, Alice);
-            let dex_x = dex_balance!(TokenRef, client, token_x, dex);
-            let dex_y = dex_balance!(TokenRef, client, token_y, dex);
+            let alice_x = balance_of!(client, TokenRef, token_x, address_of!(Alice));
+            let alice_y = balance_of!(client, TokenRef, token_y, address_of!(Alice));
+            let dex_x = balance_of!(client, TokenRef, token_x, dex);
+            let dex_y = balance_of!(client, TokenRef, token_y, dex);
             let expected_withdrawn_x = 499;
             let expected_withdrawn_y = 999;
             let expected_fee_x = 0;
@@ -3520,8 +3522,8 @@ pub mod contract {
             let upper_tick_index = 10;
 
             let mint_amount = 10u128.pow(10);
-            mint!(TokenRef, client, token_x, Alice, mint_amount);
-            mint!(TokenRef, client, token_y, Alice, mint_amount);
+            mint!(client, TokenRef, token_x, address_of!(Alice), mint_amount);
+            mint!(client, TokenRef, token_y, address_of!(Alice), mint_amount);
 
             approve!(client, TokenRef, token_x, dex, mint_amount, alice);
             approve!(client, TokenRef, token_y, dex, mint_amount, alice);
@@ -3550,12 +3552,12 @@ pub mod contract {
             assert_eq!(pool_state.liquidity, liquidity_delta);
 
             let mint_amount = 10067;
-            mint!(TokenRef, client, token_x, Bob, mint_amount);
+            mint!(client, TokenRef, token_x, address_of!(Bob), mint_amount);
 
             approve!(client, TokenRef, token_x, dex, mint_amount, bob);
 
-            let dex_x_before = dex_balance!(TokenRef, client, token_x, dex);
-            let dex_y_before = dex_balance!(TokenRef, client, token_y, dex);
+            let dex_x_before = balance_of!(client, TokenRef, token_x, dex);
+            let dex_y_before = balance_of!(client, TokenRef, token_y, dex);
 
             let swap_amount = TokenAmount::new(10067);
             let target_sqrt_price = SqrtPrice::new(MIN_SQRT_PRICE);
@@ -3594,10 +3596,10 @@ pub mod contract {
             assert_eq!(pool.current_tick_index, lower_tick_index);
             assert_eq!(pool.sqrt_price, expected_price);
 
-            let bob_x = balance_of!(TokenRef, client, token_x, Bob);
-            let bob_y = balance_of!(TokenRef, client, token_y, Bob);
-            let dex_x_after = dex_balance!(TokenRef, client, token_x, dex);
-            let dex_y_after = dex_balance!(TokenRef, client, token_y, dex);
+            let bob_x = balance_of!(client, TokenRef, token_x, address_of!(Bob));
+            let bob_y = balance_of!(client, TokenRef, token_y, address_of!(Bob));
+            let dex_x_after = balance_of!(client, TokenRef, token_x, dex);
+            let dex_y_after = balance_of!(client, TokenRef, token_y, dex);
 
             let delta_dex_x = dex_x_after - dex_x_before;
             let delta_dex_y = dex_y_before - dex_y_after;
@@ -3674,8 +3676,8 @@ pub mod contract {
             let upper_tick_index = 10;
 
             let mint_amount = 10u128.pow(10);
-            mint!(TokenRef, client, token_x, Alice, mint_amount);
-            mint!(TokenRef, client, token_y, Alice, mint_amount);
+            mint!(client, TokenRef, token_x, address_of!(Alice), mint_amount);
+            mint!(client, TokenRef, token_y, address_of!(Alice), mint_amount);
 
             approve!(client, TokenRef, token_x, dex, mint_amount, alice);
             approve!(client, TokenRef, token_y, dex, mint_amount, alice);
@@ -3704,12 +3706,12 @@ pub mod contract {
             assert_eq!(pool_state.liquidity, liquidity_delta);
 
             let mint_amount = 10067;
-            mint!(TokenRef, client, token_x, Bob, mint_amount);
+            mint!(client, TokenRef, token_x, address_of!(Bob), mint_amount);
 
             approve!(client, TokenRef, token_x, dex, mint_amount, bob);
 
-            let dex_x_before = dex_balance!(TokenRef, client, token_x, dex);
-            let dex_y_before = dex_balance!(TokenRef, client, token_y, dex);
+            let dex_x_before = balance_of!(client, TokenRef, token_x, dex);
+            let dex_y_before = balance_of!(client, TokenRef, token_y, dex);
 
             let swap_amount = TokenAmount::new(10067);
             let target_sqrt_price = SqrtPrice::new(MIN_SQRT_PRICE);
@@ -3748,10 +3750,10 @@ pub mod contract {
             assert_eq!(pool.current_tick_index, lower_tick_index);
             assert_eq!(pool.sqrt_price, expected_price);
 
-            let bob_x = balance_of!(TokenRef, client, token_x, Bob);
-            let bob_y = balance_of!(TokenRef, client, token_y, Bob);
-            let dex_x_after = dex_balance!(TokenRef, client, token_x, dex);
-            let dex_y_after = dex_balance!(TokenRef, client, token_y, dex);
+            let bob_x = balance_of!(client, TokenRef, token_x, address_of!(Bob));
+            let bob_y = balance_of!(client, TokenRef, token_y, address_of!(Bob));
+            let dex_x_after = balance_of!(client, TokenRef, token_x, dex);
+            let dex_y_after = balance_of!(client, TokenRef, token_y, dex);
 
             let delta_dex_x = dex_x_after - dex_x_before;
             let delta_dex_y = dex_y_before - dex_y_after;
@@ -3793,12 +3795,18 @@ pub mod contract {
             );
 
             let swap_amount = TokenAmount::new(5000);
-            mint!(TokenRef, client, token_x, Bob, swap_amount.get());
+            mint!(
+                client,
+                TokenRef,
+                token_x,
+                address_of!(Bob),
+                swap_amount.get()
+            );
 
             approve!(client, TokenRef, token_x, dex, swap_amount.get(), bob);
 
-            let dex_x_before = dex_balance!(TokenRef, client, token_x, dex);
-            let dex_y_before = dex_balance!(TokenRef, client, token_y, dex);
+            let dex_x_before = balance_of!(client, TokenRef, token_x, dex);
+            let dex_y_before = balance_of!(client, TokenRef, token_y, dex);
 
             let target_sqrt_price = SqrtPrice::new(MIN_SQRT_PRICE);
             let quoted_target_sqrt_price = quote!(
@@ -3829,10 +3837,10 @@ pub mod contract {
             let pool =
                 get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier, alice).unwrap();
 
-            let bob_x = balance_of!(TokenRef, client, token_x, Bob);
-            let bob_y = balance_of!(TokenRef, client, token_y, Bob);
-            let dex_x_after = dex_balance!(TokenRef, client, token_x, dex);
-            let dex_y_after = dex_balance!(TokenRef, client, token_y, dex);
+            let bob_x = balance_of!(client, TokenRef, token_x, address_of!(Bob));
+            let bob_y = balance_of!(client, TokenRef, token_y, address_of!(Bob));
+            let dex_x_after = balance_of!(client, TokenRef, token_x, dex);
+            let dex_y_after = balance_of!(client, TokenRef, token_y, dex);
 
             let delta_dex_x = dex_x_after - dex_x_before;
             let delta_dex_y = dex_y_before - dex_y_after;
@@ -3871,8 +3879,8 @@ pub mod contract {
             let upper_tick_index = 10;
 
             let mint_amount = 10u128.pow(5);
-            mint!(TokenRef, client, token_x, Alice, mint_amount);
-            mint!(TokenRef, client, token_y, Alice, mint_amount);
+            mint!(client, TokenRef, token_x, address_of!(Bob), mint_amount);
+            mint!(client, TokenRef, token_y, address_of!(Alice), mint_amount);
 
             approve!(client, TokenRef, token_x, dex, mint_amount, alice);
             approve!(client, TokenRef, token_y, dex, mint_amount, alice);
@@ -3923,8 +3931,8 @@ pub mod contract {
                 + min_amount_to_cross_from_tick_price.get()
                 + crossing_amount_by_amount_out.get();
 
-            mint!(TokenRef, client, token_x, Alice, mint_amount);
-            mint!(TokenRef, client, token_y, Alice, mint_amount);
+            mint!(client, TokenRef, token_x, address_of!(Alice), mint_amount);
+            mint!(client, TokenRef, token_y, address_of!(Alice), mint_amount);
 
             approve!(client, TokenRef, token_x, dex, mint_amount, alice);
             approve!(client, TokenRef, token_y, dex, mint_amount, alice);
@@ -3982,8 +3990,8 @@ pub mod contract {
             let massive_x = 10u128.pow(19);
             let massive_y = 10u128.pow(19);
 
-            mint!(TokenRef, client, token_x, Alice, massive_x);
-            mint!(TokenRef, client, token_y, Alice, massive_y);
+            mint!(client, TokenRef, token_x, address_of!(Alice), massive_x);
+            mint!(client, TokenRef, token_y, address_of!(Alice), massive_y);
             approve!(client, TokenRef, token_x, dex, massive_x, alice);
             approve!(client, TokenRef, token_y, dex, massive_y, alice);
 
@@ -4105,8 +4113,8 @@ pub mod contract {
             let upper_tick_index = 10;
 
             let mint_amount = 10u128.pow(5);
-            mint!(TokenRef, client, token_x, Alice, mint_amount);
-            mint!(TokenRef, client, token_y, Alice, mint_amount);
+            mint!(client, TokenRef, token_x, address_of!(Alice), mint_amount);
+            mint!(client, TokenRef, token_y, address_of!(Alice), mint_amount);
 
             approve!(client, TokenRef, token_x, dex, mint_amount, alice);
             approve!(client, TokenRef, token_y, dex, mint_amount, alice);
@@ -4157,8 +4165,8 @@ pub mod contract {
                 + min_amount_to_cross_from_tick_price.get()
                 + crossing_amount_by_amount_out.get();
 
-            mint!(TokenRef, client, token_x, Alice, mint_amount);
-            mint!(TokenRef, client, token_y, Alice, mint_amount);
+            mint!(client, TokenRef, token_x, address_of!(Alice), mint_amount);
+            mint!(client, TokenRef, token_y, address_of!(Alice), mint_amount);
 
             approve!(client, TokenRef, token_x, dex, mint_amount, alice);
             approve!(client, TokenRef, token_y, dex, mint_amount, alice);
