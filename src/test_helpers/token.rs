@@ -7,11 +7,11 @@ macro_rules! address_of {
 
 #[macro_export]
 macro_rules! balance_of {
-    ($client:ident, $token:ty, $token_address:expr, $owner:expr) => {{
+    ($client:ident, $token:ty, $token_address:expr, $owner:expr, $caller:ident) => {{
         let message = build_message::<$token>($token_address.clone())
             .call(|contract| contract.balance_of($owner));
         $client
-            .call_dry_run(&ink_e2e::alice(), &message, 0, None)
+            .call_dry_run(&$caller, &message, 0, None)
             .await
             .return_value()
     }};
