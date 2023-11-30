@@ -4,7 +4,7 @@ macro_rules! get_protocol_fee {
         let message = build_message::<$dex>($dex_address.clone())
             .call(|contract| contract.get_protocol_fee());
         $client
-            .call(&$caller, &message, 0, None)
+            .call_dry_run(&$caller, &message, 0, None)
             .await
             .return_value()
     }};
@@ -302,7 +302,7 @@ macro_rules! get_all_positions {
         let message = build_message::<$dex>($dex_address.clone())
             .call(|contract| contract.get_all_positions());
         $client
-            .call(&$caller, message, 0, None)
+            .call_dry_run(&$caller, &message, 0, None)
             .await
             .return_value()
     }};
@@ -410,9 +410,8 @@ macro_rules! get_fee_tier {
         let message = build_message::<$dex>($dex_address.clone())
             .call(|contract| contract.get_fee_tier($key));
         $client
-            .call(&$caller, message, 0, None)
+            .call_dry_run(&$caller, &message, 0, None)
             .await
-            .expect("get_fee_tier failed")
             .return_value()
     }};
 }
@@ -423,7 +422,7 @@ macro_rules! remove_fee_tier {
         let message = build_message::<$dex>($dex_address.clone())
             .call(|contract| contract.remove_fee_tier($key));
         $client
-            .call_dry_run(&$caller, message, 0, None)
+            .call_dry_run(&$caller, &message, 0, None)
             .await
             .return_value()
     }};
@@ -483,7 +482,7 @@ macro_rules! get_pools {
         let message =
             build_message::<$dex>($dex_address.clone()).call(|contract| contract.get_pools());
         $client
-            .call(&$caller, message, 0, None)
+            .call_dry_run(&$caller, &message, 0, None)
             .await
             .return_value()
     }};
@@ -519,9 +518,8 @@ macro_rules! get_tickmap_bit {
         let message = build_message::<$dex>($dex_address.clone())
             .call(|contract| contract.get_tickmap_bit($key, $index));
         $client
-            .call(&$caller, message, 0, None)
+            .call_dry_run(&$caller, &message, 0, None)
             .await
-            .expect("get_tickmap_bit failed")
             .return_value()
     }};
 }
