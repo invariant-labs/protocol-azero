@@ -19,11 +19,11 @@ macro_rules! balance_of {
 
 #[macro_export]
 macro_rules! mint {
-    ($client:ident, $token:ty, $token_address:expr, $to:expr, $value:expr) => {{
+    ($client:ident, $token:ty, $token_address:expr, $to:expr, $value:expr, $caller:ident) => {{
         let message = build_message::<$token>($token_address.clone())
             .call(|contract| contract.mint($to, $value));
         let result = $client
-            .call_dry_run(&ink_e2e::alice(), &message, 0, None)
+            .call_dry_run(&$caller, &message, 0, None)
             .await
             .return_value();
 
@@ -31,7 +31,7 @@ macro_rules! mint {
             let message = build_message::<$token>($token_address.clone())
                 .call(|contract| contract.mint($to, $value));
             $client
-                .call(&ink_e2e::alice(), message, 0, None)
+                .call(&$caller, message, 0, None)
                 .await
                 .expect("mint failed")
                 .return_value()

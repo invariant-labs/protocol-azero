@@ -457,7 +457,14 @@ macro_rules! init_basic_swap {
 
         let amount = 1000;
         let bob = ink_e2e::bob();
-        mint!($client, $token, $token_x_address, address_of!(Bob), amount);
+        mint!(
+            $client,
+            $token,
+            $token_x_address,
+            address_of!(Bob),
+            amount,
+            bob
+        );
         let amount_x = balance_of!($client, $token, $token_x_address, address_of!(Bob));
         assert_eq!(amount_x, amount);
         approve!($client, $token, $token_x_address, $dex_address, amount, bob);
@@ -538,7 +545,14 @@ macro_rules! init_cross_swap {
 
         let amount = 1000;
         let bob = ink_e2e::bob();
-        mint!($client, $token, $token_x_address, address_of!(Bob), amount);
+        mint!(
+            $client,
+            $token,
+            $token_x_address,
+            address_of!(Bob),
+            amount,
+            bob
+        );
         let amount_x = balance_of!($client, $token, $token_x_address, address_of!(Bob));
         assert_eq!(amount_x, amount);
         approve!($client, $token, $token_x_address, $dex_address, amount, bob);
@@ -811,12 +825,12 @@ macro_rules! multiple_swap {
 
         let bob = ink_e2e::bob();
         if $x_to_y {
-            mint!($client, $token, token_x, address_of!(Bob), amount);
+            mint!($client, $token, token_x, address_of!(Bob), amount, bob);
             let amount_x = balance_of!($client, $token, token_x, address_of!(Bob));
             assert_eq!(amount_x, amount);
             approve!($client, $token, token_x, dex, amount, bob);
         } else {
-            mint!($client, $token, token_y, address_of!(Bob), amount);
+            mint!($client, $token, token_y, address_of!(Bob), amount, bob);
             let amount_y = balance_of!($client, $token, token_y, address_of!(Bob));
             assert_eq!(amount_y, amount);
             approve!($client, $token, token_y, dex, amount, bob);
