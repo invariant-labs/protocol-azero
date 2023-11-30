@@ -50,6 +50,7 @@ impl FeeGrowth {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn calculate_fee_growth_inside(
     tick_lower: i32,
     tick_lower_fee_growth_outside_x: FeeGrowth,

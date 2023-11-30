@@ -292,6 +292,7 @@ pub mod contract {
             Ok(())
         }
 
+        #[allow(clippy::too_many_arguments)]
         fn emit_swap_event(
             &self,
             address: AccountId,
