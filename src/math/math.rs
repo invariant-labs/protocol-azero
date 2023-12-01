@@ -6,7 +6,7 @@ use crate::math::types::{liquidity::*, percentage::*, sqrt_price::sqrt_price::*,
 
 use super::percentage;
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Copy, Clone)]
 pub struct SwapResult {
     pub next_sqrt_price: SqrtPrice,
     pub amount_in: TokenAmount,
