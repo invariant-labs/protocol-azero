@@ -22,6 +22,7 @@ pub struct Tick {
     pub sqrt_price: SqrtPrice,
     pub fee_growth_outside_x: FeeGrowth,
     pub fee_growth_outside_y: FeeGrowth,
+    #[allow(dead_code)]
     pub seconds_per_liquidity_outside: SecondsPerLiquidity,
     pub seconds_outside: u64,
 }
@@ -83,11 +84,8 @@ impl Tick {
             .ok_or_else(|| err!("current_timestamp - pool.start_timestamp underflow"))?;
         self.seconds_outside = seconds_passed.wrapping_sub(self.seconds_outside);
 
-        if !pool.liquidity.is_zero() {
-            // ok_or_mark_trace!(pool.update_seconds_per_liquidity_global(current_timestamp))?;
-        } else {
-            pool.last_timestamp = current_timestamp;
-        }
+        pool.last_timestamp = current_timestamp;
+
         self.seconds_per_liquidity_outside = pool
             .seconds_per_liquidity_global
             .unchecked_sub(self.seconds_per_liquidity_outside);
