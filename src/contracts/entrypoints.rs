@@ -266,14 +266,14 @@ pub trait Invariant {
     /// Query of whether the fee tier exists.
     ///
     /// # Parameters
-    /// - `fee_tier_key`: A struct identifying the pool fee and tick spacing.
+    /// - `fee_tier`: A struct identifying the pool fee and tick spacing.
     #[ink(message)]
     fn fee_tier_exist(&self, fee_tier: FeeTier) -> bool;
 
     /// Removes an existing fee tier.
     ///
     /// # Parameters
-    /// - `fee_tier_key`: A struct identifying the pool fee and tick spacing.
+    /// - `fee_tier`: A struct identifying the pool fee and tick spacing.
     ///
     /// # Errors
     /// - Fails if an unauthorized user attempts to remove a fee tier.
