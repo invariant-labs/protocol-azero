@@ -1,6 +1,6 @@
 ## Overview
 
-This repository contains an Concentrated Liquidity Automated Market Maker smart contract. It is designed to provide users with the ability to efficiently manage and optimize liquidity pools with concentrated positions on [Aleph ZERO](https://alephzero.org/).
+This repository contains an Concentrated Liquidity Automated Market Maker smart contract. It is designed to provide users with the ability to efficiently manage and optimize liquidity pools with concentrated positions on [Aleph ZERO](https://alephzero.org/). The smart contract not only enables users to create and manage liquidity pools with concentrated positions but also facilitates token swaps directly through the smart contract. Please note that tokens interacting with this CLAMM program must adhere to the PSP22 standard.
 
 ## Getting Started
 
@@ -37,13 +37,13 @@ cargo install contracts-node --git https://github.com/paritytech/substrate-contr
 git clone git@github.com:invariant-labs/protocol-a0.git
 ```
 
-#### Run tests
+- Run tests
 
 ```bash
 cargo test --features e2e-tests
 ```
 
-#### Build contract
+- Build contract
 
 ```bash
 cargo contract build
