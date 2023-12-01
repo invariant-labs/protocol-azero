@@ -266,8 +266,7 @@ macro_rules! init_slippage_pool_with_liquidity {
             $dex_address,
             $token_x_address,
             $token_y_address,
-            fee_tier,
-            alice
+            fee_tier
         )
         .unwrap();
         let slippage_limit_lower = pool_before.sqrt_price;
@@ -291,8 +290,7 @@ macro_rules! init_slippage_pool_with_liquidity {
             $dex_address,
             $token_x_address,
             $token_y_address,
-            fee_tier,
-            alice
+            fee_tier
         )
         .unwrap();
 
@@ -340,8 +338,7 @@ macro_rules! init_basic_position {
             $dex_address,
             $token_x_address,
             $token_y_address,
-            fee_tier,
-            alice
+            fee_tier
         )
         .unwrap();
         let slippage_limit_lower = pool_before.sqrt_price;
@@ -365,8 +362,7 @@ macro_rules! init_basic_position {
             $dex_address,
             $token_x_address,
             $token_y_address,
-            fee_tier,
-            alice
+            fee_tier
         )
         .unwrap();
 
@@ -412,8 +408,7 @@ macro_rules! init_cross_position {
             $dex_address,
             $token_x_address,
             $token_y_address,
-            fee_tier,
-            alice
+            fee_tier
         )
         .unwrap();
         let slippage_limit_lower = pool_before.sqrt_price;
@@ -437,8 +432,7 @@ macro_rules! init_cross_position {
             $dex_address,
             $token_x_address,
             $token_y_address,
-            fee_tier,
-            alice
+            fee_tier
         )
         .unwrap();
 
@@ -465,12 +459,12 @@ macro_rules! init_basic_swap {
             amount,
             bob
         );
-        let amount_x = balance_of!($client, $token, $token_x_address, address_of!(Bob), bob);
+        let amount_x = balance_of!($client, $token, $token_x_address, address_of!(Bob));
         assert_eq!(amount_x, amount);
         approve!($client, $token, $token_x_address, $dex_address, amount, bob);
 
-        let amount_x = balance_of!($client, $token, $token_x_address, $dex_address, bob);
-        let amount_y = balance_of!($client, $token, $token_y_address, $dex_address, bob);
+        let amount_x = balance_of!($client, $token, $token_x_address, $dex_address);
+        let amount_y = balance_of!($client, $token, $token_y_address, $dex_address);
         assert_eq!(amount_x, 500);
         assert_eq!(amount_y, 1000);
 
@@ -480,8 +474,7 @@ macro_rules! init_basic_swap {
             $dex_address,
             $token_x_address,
             $token_y_address,
-            pool_key.fee_tier,
-            bob
+            pool_key.fee_tier
         )
         .unwrap();
 
@@ -505,21 +498,20 @@ macro_rules! init_basic_swap {
             $dex_address,
             $token_x_address,
             $token_y_address,
-            fee_tier,
-            bob
+            fee_tier
         )
         .unwrap();
         assert_eq!(pool_after.liquidity, pool_before.liquidity);
         assert_eq!(pool_after.current_tick_index, lower_tick);
         assert_ne!(pool_after.sqrt_price, pool_before.sqrt_price);
 
-        let amount_x = balance_of!($client, $token, $token_x_address, address_of!(Bob), bob);
-        let amount_y = balance_of!($client, $token, $token_y_address, address_of!(Bob), bob);
+        let amount_x = balance_of!($client, $token, $token_x_address, address_of!(Bob));
+        let amount_y = balance_of!($client, $token, $token_y_address, address_of!(Bob));
         assert_eq!(amount_x, 0);
         assert_eq!(amount_y, 993);
 
-        let amount_x = balance_of!($client, $token, $token_x_address, $dex_address, bob);
-        let amount_y = balance_of!($client, $token, $token_y_address, $dex_address, bob);
+        let amount_x = balance_of!($client, $token, $token_x_address, $dex_address);
+        let amount_y = balance_of!($client, $token, $token_y_address, $dex_address);
         assert_eq!(amount_x, 1500);
         assert_eq!(amount_y, 7);
 
@@ -553,12 +545,12 @@ macro_rules! init_cross_swap {
             amount,
             bob
         );
-        let amount_x = balance_of!($client, $token, $token_x_address, address_of!(Bob), bob);
+        let amount_x = balance_of!($client, $token, $token_x_address, address_of!(Bob));
         assert_eq!(amount_x, amount);
         approve!($client, $token, $token_x_address, $dex_address, amount, bob);
 
-        let amount_x = balance_of!($client, $token, $token_x_address, $dex_address, bob);
-        let amount_y = balance_of!($client, $token, $token_y_address, $dex_address, bob);
+        let amount_x = balance_of!($client, $token, $token_x_address, $dex_address);
+        let amount_y = balance_of!($client, $token, $token_y_address, $dex_address);
         assert_eq!(amount_x, 500);
         assert_eq!(amount_y, 2499);
 
@@ -568,8 +560,7 @@ macro_rules! init_cross_swap {
             $dex_address,
             $token_x_address,
             $token_y_address,
-            fee_tier,
-            bob
+            fee_tier
         )
         .unwrap();
 
@@ -593,8 +584,7 @@ macro_rules! init_cross_swap {
             $dex_address,
             $token_x_address,
             $token_y_address,
-            fee_tier,
-            bob
+            fee_tier
         )
         .unwrap();
         let position_liquidity = Liquidity::from_integer(1000000);
@@ -605,13 +595,13 @@ macro_rules! init_cross_swap {
         assert_eq!(pool_after.current_tick_index, lower_tick);
         assert_ne!(pool_after.sqrt_price, pool_before.sqrt_price);
 
-        let amount_x = balance_of!($client, $token, $token_x_address, address_of!(Bob), bob);
-        let amount_y = balance_of!($client, $token, $token_y_address, address_of!(Bob), bob);
+        let amount_x = balance_of!($client, $token, $token_x_address, address_of!(Bob));
+        let amount_y = balance_of!($client, $token, $token_y_address, address_of!(Bob));
         assert_eq!(amount_x, 0);
         assert_eq!(amount_y, 990);
 
-        let amount_x = balance_of!($client, $token, $token_x_address, $dex_address, bob);
-        let amount_y = balance_of!($client, $token, $token_y_address, $dex_address, bob);
+        let amount_x = balance_of!($client, $token, $token_x_address, $dex_address);
+        let amount_y = balance_of!($client, $token, $token_y_address, $dex_address);
         assert_eq!(amount_x, 1500);
         assert_eq!(amount_y, 1509);
 
@@ -643,8 +633,7 @@ macro_rules! swap_exact_limit {
             $x_to_y,
             $amount,
             $by_amount_in,
-            sqrt_price_limit,
-            $caller
+            sqrt_price_limit
         )
         .unwrap();
         swap!(
@@ -690,7 +679,7 @@ macro_rules! big_deposit_and_swap {
         } else {
             fee_tier.tick_spacing as i32
         };
-        let pool = get_pool!($client, $dex, dex, token_x, token_y, fee_tier, alice).unwrap();
+        let pool = get_pool!($client, $dex, dex, token_x, token_y, fee_tier).unwrap();
 
         let liquidity_delta = if $x_to_y {
             get_liquidity_by_y(
@@ -730,8 +719,8 @@ macro_rules! big_deposit_and_swap {
             alice
         );
 
-        let amount_x = balance_of!($client, $token, token_x, address_of!(Alice), alice);
-        let amount_y = balance_of!($client, $token, token_y, address_of!(Alice), alice);
+        let amount_x = balance_of!($client, $token, token_x, address_of!(Alice));
+        let amount_y = balance_of!($client, $token, token_y, address_of!(Alice));
         if $x_to_y {
             assert_eq!(amount_x, 340282366920938463463374607431768211455);
             assert_eq!(amount_y, 340282366920938425684442744474606501888);
@@ -758,8 +747,8 @@ macro_rules! big_deposit_and_swap {
             alice
         );
 
-        let amount_x = balance_of!($client, $token, token_x, address_of!(Alice), alice);
-        let amount_y = balance_of!($client, $token, token_y, address_of!(Alice), alice);
+        let amount_x = balance_of!($client, $token, token_x, address_of!(Alice));
+        let amount_y = balance_of!($client, $token, token_y, address_of!(Alice));
         if $x_to_y {
             assert_eq!(amount_x, 340282366920938425684442744474606501888);
             assert_ne!(amount_y, 0);
@@ -794,7 +783,7 @@ macro_rules! multiple_swap {
         let mut lower_tick = -upper_tick;
 
         let amount = 100;
-        let pool_data = get_pool!($client, $dex, dex, token_x, token_y, fee_tier, alice).unwrap();
+        let pool_data = get_pool!($client, $dex, dex, token_x, token_y, fee_tier).unwrap();
         let result = get_liquidity(
             TokenAmount(amount),
             TokenAmount(amount),
@@ -826,12 +815,12 @@ macro_rules! multiple_swap {
         let bob = ink_e2e::bob();
         if $x_to_y {
             mint!($client, $token, token_x, address_of!(Bob), amount, bob);
-            let amount_x = balance_of!($client, $token, token_x, address_of!(Bob), bob);
+            let amount_x = balance_of!($client, $token, token_x, address_of!(Bob));
             assert_eq!(amount_x, amount);
             approve!($client, $token, token_x, dex, amount, bob);
         } else {
             mint!($client, $token, token_y, address_of!(Bob), amount, bob);
-            let amount_y = balance_of!($client, $token, token_y, address_of!(Bob), bob);
+            let amount_y = balance_of!($client, $token, token_y, address_of!(Bob));
             assert_eq!(amount_y, amount);
             approve!($client, $token, token_y, dex, amount, bob);
         }
@@ -850,7 +839,7 @@ macro_rules! multiple_swap {
             );
         }
 
-        let pool = get_pool!($client, $dex, dex, token_x, token_y, fee_tier, alice).unwrap();
+        let pool = get_pool!($client, $dex, dex, token_x, token_y, fee_tier).unwrap();
         if $x_to_y {
             assert_eq!(pool.current_tick_index, -821);
         } else {
@@ -872,8 +861,8 @@ macro_rules! multiple_swap {
             assert_eq!(pool.sqrt_price, SqrtPrice::new(1041877257604411525269920));
         }
 
-        let dex_amount_x = balance_of!($client, $token, token_x, dex, alice);
-        let dex_amount_y = balance_of!($client, $token, token_y, dex, alice);
+        let dex_amount_x = balance_of!($client, $token, token_x, dex);
+        let dex_amount_y = balance_of!($client, $token, token_y, dex);
         if $x_to_y {
             assert_eq!(dex_amount_x, 200);
             assert_eq!(dex_amount_y, 20);
@@ -882,8 +871,8 @@ macro_rules! multiple_swap {
             assert_eq!(dex_amount_y, 200);
         }
 
-        let user_amount_x = balance_of!($client, $token, token_x, address_of!(Bob), bob);
-        let user_amount_y = balance_of!($client, $token, token_y, address_of!(Bob), bob);
+        let user_amount_x = balance_of!($client, $token, token_x, address_of!(Bob));
+        let user_amount_y = balance_of!($client, $token, token_y, address_of!(Bob));
         if $x_to_y {
             assert_eq!(user_amount_x, 0);
             assert_eq!(user_amount_y, 80);

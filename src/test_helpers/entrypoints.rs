@@ -1,10 +1,10 @@
 #[macro_export]
 macro_rules! get_protocol_fee {
-    ($client:ident, $dex:ty, $dex_address:expr, $caller:ident) => {{
+    ($client:ident, $dex:ty, $dex_address:expr) => {{
         let message = build_message::<$dex>($dex_address.clone())
             .call(|contract| contract.get_protocol_fee());
         $client
-            .call_dry_run(&$caller, &message, 0, None)
+            .call_dry_run(&ink_e2e::alice(), &message, 0, None)
             .await
             .return_value()
     }};
@@ -188,7 +188,7 @@ macro_rules! swap_route {
 
 #[macro_export]
 macro_rules! quote {
-    ($client:ident, $dex:ty, $dex_address:expr, $pool_key:expr, $x_to_y:expr, $amount:expr, $by_amount_in:expr, $sqrt_price_limit:expr, $caller:ident) => {{
+    ($client:ident, $dex:ty, $dex_address:expr, $pool_key:expr, $x_to_y:expr, $amount:expr, $by_amount_in:expr, $sqrt_price_limit:expr) => {{
         let message = build_message::<$dex>($dex_address.clone()).call(|contract| {
             contract.quote(
                 $pool_key,
@@ -198,53 +198,22 @@ macro_rules! quote {
                 $sqrt_price_limit,
             )
         });
-        let result = $client
-            .call_dry_run(&$caller, &message, 0, None)
+        $client
+            .call_dry_run(&ink_e2e::alice(), &message, 0, None)
             .await
-            .return_value();
-
-        if result.is_ok() {
-            let message = build_message::<$dex>($dex_address.clone()).call(|contract| {
-                contract.quote(
-                    $pool_key,
-                    $x_to_y,
-                    $amount,
-                    $by_amount_in,
-                    $sqrt_price_limit,
-                )
-            });
-            $client
-                .call(&$caller, message, 0, None)
-                .await
-                .expect("quote failed")
-                .return_value()
-        } else {
-            result
-        }
+            .return_value()
     }};
 }
 
 #[macro_export]
 macro_rules! quote_route {
-    ($client:ident, $dex:ty, $dex_address:expr, $amount_in:expr, $swaps:expr, $caller:ident) => {{
+    ($client:ident, $dex:ty, $dex_address:expr, $amount_in:expr, $swaps:expr) => {{
         let message = build_message::<$dex>($dex_address.clone())
             .call(|contract| contract.quote_route($amount_in, $swaps));
-        let result = $client
-            .call_dry_run(&$caller, &message, 0, None)
+        $client
+            .call_dry_run(&ink_e2e::alice(), &message, 0, None)
             .await
-            .return_value();
-
-        if result.is_ok() {
-            let message = build_message::<$dex>($dex_address.clone())
-                .call(|contract| contract.quote_route($amount_in, $swaps));
-            $client
-                .call(&$caller, message, 0, None)
-                .await
-                .expect("quote_route failed")
-                .return_value()
-        } else {
-            result
-        }
+            .return_value()
     }};
 }
 
@@ -277,22 +246,10 @@ macro_rules! get_position {
     ($client:ident, $dex:ty, $dex_address:expr, $index:expr, $caller:ident) => {{
         let message = build_message::<$dex>($dex_address.clone())
             .call(|contract| contract.get_position($index));
-        let result = $client
+        $client
             .call_dry_run(&$caller, &message, 0, None)
             .await
-            .return_value();
-
-        if result.is_ok() {
-            let message = build_message::<$dex>($dex_address.clone())
-                .call(|contract| contract.get_position($index));
-            $client
-                .call(&$caller, message, 0, None)
-                .await
-                .expect("get_position failed")
-                .return_value()
-        } else {
-            result
-        }
+            .return_value()
     }};
 }
 
@@ -406,11 +363,11 @@ macro_rules! add_fee_tier {
 
 #[macro_export]
 macro_rules! fee_tier_exist {
-    ($client:ident, $dex:ty, $dex_address:expr, $key:expr, $caller:ident) => {{
+    ($client:ident, $dex:ty, $dex_address:expr, $fee_tier:expr) => {{
         let message = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.fee_tier_exist($key));
+            .call(|contract| contract.fee_tier_exist($fee_tier));
         $client
-            .call_dry_run(&$caller, &message, 0, None)
+            .call_dry_run(&ink_e2e::alice(), &message, 0, None)
             .await
             .return_value()
     }};
@@ -418,9 +375,9 @@ macro_rules! fee_tier_exist {
 
 #[macro_export]
 macro_rules! remove_fee_tier {
-    ($client:ident, $dex:ty, $dex_address:expr, $key:expr, $caller:ident) => {{
+    ($client:ident, $dex:ty, $dex_address:expr, $fee_tier:expr, $caller:ident) => {{
         let message = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.remove_fee_tier($key));
+            .call(|contract| contract.remove_fee_tier($fee_tier));
         let result = $client
             .call_dry_run(&$caller, &message, 0, None)
             .await
@@ -428,7 +385,7 @@ macro_rules! remove_fee_tier {
 
         if result.is_ok() {
             let message = build_message::<$dex>($dex_address.clone())
-                .call(|contract| contract.remove_fee_tier($key));
+                .call(|contract| contract.remove_fee_tier($fee_tier));
             $client
                 .call(&$caller, message, 0, None)
                 .await
@@ -439,6 +396,7 @@ macro_rules! remove_fee_tier {
         }
     }};
 }
+
 #[macro_export]
 macro_rules! create_pool {
     ($client:ident, $dex:ty, $dex_address:expr, $token_0:expr, $token_1:expr, $fee_tier:expr, $init_tick:expr, $caller:ident) => {{
@@ -465,35 +423,23 @@ macro_rules! create_pool {
 
 #[macro_export]
 macro_rules! get_pool {
-    ($client:ident, $dex:ty, $dex_address:expr, $token_0:expr, $token_1:expr, $fee_tier:expr, $caller:ident) => {{
+    ($client:ident, $dex:ty, $dex_address:expr, $token_0:expr, $token_1:expr, $fee_tier:expr) => {{
         let message = build_message::<$dex>($dex_address.clone())
             .call(|contract| contract.get_pool($token_0, $token_1, $fee_tier));
-        let result = $client
-            .call_dry_run(&$caller, &message, 0, None)
+        $client
+            .call_dry_run(&ink_e2e::alice(), &message, 0, None)
             .await
-            .return_value();
-
-        if result.is_ok() {
-            let message = build_message::<$dex>($dex_address.clone())
-                .call(|contract| contract.get_pool($token_0, $token_1, $fee_tier));
-            $client
-                .call(&$caller, message, 0, None)
-                .await
-                .expect("get_pool failed")
-                .return_value()
-        } else {
-            result
-        }
+            .return_value()
     }};
 }
 
 #[macro_export]
 macro_rules! get_pools {
-    ($client:ident, $dex:ty, $dex_address:expr, $caller:ident) => {{
+    ($client:ident, $dex:ty, $dex_address:expr) => {{
         let message =
             build_message::<$dex>($dex_address.clone()).call(|contract| contract.get_pools());
         $client
-            .call_dry_run(&$caller, &message, 0, None)
+            .call_dry_run(&ink_e2e::alice(), &message, 0, None)
             .await
             .return_value()
     }};
@@ -501,35 +447,23 @@ macro_rules! get_pools {
 
 #[macro_export]
 macro_rules! get_tick {
-    ($client:ident, $dex:ty, $dex_address:expr, $key:expr, $index:expr, $caller:ident) => {{
+    ($client:ident, $dex:ty, $dex_address:expr, $key:expr, $index:expr) => {{
         let message = build_message::<$dex>($dex_address.clone())
             .call(|contract| contract.get_tick($key, $index));
-        let result = $client
-            .call_dry_run(&$caller, &message, 0, None)
+        $client
+            .call_dry_run(&ink_e2e::alice(), &message, 0, None)
             .await
-            .return_value();
-
-        if result.is_ok() {
-            let message = build_message::<$dex>($dex_address.clone())
-                .call(|contract| contract.get_tick($key, $index));
-            $client
-                .call(&$caller, message, 0, None)
-                .await
-                .expect("get_tick failed")
-                .return_value()
-        } else {
-            result
-        }
+            .return_value()
     }};
 }
 
 #[macro_export]
 macro_rules! is_tick_initialized {
-    ($client:ident, $dex:ty, $dex_address:expr, $key:expr, $index:expr, $caller:ident) => {{
+    ($client:ident, $dex:ty, $dex_address:expr, $key:expr, $index:expr) => {{
         let message = build_message::<$dex>($dex_address.clone())
             .call(|contract| contract.is_tick_initialized($key, $index));
         $client
-            .call_dry_run(&$caller, &message, 0, None)
+            .call_dry_run(&ink_e2e::alice(), &message, 0, None)
             .await
             .return_value()
     }};
@@ -537,11 +471,11 @@ macro_rules! is_tick_initialized {
 
 #[macro_export]
 macro_rules! get_fee_tiers {
-    ($client:ident, $dex:ty, $dex_address:expr, $caller:ident) => {{
+    ($client:ident, $dex:ty, $dex_address:expr) => {{
         let message =
             build_message::<$dex>($dex_address.clone()).call(|contract| contract.get_fee_tiers());
         $client
-            .call_dry_run(&$caller, &message, 0, None)
+            .call_dry_run(&ink_e2e::alice(), &message, 0, None)
             .await
             .return_value()
     }};
