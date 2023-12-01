@@ -4606,10 +4606,7 @@ dependencies = [
 
 [[package]]
 name = "test_helpers"
-version = "4.0.0-beta.1"
-dependencies = [
- "decimal",
-]
+version = "0.1.0"
 
 [[package]]
 name = "thiserror"
