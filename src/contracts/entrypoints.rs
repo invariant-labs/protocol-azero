@@ -213,13 +213,6 @@ pub trait Invariant {
     #[ink(message)]
     fn get_all_positions(&mut self) -> Vec<Position>;
 
-    #[ink(message)]
-    fn update_position_seconds_per_liquidity(
-        &mut self,
-        index: u32,
-        pool_key: PoolKey,
-    ) -> Result<(), InvariantError>;
-
     /// Allows an authorized user (owner of the position) to claim collected fees.
     ///
     /// # Parameters
