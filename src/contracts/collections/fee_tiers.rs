@@ -50,8 +50,8 @@ mod tests {
         let new_fee_tier_key = FeeTier::new(Percentage::new(0), 2).unwrap();
 
         fee_tier_keys.add(fee_tier_key).unwrap();
-        assert_eq!(fee_tier_keys.contains(fee_tier_key), true);
-        assert_eq!(fee_tier_keys.contains(new_fee_tier_key), false);
+        assert!(fee_tier_keys.contains(fee_tier_key));
+        assert!(!fee_tier_keys.contains(new_fee_tier_key));
 
         let result = fee_tier_keys.add(fee_tier_key);
         assert_eq!(result, Err(InvariantError::FeeTierAlreadyExist));
@@ -65,7 +65,7 @@ mod tests {
         fee_tier_keys.add(fee_tier_key).unwrap();
 
         fee_tier_keys.remove(fee_tier_key).unwrap();
-        assert_eq!(fee_tier_keys.contains(fee_tier_key), false);
+        assert!(!fee_tier_keys.contains(fee_tier_key));
 
         let result = fee_tier_keys.remove(fee_tier_key);
         assert_eq!(result, Err(InvariantError::FeeTierNotFound));

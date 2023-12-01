@@ -1074,7 +1074,7 @@ pub mod contract {
             contract.add_fee_tier(fee_tier_value).unwrap();
             assert_eq!(contract.fee_tiers.get_all().len(), 1);
             contract.add_fee_tier(fee_tier_value).unwrap_err();
-            contract.remove_fee_tier(fee_tier);
+            contract.remove_fee_tier(fee_tier).unwrap();
             assert_eq!(contract.fee_tiers.get_all().len(), 0);
         }
     }
