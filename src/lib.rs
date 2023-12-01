@@ -278,11 +278,12 @@ pub mod contract {
                     self.state.protocol_fee,
                     pool_key.fee_tier,
                 );
-                if has_crossed {
-                    self.emit_cross_tick_event(caller, pool_key, limiting_tick.unwrap().0)
-                }
 
-                ticks.push(tick);
+                if has_crossed {
+                    self.emit_cross_tick_event(caller, pool_key, limiting_tick.unwrap().0);
+
+                    ticks.push(tick);
+                }
             }
 
             if total_amount_out.get() == 0 {
@@ -551,7 +552,7 @@ pub mod contract {
                 self.calculate_swap(pool_key, x_to_y, amount, by_amount_in, sqrt_price_limit)?;
 
             for tick in calculate_swap_result.ticks.iter() {
-                let _ = self.ticks.update(pool_key, tick.index, tick);
+                self.ticks.update(pool_key, tick.index, tick)?;
             }
 
             self.pools.update(pool_key, &calculate_swap_result.pool)?;
@@ -2864,7 +2865,7 @@ pub mod contract {
             let crosses_after_quote =
                 ((pool_after_quote.current_tick_index - pool_before.current_tick_index) / 10).abs();
             assert_eq!(crosses_after_quote, 0);
-            assert_eq!(quote_result.ticks.len() - 1, 146);
+            assert_eq!(quote_result.ticks.len() - 1, 145);
 
             swap!(
                 client,
