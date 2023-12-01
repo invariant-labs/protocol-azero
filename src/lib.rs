@@ -256,43 +256,30 @@ pub mod contract {
                     return Err(InvariantError::PriceLimitReached);
                 }
 
-                let limited_tick = match limiting_tick {
-                    Some(x) => {
-                        let (tick_index, is_initialized) = x;
-                        let tick = match is_initialized {
-                            true => Some(self.ticks.get(pool_key, tick_index).unwrap()),
-                            false => None,
-                        };
-                        Some((tick_index, tick))
-                    }
-                    None => None,
-                };
-
-                match limited_tick {
-                    Some(x) => {
-                        let (tick_index, tick) = x;
-                        if let Some(mut crossing_tick) = tick {
-                            let has_crossed = pool.cross_tick(
-                                result,
-                                swap_limit,
-                                tick_index,
-                                &mut crossing_tick,
-                                &mut remaining_amount,
-                                by_amount_in,
-                                x_to_y,
-                                current_timestamp,
-                                &mut total_amount_in,
-                                self.state.protocol_fee,
-                                pool_key.fee_tier,
-                            );
-                            if has_crossed {
-                                self.emit_cross_tick_event(caller, pool_key, tick_index)
-                            }
-                            ticks.push(crossing_tick);
+                if let Some((tick_index, is_initialized)) = limiting_tick {
+                    if is_initialized {
+                        let mut tick = self.ticks.get(pool_key, tick_index).unwrap();
+                        let has_crossed = pool.cross_tick(
+                            result,
+                            swap_limit,
+                            tick_index,
+                            &mut tick,
+                            &mut remaining_amount,
+                            by_amount_in,
+                            x_to_y,
+                            current_timestamp,
+                            &mut total_amount_in,
+                            self.state.protocol_fee,
+                            pool_key.fee_tier,
+                        );
+                        if has_crossed {
+                            self.emit_cross_tick_event(caller, pool_key, tick_index);
                         }
+                        ticks.push(tick);
                     }
-                    None => pool.update_tick_index(result, pool_key.fee_tier),
-                };
+                } else {
+                    pool.update_tick_index(result, pool_key.fee_tier);
+                }
             }
 
             if total_amount_out.get() == 0 {
