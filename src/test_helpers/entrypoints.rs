@@ -434,18 +434,6 @@ macro_rules! get_pool {
 }
 
 #[macro_export]
-macro_rules! get_pools {
-    ($client:ident, $dex:ty, $dex_address:expr) => {{
-        let message =
-            build_message::<$dex>($dex_address.clone()).call(|contract| contract.get_pools());
-        $client
-            .call_dry_run(&ink_e2e::alice(), &message, 0, None)
-            .await
-            .return_value()
-    }};
-}
-
-#[macro_export]
 macro_rules! get_tick {
     ($client:ident, $dex:ty, $dex_address:expr, $key:expr, $index:expr) => {{
         let message = build_message::<$dex>($dex_address.clone())
@@ -462,6 +450,18 @@ macro_rules! is_tick_initialized {
     ($client:ident, $dex:ty, $dex_address:expr, $key:expr, $index:expr) => {{
         let message = build_message::<$dex>($dex_address.clone())
             .call(|contract| contract.is_tick_initialized($key, $index));
+        $client
+            .call_dry_run(&ink_e2e::alice(), &message, 0, None)
+            .await
+            .return_value()
+    }};
+}
+
+#[macro_export]
+macro_rules! get_pools {
+    ($client:ident, $dex:ty, $dex_address:expr) => {{
+        let message =
+            build_message::<$dex>($dex_address.clone()).call(|contract| contract.get_pools());
         $client
             .call_dry_run(&ink_e2e::alice(), &message, 0, None)
             .await
