@@ -145,7 +145,6 @@ impl Pool {
         &mut self,
         result: SwapResult,
         swap_limit: SqrtPrice,
-        tick_index: i32,
         tick: &mut Tick,
         remaining_amount: &mut TokenAmount,
         by_amount_in: bool,
@@ -179,9 +178,9 @@ impl Pool {
 
             // set tick to limit (below if price is going down, because current tick should always be below price)
             self.current_tick_index = if x_to_y && is_enough_amount_to_cross {
-                tick_index - fee_tier.tick_spacing as i32
+                tick.index - fee_tier.tick_spacing as i32
             } else {
-                tick_index
+                tick.index
             };
         } else {
             self.update_current_tick_index_when_deinitialized(result, fee_tier);

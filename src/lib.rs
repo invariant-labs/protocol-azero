@@ -261,7 +261,6 @@ pub mod contract {
                         let (amount_to_add, has_crossed) = pool.cross_tick(
                             result,
                             swap_limit,
-                            tick_index,
                             &mut tick,
                             &mut remaining_amount,
                             by_amount_in,
