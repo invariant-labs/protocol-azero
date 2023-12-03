@@ -113,7 +113,7 @@ pub mod contract {
         pub target_sqrt_price: SqrtPrice,
         pub fee: TokenAmount,
         pub pool: Pool,
-        pub ticks: Vec<Tick>,
+        pub ticks: Vec<(Tick, bool)>,
     }
     #[derive(Default, Debug, scale::Decode, scale::Encode)]
     #[cfg_attr(
@@ -192,7 +192,7 @@ pub mod contract {
                 return Err(InvariantError::AmountIsZero);
             }
 
-            let mut ticks: Vec<Tick> = vec![];
+            let mut ticks: Vec<(Tick, bool)> = vec![];
 
             let mut pool = self.pools.get(pool_key)?;
 
@@ -257,7 +257,8 @@ pub mod contract {
                 if let Some((tick_index, is_initialized)) = limiting_tick {
                     if is_initialized {
                         let mut tick = self.ticks.get(pool_key, tick_index).unwrap();
-                        let has_crossed = pool.cross_tick(
+
+                        let (amount_to_add, has_crossed) = pool.cross_tick(
                             result,
                             swap_limit,
                             tick_index,
@@ -266,17 +267,15 @@ pub mod contract {
                             by_amount_in,
                             x_to_y,
                             current_timestamp,
-                            &mut total_amount_in,
                             self.state.protocol_fee,
                             pool_key.fee_tier,
                         );
-                        if has_crossed {
-                            self.emit_cross_tick_event(caller, pool_key, tick_index);
-                        }
-                        ticks.push(tick);
+
+                        total_amount_in += amount_to_add;
+                        ticks.push((tick, has_crossed));
                     }
                 } else {
-                    pool.update_tick_index(result, pool_key.fee_tier);
+                    pool.update_current_tick_index_when_deinitialized(result, pool_key.fee_tier);
                 }
             }
 
@@ -545,8 +544,11 @@ pub mod contract {
             let calculate_swap_result =
                 self.calculate_swap(pool_key, x_to_y, amount, by_amount_in, sqrt_price_limit)?;
 
-            for tick in calculate_swap_result.ticks.iter() {
+            for (tick, has_crossed) in calculate_swap_result.ticks.iter() {
                 self.ticks.update(pool_key, tick.index, tick)?;
+                if *has_crossed {
+                    self.emit_cross_tick_event(caller, pool_key, tick.index);
+                }
             }
 
             self.pools.update(pool_key, &calculate_swap_result.pool)?;

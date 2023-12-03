@@ -129,7 +129,11 @@ impl Pool {
         }
     }
 
-    pub fn update_tick_index(&mut self, result: SwapResult, fee_tier: FeeTier) {
+    pub fn update_current_tick_index_when_deinitialized(
+        &mut self,
+        result: SwapResult,
+        fee_tier: FeeTier,
+    ) {
         self.current_tick_index = unwrap!(get_tick_at_sqrt_price(
             result.next_sqrt_price,
             fee_tier.tick_spacing
@@ -147,14 +151,12 @@ impl Pool {
         by_amount_in: bool,
         x_to_y: bool,
         current_timestamp: u64,
-        total_amount_in: &mut TokenAmount,
         protocol_fee: Percentage,
         fee_tier: FeeTier,
-    ) -> bool {
+    ) -> (TokenAmount, bool) {
         let mut has_crossed = false;
+        let mut total_amount = TokenAmount(0);
         if result.next_sqrt_price == swap_limit {
-            // let (tick_index, tick) = limiting_tick.unwrap();
-
             let is_enough_amount_to_cross = unwrap!(is_enough_amount_to_change_price(
                 *remaining_amount,
                 result.next_sqrt_price,
@@ -169,9 +171,8 @@ impl Pool {
                 has_crossed = true;
             } else if !remaining_amount.is_zero() {
                 if by_amount_in {
-                    self.add_fee(*remaining_amount, x_to_y, protocol_fee)
-                        .unwrap();
-                    *total_amount_in += *remaining_amount
+                    unwrap!(self.add_fee(*remaining_amount, x_to_y, protocol_fee));
+                    total_amount = *remaining_amount;
                 }
                 *remaining_amount = TokenAmount(0);
             }
@@ -183,10 +184,10 @@ impl Pool {
                 tick_index
             };
         } else {
-            self.update_tick_index(result, fee_tier);
+            self.update_current_tick_index_when_deinitialized(result, fee_tier);
         };
 
-        has_crossed
+        (total_amount, has_crossed)
     }
 
     pub fn withdraw_protocol_fee(&mut self, _pool_key: PoolKey) -> (TokenAmount, TokenAmount) {

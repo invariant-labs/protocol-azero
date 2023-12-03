@@ -4,8 +4,6 @@ use traceable_result::*;
 use crate::math::consts::*;
 use crate::math::types::{liquidity::*, percentage::*, sqrt_price::sqrt_price::*, token_amount::*};
 
-use super::percentage;
-
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub struct SwapResult {
     pub next_sqrt_price: SqrtPrice,
