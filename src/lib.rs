@@ -124,7 +124,7 @@ pub mod contract {
         pub amount_in: TokenAmount,
         pub amount_out: TokenAmount,
         pub target_sqrt_price: SqrtPrice,
-        pub ticks: Vec<Tick>,
+        pub ticks: Vec<(Tick, bool)>,
     }
 
     #[derive(scale::Decode, Default, scale::Encode, Clone, Debug)]
