@@ -22,7 +22,7 @@ impl Default for Tickmap {
 
 pub fn tick_to_position(tick: i32, tick_spacing: u16) -> (u16, u8) {
     assert!(
-        tick >= -MAX_TICK && tick <= MAX_TICK,
+        (-MAX_TICK..=MAX_TICK).contains(&tick),
         "tick not in range of <{}, {}>",
         -MAX_TICK,
         MAX_TICK
@@ -126,7 +126,7 @@ impl Tickmap {
     pub fn prev_initialized(&self, tick: i32, tick_spacing: u16, pool_key: PoolKey) -> Option<i32> {
         // don't subtract 1 to check the current tick
         let limit = get_search_limit(tick, tick_spacing, false); // limit scaled by tick_spacing
-        let (mut chunk, mut bit) = tick_to_position(tick as i32, tick_spacing);
+        let (mut chunk, mut bit) = tick_to_position(tick, tick_spacing);
         let (limiting_chunk, limiting_bit) = tick_to_position(limit, tick_spacing);
 
         while chunk > limiting_chunk || (chunk == limiting_chunk && bit >= limiting_bit) {
@@ -243,7 +243,7 @@ impl Tickmap {
 mod tests {
 
     use super::*;
-    use crate::contracts::{pool, FeeTier};
+    use crate::contracts::FeeTier;
     use crate::math::percentage::Percentage;
     use decimal::*;
     use ink::primitives::AccountId;
@@ -348,52 +348,52 @@ mod tests {
         {
             let index = 0;
 
-            assert_eq!(tickmap.get(index, 1, pool_key), false);
+            assert!(!tickmap.get(index, 1, pool_key));
             tickmap.flip(true, index, 1, pool_key);
-            assert_eq!(tickmap.get(index, 1, pool_key), true);
+            assert!(tickmap.get(index, 1, pool_key));
             tickmap.flip(false, index, 1, pool_key);
-            assert_eq!(tickmap.get(index, 1, pool_key), false);
+            assert!(!tickmap.get(index, 1, pool_key));
         }
         // small
         {
             let index = 7;
 
-            assert_eq!(tickmap.get(index, 1, pool_key), false);
+            assert!(!tickmap.get(index, 1, pool_key));
             tickmap.flip(true, index, 1, pool_key);
-            assert_eq!(tickmap.get(index, 1, pool_key), true);
+            assert!(tickmap.get(index, 1, pool_key));
             tickmap.flip(false, index, 1, pool_key);
-            assert_eq!(tickmap.get(index, 1, pool_key), false);
+            assert!(!tickmap.get(index, 1, pool_key));
         }
         // big
         {
             let index = MAX_TICK - 1;
 
-            assert_eq!(tickmap.get(index, 1, pool_key), false);
+            assert!(!tickmap.get(index, 1, pool_key));
             tickmap.flip(true, index, 1, pool_key);
-            assert_eq!(tickmap.get(index, 1, pool_key), true);
+            assert!(tickmap.get(index, 1, pool_key));
             tickmap.flip(false, index, 1, pool_key);
-            assert_eq!(tickmap.get(index, 1, pool_key), false);
+            assert!(!tickmap.get(index, 1, pool_key));
         }
         // negative
         {
             let index = MAX_TICK - 40;
 
-            assert_eq!(tickmap.get(index, 1, pool_key), false);
+            assert!(!tickmap.get(index, 1, pool_key));
             tickmap.flip(true, index, 1, pool_key);
-            assert_eq!(tickmap.get(index, 1, pool_key), true);
+            assert!(tickmap.get(index, 1, pool_key));
             tickmap.flip(false, index, 1, pool_key);
-            assert_eq!(tickmap.get(index, 1, pool_key), false);
+            assert!(!tickmap.get(index, 1, pool_key));
         }
         // tick spacing
         {
             let index = 20000;
             let tick_spacing = 1000;
 
-            assert_eq!(tickmap.get(index, tick_spacing, pool_key), false);
+            assert!(!tickmap.get(index, tick_spacing, pool_key));
             tickmap.flip(true, index, tick_spacing, pool_key);
-            assert_eq!(tickmap.get(index, tick_spacing, pool_key), true);
+            assert!(tickmap.get(index, tick_spacing, pool_key));
             tickmap.flip(false, index, tick_spacing, pool_key);
-            assert_eq!(tickmap.get(index, tick_spacing, pool_key), false);
+            assert!(!tickmap.get(index, tick_spacing, pool_key));
         }
     }
 

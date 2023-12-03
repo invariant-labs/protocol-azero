@@ -13,8 +13,6 @@ use crate::{
     InvariantError,
 };
 use decimal::*;
-use ink::prelude::vec;
-use ink::primitives::AccountId;
 use traceable_result::*;
 #[derive(PartialEq, Default, Debug, Copy, Clone, scale::Decode, scale::Encode)]
 #[cfg_attr(
@@ -35,6 +33,7 @@ pub struct Position {
 }
 
 impl Position {
+    #[allow(clippy::too_many_arguments)]
     pub fn modify(
         &mut self,
         pool: &mut Pool,
@@ -112,8 +111,8 @@ impl Position {
         self.fee_growth_inside_x = fee_growth_inside_x;
         self.fee_growth_inside_y = fee_growth_inside_y;
 
-        self.tokens_owed_x = self.tokens_owed_x + tokens_owed_x;
-        self.tokens_owed_y = self.tokens_owed_y + tokens_owed_y;
+        self.tokens_owed_x += tokens_owed_x;
+        self.tokens_owed_y += tokens_owed_y;
         Ok(())
     }
 
@@ -164,6 +163,7 @@ impl Position {
 
         (tokens_owed_x, tokens_owed_y)
     }
+    #[allow(clippy::too_many_arguments)]
     pub fn create(
         pool: &mut Pool,
         pool_key: PoolKey,

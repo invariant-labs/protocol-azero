@@ -58,8 +58,8 @@ mod tests {
         let new_pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
 
         pool_keys.add(pool_key).unwrap();
-        assert_eq!(pool_keys.contains(pool_key), true);
-        assert_eq!(pool_keys.contains(new_pool_key), false);
+        assert!(pool_keys.contains(pool_key));
+        assert!(!pool_keys.contains(new_pool_key));
 
         let result = pool_keys.add(pool_key);
         assert_eq!(result, Err(InvariantError::PoolKeyAlreadyExist));
@@ -73,7 +73,7 @@ mod tests {
         pool_keys.add(pool_key).unwrap();
 
         pool_keys.remove(pool_key).unwrap();
-        assert_eq!(pool_keys.contains(pool_key), false);
+        assert!(!pool_keys.contains(pool_key));
 
         let result = pool_keys.remove(pool_key);
         assert_eq!(result, Err(InvariantError::PoolKeyNotFound));

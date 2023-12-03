@@ -202,12 +202,10 @@ pub mod contract {
                 {
                     return Err(InvariantError::WrongLimit);
                 }
-            } else {
-                if pool.sqrt_price >= sqrt_price_limit
-                    || sqrt_price_limit < SqrtPrice::new(MIN_SQRT_PRICE)
-                {
-                    return Err(InvariantError::WrongLimit);
-                }
+            } else if pool.sqrt_price >= sqrt_price_limit
+                || sqrt_price_limit < SqrtPrice::new(MIN_SQRT_PRICE)
+            {
+                return Err(InvariantError::WrongLimit);
             }
 
             let mut remaining_amount = amount;
@@ -243,7 +241,7 @@ pub mod contract {
                     remaining_amount -= result.amount_out;
                 }
 
-                pool.add_fee(result.fee_amount, x_to_y, self.state.protocol_fee);
+                unwrap!(pool.add_fee(result.fee_amount, x_to_y, self.state.protocol_fee));
                 event_fee_amount += result.fee_amount;
 
                 pool.sqrt_price = result.next_sqrt_price;
@@ -280,11 +278,12 @@ pub mod contract {
                     self.state.protocol_fee,
                     pool_key.fee_tier,
                 );
-                if has_crossed {
-                    self.emit_cross_tick_event(caller, pool_key, limiting_tick.unwrap().0)
-                }
 
-                ticks.push(tick);
+                if has_crossed {
+                    self.emit_cross_tick_event(caller, pool_key, limiting_tick.unwrap().0);
+
+                    ticks.push(tick);
+                }
             }
 
             if total_amount_out.get() == 0 {
@@ -302,10 +301,13 @@ pub mod contract {
             })
         }
 
-        fn remove_tick(&mut self, key: PoolKey, index: i32) {
-            self.ticks.remove(key, index);
+        fn remove_tick(&mut self, key: PoolKey, index: i32) -> Result<(), InvariantError> {
+            self.ticks.remove(key, index)?;
+
+            Ok(())
         }
 
+        #[allow(clippy::too_many_arguments)]
         fn emit_swap_event(
             &self,
             address: AccountId,
@@ -550,7 +552,7 @@ pub mod contract {
                 self.calculate_swap(pool_key, x_to_y, amount, by_amount_in, sqrt_price_limit)?;
 
             for tick in calculate_swap_result.ticks.iter() {
-                self.ticks.update(pool_key, tick.index, tick);
+                self.ticks.update(pool_key, tick.index, tick)?;
             }
 
             self.pools.update(pool_key, &calculate_swap_result.pool)?;
@@ -728,12 +730,7 @@ pub mod contract {
 
             let pool = self.pools.get(pool_key)?;
 
-            position.update_seconds_per_liquidity(
-                pool,
-                lower_tick,
-                upper_tick,
-                current_timestamp as u64,
-            );
+            position.update_seconds_per_liquidity(pool, lower_tick, upper_tick, current_timestamp);
             Ok(())
         }
 
@@ -761,7 +758,7 @@ pub mod contract {
                 current_timestamp,
             );
 
-            self.positions.update(caller, index, &position);
+            self.positions.update(caller, index, &position)?;
             self.pools.update(position.pool_key, &pool)?;
             self.ticks
                 .update(position.pool_key, upper_tick.index, &upper_tick)?;
@@ -808,7 +805,7 @@ pub mod contract {
             let (amount_x, amount_y, deinitialize_lower_tick, deinitialize_upper_tick) = position
                 .remove(
                     pool,
-                    current_timestamp as u64,
+                    current_timestamp,
                     &mut lower_tick,
                     &mut upper_tick,
                     position.pool_key.fee_tier.tick_spacing,
@@ -1078,7 +1075,7 @@ pub mod contract {
             contract.add_fee_tier(fee_tier_value).unwrap();
             assert_eq!(contract.fee_tiers.get_all().len(), 1);
             contract.add_fee_tier(fee_tier_value).unwrap_err();
-            contract.remove_fee_tier(fee_tier);
+            contract.remove_fee_tier(fee_tier).unwrap();
             assert_eq!(contract.fee_tiers.get_all().len(), 0);
         }
     }
@@ -2868,7 +2865,7 @@ pub mod contract {
             let crosses_after_quote =
                 ((pool_after_quote.current_tick_index - pool_before.current_tick_index) / 10).abs();
             assert_eq!(crosses_after_quote, 0);
-            assert_eq!(quote_result.ticks.len() - 1, 146);
+            assert_eq!(quote_result.ticks.len() - 1, 145);
 
             swap!(
                 client,
