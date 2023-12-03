@@ -1,6 +1,6 @@
 use crate::math::types::{
-    fee_growth::FeeGrowth, liquidity::Liquidity, seconds_per_liquidity::SecondsPerLiquidity,
-    sqrt_price::sqrt_price::calculate_sqrt_price, sqrt_price::sqrt_price::SqrtPrice,
+    fee_growth::FeeGrowth, liquidity::Liquidity, sqrt_price::sqrt_price::calculate_sqrt_price,
+    sqrt_price::sqrt_price::SqrtPrice,
 };
 
 use traceable_result::*;
@@ -22,7 +22,6 @@ pub struct Tick {
     pub sqrt_price: SqrtPrice,
     pub fee_growth_outside_x: FeeGrowth,
     pub fee_growth_outside_y: FeeGrowth,
-    pub seconds_per_liquidity_outside: SecondsPerLiquidity,
     pub seconds_outside: u64,
 }
 
@@ -36,7 +35,6 @@ impl Default for Tick {
             sqrt_price: SqrtPrice::from_integer(1),
             fee_growth_outside_x: FeeGrowth::new(0),
             fee_growth_outside_y: FeeGrowth::new(0),
-            seconds_per_liquidity_outside: SecondsPerLiquidity::new(0),
             seconds_outside: 0u64,
         }
     }
@@ -62,10 +60,6 @@ impl Tick {
                 true => current_timestamp - pool.start_timestamp,
                 false => 0,
             },
-            seconds_per_liquidity_outside: match below_current_tick {
-                true => pool.seconds_per_liquidity_global,
-                false => SecondsPerLiquidity::new(0),
-            },
             ..Self::default()
         }
     }
@@ -83,14 +77,7 @@ impl Tick {
             .ok_or_else(|| err!("current_timestamp - pool.start_timestamp underflow"))?;
         self.seconds_outside = seconds_passed.wrapping_sub(self.seconds_outside);
 
-        if !pool.liquidity.is_zero() {
-            ok_or_mark_trace!(pool.update_seconds_per_liquidity_global(current_timestamp))?;
-        } else {
-            pool.last_timestamp = current_timestamp;
-        }
-        self.seconds_per_liquidity_outside = pool
-            .seconds_per_liquidity_global
-            .unchecked_sub(self.seconds_per_liquidity_outside);
+        pool.last_timestamp = current_timestamp;
 
         // When going to higher tick net_liquidity should be added and for going lower subtracted
         if (pool.current_tick_index >= self.index) ^ self.sign {
@@ -130,13 +117,13 @@ impl Tick {
     fn update_liquidity_change(&mut self, liquidity_delta: Liquidity, add: bool) {
         if self.sign ^ add {
             if { self.liquidity_change } > liquidity_delta {
-                self.liquidity_change = self.liquidity_change - liquidity_delta;
+                self.liquidity_change -= liquidity_delta;
             } else {
                 self.liquidity_change = liquidity_delta - self.liquidity_change;
                 self.sign = !self.sign;
             }
         } else {
-            self.liquidity_change = self.liquidity_change + liquidity_delta;
+            self.liquidity_change += liquidity_delta;
         }
     }
 
@@ -177,6 +164,7 @@ mod tests {
 
     use super::*;
 
+    // TODO: do sth about these comments
     // #[test]
     // fn test_cross() {
     //     {
@@ -386,7 +374,7 @@ mod tests {
             let add = true;
             tick.update_liquidity_change(liquidity_delta, add);
 
-            assert_eq!(tick.sign, true);
+            assert!(tick.sign);
             assert_eq!({ tick.liquidity_change }, Liquidity::from_integer(5));
         }
         {
@@ -399,7 +387,7 @@ mod tests {
             let add = false;
             tick.update_liquidity_change(liquidity_delta, add);
 
-            assert_eq!(tick.sign, false);
+            assert!(!tick.sign);
             assert_eq!({ tick.liquidity_change }, Liquidity::from_integer(5));
         }
         // update when tick sign and sign of liquidity change are different
@@ -413,7 +401,7 @@ mod tests {
             let add = false;
             tick.update_liquidity_change(liquidity_delta, add);
 
-            assert_eq!(tick.sign, false);
+            assert!(!tick.sign);
             assert_eq!({ tick.liquidity_change }, Liquidity::from_integer(1));
         }
         {
@@ -426,7 +414,7 @@ mod tests {
             let add = true;
             tick.update_liquidity_change(liquidity_delta, add);
 
-            assert_eq!(tick.sign, true);
+            assert!(tick.sign);
             assert_eq!({ tick.liquidity_change }, Liquidity::from_integer(1));
         }
     }
@@ -451,7 +439,7 @@ mod tests {
             tick.update(liquidity_delta, max_liquidity, is_upper, is_deposit)
                 .unwrap();
 
-            assert_eq!(tick.sign, true);
+            assert!(tick.sign);
             assert_eq!({ tick.liquidity_change }, Liquidity::from_integer(3));
             assert_eq!({ tick.liquidity_gross }, Liquidity::from_integer(3));
             assert_eq!({ tick.fee_growth_outside_x }, FeeGrowth::from_integer(2));
@@ -474,7 +462,7 @@ mod tests {
             tick.update(liquidity_delta, max_liquidity, is_upper, is_deposit)
                 .unwrap();
 
-            assert_eq!(tick.sign, true);
+            assert!(tick.sign);
             assert_eq!({ tick.liquidity_change }, Liquidity::from_integer(2));
             assert_eq!({ tick.liquidity_gross }, Liquidity::from_integer(8));
             assert_eq!({ tick.fee_growth_outside_x }, FeeGrowth::from_integer(13));

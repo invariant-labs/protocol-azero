@@ -213,13 +213,6 @@ pub trait Invariant {
     #[ink(message)]
     fn get_all_positions(&mut self) -> Vec<Position>;
 
-    #[ink(message)]
-    fn update_position_seconds_per_liquidity(
-        &mut self,
-        index: u32,
-        pool_key: PoolKey,
-    ) -> Result<(), InvariantError>;
-
     /// Allows an authorized user (owner of the position) to claim collected fees.
     ///
     /// # Parameters
@@ -266,14 +259,14 @@ pub trait Invariant {
     /// Query of whether the fee tier exists.
     ///
     /// # Parameters
-    /// - `fee_tier_key`: A struct identifying the pool fee and tick spacing.
+    /// - `fee_tier`: A struct identifying the pool fee and tick spacing.
     #[ink(message)]
     fn fee_tier_exist(&self, fee_tier: FeeTier) -> bool;
 
     /// Removes an existing fee tier.
     ///
     /// # Parameters
-    /// - `fee_tier_key`: A struct identifying the pool fee and tick spacing.
+    /// - `fee_tier`: A struct identifying the pool fee and tick spacing.
     ///
     /// # Errors
     /// - Fails if an unauthorized user attempts to remove a fee tier.

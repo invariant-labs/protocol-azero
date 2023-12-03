@@ -88,8 +88,7 @@ impl Positions {
     }
 
     pub fn get_length(&self, account_id: AccountId) -> u32 {
-        let positions_length = self.positions_length.get(account_id).unwrap_or(0);
-        positions_length
+        self.positions_length.get(account_id).unwrap_or(0)
     }
 }
 

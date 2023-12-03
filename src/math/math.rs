@@ -569,7 +569,7 @@ mod tests {
             let result =
                 compute_swap_step(sqrt_price, target, liquidity, amount, true, fee).unwrap();
             let expected_result = SwapResult {
-                next_sqrt_price: SqrtPrice::new(1013331333333_333333333333),
+                next_sqrt_price: SqrtPrice::new(1_013_331_333_333_333_333_333_333),
                 amount_in: TokenAmount(999400),
                 amount_out: TokenAmount(976487), // ((1.013331333333 - 1.01) * 300000000) / (1.013331333333 * 1.01)
                 fee_amount: TokenAmount(600),
@@ -587,7 +587,7 @@ mod tests {
             let result =
                 compute_swap_step(sqrt_price, target, liquidity, amount, false, fee).unwrap();
             let expected_result = SwapResult {
-                next_sqrt_price: SqrtPrice::new(100999999600000_000000000000),
+                next_sqrt_price: SqrtPrice::new(100_999_999_600_000_000_000_000_000),
                 amount_in: TokenAmount(197), // (5000000000000 * (101 - 100.9999996)) /  (101 * 100.9999996)
                 amount_out: amount,
                 fee_amount: TokenAmount(1),
@@ -599,7 +599,7 @@ mod tests {
             let current_sqrt_price = SqrtPrice::new(999500149965_000000000000);
             let target_sqrt_price = SqrtPrice::new(999500149965_000000000000);
 
-            let liquidity = Liquidity::new(20006000_000000);
+            let liquidity = Liquidity::new(20_006_000_000_000);
             let amount = TokenAmount(1_000_000);
             let by_amount_in = true;
             let fee = Percentage::from_scale(6, 4); // 0.0006 -> 0.06%
@@ -1082,7 +1082,7 @@ mod tests {
                 let result = compute_swap_step(
                     max_sqrt_price - SqrtPrice::from_integer(1),
                     max_sqrt_price,
-                    Liquidity::from_integer(100_000_000_00u128),
+                    Liquidity::from_integer(10_000_000_000u128),
                     TokenAmount(1),
                     false,
                     min_fee,
@@ -1185,7 +1185,10 @@ mod tests {
             let y = TokenAmount(4_000);
 
             let result = get_next_sqrt_price_y_down(sqrt_price, liquidity, y, false).unwrap();
-            assert_eq!(result, SqrtPrice::new(99999999992000000_000000000000));
+            assert_eq!(
+                result,
+                SqrtPrice::new(99_999_999_992_000_000_000_000_000_000)
+            );
         }
         {
             let sqrt_price = SqrtPrice::from_integer(3);
@@ -1196,7 +1199,7 @@ mod tests {
 
             // expected 2.833333333333
             // real     2.999999999999833...
-            assert_eq!(result, SqrtPrice::new(2833333333333_333333333333));
+            assert_eq!(result, SqrtPrice::new(2_833_333_333_333_333_333_333_333));
         }
     }
 
@@ -1425,9 +1428,9 @@ mod tests {
         }
         // complex
         {
-            let sqrt_price_a = SqrtPrice::new(234__878_324_943_782_000000000000);
-            let sqrt_price_b = SqrtPrice::new(87__854_456_421_658_000000000000);
-            let liquidity = Liquidity::new(983_983__249_092);
+            let sqrt_price_a = SqrtPrice::new(234_878_324_943_782_000_000_000_000);
+            let sqrt_price_b = SqrtPrice::new(87_854_456_421_658_000_000_000_000);
+            let liquidity = Liquidity::new(983_983_249_092);
 
             let result_down = get_delta_x(sqrt_price_a, sqrt_price_b, liquidity, false).unwrap();
             let result_up = get_delta_x(sqrt_price_a, sqrt_price_b, liquidity, true).unwrap();
@@ -1642,9 +1645,9 @@ mod tests {
         }
         // big numbers
         {
-            let sqrt_price_a = SqrtPrice::new(234__878_324_943_782_000000000000);
-            let sqrt_price_b = SqrtPrice::new(87__854_456_421_658_000000000000);
-            let liquidity = Liquidity::new(983_983__249_092);
+            let sqrt_price_a = SqrtPrice::new(234_878_324_943_782_000_000_000_000);
+            let sqrt_price_b = SqrtPrice::new(87_854_456_421_658_000_000_000_000);
+            let liquidity = Liquidity::new(983_983_249_092);
 
             let result_down = get_delta_y(sqrt_price_a, sqrt_price_b, liquidity, false).unwrap();
             let result_up = get_delta_y(sqrt_price_a, sqrt_price_b, liquidity, true).unwrap();
@@ -1674,8 +1677,8 @@ mod tests {
             let result_down = get_delta_y(sqrt_price_a, sqrt_price_b, liquidity, false);
             let result_up = get_delta_y(sqrt_price_a, sqrt_price_b, liquidity, true);
 
-            assert!(!result_down.is_ok());
-            assert!(!result_up.is_ok());
+            assert!(result_down.is_err());
+            assert!(result_up.is_err());
         }
         // huge liquidity
         {
@@ -2012,7 +2015,7 @@ mod tests {
         // current tick between lower tick and upper tick
         {
             let current_tick_index = 2;
-            let current_sqrt_price = SqrtPrice::new(1000140000000_000000000000);
+            let current_sqrt_price = SqrtPrice::new(1_000_140_000_000_000_000_000_000);
 
             let liquidity_delta = Liquidity::from_integer(5_000_000);
             let liquidity_sign = true;
@@ -2031,11 +2034,11 @@ mod tests {
 
             assert_eq!(x, TokenAmount(51));
             assert_eq!(y, TokenAmount(700));
-            assert_eq!(add, true)
+            assert!(add)
         }
         {
             let current_tick_index = 2;
-            let current_sqrt_price = SqrtPrice::new(1000140000000_000000000000);
+            let current_sqrt_price = SqrtPrice::new(1_000_140_000_000_000_000_000_000);
 
             let liquidity_delta = Liquidity::from_integer(5_000_000);
             let liquidity_sign = true;
@@ -2054,7 +2057,7 @@ mod tests {
 
             assert_eq!(x, TokenAmount(300));
             assert_eq!(y, TokenAmount(700));
-            assert_eq!(add, true)
+            assert!(add)
         }
         // current tick smaller than lower tick
         {
@@ -2077,7 +2080,7 @@ mod tests {
 
             assert_eq!(x, TokenAmount(1));
             assert_eq!(y, TokenAmount(0));
-            assert_eq!(add, false)
+            assert!(!add)
         }
         // current tick greater than upper tick
         {
@@ -2101,7 +2104,7 @@ mod tests {
 
             assert_eq!(x, TokenAmount(0));
             assert_eq!(y, TokenAmount(1));
-            assert_eq!(add, false)
+            assert!(!add)
         }
     }
 
@@ -2130,7 +2133,7 @@ mod tests {
             .unwrap();
             assert_eq!(x, TokenAmount(22299421242803663652778151079899766076));
             assert_eq!(y, TokenAmount(0)); // assert_eq!(y, TokenAmount(1));
-            assert_eq!(add, false)
+            assert!(!add)
         }
 
         // maximalize y
@@ -2152,13 +2155,13 @@ mod tests {
             .unwrap();
             assert_eq!(x, TokenAmount(0));
             assert_eq!(y, TokenAmount(22299420613894225688327846143610371474));
-            assert_eq!(add, false)
+            assert!(!add)
         }
 
         // delta liquidity = 0
         {
             let current_tick_index = 2;
-            let current_sqrt_price = SqrtPrice::new(1000140000000_000000000000);
+            let current_sqrt_price = SqrtPrice::new(1_000_140_000_000_000_000_000_000);
 
             let liquidity_delta = Liquidity::from_integer(0);
             let liquidity_sign = true;
@@ -2177,13 +2180,13 @@ mod tests {
 
             assert_eq!(x, TokenAmount(0));
             assert_eq!(y, TokenAmount(0));
-            assert_eq!(add, true)
+            assert!(add)
         }
 
         // Error handling
         {
             let current_tick_index = 0;
-            let current_sqrt_price = SqrtPrice::new(1000140000000_000000000000);
+            let current_sqrt_price = SqrtPrice::new(1_000_140_000_000_000_000_000_000);
             let liquidity_delta = Liquidity::from_integer(0);
             let liquidity_sign = true;
             let upper_tick = 4;
