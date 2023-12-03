@@ -5,7 +5,6 @@ use crate::{
         types::{
             fee_growth::{calculate_fee_growth_inside, FeeGrowth},
             liquidity::Liquidity,
-            seconds_per_liquidity::{calculate_seconds_per_liquidity_inside, SecondsPerLiquidity},
             sqrt_price::sqrt_price::SqrtPrice,
             token_amount::TokenAmount,
         },
@@ -13,8 +12,6 @@ use crate::{
     InvariantError,
 };
 use decimal::*;
-use ink::prelude::vec;
-use ink::primitives::AccountId;
 use traceable_result::*;
 #[derive(PartialEq, Default, Debug, Copy, Clone, scale::Decode, scale::Encode)]
 #[cfg_attr(
@@ -28,8 +25,6 @@ pub struct Position {
     pub upper_tick_index: i32,
     pub fee_growth_inside_x: FeeGrowth,
     pub fee_growth_inside_y: FeeGrowth,
-    #[allow(dead_code)]
-    pub seconds_per_liquidity_inside: SecondsPerLiquidity,
     pub last_block_number: u64,
     pub tokens_owed_x: TokenAmount,
     pub tokens_owed_y: TokenAmount,
@@ -193,7 +188,6 @@ impl Position {
             upper_tick_index: upper_tick.index,
             fee_growth_inside_x: FeeGrowth::new(0),
             fee_growth_inside_y: FeeGrowth::new(0),
-            seconds_per_liquidity_inside: SecondsPerLiquidity::new(0),
             last_block_number: block_number,
             tokens_owed_x: TokenAmount::new(0),
             tokens_owed_y: TokenAmount::new(0),
@@ -243,25 +237,6 @@ impl Position {
             deinitialize_lower_tick,
             deinitialize_upper_tick,
         )
-    }
-
-    #[allow(dead_code)]
-    pub fn update_seconds_per_liquidity(
-        &mut self,
-        pool: Pool,
-        lower_tick: Tick,
-        upper_tick: Tick,
-        current_timestamp: u64,
-    ) {
-        self.seconds_per_liquidity_inside = unwrap!(calculate_seconds_per_liquidity_inside(
-            lower_tick.index,
-            upper_tick.index,
-            pool.current_tick_index,
-            lower_tick.seconds_per_liquidity_outside,
-            upper_tick.seconds_per_liquidity_outside,
-            pool.seconds_per_liquidity_global,
-        ));
-        self.last_block_number = current_timestamp;
     }
 }
 

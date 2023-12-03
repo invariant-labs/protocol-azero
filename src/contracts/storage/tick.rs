@@ -1,6 +1,6 @@
 use crate::math::types::{
-    fee_growth::FeeGrowth, liquidity::Liquidity, seconds_per_liquidity::SecondsPerLiquidity,
-    sqrt_price::sqrt_price::calculate_sqrt_price, sqrt_price::sqrt_price::SqrtPrice,
+    fee_growth::FeeGrowth, liquidity::Liquidity, sqrt_price::sqrt_price::calculate_sqrt_price,
+    sqrt_price::sqrt_price::SqrtPrice,
 };
 
 use traceable_result::*;
@@ -22,8 +22,6 @@ pub struct Tick {
     pub sqrt_price: SqrtPrice,
     pub fee_growth_outside_x: FeeGrowth,
     pub fee_growth_outside_y: FeeGrowth,
-    #[allow(dead_code)]
-    pub seconds_per_liquidity_outside: SecondsPerLiquidity,
     pub seconds_outside: u64,
 }
 
@@ -37,7 +35,6 @@ impl Default for Tick {
             sqrt_price: SqrtPrice::from_integer(1),
             fee_growth_outside_x: FeeGrowth::new(0),
             fee_growth_outside_y: FeeGrowth::new(0),
-            seconds_per_liquidity_outside: SecondsPerLiquidity::new(0),
             seconds_outside: 0u64,
         }
     }
@@ -63,10 +60,6 @@ impl Tick {
                 true => current_timestamp - pool.start_timestamp,
                 false => 0,
             },
-            seconds_per_liquidity_outside: match below_current_tick {
-                true => pool.seconds_per_liquidity_global,
-                false => SecondsPerLiquidity::new(0),
-            },
             ..Self::default()
         }
     }
@@ -85,10 +78,6 @@ impl Tick {
         self.seconds_outside = seconds_passed.wrapping_sub(self.seconds_outside);
 
         pool.last_timestamp = current_timestamp;
-
-        self.seconds_per_liquidity_outside = pool
-            .seconds_per_liquidity_global
-            .unchecked_sub(self.seconds_per_liquidity_outside);
 
         // When going to higher tick net_liquidity should be added and for going lower subtracted
         if (pool.current_tick_index >= self.index) ^ self.sign {
@@ -175,6 +164,7 @@ mod tests {
 
     use super::*;
 
+    // TODO: do sth about these comments
     // #[test]
     // fn test_cross() {
     //     {
