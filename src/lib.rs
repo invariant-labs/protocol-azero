@@ -29,7 +29,7 @@ pub enum InvariantError {
     TokensAreTheSame,
     AmountUnderMinimumAmountOut,
     InvalidFee,
-    LiquidityGrossNotZero,
+    NotEmptyTickDeinitialization,
 }
 #[ink::contract]
 pub mod contract {
@@ -258,7 +258,7 @@ pub mod contract {
 
                 if let Some((tick_index, is_initialized)) = limiting_tick {
                     if is_initialized {
-                        let mut tick = self.ticks.get(pool_key, tick_index).unwrap();
+                        let mut tick = self.ticks.get(pool_key, tick_index)?;
 
                         let (amount_to_add, has_crossed) = pool.cross_tick(
                             result,
@@ -302,7 +302,7 @@ pub mod contract {
 
         fn remove_tick(&mut self, key: PoolKey, tick: Tick) -> Result<(), InvariantError> {
             if !tick.liquidity_gross.is_zero() {
-                return Err(InvariantError::LiquidityGrossNotZero);
+                return Err(InvariantError::NotEmptyTickDeinitialization);
             }
 
             self.tickmap
@@ -801,7 +801,7 @@ pub mod contract {
                     position.pool_key.fee_tier.tick_spacing,
                 );
 
-            self.pools.update(position.pool_key, pool).unwrap();
+            self.pools.update(position.pool_key, pool)?;
 
             if deinitialize_lower_tick {
                 self.remove_tick(position.pool_key, lower_tick)?;
@@ -817,7 +817,7 @@ pub mod contract {
                     .update(position.pool_key, position.upper_tick_index, &upper_tick)?;
             }
 
-            self.positions.remove(caller, index).unwrap();
+            self.positions.remove(caller, index)?;
 
             let mut token_x: contract_ref!(PSP22) = position.pool_key.token_x.into();
             token_x
