@@ -557,7 +557,9 @@ pub mod contract {
                 crossed_tick_indexes.push(tick.index);
             }
 
-            self.emit_cross_tick_event(caller, pool_key, crossed_tick_indexes);
+            if crossed_tick_indexes.len() > 0 {
+                self.emit_cross_tick_event(caller, pool_key, crossed_tick_indexes);
+            }
 
             self.pools.update(pool_key, &calculate_swap_result.pool)?;
 
