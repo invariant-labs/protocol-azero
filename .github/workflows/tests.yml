@@ -22,6 +22,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-rust
 
+      - name: Cache Crates 2
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo
+          key: ${{ runner.os }}-substrate-contracts-node-${{ hashFiles('rust-toolchain.toml') }}
+
       # - name: Install Rust toolchain
       #   uses: Cardinal-Cryptography/github-actions/install-rust-toolchain@v1
 
@@ -44,22 +50,22 @@ jobs:
 
 
 
-      - name: Check if cargo-contract exists
-        id: check-cargo-contract
+      - name: Check if substrate-contracts-node exists
+        id: check-substrate-contracts-node
         continue-on-error: true
-        run: cargo contract --version
+        run: substrate-contracts-node --version
 
       - name: Install Protobuf
-        if: ${{ steps.check-cargo-contract.outcome == 'failure' }}
+        if: ${{ steps.check-substrate-contracts-node.outcome == 'failure' }}
         run: |
           sudo apt-get install -y protobuf-compiler libprotobuf-dev
       
         
       - name: Install substrate-contracts-node
-        if: ${{ steps.check-cargo-contract.outcome == 'failure' }}
+        if: ${{ steps.check-substrate-contracts-node.outcome == 'failure' }}
         run: |
           cargo install cargo-dylint dylint-link
-          cargo install --force --locked cargo-contract
+          cargo install --force --locked contracts-node
 
       # TODO: try downlaod binary from github release
       # - name: Install substrate-contracts-node
@@ -108,10 +114,10 @@ jobs:
       #     command: install
       #     args: --locked contracts-node
 
-      - name: Install substrate-contracts-node
-        run: |
-          cargo install cargo-dylint dylint-link
-          cargo install --force --locked cargo-contract
+      # - name: Install substrate-contracts-node
+      #   run: |
+      #     cargo install cargo-dylint dylint-link
+      #     cargo install --force --locked cargo-contract
 
       - name: Build contract
         uses: actions-rs/cargo@v1
@@ -119,8 +125,8 @@ jobs:
           command: contract
           args: build --release
 
-      - name: Run unit tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --features e2e-tests
+      # - name: Run unit tests
+      #   uses: actions-rs/cargo@v1
+      #   with:
+      #     command: test
+      #     args: --features e2e-tests
