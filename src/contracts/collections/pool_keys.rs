@@ -17,6 +17,7 @@ impl PoolKeys {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub fn remove(&mut self, pool_key: PoolKey) -> Result<(), InvariantError> {
         let index = self
             .pool_keys

@@ -21,7 +21,7 @@ cd decimal_core
 cd ../../..
 
 cargo fmt --all -- --check
-cargo clippy
+cargo clippy --all-targets -- --no-deps -D warnings
 
 cargo test --features e2e-tests
 

@@ -3,7 +3,6 @@
 extern crate alloc;
 mod contracts;
 pub mod math;
-
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum InvariantError {
@@ -30,26 +29,27 @@ pub enum InvariantError {
     TokensAreTheSame,
     AmountUnderMinimumAmountOut,
     InvalidFee,
+    NotEmptyTickDeinitialization,
 }
 #[ink::contract]
 pub mod contract {
     use crate::InvariantError;
-    // use math::fee_growth::FeeGrowth;
+
     use crate::contracts::state::State;
     use crate::contracts::Invariant;
     use crate::contracts::Pool;
     use crate::contracts::PoolKeys;
     use crate::contracts::Tick;
     use crate::contracts::Tickmap;
-    use crate::contracts::{FeeTier, FeeTiers, PoolKey, Pools, Position, Positions, Ticks}; //
+    use crate::contracts::{FeeTier, FeeTiers, PoolKey, Pools, Position, Positions, Ticks};
     use crate::math::calculate_min_amount_out;
     use crate::math::check_tick;
+    use crate::math::log::get_tick_at_sqrt_price;
     use crate::math::percentage::Percentage;
-    use crate::math::sqrt_price::log::get_tick_at_sqrt_price;
-    use crate::math::sqrt_price::sqrt_price::SqrtPrice;
+    use crate::math::sqrt_price::SqrtPrice;
     use crate::math::token_amount::TokenAmount;
-    use crate::math::types::liquidity::Liquidity;
-    // use crate
+    use crate::math::types::liquidity::Liquidity; //
+
     use crate::math::{compute_swap_step, MAX_SQRT_PRICE, MIN_SQRT_PRICE};
     use decimal::*;
     use ink::contract_ref;
@@ -189,7 +189,7 @@ pub mod contract {
             sqrt_price_limit: SqrtPrice,
         ) -> Result<CalculateSwapResult, InvariantError> {
             let current_timestamp = self.env().block_timestamp();
-            let caller = self.env().caller();
+
             if amount.is_zero() {
                 return Err(InvariantError::AmountIsZero);
             }
@@ -258,7 +258,7 @@ pub mod contract {
 
                 if let Some((tick_index, is_initialized)) = limiting_tick {
                     if is_initialized {
-                        let mut tick = self.ticks.get(pool_key, tick_index).unwrap();
+                        let mut tick = self.ticks.get(pool_key, tick_index)?;
 
                         let (amount_to_add, has_crossed) = pool.cross_tick(
                             result,
@@ -300,9 +300,14 @@ pub mod contract {
             })
         }
 
-        fn remove_tick(&mut self, key: PoolKey, index: i32) -> Result<(), InvariantError> {
-            self.ticks.remove(key, index)?;
+        fn remove_tick(&mut self, key: PoolKey, tick: Tick) -> Result<(), InvariantError> {
+            if !tick.liquidity_gross.is_zero() {
+                return Err(InvariantError::NotEmptyTickDeinitialization);
+            }
 
+            self.tickmap
+                .flip(false, tick.index, key.fee_tier.tick_spacing, key);
+            self.ticks.remove(key, tick.index)?;
             Ok(())
         }
 
@@ -557,7 +562,7 @@ pub mod contract {
                 crossed_tick_indexes.push(tick.index);
             }
 
-            if crossed_tick_indexes.len() > 0 {
+            if !crossed_tick_indexes.is_empty() {
                 self.emit_cross_tick_event(caller, pool_key, crossed_tick_indexes);
             }
 
@@ -796,41 +801,23 @@ pub mod contract {
                     position.pool_key.fee_tier.tick_spacing,
                 );
 
-            self.pools.update(position.pool_key, pool).unwrap();
+            self.pools.update(position.pool_key, pool)?;
 
             if deinitialize_lower_tick {
-                self.tickmap.flip(
-                    false,
-                    lower_tick.index,
-                    position.pool_key.fee_tier.tick_spacing,
-                    position.pool_key,
-                );
-                self.ticks
-                    .remove(position.pool_key, position.lower_tick_index)
-                    .unwrap();
+                self.remove_tick(position.pool_key, lower_tick)?;
             } else {
                 self.ticks
-                    .update(position.pool_key, position.lower_tick_index, &lower_tick)
-                    .unwrap();
+                    .update(position.pool_key, position.lower_tick_index, &lower_tick)?;
             }
 
             if deinitialize_upper_tick {
-                self.tickmap.flip(
-                    false,
-                    upper_tick.index,
-                    position.pool_key.fee_tier.tick_spacing,
-                    position.pool_key,
-                );
-                self.ticks
-                    .remove(position.pool_key, position.upper_tick_index)
-                    .unwrap();
+                self.remove_tick(position.pool_key, upper_tick)?;
             } else {
                 self.ticks
-                    .update(position.pool_key, position.upper_tick_index, &upper_tick)
-                    .unwrap();
+                    .update(position.pool_key, position.upper_tick_index, &upper_tick)?;
             }
 
-            self.positions.remove(caller, index).unwrap();
+            self.positions.remove(caller, index)?;
 
             let mut token_x: contract_ref!(PSP22) = position.pool_key.token_x.into();
             token_x
@@ -1070,8 +1057,8 @@ pub mod contract {
         use crate::contracts::{get_liquidity, get_liquidity_by_x, get_liquidity_by_y};
         use crate::math::fee_growth::FeeGrowth;
         use crate::math::get_delta_y;
-        use crate::math::sqrt_price::log::get_tick_at_sqrt_price;
-        use crate::math::sqrt_price::sqrt_price::{calculate_sqrt_price, get_max_tick};
+        use crate::math::log::get_tick_at_sqrt_price;
+        use crate::math::sqrt_price::{calculate_sqrt_price, get_max_tick};
         use crate::math::MAX_TICK;
         use ink::prelude::vec;
         use ink::prelude::vec::Vec;

@@ -2,7 +2,7 @@ use decimal::*;
 use traceable_result::*;
 
 use crate::math::liquidity::Liquidity;
-use crate::math::sqrt_price::sqrt_price::{calculate_sqrt_price, SqrtPrice};
+use crate::math::sqrt_price::{calculate_sqrt_price, SqrtPrice};
 use crate::math::token_amount::TokenAmount;
 use crate::math::MAX_TICK;
 
@@ -19,6 +19,7 @@ pub struct SingleTokenLiquidity {
     pub amount: TokenAmount,
 }
 
+#[allow(dead_code)]
 pub fn get_liquidity(
     x: TokenAmount,
     y: TokenAmount,
@@ -92,6 +93,7 @@ pub fn get_liquidity(
     })
 }
 
+#[allow(dead_code)]
 pub fn get_liquidity_by_x(
     x: TokenAmount,
     lower_tick: i32,
@@ -164,6 +166,7 @@ pub fn get_liquidity_by_x_sqrt_price(
     })
 }
 
+#[allow(dead_code)]
 pub fn get_liquidity_by_y(
     y: TokenAmount,
     lower_tick: i32,
@@ -187,6 +190,7 @@ pub fn get_liquidity_by_y(
     ))
 }
 
+#[allow(dead_code)]
 pub fn get_liquidity_by_y_sqrt_price(
     y: TokenAmount,
     lower_sqrt_price: SqrtPrice,
@@ -235,6 +239,7 @@ pub fn get_liquidity_by_y_sqrt_price(
     })
 }
 
+#[allow(dead_code)]
 pub fn calculate_x(
     nominator: SqrtPrice,
     denominator: SqrtPrice,
