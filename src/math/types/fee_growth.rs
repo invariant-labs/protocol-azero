@@ -105,7 +105,7 @@ pub fn calculate_fee_growth_inside(
 mod tests {
     use super::*;
     use crate::math::consts::MAX_TICK;
-    use crate::math::types::ratio::sqrt_price::SqrtPrice;
+    use crate::math::types::sqrt_price::SqrtPrice;
 
     #[test]
     fn test_unchecked_add() {

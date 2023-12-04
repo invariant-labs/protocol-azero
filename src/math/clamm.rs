@@ -2,7 +2,7 @@ use decimal::*;
 use traceable_result::*;
 
 use crate::math::consts::*;
-use crate::math::types::{liquidity::*, percentage::*, ratio::sqrt_price::*, token_amount::*};
+use crate::math::types::{liquidity::*, percentage::*, sqrt_price::*, token_amount::*};
 
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub struct SwapResult {
@@ -1289,7 +1289,7 @@ mod tests {
                 .get();
                 assert_eq!(
                     cause,
-                    "conversion to contract::math::types::ratio::sqrt_price::SqrtPrice type failed"
+                    "conversion to contract::math::types::sqrt_price::SqrtPrice type failed"
                 );
                 assert_eq!(stack.len(), 2);
             }
@@ -1343,7 +1343,7 @@ mod tests {
                     .get();
                     assert_eq!(
                         cause,
-                        "conversion to contract::math::types::ratio::sqrt_price::SqrtPrice type failed"
+                        "conversion to contract::math::types::sqrt_price::SqrtPrice type failed"
                     );
                     assert_eq!(stack.len(), 2);
                 }
@@ -1358,7 +1358,7 @@ mod tests {
                     .get();
                     assert_eq!(
                         cause,
-                        "conversion to contract::math::types::ratio::sqrt_price::SqrtPrice type failed"
+                        "conversion to contract::math::types::sqrt_price::SqrtPrice type failed"
                     );
                     assert_eq!(stack.len(), 2);
                 }

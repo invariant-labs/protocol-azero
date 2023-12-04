@@ -43,9 +43,9 @@ pub mod contract {
     use crate::contracts::{FeeTier, FeeTiers, PoolKey, Pools, Position, Positions, Ticks};
     use crate::math::calculate_min_amount_out;
     use crate::math::check_tick;
+    use crate::math::log::get_tick_at_sqrt_price;
     use crate::math::percentage::Percentage;
-    use crate::math::ratio::log::get_tick_at_sqrt_price;
-    use crate::math::ratio::sqrt_price::SqrtPrice;
+    use crate::math::sqrt_price::SqrtPrice;
     use crate::math::token_amount::TokenAmount;
     use crate::math::types::liquidity::Liquidity; //
 
@@ -1070,8 +1070,8 @@ pub mod contract {
         use crate::contracts::{get_liquidity, get_liquidity_by_x, get_liquidity_by_y};
         use crate::math::fee_growth::FeeGrowth;
         use crate::math::get_delta_y;
-        use crate::math::ratio::log::get_tick_at_sqrt_price;
-        use crate::math::ratio::sqrt_price::{calculate_sqrt_price, get_max_tick};
+        use crate::math::log::get_tick_at_sqrt_price;
+        use crate::math::sqrt_price::{calculate_sqrt_price, get_max_tick};
         use crate::math::MAX_TICK;
         use ink::prelude::vec;
         use ink::prelude::vec::Vec;

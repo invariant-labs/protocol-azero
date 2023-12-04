@@ -5,7 +5,7 @@ use crate::{
         types::{
             fee_growth::{calculate_fee_growth_inside, FeeGrowth},
             liquidity::Liquidity,
-            ratio::sqrt_price::SqrtPrice,
+            sqrt_price::SqrtPrice,
             token_amount::TokenAmount,
         },
     },

@@ -1,7 +1,7 @@
 use super::Pool;
 use crate::math::types::{
-    fee_growth::FeeGrowth, liquidity::Liquidity, ratio::sqrt_price::calculate_sqrt_price,
-    ratio::sqrt_price::SqrtPrice,
+    fee_growth::FeeGrowth, liquidity::Liquidity, sqrt_price::calculate_sqrt_price,
+    sqrt_price::SqrtPrice,
 };
 use decimal::*;
 use traceable_result::*;

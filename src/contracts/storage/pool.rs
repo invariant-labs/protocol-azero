@@ -3,14 +3,12 @@ use crate::{
     contracts::PoolKey,
     math::{
         clamm::*,
+        log::get_tick_at_sqrt_price,
         types::{
             fee_growth::FeeGrowth,
             liquidity::Liquidity,
             percentage::Percentage,
-            ratio::{
-                log::get_tick_at_sqrt_price,
-                sqrt_price::{calculate_sqrt_price, SqrtPrice},
-            },
+            sqrt_price::{calculate_sqrt_price, SqrtPrice},
             token_amount::TokenAmount,
         },
     },
