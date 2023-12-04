@@ -28,7 +28,6 @@ pub mod e2e_tests {
     async fn cross_both_side_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
         let alice = ink_e2e::alice();
-        let bob = ink_e2e::bob();
         let init_tick = 0;
 
         let initial_mint = 10u128.pow(10);
@@ -40,7 +39,7 @@ pub mod e2e_tests {
 
         add_fee_tier!(client, ContractRef, dex, fee_tier, alice);
 
-        let pool = create_pool!(
+        create_pool!(
             client,
             ContractRef,
             dex,
@@ -295,7 +294,6 @@ pub mod e2e_tests {
     async fn cross_both_side_not_cross_case_test(mut client: ink_e2e::Client<C, E>) -> () {
         let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
         let alice = ink_e2e::alice();
-        let bob = ink_e2e::bob();
         let init_tick = 0;
 
         let initial_mint = 10u128.pow(10);
@@ -307,7 +305,7 @@ pub mod e2e_tests {
 
         add_fee_tier!(client, ContractRef, dex, fee_tier, alice);
 
-        let pool = create_pool!(
+        create_pool!(
             client,
             ContractRef,
             dex,
