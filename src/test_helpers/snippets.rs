@@ -194,7 +194,7 @@ macro_rules! init_basic_pool {
             tick_spacing: 10,
         };
         let alice = ink_e2e::alice();
-        add_fee_tier!($client, $dex, $dex_address, fee_tier, alice);
+        add_fee_tier!($client, $dex, $dex_address, fee_tier, alice).unwrap();
 
         let init_tick = 0;
         create_pool!(
@@ -206,7 +206,8 @@ macro_rules! init_basic_pool {
             fee_tier,
             init_tick,
             alice
-        );
+        )
+        .unwrap();
     }};
 }
 
@@ -218,7 +219,7 @@ macro_rules! init_slippage_pool_with_liquidity {
             tick_spacing: 10,
         };
         let alice = ink_e2e::alice();
-        add_fee_tier!($client, $dex, $dex_address, fee_tier, alice);
+        add_fee_tier!($client, $dex, $dex_address, fee_tier, alice).unwrap();
 
         let init_tick = 0;
         create_pool!(
@@ -230,7 +231,8 @@ macro_rules! init_slippage_pool_with_liquidity {
             fee_tier,
             init_tick,
             alice
-        );
+        )
+        .unwrap();
         let fee_tier = FeeTier {
             fee: Percentage::from_scale(6, 3),
             tick_spacing: 10,
@@ -245,7 +247,8 @@ macro_rules! init_slippage_pool_with_liquidity {
             $dex_address,
             mint_amount,
             alice
-        );
+        )
+        .unwrap();
         approve!(
             $client,
             $token,
@@ -253,7 +256,8 @@ macro_rules! init_slippage_pool_with_liquidity {
             $dex_address,
             mint_amount,
             alice
-        );
+        )
+        .unwrap();
 
         let pool_key = PoolKey::new($token_x_address, $token_y_address, fee_tier).unwrap();
         let lower_tick = -1000;
@@ -282,7 +286,8 @@ macro_rules! init_slippage_pool_with_liquidity {
             slippage_limit_lower,
             slippage_limit_upper,
             alice
-        );
+        )
+        .unwrap();
 
         let pool_after = get_pool!(
             $client,
@@ -317,7 +322,8 @@ macro_rules! init_basic_position {
             $dex_address,
             mint_amount,
             alice
-        );
+        )
+        .unwrap();
         approve!(
             $client,
             $token,
@@ -325,7 +331,8 @@ macro_rules! init_basic_position {
             $dex_address,
             mint_amount,
             alice
-        );
+        )
+        .unwrap();
 
         let pool_key = PoolKey::new($token_x_address, $token_y_address, fee_tier).unwrap();
         let lower_tick = -20;
@@ -354,7 +361,8 @@ macro_rules! init_basic_position {
             slippage_limit_lower,
             slippage_limit_upper,
             alice
-        );
+        )
+        .unwrap();
 
         let pool_after = get_pool!(
             $client,
@@ -387,7 +395,8 @@ macro_rules! init_cross_position {
             $dex_address,
             mint_amount,
             alice
-        );
+        )
+        .unwrap();
         approve!(
             $client,
             $token,
@@ -395,7 +404,8 @@ macro_rules! init_cross_position {
             $dex_address,
             mint_amount,
             alice
-        );
+        )
+        .unwrap();
 
         let pool_key = PoolKey::new($token_x_address, $token_y_address, fee_tier).unwrap();
         let lower_tick = -40;
@@ -424,7 +434,8 @@ macro_rules! init_cross_position {
             slippage_limit_lower,
             slippage_limit_upper,
             alice
-        );
+        )
+        .unwrap();
 
         let pool_after = get_pool!(
             $client,
@@ -458,10 +469,11 @@ macro_rules! init_basic_swap {
             address_of!(Bob),
             amount,
             bob
-        );
+        )
+        .unwrap();
         let amount_x = balance_of!($client, $token, $token_x_address, address_of!(Bob));
         assert_eq!(amount_x, amount);
-        approve!($client, $token, $token_x_address, $dex_address, amount, bob);
+        approve!($client, $token, $token_x_address, $dex_address, amount, bob).unwrap();
 
         let amount_x = balance_of!($client, $token, $token_x_address, $dex_address);
         let amount_y = balance_of!($client, $token, $token_y_address, $dex_address);
@@ -490,7 +502,8 @@ macro_rules! init_basic_swap {
             true,
             slippage,
             bob
-        );
+        )
+        .unwrap();
 
         let pool_after = get_pool!(
             $client,
@@ -544,10 +557,11 @@ macro_rules! init_cross_swap {
             address_of!(Bob),
             amount,
             bob
-        );
+        )
+        .unwrap();
         let amount_x = balance_of!($client, $token, $token_x_address, address_of!(Bob));
         assert_eq!(amount_x, amount);
-        approve!($client, $token, $token_x_address, $dex_address, amount, bob);
+        approve!($client, $token, $token_x_address, $dex_address, amount, bob).unwrap();
 
         let amount_x = balance_of!($client, $token, $token_x_address, $dex_address);
         let amount_y = balance_of!($client, $token, $token_y_address, $dex_address);
@@ -576,7 +590,8 @@ macro_rules! init_cross_swap {
             true,
             slippage,
             bob
-        );
+        )
+        .unwrap();
 
         let pool_after = get_pool!(
             $client,
@@ -646,7 +661,8 @@ macro_rules! swap_exact_limit {
             $by_amount_in,
             quote_result.target_sqrt_price,
             $caller
-        );
+        )
+        .unwrap();
     }};
 }
 
@@ -657,17 +673,17 @@ macro_rules! big_deposit_and_swap {
 
         let mint_amount = 2u128.pow(75) - 1;
         let alice = ink_e2e::alice();
-        approve!($client, $token, token_x, dex, u128::MAX, alice);
-        approve!($client, $token, token_y, dex, u128::MAX, alice);
+        approve!($client, $token, token_x, dex, u128::MAX, alice).unwrap();
+        approve!($client, $token, token_y, dex, u128::MAX, alice).unwrap();
 
         let fee_tier = FeeTier {
             fee: Percentage::from_scale(6, 3),
             tick_spacing: 1,
         };
-        add_fee_tier!($client, $dex, dex, fee_tier, alice);
+        add_fee_tier!($client, $dex, dex, fee_tier, alice).unwrap();
 
         let init_tick = 0;
-        create_pool!($client, $dex, dex, token_x, token_y, fee_tier, init_tick, alice);
+        create_pool!($client, $dex, dex, token_x, token_y, fee_tier, init_tick, alice).unwrap();
 
         let lower_tick = if $x_to_y {
             -(fee_tier.tick_spacing as i32)
@@ -717,7 +733,8 @@ macro_rules! big_deposit_and_swap {
             slippage_limit_lower,
             slippage_limit_upper,
             alice
-        );
+        )
+        .unwrap();
 
         let amount_x = balance_of!($client, $token, token_x, address_of!(Alice));
         let amount_y = balance_of!($client, $token, token_y, address_of!(Alice));
@@ -745,7 +762,8 @@ macro_rules! big_deposit_and_swap {
             true,
             sqrt_price_limit,
             alice
-        );
+        )
+        .unwrap();
 
         let amount_x = balance_of!($client, $token, token_x, address_of!(Alice));
         let amount_y = balance_of!($client, $token, token_y, address_of!(Alice));
@@ -769,14 +787,14 @@ macro_rules! multiple_swap {
             tick_spacing: 1,
         };
         let alice = ink_e2e::alice();
-        add_fee_tier!($client, $dex, dex, fee_tier, alice);
+        add_fee_tier!($client, $dex, dex, fee_tier, alice).unwrap();
 
         let init_tick = 0;
-        create_pool!($client, $dex, dex, token_x, token_y, fee_tier, init_tick, alice);
+        create_pool!($client, $dex, dex, token_x, token_y, fee_tier, init_tick, alice).unwrap();
 
         let mint_amount = 10u128.pow(10);
-        approve!($client, $token, token_x, dex, mint_amount, alice);
-        approve!($client, $token, token_y, dex, mint_amount, alice);
+        approve!($client, $token, token_x, dex, mint_amount, alice).unwrap();
+        approve!($client, $token, token_y, dex, mint_amount, alice).unwrap();
 
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
         let mut upper_tick = 953;
@@ -810,19 +828,20 @@ macro_rules! multiple_swap {
             slippage_limit_lower,
             slippage_limit_upper,
             alice
-        );
+        )
+        .unwrap();
 
         let bob = ink_e2e::bob();
         if $x_to_y {
-            mint!($client, $token, token_x, address_of!(Bob), amount, bob);
+            mint!($client, $token, token_x, address_of!(Bob), amount, bob).unwrap();
             let amount_x = balance_of!($client, $token, token_x, address_of!(Bob));
             assert_eq!(amount_x, amount);
-            approve!($client, $token, token_x, dex, amount, bob);
+            approve!($client, $token, token_x, dex, amount, bob).unwrap();
         } else {
-            mint!($client, $token, token_y, address_of!(Bob), amount, bob);
+            mint!($client, $token, token_y, address_of!(Bob), amount, bob).unwrap();
             let amount_y = balance_of!($client, $token, token_y, address_of!(Bob));
             assert_eq!(amount_y, amount);
-            approve!($client, $token, token_y, dex, amount, bob);
+            approve!($client, $token, token_y, dex, amount, bob).unwrap();
         }
 
         let swap_amount = TokenAmount(10);

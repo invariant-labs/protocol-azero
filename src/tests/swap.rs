@@ -6,7 +6,7 @@ pub mod e2e_tests {
         math::{
             types::{
                 fee_growth::FeeGrowth, liquidity::Liquidity, percentage::Percentage,
-                sqrt_price::sqrt_price::SqrtPrice, token_amount::TokenAmount,
+                sqrt_price::SqrtPrice, token_amount::TokenAmount,
             },
             MAX_SQRT_PRICE, MIN_SQRT_PRICE,
         },
@@ -41,7 +41,7 @@ pub mod e2e_tests {
 
         let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
 
-        add_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+        add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
 
         create_pool!(
             client,
@@ -52,10 +52,11 @@ pub mod e2e_tests {
             fee_tier,
             0,
             alice
-        );
+        )
+        .unwrap();
 
-        approve!(client, TokenRef, token_x, dex, initial_amount, alice);
-        approve!(client, TokenRef, token_y, dex, initial_amount, alice);
+        approve!(client, TokenRef, token_x, dex, initial_amount, alice).unwrap();
+        approve!(client, TokenRef, token_y, dex, initial_amount, alice).unwrap();
 
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
 
@@ -76,7 +77,8 @@ pub mod e2e_tests {
             SqrtPrice::new(0),
             SqrtPrice::max_instance(),
             alice
-        );
+        )
+        .unwrap();
 
         create_position!(
             client,
@@ -89,7 +91,8 @@ pub mod e2e_tests {
             SqrtPrice::new(0),
             SqrtPrice::max_instance(),
             alice
-        );
+        )
+        .unwrap();
 
         let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
 
@@ -98,8 +101,8 @@ pub mod e2e_tests {
         let amount = 1000;
         let swap_amount = TokenAmount(amount);
         let bob = ink_e2e::bob();
-        mint!(client, TokenRef, token_x, address_of!(Bob), amount, alice);
-        approve!(client, TokenRef, token_x, dex, amount, bob);
+        mint!(client, TokenRef, token_x, address_of!(Bob), amount, alice).unwrap();
+        approve!(client, TokenRef, token_x, dex, amount, bob).unwrap();
 
         let slippage = SqrtPrice::new(MIN_SQRT_PRICE);
         let target_sqrt_price = quote!(
@@ -128,7 +131,8 @@ pub mod e2e_tests {
             true,
             target_sqrt_price,
             bob
-        );
+        )
+        .unwrap();
 
         // Load states
         let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
@@ -192,7 +196,7 @@ pub mod e2e_tests {
 
         let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
 
-        add_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+        add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
 
         create_pool!(
             client,
@@ -203,10 +207,11 @@ pub mod e2e_tests {
             fee_tier,
             0,
             alice
-        );
+        )
+        .unwrap();
 
-        approve!(client, TokenRef, token_x, dex, initial_amount, alice);
-        approve!(client, TokenRef, token_y, dex, initial_amount, alice);
+        approve!(client, TokenRef, token_x, dex, initial_amount, alice).unwrap();
+        approve!(client, TokenRef, token_y, dex, initial_amount, alice).unwrap();
 
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
 
@@ -227,7 +232,8 @@ pub mod e2e_tests {
             SqrtPrice::new(0),
             SqrtPrice::max_instance(),
             alice
-        );
+        )
+        .unwrap();
 
         create_position!(
             client,
@@ -240,7 +246,8 @@ pub mod e2e_tests {
             SqrtPrice::new(0),
             SqrtPrice::max_instance(),
             alice
-        );
+        )
+        .unwrap();
 
         let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
 
@@ -249,8 +256,8 @@ pub mod e2e_tests {
         let amount = 1000;
         let swap_amount = TokenAmount(amount);
         let bob = ink_e2e::bob();
-        mint!(client, TokenRef, token_y, address_of!(Bob), amount, alice);
-        approve!(client, TokenRef, token_y, dex, amount, bob);
+        mint!(client, TokenRef, token_y, address_of!(Bob), amount, alice).unwrap();
+        approve!(client, TokenRef, token_y, dex, amount, bob).unwrap();
 
         let target_sqrt_price = SqrtPrice::new(MAX_SQRT_PRICE);
 
@@ -280,7 +287,8 @@ pub mod e2e_tests {
             true,
             target_sqrt_price,
             bob
-        );
+        )
+        .unwrap();
 
         // Load states
         let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();

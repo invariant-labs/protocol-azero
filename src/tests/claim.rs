@@ -6,7 +6,7 @@ pub mod e2e_tests {
         math::{
             types::{
                 fee_growth::FeeGrowth, liquidity::Liquidity, percentage::Percentage,
-                sqrt_price::sqrt_price::SqrtPrice, token_amount::TokenAmount,
+                sqrt_price::SqrtPrice, token_amount::TokenAmount,
             },
             MIN_SQRT_PRICE,
         },
@@ -35,7 +35,7 @@ pub mod e2e_tests {
         let user_amount_before_claim = balance_of!(client, TokenRef, token_x, address_of!(Alice));
         let dex_amount_before_claim = balance_of!(client, TokenRef, token_x, dex);
 
-        claim_fee!(client, ContractRef, dex, 0, alice);
+        claim_fee!(client, ContractRef, dex, 0, alice).unwrap();
 
         let user_amount_after_claim = balance_of!(client, TokenRef, token_x, address_of!(Alice));
         let dex_amount_after_claim = balance_of!(client, TokenRef, token_x, dex);

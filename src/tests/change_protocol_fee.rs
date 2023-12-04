@@ -15,8 +15,8 @@ pub mod e2e_tests {
         let contract = create_dex!(client, ContractRef, Percentage::new(0));
 
         let protocol_fee = {
-            let _msg = build_message::<ContractRef>(contract.clone())
-                .call(|contract| contract.get_protocol_fee());
+            let _msg =
+                build_message::<ContractRef>(contract).call(|contract| contract.get_protocol_fee());
             client
                 .call(&ink_e2e::alice(), _msg, 0, None)
                 .await
@@ -27,7 +27,7 @@ pub mod e2e_tests {
         assert_eq!(protocol_fee, Percentage::new(0));
 
         let _result = {
-            let _msg = build_message::<ContractRef>(contract.clone())
+            let _msg = build_message::<ContractRef>(contract)
                 .call(|contract| contract.change_protocol_fee(Percentage::new(1)));
             client
                 .call(&ink_e2e::alice(), _msg, 0, None)
@@ -36,8 +36,8 @@ pub mod e2e_tests {
         };
 
         let protocol_fee = {
-            let _msg = build_message::<ContractRef>(contract.clone())
-                .call(|contract| contract.get_protocol_fee());
+            let _msg =
+                build_message::<ContractRef>(contract).call(|contract| contract.get_protocol_fee());
             client
                 .call(&ink_e2e::alice(), _msg, 0, None)
                 .await
@@ -55,7 +55,7 @@ pub mod e2e_tests {
     async fn change_protocol_fee_should_panic(mut client: ink_e2e::Client<C, E>) -> () {
         let contract = create_dex!(client, ContractRef, Percentage::new(0));
 
-        let _msg = build_message::<ContractRef>(contract.clone())
+        let _msg = build_message::<ContractRef>(contract)
             .call(|contract| contract.change_protocol_fee(Percentage::new(1)));
         client
             .call(&ink_e2e::bob(), _msg, 0, None)

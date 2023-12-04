@@ -8,7 +8,7 @@ pub mod e2e_tests {
                 fee_growth::FeeGrowth,
                 liquidity::Liquidity,
                 percentage::Percentage,
-                sqrt_price::sqrt_price::{calculate_sqrt_price, SqrtPrice},
+                sqrt_price::{calculate_sqrt_price, SqrtPrice},
                 token_amount::TokenAmount,
             },
             MIN_SQRT_PRICE,
@@ -38,7 +38,7 @@ pub mod e2e_tests {
 
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
 
-        add_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+        add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
 
         create_pool!(
             client,
@@ -49,7 +49,8 @@ pub mod e2e_tests {
             fee_tier,
             init_tick,
             alice
-        );
+        )
+        .unwrap();
 
         let lower_tick_index = -10;
         let upper_tick_index = 10;
@@ -62,7 +63,8 @@ pub mod e2e_tests {
             address_of!(Alice),
             mint_amount,
             alice
-        );
+        )
+        .unwrap();
         mint!(
             client,
             TokenRef,
@@ -70,10 +72,11 @@ pub mod e2e_tests {
             address_of!(Alice),
             mint_amount,
             alice
-        );
+        )
+        .unwrap();
 
-        approve!(client, TokenRef, token_x, dex, mint_amount, alice);
-        approve!(client, TokenRef, token_y, dex, mint_amount, alice);
+        approve!(client, TokenRef, token_x, dex, mint_amount, alice).unwrap();
+        approve!(client, TokenRef, token_y, dex, mint_amount, alice).unwrap();
 
         let liquidity_delta = Liquidity::from_integer(20_006_000);
 
@@ -90,7 +93,8 @@ pub mod e2e_tests {
             pool_state.sqrt_price,
             pool_state.sqrt_price,
             alice
-        );
+        )
+        .unwrap();
 
         let pool_state = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
 
@@ -104,9 +108,10 @@ pub mod e2e_tests {
             address_of!(Bob),
             mint_amount,
             alice
-        );
+        )
+        .unwrap();
 
-        approve!(client, TokenRef, token_x, dex, mint_amount, bob);
+        approve!(client, TokenRef, token_x, dex, mint_amount, bob).unwrap();
 
         let dex_x_before = balance_of!(client, TokenRef, token_x, dex);
         let dex_y_before = balance_of!(client, TokenRef, token_y, dex);
@@ -136,7 +141,8 @@ pub mod e2e_tests {
             true,
             quoted_target_sqrt_price,
             bob
-        );
+        )
+        .unwrap();
 
         let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
         let expected_price = calculate_sqrt_price(-10).unwrap();
@@ -171,8 +177,8 @@ pub mod e2e_tests {
         let upper_tick_after_swap = -50;
         let liquidity_delta = Liquidity::from_integer(20008000);
 
-        approve!(client, TokenRef, token_x, dex, liquidity_delta.get(), alice);
-        approve!(client, TokenRef, token_y, dex, liquidity_delta.get(), alice);
+        approve!(client, TokenRef, token_x, dex, liquidity_delta.get(), alice).unwrap();
+        approve!(client, TokenRef, token_y, dex, liquidity_delta.get(), alice).unwrap();
 
         let pool_state = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
 
@@ -187,7 +193,8 @@ pub mod e2e_tests {
             pool_state.sqrt_price,
             pool_state.sqrt_price,
             alice
-        );
+        )
+        .unwrap();
 
         let swap_amount = TokenAmount::new(5000);
         mint!(
@@ -197,9 +204,10 @@ pub mod e2e_tests {
             address_of!(Bob),
             swap_amount.get(),
             alice
-        );
+        )
+        .unwrap();
 
-        approve!(client, TokenRef, token_x, dex, swap_amount.get(), bob);
+        approve!(client, TokenRef, token_x, dex, swap_amount.get(), bob).unwrap();
 
         let target_sqrt_price = SqrtPrice::new(MIN_SQRT_PRICE);
         let quoted_target_sqrt_price = quote!(
@@ -225,7 +233,8 @@ pub mod e2e_tests {
             true,
             quoted_target_sqrt_price,
             bob
-        );
+        )
+        .unwrap();
         get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
 
         Ok(())
@@ -246,7 +255,7 @@ pub mod e2e_tests {
 
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
 
-        add_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+        add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
 
         create_pool!(
             client,
@@ -257,7 +266,8 @@ pub mod e2e_tests {
             fee_tier,
             init_tick,
             alice
-        );
+        )
+        .unwrap();
 
         let lower_tick_index = -10;
         let upper_tick_index = 10;
@@ -270,7 +280,8 @@ pub mod e2e_tests {
             address_of!(Alice),
             mint_amount,
             alice
-        );
+        )
+        .unwrap();
         mint!(
             client,
             TokenRef,
@@ -278,10 +289,11 @@ pub mod e2e_tests {
             address_of!(Alice),
             mint_amount,
             alice
-        );
+        )
+        .unwrap();
 
-        approve!(client, TokenRef, token_x, dex, mint_amount, alice);
-        approve!(client, TokenRef, token_y, dex, mint_amount, alice);
+        approve!(client, TokenRef, token_x, dex, mint_amount, alice).unwrap();
+        approve!(client, TokenRef, token_y, dex, mint_amount, alice).unwrap();
 
         let liquidity_delta = Liquidity::from_integer(20_006_000);
 
@@ -298,7 +310,8 @@ pub mod e2e_tests {
             pool_state.sqrt_price,
             pool_state.sqrt_price,
             alice
-        );
+        )
+        .unwrap();
 
         let pool_state = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
 
@@ -312,9 +325,10 @@ pub mod e2e_tests {
             address_of!(Bob),
             mint_amount,
             alice
-        );
+        )
+        .unwrap();
 
-        approve!(client, TokenRef, token_x, dex, mint_amount, bob);
+        approve!(client, TokenRef, token_x, dex, mint_amount, bob).unwrap();
 
         let dex_x_before = balance_of!(client, TokenRef, token_x, dex);
         let dex_y_before = balance_of!(client, TokenRef, token_y, dex);
@@ -344,7 +358,8 @@ pub mod e2e_tests {
             true,
             quoted_target_sqrt_price,
             bob
-        );
+        )
+        .unwrap();
 
         let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
         let expected_price = calculate_sqrt_price(-10).unwrap();
@@ -398,6 +413,7 @@ pub mod e2e_tests {
             true,
             quoted_target_sqrt_price,
             bob
-        );
+        )
+        .unwrap();
     }
 }

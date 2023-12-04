@@ -3,6 +3,7 @@
 extern crate alloc;
 mod contracts;
 pub mod math;
+pub mod tests;
 
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]

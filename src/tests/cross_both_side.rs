@@ -8,7 +8,7 @@ pub mod e2e_tests {
                 fee_growth::FeeGrowth,
                 liquidity::Liquidity,
                 percentage::Percentage,
-                sqrt_price::sqrt_price::{calculate_sqrt_price, SqrtPrice},
+                sqrt_price::{calculate_sqrt_price, SqrtPrice},
                 token_amount::TokenAmount,
             },
             MAX_SQRT_PRICE, MIN_SQRT_PRICE,
@@ -37,7 +37,7 @@ pub mod e2e_tests {
 
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
 
-        add_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+        add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
 
         create_pool!(
             client,
@@ -48,7 +48,8 @@ pub mod e2e_tests {
             fee_tier,
             init_tick,
             alice
-        );
+        )
+        .unwrap();
 
         let lower_tick_index = -10;
         let upper_tick_index = 10;
@@ -61,7 +62,8 @@ pub mod e2e_tests {
             address_of!(Bob),
             mint_amount,
             alice
-        );
+        )
+        .unwrap();
         mint!(
             client,
             TokenRef,
@@ -69,10 +71,11 @@ pub mod e2e_tests {
             address_of!(Alice),
             mint_amount,
             alice
-        );
+        )
+        .unwrap();
 
-        approve!(client, TokenRef, token_x, dex, mint_amount, alice);
-        approve!(client, TokenRef, token_y, dex, mint_amount, alice);
+        approve!(client, TokenRef, token_x, dex, mint_amount, alice).unwrap();
+        approve!(client, TokenRef, token_y, dex, mint_amount, alice).unwrap();
 
         let liquidity_delta = Liquidity::new(20006000000000);
 
@@ -89,7 +92,8 @@ pub mod e2e_tests {
             pool_state.sqrt_price,
             pool_state.sqrt_price,
             alice
-        );
+        )
+        .unwrap();
 
         create_position!(
             client,
@@ -102,7 +106,8 @@ pub mod e2e_tests {
             pool_state.sqrt_price,
             pool_state.sqrt_price,
             alice
-        );
+        )
+        .unwrap();
 
         let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
 
@@ -125,7 +130,8 @@ pub mod e2e_tests {
             address_of!(Alice),
             mint_amount,
             alice
-        );
+        )
+        .unwrap();
         mint!(
             client,
             TokenRef,
@@ -133,10 +139,11 @@ pub mod e2e_tests {
             address_of!(Alice),
             mint_amount,
             alice
-        );
+        )
+        .unwrap();
 
-        approve!(client, TokenRef, token_x, dex, mint_amount, alice);
-        approve!(client, TokenRef, token_y, dex, mint_amount, alice);
+        approve!(client, TokenRef, token_x, dex, mint_amount, alice).unwrap();
+        approve!(client, TokenRef, token_y, dex, mint_amount, alice).unwrap();
 
         let pool_before = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
 
@@ -152,7 +159,8 @@ pub mod e2e_tests {
             true,
             limit_sqrt_price,
             alice
-        );
+        )
+        .unwrap();
 
         let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
         let expected_tick = -10;
@@ -172,7 +180,8 @@ pub mod e2e_tests {
             true,
             limit_sqrt_price,
             alice
-        );
+        )
+        .unwrap();
 
         swap!(
             client,
@@ -184,7 +193,8 @@ pub mod e2e_tests {
             true,
             SqrtPrice::new(MAX_SQRT_PRICE),
             alice
-        );
+        )
+        .unwrap();
 
         let massive_x = 10u128.pow(19);
         let massive_y = 10u128.pow(19);
@@ -196,7 +206,8 @@ pub mod e2e_tests {
             address_of!(Alice),
             massive_x,
             alice
-        );
+        )
+        .unwrap();
         mint!(
             client,
             TokenRef,
@@ -204,9 +215,10 @@ pub mod e2e_tests {
             address_of!(Alice),
             massive_y,
             alice
-        );
-        approve!(client, TokenRef, token_x, dex, massive_x, alice);
-        approve!(client, TokenRef, token_y, dex, massive_y, alice);
+        )
+        .unwrap();
+        approve!(client, TokenRef, token_x, dex, massive_x, alice).unwrap();
+        approve!(client, TokenRef, token_y, dex, massive_y, alice).unwrap();
 
         let massive_liquidity_delta = Liquidity::new(19996000399699881985603000000);
 
@@ -221,7 +233,8 @@ pub mod e2e_tests {
             SqrtPrice::new(MIN_SQRT_PRICE),
             SqrtPrice::new(MAX_SQRT_PRICE),
             alice
-        );
+        )
+        .unwrap();
 
         swap!(
             client,
@@ -233,7 +246,8 @@ pub mod e2e_tests {
             false,
             limit_sqrt_price,
             alice
-        );
+        )
+        .unwrap();
 
         swap!(
             client,
@@ -245,7 +259,8 @@ pub mod e2e_tests {
             true,
             SqrtPrice::new(MAX_SQRT_PRICE),
             alice
-        );
+        )
+        .unwrap();
 
         let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
         assert_eq!(pool.current_tick_index, -20);
@@ -303,7 +318,7 @@ pub mod e2e_tests {
 
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
 
-        add_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+        add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
 
         create_pool!(
             client,
@@ -314,7 +329,8 @@ pub mod e2e_tests {
             fee_tier,
             init_tick,
             alice
-        );
+        )
+        .unwrap();
 
         let lower_tick_index = -10;
         let upper_tick_index = 10;
@@ -327,7 +343,8 @@ pub mod e2e_tests {
             address_of!(Alice),
             mint_amount,
             alice
-        );
+        )
+        .unwrap();
         mint!(
             client,
             TokenRef,
@@ -335,10 +352,11 @@ pub mod e2e_tests {
             address_of!(Alice),
             mint_amount,
             alice
-        );
+        )
+        .unwrap();
 
-        approve!(client, TokenRef, token_x, dex, mint_amount, alice);
-        approve!(client, TokenRef, token_y, dex, mint_amount, alice);
+        approve!(client, TokenRef, token_x, dex, mint_amount, alice).unwrap();
+        approve!(client, TokenRef, token_y, dex, mint_amount, alice).unwrap();
 
         let liquidity_delta = Liquidity::new(20006000000000);
 
@@ -355,7 +373,8 @@ pub mod e2e_tests {
             pool_state.sqrt_price,
             pool_state.sqrt_price,
             alice
-        );
+        )
+        .unwrap();
 
         create_position!(
             client,
@@ -368,7 +387,8 @@ pub mod e2e_tests {
             pool_state.sqrt_price,
             pool_state.sqrt_price,
             alice
-        );
+        )
+        .unwrap();
 
         let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
 
@@ -391,7 +411,8 @@ pub mod e2e_tests {
             address_of!(Alice),
             mint_amount,
             alice
-        );
+        )
+        .unwrap();
         mint!(
             client,
             TokenRef,
@@ -399,10 +420,11 @@ pub mod e2e_tests {
             address_of!(Alice),
             mint_amount,
             alice
-        );
+        )
+        .unwrap();
 
-        approve!(client, TokenRef, token_x, dex, mint_amount, alice);
-        approve!(client, TokenRef, token_y, dex, mint_amount, alice);
+        approve!(client, TokenRef, token_x, dex, mint_amount, alice).unwrap();
+        approve!(client, TokenRef, token_y, dex, mint_amount, alice).unwrap();
 
         let pool_before = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
 
@@ -418,7 +440,8 @@ pub mod e2e_tests {
             true,
             limit_sqrt_price,
             alice
-        );
+        )
+        .unwrap();
 
         let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
         let expected_tick = -10;
@@ -452,6 +475,7 @@ pub mod e2e_tests {
             true,
             target_sqrt_price,
             alice
-        );
+        )
+        .unwrap();
     }
 }

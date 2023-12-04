@@ -7,7 +7,7 @@ pub mod e2e_tests {
             types::{
                 liquidity::Liquidity,
                 percentage::Percentage,
-                sqrt_price::sqrt_price::{calculate_sqrt_price, SqrtPrice},
+                sqrt_price::{calculate_sqrt_price, SqrtPrice},
                 token_amount::TokenAmount,
             },
             MAX_SQRT_PRICE, MIN_SQRT_PRICE,
@@ -39,7 +39,7 @@ pub mod e2e_tests {
         );
         let amount = 10u128.pow(8);
         let swap_amount = TokenAmount::new(amount);
-        approve!(client, TokenRef, token_x, dex, amount, alice);
+        approve!(client, TokenRef, token_x, dex, amount, alice).unwrap();
 
         let target_sqrt_price = SqrtPrice::new(1009940000000000000000001);
         swap!(
@@ -52,7 +52,8 @@ pub mod e2e_tests {
             true,
             target_sqrt_price,
             alice
-        );
+        )
+        .unwrap();
         let expected_sqrt_price = SqrtPrice::new(1009940000000000000000000);
         let pool = get_pool!(
             client,
@@ -83,7 +84,7 @@ pub mod e2e_tests {
         );
         let amount = 10u128.pow(8);
         let swap_amount = TokenAmount::new(amount);
-        approve!(client, TokenRef, token_x, dex, amount, alice);
+        approve!(client, TokenRef, token_x, dex, amount, alice).unwrap();
 
         let target_sqrt_price = calculate_sqrt_price(-98).unwrap();
         swap!(
@@ -113,10 +114,10 @@ pub mod e2e_tests {
         let amount = 1000;
         let bob = ink_e2e::bob();
         let alice = ink_e2e::alice();
-        mint!(client, TokenRef, token_x, address_of!(Bob), amount, alice);
+        mint!(client, TokenRef, token_x, address_of!(Bob), amount, alice).unwrap();
         let amount_x = balance_of!(client, TokenRef, token_x, address_of!(Bob));
         assert_eq!(amount_x, amount);
-        approve!(client, TokenRef, token_x, dex, amount, bob);
+        approve!(client, TokenRef, token_x, dex, amount, bob).unwrap();
 
         let swap_amount = TokenAmount::new(amount);
         swap_exact_limit!(

@@ -3,9 +3,7 @@ pub mod e2e_tests {
     use crate::{
         contract::ContractRef,
         contracts::{entrypoints::Invariant, FeeTier, PoolKey},
-        math::types::{
-            liquidity::Liquidity, percentage::Percentage, sqrt_price::sqrt_price::SqrtPrice,
-        },
+        math::types::{liquidity::Liquidity, percentage::Percentage, sqrt_price::SqrtPrice},
     };
     use decimal::*;
     use ink_e2e::build_message;
@@ -58,7 +56,8 @@ pub mod e2e_tests {
                 known_price,
                 known_price,
                 alice
-            );
+            )
+            .unwrap();
         }
         // inside range
         {
@@ -79,7 +78,8 @@ pub mod e2e_tests {
                 limit_lower,
                 limit_upper,
                 alice
-            );
+            )
+            .unwrap();
         }
 
         Ok(())

@@ -6,7 +6,7 @@ pub mod e2e_tests {
         math::{
             types::{
                 fee_growth::FeeGrowth, liquidity::Liquidity, percentage::Percentage,
-                sqrt_price::sqrt_price::SqrtPrice, token_amount::TokenAmount,
+                sqrt_price::SqrtPrice, token_amount::TokenAmount,
             },
             MIN_SQRT_PRICE,
         },
@@ -32,7 +32,7 @@ pub mod e2e_tests {
         let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
         let alice = ink_e2e::alice();
-        withdraw_protocol_fee!(client, ContractRef, dex, pool_key, alice);
+        withdraw_protocol_fee!(client, ContractRef, dex, pool_key, alice).unwrap();
 
         let amount_x = balance_of!(client, TokenRef, token_x, address_of!(Alice));
         let amount_y = balance_of!(client, TokenRef, token_y, address_of!(Alice));
@@ -75,6 +75,6 @@ pub mod e2e_tests {
         )
         .unwrap();
         let bob = ink_e2e::bob();
-        withdraw_protocol_fee!(client, ContractRef, dex, pool_key, bob);
+        withdraw_protocol_fee!(client, ContractRef, dex, pool_key, bob).unwrap();
     }
 }

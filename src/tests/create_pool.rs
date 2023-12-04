@@ -22,7 +22,7 @@ pub mod e2e_tests {
 
         let alice = ink_e2e::alice();
 
-        add_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+        add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
 
         let result = create_pool!(
             client,

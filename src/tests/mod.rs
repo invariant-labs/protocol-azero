@@ -6,7 +6,6 @@ pub mod constructor;
 pub mod create_pool;
 pub mod cross;
 pub mod cross_both_side;
-pub mod fee_tier;
 pub mod limits;
 pub mod liquidity_gap;
 pub mod max_tick_cross;

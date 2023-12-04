@@ -17,12 +17,12 @@ pub mod e2e_tests {
         let dex = create_dex!(client, ContractRef, Percentage::new(0));
 
         let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 1).unwrap();
-        add_fee_tier!(client, ContractRef, dex, fee_tier, admin);
+        add_fee_tier!(client, ContractRef, dex, fee_tier, admin).unwrap();
 
         let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 2).unwrap();
-        add_fee_tier!(client, ContractRef, dex, fee_tier, admin);
+        add_fee_tier!(client, ContractRef, dex, fee_tier, admin).unwrap();
 
-        remove_fee_tier!(client, ContractRef, dex, fee_tier, admin);
+        remove_fee_tier!(client, ContractRef, dex, fee_tier, admin).unwrap();
         let exist = fee_tier_exist!(
             client,
             ContractRef,
@@ -41,7 +41,7 @@ pub mod e2e_tests {
         let dex = create_dex!(client, ContractRef, Percentage::new(0));
 
         let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 1).unwrap();
-        add_fee_tier!(client, ContractRef, dex, fee_tier, admin);
+        add_fee_tier!(client, ContractRef, dex, fee_tier, admin).unwrap();
 
         let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 2).unwrap();
         remove_fee_tier!(client, ContractRef, dex, fee_tier, admin).unwrap();
@@ -55,10 +55,10 @@ pub mod e2e_tests {
         let dex = create_dex!(client, ContractRef, Percentage::new(0));
 
         let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 1).unwrap();
-        add_fee_tier!(client, ContractRef, dex, fee_tier, admin);
+        add_fee_tier!(client, ContractRef, dex, fee_tier, admin).unwrap();
 
         let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 2).unwrap();
-        add_fee_tier!(client, ContractRef, dex, fee_tier, admin);
+        add_fee_tier!(client, ContractRef, dex, fee_tier, admin).unwrap();
 
         remove_fee_tier!(client, ContractRef, dex, fee_tier, user).unwrap();
     }

@@ -6,11 +6,11 @@ pub mod e2e_tests {
             entrypoints::Invariant, get_liquidity_by_x, get_liquidity_by_y, FeeTier, PoolKey,
         },
         math::{
+            clamm::get_delta_y,
             liquidity::Liquidity,
-            math::get_delta_y,
             types::{
                 percentage::Percentage,
-                sqrt_price::sqrt_price::{calculate_sqrt_price, get_max_tick, SqrtPrice},
+                sqrt_price::{calculate_sqrt_price, get_max_tick, SqrtPrice},
                 token_amount::TokenAmount,
             },
             MAX_SQRT_PRICE, MAX_TICK, MIN_SQRT_PRICE,
@@ -48,12 +48,12 @@ pub mod e2e_tests {
 
         let mint_amount = 2u128.pow(75) - 1;
         let alice = ink_e2e::alice();
-        approve!(client, TokenRef, token_x, dex, u128::MAX, alice);
-        approve!(client, TokenRef, token_y, dex, u128::MAX, alice);
+        approve!(client, TokenRef, token_x, dex, u128::MAX, alice).unwrap();
+        approve!(client, TokenRef, token_y, dex, u128::MAX, alice).unwrap();
 
         let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 1).unwrap();
 
-        add_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+        add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
 
         let init_tick = 0;
         create_pool!(
@@ -65,7 +65,8 @@ pub mod e2e_tests {
             fee_tier,
             init_tick,
             alice
-        );
+        )
+        .unwrap();
 
         let lower_tick = -(fee_tier.tick_spacing as i32);
         let upper_tick = fee_tier.tick_spacing as i32;
@@ -101,7 +102,8 @@ pub mod e2e_tests {
             slippage_limit_lower,
             slippage_limit_upper,
             alice
-        );
+        )
+        .unwrap();
 
         let user_amount_x = balance_of!(client, TokenRef, token_x, address_of!(Alice));
         let user_amount_y = balance_of!(client, TokenRef, token_y, address_of!(Alice));
@@ -123,11 +125,11 @@ pub mod e2e_tests {
 
         let mint_amount = 2u128.pow(105) - 1;
         let alice = ink_e2e::alice();
-        approve!(client, TokenRef, token_x, dex, u128::MAX, alice);
-        approve!(client, TokenRef, token_y, dex, u128::MAX, alice);
+        approve!(client, TokenRef, token_x, dex, u128::MAX, alice).unwrap();
+        approve!(client, TokenRef, token_y, dex, u128::MAX, alice).unwrap();
 
         let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 1).unwrap();
-        add_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+        add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
 
         let init_tick = get_max_tick(1);
         create_pool!(
@@ -139,7 +141,8 @@ pub mod e2e_tests {
             fee_tier,
             init_tick,
             alice
-        );
+        )
+        .unwrap();
 
         let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
         assert_eq!(pool.current_tick_index, init_tick);
@@ -171,7 +174,8 @@ pub mod e2e_tests {
             slippage_limit_lower,
             slippage_limit_upper,
             alice
-        );
+        )
+        .unwrap();
 
         Ok(())
     }
@@ -183,11 +187,11 @@ pub mod e2e_tests {
 
         let mint_amount = 2u128.pow(76) - 1;
         let alice = ink_e2e::alice();
-        approve!(client, TokenRef, token_x, dex, u128::MAX, alice);
-        approve!(client, TokenRef, token_y, dex, u128::MAX, alice);
+        approve!(client, TokenRef, token_x, dex, u128::MAX, alice).unwrap();
+        approve!(client, TokenRef, token_y, dex, u128::MAX, alice).unwrap();
 
         let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 1).unwrap();
-        add_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+        add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
 
         let init_tick = 0;
         create_pool!(
@@ -199,7 +203,8 @@ pub mod e2e_tests {
             fee_tier,
             init_tick,
             alice
-        );
+        )
+        .unwrap();
 
         let pos_amount = mint_amount / 2;
         let lower_tick = -(fee_tier.tick_spacing as i32);
@@ -238,7 +243,8 @@ pub mod e2e_tests {
             slippage_limit_lower,
             slippage_limit_upper,
             alice
-        );
+        )
+        .unwrap();
 
         let user_amount_x = balance_of!(client, TokenRef, token_x, address_of!(Alice));
         let user_amount_y = balance_of!(client, TokenRef, token_y, address_of!(Alice));
@@ -269,7 +275,8 @@ pub mod e2e_tests {
                 true,
                 sqrt_price_limit,
                 alice
-            );
+            )
+            .unwrap();
         }
 
         Ok(())
@@ -281,11 +288,11 @@ pub mod e2e_tests {
             init_dex_and_tokens_max_mint_amount!(client, ContractRef, TokenRef);
 
         let alice = ink_e2e::alice();
-        approve!(client, TokenRef, token_x, dex, u128::MAX, alice);
-        approve!(client, TokenRef, token_y, dex, u128::MAX, alice);
+        approve!(client, TokenRef, token_x, dex, u128::MAX, alice).unwrap();
+        approve!(client, TokenRef, token_y, dex, u128::MAX, alice).unwrap();
 
         let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 1).unwrap();
-        add_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+        add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
 
         let init_tick = get_max_tick(1);
         create_pool!(
@@ -297,7 +304,8 @@ pub mod e2e_tests {
             fee_tier,
             init_tick,
             alice
-        );
+        )
+        .unwrap();
 
         let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
         assert_eq!(pool.current_tick_index, init_tick);
@@ -318,7 +326,8 @@ pub mod e2e_tests {
             slippage_limit_lower,
             slippage_limit_upper,
             alice
-        );
+        )
+        .unwrap();
 
         let contract_amount_x = balance_of!(client, TokenRef, token_x, dex);
         let contract_amount_y = balance_of!(client, TokenRef, token_y, dex);

@@ -25,7 +25,7 @@ pub mod e2e_tests {
 
         let alice = ink_e2e::alice();
 
-        add_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+        add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
 
         let result = create_pool!(
             client,
@@ -42,7 +42,7 @@ pub mod e2e_tests {
         let admin = ink_e2e::alice();
         let alice = address_of!(Alice);
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
-        change_fee_receiver!(client, ContractRef, dex, pool_key, alice, admin);
+        change_fee_receiver!(client, ContractRef, dex, pool_key, alice, admin).unwrap();
         let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
         assert_eq!(pool.fee_receiver, alice);
 
@@ -60,7 +60,7 @@ pub mod e2e_tests {
 
         let admin = ink_e2e::alice();
 
-        add_fee_tier!(client, ContractRef, dex, fee_tier, admin);
+        add_fee_tier!(client, ContractRef, dex, fee_tier, admin).unwrap();
 
         let result = create_pool!(
             client,

@@ -4,10 +4,9 @@ pub mod e2e_tests {
         contract::ContractRef,
         contracts::{entrypoints::Invariant, FeeTier, PoolKey},
         math::{
+            log::get_tick_at_sqrt_price,
             types::{
-                liquidity::Liquidity,
-                percentage::Percentage,
-                sqrt_price::{log::get_tick_at_sqrt_price, sqrt_price::SqrtPrice},
+                liquidity::Liquidity, percentage::Percentage, sqrt_price::SqrtPrice,
                 token_amount::TokenAmount,
             },
             MIN_SQRT_PRICE,
@@ -30,8 +29,8 @@ pub mod e2e_tests {
 
         let mint_amount = u128::MAX;
         let alice = ink_e2e::alice();
-        approve!(client, TokenRef, token_x, dex, mint_amount, alice);
-        approve!(client, TokenRef, token_y, dex, mint_amount, alice);
+        approve!(client, TokenRef, token_x, dex, mint_amount, alice).unwrap();
+        approve!(client, TokenRef, token_y, dex, mint_amount, alice).unwrap();
 
         let liquidity = Liquidity::from_integer(10000000);
 
@@ -56,7 +55,8 @@ pub mod e2e_tests {
                 slippage_limit_lower,
                 slippage_limit_upper,
                 alice
-            );
+            )
+            .unwrap();
         }
 
         let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
@@ -64,10 +64,10 @@ pub mod e2e_tests {
 
         let amount = 760_000;
         let bob = ink_e2e::bob();
-        mint!(client, TokenRef, token_x, address_of!(Bob), amount, alice);
+        mint!(client, TokenRef, token_x, address_of!(Bob), amount, alice).unwrap();
         let amount_x = balance_of!(client, TokenRef, token_x, address_of!(Bob));
         assert_eq!(amount_x, amount);
-        approve!(client, TokenRef, token_x, dex, amount, bob);
+        approve!(client, TokenRef, token_x, dex, amount, bob).unwrap();
 
         let pool_before = get_pool!(
             client,
@@ -118,7 +118,8 @@ pub mod e2e_tests {
             true,
             slippage,
             bob
-        );
+        )
+        .unwrap();
 
         let pool_after = get_pool!(
             client,

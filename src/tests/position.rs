@@ -6,7 +6,7 @@ pub mod e2e_tests {
         math::{
             types::{
                 fee_growth::FeeGrowth, liquidity::Liquidity, percentage::Percentage,
-                sqrt_price::sqrt_price::SqrtPrice, token_amount::TokenAmount,
+                sqrt_price::SqrtPrice, token_amount::TokenAmount,
             },
             MIN_SQRT_PRICE,
         },
@@ -32,7 +32,7 @@ pub mod e2e_tests {
 
         let fee_tier = FeeTier::new(Percentage::new(0), 1).unwrap();
 
-        add_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+        add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
 
         create_pool!(
             client,
@@ -43,10 +43,11 @@ pub mod e2e_tests {
             fee_tier,
             10,
             alice
-        );
+        )
+        .unwrap();
 
-        approve!(client, TokenRef, token_x, dex, 500, alice);
-        approve!(client, TokenRef, token_y, dex, 500, alice);
+        approve!(client, TokenRef, token_x, dex, 500, alice).unwrap();
+        approve!(client, TokenRef, token_y, dex, 500, alice).unwrap();
 
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
 
@@ -61,7 +62,8 @@ pub mod e2e_tests {
             SqrtPrice::new(0),
             SqrtPrice::max_instance(),
             alice
-        );
+        )
+        .unwrap();
 
         Ok(())
     }
@@ -81,7 +83,7 @@ pub mod e2e_tests {
 
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
 
-        add_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+        add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
 
         create_pool!(
             client,
@@ -92,14 +94,15 @@ pub mod e2e_tests {
             fee_tier,
             init_tick,
             alice
-        );
+        )
+        .unwrap();
 
         let lower_tick_index = -20;
         let upper_tick_index = 10;
         let liquidity_delta = Liquidity::from_integer(1_000_000);
 
-        approve!(client, TokenRef, token_x, dex, initial_mint, alice);
-        approve!(client, TokenRef, token_y, dex, initial_mint, alice);
+        approve!(client, TokenRef, token_x, dex, initial_mint, alice).unwrap();
+        approve!(client, TokenRef, token_y, dex, initial_mint, alice).unwrap();
 
         let pool_state = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
 
@@ -114,7 +117,8 @@ pub mod e2e_tests {
             pool_state.sqrt_price,
             pool_state.sqrt_price,
             alice
-        );
+        )
+        .unwrap();
 
         let pool_state = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
 
@@ -125,8 +129,8 @@ pub mod e2e_tests {
             let incorrect_lower_tick_index = lower_tick_index - 50;
             let incorrect_upper_tick_index = upper_tick_index + 50;
 
-            approve!(client, TokenRef, token_x, dex, liquidity_delta.get(), alice);
-            approve!(client, TokenRef, token_y, dex, liquidity_delta.get(), alice);
+            approve!(client, TokenRef, token_x, dex, liquidity_delta.get(), alice).unwrap();
+            approve!(client, TokenRef, token_y, dex, liquidity_delta.get(), alice).unwrap();
 
             create_position!(
                 client,
@@ -139,7 +143,8 @@ pub mod e2e_tests {
                 pool_state.sqrt_price,
                 pool_state.sqrt_price,
                 alice
-            );
+            )
+            .unwrap();
 
             let position_state = get_position!(client, ContractRef, dex, 1, alice).unwrap();
             // Check position
@@ -148,11 +153,11 @@ pub mod e2e_tests {
         }
 
         let amount = 1000;
-        mint!(client, TokenRef, token_x, address_of!(Bob), amount, alice);
+        mint!(client, TokenRef, token_x, address_of!(Bob), amount, alice).unwrap();
         let amount_x = balance_of!(client, TokenRef, token_x, address_of!(Bob));
         assert_eq!(amount_x, amount);
 
-        approve!(client, TokenRef, token_x, dex, amount, bob);
+        approve!(client, TokenRef, token_x, dex, amount, bob).unwrap();
 
         let pool_state_before =
             get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
@@ -169,7 +174,8 @@ pub mod e2e_tests {
             true,
             slippage,
             bob
-        );
+        )
+        .unwrap();
 
         let pool_state_after =
             get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
@@ -198,7 +204,7 @@ pub mod e2e_tests {
         let dex_y_before_remove = balance_of!(client, TokenRef, token_y, dex);
 
         // Remove position
-        remove_position!(client, ContractRef, dex, remove_position_index, alice);
+        remove_position!(client, ContractRef, dex, remove_position_index, alice).unwrap();
 
         // Load states
         let pool_state = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
@@ -249,7 +255,7 @@ pub mod e2e_tests {
 
         let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 4).unwrap();
 
-        add_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+        add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
 
         create_pool!(
             client,
@@ -260,10 +266,11 @@ pub mod e2e_tests {
             fee_tier,
             init_tick,
             alice
-        );
+        )
+        .unwrap();
 
-        approve!(client, TokenRef, token_x, dex, initial_balance, alice);
-        approve!(client, TokenRef, token_y, dex, initial_balance, alice);
+        approve!(client, TokenRef, token_x, dex, initial_balance, alice).unwrap();
+        approve!(client, TokenRef, token_y, dex, initial_balance, alice).unwrap();
 
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
         let lower_tick_index = min_tick_test + 10;
@@ -284,7 +291,8 @@ pub mod e2e_tests {
             pool_state.sqrt_price,
             SqrtPrice::max_instance(),
             alice
-        );
+        )
+        .unwrap();
 
         // Load states
         let position_state = get_position!(client, ContractRef, dex, 0, alice).unwrap();
@@ -337,13 +345,13 @@ pub mod e2e_tests {
         let init_tick = -23028;
 
         let dex = create_dex!(client, ContractRef, Percentage::new(0));
-        let initial_balance = 100_000_000_00;
+        let initial_balance = 10_000_000_000;
 
         let (token_x, token_y) = create_tokens!(client, TokenRef, initial_balance, initial_balance);
 
         let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 4).unwrap();
 
-        add_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+        add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
 
         create_pool!(
             client,
@@ -354,10 +362,11 @@ pub mod e2e_tests {
             fee_tier,
             init_tick,
             alice
-        );
+        )
+        .unwrap();
 
-        approve!(client, TokenRef, token_x, dex, initial_balance, alice);
-        approve!(client, TokenRef, token_y, dex, initial_balance, alice);
+        approve!(client, TokenRef, token_x, dex, initial_balance, alice).unwrap();
+        approve!(client, TokenRef, token_y, dex, initial_balance, alice).unwrap();
 
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
         let lower_tick_index = -46080;
@@ -379,7 +388,8 @@ pub mod e2e_tests {
             pool_state_before.sqrt_price,
             SqrtPrice::max_instance(),
             alice
-        );
+        )
+        .unwrap();
 
         // Load states
         let position_state = get_position!(client, ContractRef, dex, 0, alice).unwrap();
@@ -439,7 +449,7 @@ pub mod e2e_tests {
 
         let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 4).unwrap();
 
-        add_fee_tier!(client, ContractRef, dex, fee_tier, alice);
+        add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
 
         create_pool!(
             client,
@@ -450,10 +460,11 @@ pub mod e2e_tests {
             fee_tier,
             init_tick,
             alice
-        );
+        )
+        .unwrap();
 
-        approve!(client, TokenRef, token_x, dex, initial_balance, alice);
-        approve!(client, TokenRef, token_y, dex, initial_balance, alice);
+        approve!(client, TokenRef, token_x, dex, initial_balance, alice).unwrap();
+        approve!(client, TokenRef, token_y, dex, initial_balance, alice).unwrap();
 
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
         let lower_tick_index = -22980;
@@ -473,7 +484,8 @@ pub mod e2e_tests {
             pool_state.sqrt_price,
             SqrtPrice::max_instance(),
             alice
-        );
+        )
+        .unwrap();
 
         // Load states
         let position_state = get_position!(client, ContractRef, dex, 0, alice).unwrap();

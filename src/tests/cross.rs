@@ -6,7 +6,7 @@ pub mod e2e_tests {
         math::{
             types::{
                 fee_growth::FeeGrowth, liquidity::Liquidity, percentage::Percentage,
-                sqrt_price::sqrt_price::SqrtPrice, token_amount::TokenAmount,
+                sqrt_price::SqrtPrice, token_amount::TokenAmount,
             },
             MIN_SQRT_PRICE,
         },
