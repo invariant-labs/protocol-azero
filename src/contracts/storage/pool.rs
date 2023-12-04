@@ -1,18 +1,19 @@
-use super::{FeeTier, Oracle, Tick}; // Tickmap
+use super::{FeeTier, Oracle, Tick};
 use crate::{
     contracts::PoolKey,
     math::{
-        math::*,
-        sqrt_price::sqrt_price::calculate_sqrt_price,
+        clamm::*,
+        log::get_tick_at_sqrt_price,
         types::{
             fee_growth::FeeGrowth,
             liquidity::Liquidity,
             percentage::Percentage,
-            sqrt_price::{log::get_tick_at_sqrt_price, sqrt_price::SqrtPrice},
+            sqrt_price::{calculate_sqrt_price, SqrtPrice},
             token_amount::TokenAmount,
         },
     },
 };
+
 use decimal::*;
 use ink::primitives::AccountId;
 use traceable_result::*;
@@ -134,56 +135,51 @@ impl Pool {
         &mut self,
         result: SwapResult,
         swap_limit: SqrtPrice,
-        limiting_tick: Option<(i32, Option<&mut Tick>)>,
+        tick: &mut Tick,
         remaining_amount: &mut TokenAmount,
         by_amount_in: bool,
         x_to_y: bool,
         current_timestamp: u64,
-        total_amount_in: &mut TokenAmount,
         protocol_fee: Percentage,
         fee_tier: FeeTier,
-    ) -> bool {
+    ) -> (TokenAmount, bool) {
         let mut has_crossed = false;
-        if result.next_sqrt_price == swap_limit && limiting_tick.is_some() {
-            if let Some((tick_index, tick)) = limiting_tick {
-                let is_enough_amount_to_cross = unwrap!(is_enough_amount_to_change_price(
-                    *remaining_amount,
-                    result.next_sqrt_price,
-                    self.liquidity,
-                    fee_tier.fee,
-                    by_amount_in,
-                    x_to_y,
-                ));
+        let mut total_amount = TokenAmount(0);
+        if result.next_sqrt_price == swap_limit {
+            let is_enough_amount_to_cross = unwrap!(is_enough_amount_to_change_price(
+                *remaining_amount,
+                result.next_sqrt_price,
+                self.liquidity,
+                fee_tier.fee,
+                by_amount_in,
+                x_to_y,
+            ));
 
-                // crossing tick
-                if let Some(tick) = tick {
-                    if !x_to_y || is_enough_amount_to_cross {
-                        let _ = tick.cross(self, current_timestamp);
-                        has_crossed = true;
-                    } else if !remaining_amount.is_zero() {
-                        if by_amount_in {
-                            self.add_fee(*remaining_amount, x_to_y, protocol_fee)
-                                .unwrap();
-                            *total_amount_in += *remaining_amount
-                        }
-                        *remaining_amount = TokenAmount(0);
-                    }
+            if !x_to_y || is_enough_amount_to_cross {
+                let _ = tick.cross(self, current_timestamp);
+                has_crossed = true;
+            } else if !remaining_amount.is_zero() {
+                if by_amount_in {
+                    unwrap!(self.add_fee(*remaining_amount, x_to_y, protocol_fee));
+                    total_amount = *remaining_amount;
                 }
-
-                // set tick to limit (below if price is going down, because current tick should always be below price)
-                self.current_tick_index = if x_to_y && is_enough_amount_to_cross {
-                    tick_index - fee_tier.tick_spacing as i32
-                } else {
-                    tick_index
-                };
+                *remaining_amount = TokenAmount(0);
             }
+
+            // set tick to limit (below if price is going down, because current tick should always be below price)
+            self.current_tick_index = if x_to_y && is_enough_amount_to_cross {
+                tick.index - fee_tier.tick_spacing as i32
+            } else {
+                tick.index
+            };
         } else {
             self.current_tick_index = unwrap!(get_tick_at_sqrt_price(
                 result.next_sqrt_price,
                 fee_tier.tick_spacing
             ));
         };
-        has_crossed
+
+        (total_amount, has_crossed)
     }
 
     pub fn withdraw_protocol_fee(&mut self, _pool_key: PoolKey) -> (TokenAmount, TokenAmount) {

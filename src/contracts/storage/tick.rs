@@ -1,13 +1,10 @@
-use crate::math::types::{
-    fee_growth::FeeGrowth, liquidity::Liquidity, sqrt_price::sqrt_price::calculate_sqrt_price,
-    sqrt_price::sqrt_price::SqrtPrice,
-};
-
-use traceable_result::*;
-
-use decimal::*;
-
 use super::Pool;
+use crate::math::types::{
+    fee_growth::FeeGrowth, liquidity::Liquidity, sqrt_price::calculate_sqrt_price,
+    sqrt_price::SqrtPrice,
+};
+use decimal::*;
+use traceable_result::*;
 
 #[derive(Debug, Copy, Clone, scale::Decode, scale::Encode, PartialEq)]
 #[cfg_attr(
@@ -160,7 +157,7 @@ impl Tick {
 mod tests {
     use decimal::{Decimal, Factories};
 
-    use crate::math::math::calculate_max_liquidity_per_tick;
+    use crate::math::clamm::calculate_max_liquidity_per_tick;
 
     use super::*;
 

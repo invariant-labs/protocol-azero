@@ -27,6 +27,7 @@ impl Pools {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub fn remove(&mut self, pool_key: PoolKey) -> Result<(), InvariantError> {
         self.get(pool_key)?;
 

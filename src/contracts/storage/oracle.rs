@@ -1,4 +1,4 @@
-use crate::math::types::sqrt_price::sqrt_price::SqrtPrice;
+use crate::math::types::sqrt_price::SqrtPrice;
 use ink::prelude::{vec, vec::Vec};
 
 #[derive(Default, Debug, PartialEq, Clone, scale::Decode, scale::Encode)]

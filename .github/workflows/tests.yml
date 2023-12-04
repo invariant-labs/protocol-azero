@@ -36,7 +36,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          # args: --all-targets -- --no-deps -D warnings (TODO: fix clippy warnings first)
+          args: --all-targets -- --no-deps -D warnings
 
       - name: Check if substrate-contracts-node exists
         id: check-substrate-contracts-node

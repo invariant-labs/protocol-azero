@@ -1,7 +1,7 @@
 use decimal::*;
 use traceable_result::*;
 
-use super::sqrt_price::sqrt_price::SqrtPrice;
+use super::sqrt_price::SqrtPrice;
 
 #[decimal(0)]
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, scale::Decode, scale::Encode)]
