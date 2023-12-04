@@ -45,9 +45,11 @@ pub mod contract {
     use crate::math::calculate_min_amount_out;
     use crate::math::check_tick;
     use crate::math::percentage::Percentage;
+    use crate::math::sqrt_price::log::get_tick_at_sqrt_price;
     use crate::math::sqrt_price::sqrt_price::SqrtPrice;
     use crate::math::token_amount::TokenAmount;
     use crate::math::types::liquidity::Liquidity;
+    // use crate
     use crate::math::{compute_swap_step, MAX_SQRT_PRICE, MIN_SQRT_PRICE};
     use decimal::*;
     use ink::contract_ref;
@@ -73,7 +75,7 @@ pub mod contract {
         timestamp: u64,
         address: AccountId,
         pool: PoolKey,
-        index: i32,
+        indexes: Vec<i32>,
     }
 
     #[ink(event)]
@@ -113,7 +115,7 @@ pub mod contract {
         pub target_sqrt_price: SqrtPrice,
         pub fee: TokenAmount,
         pub pool: Pool,
-        pub ticks: Vec<(Tick, bool)>,
+        pub ticks: Vec<Tick>,
     }
     #[derive(Default, Debug, scale::Decode, scale::Encode)]
     #[cfg_attr(
@@ -124,7 +126,7 @@ pub mod contract {
         pub amount_in: TokenAmount,
         pub amount_out: TokenAmount,
         pub target_sqrt_price: SqrtPrice,
-        pub ticks: Vec<(Tick, bool)>,
+        pub ticks: Vec<Tick>,
     }
 
     #[derive(scale::Decode, Default, scale::Encode, Clone, Debug)]
@@ -192,7 +194,7 @@ pub mod contract {
                 return Err(InvariantError::AmountIsZero);
             }
 
-            let mut ticks: Vec<(Tick, bool)> = vec![];
+            let mut ticks: Vec<Tick> = vec![];
 
             let mut pool = self.pools.get(pool_key)?;
 
@@ -271,10 +273,15 @@ pub mod contract {
                         );
 
                         total_amount_in += amount_to_add;
-                        ticks.push((tick, has_crossed));
+                        if has_crossed {
+                            ticks.push(tick);
+                        }
                     }
                 } else {
-                    pool.update_current_tick_index_when_deinitialized(result, pool_key.fee_tier);
+                    pool.current_tick_index = unwrap!(get_tick_at_sqrt_price(
+                        result.next_sqrt_price,
+                        pool_key.fee_tier.tick_spacing
+                    ));
                 }
             }
 
@@ -376,7 +383,7 @@ pub mod contract {
             );
         }
 
-        fn emit_cross_tick_event(&self, address: AccountId, pool: PoolKey, index: i32) {
+        fn emit_cross_tick_event(&self, address: AccountId, pool: PoolKey, indexes: Vec<i32>) {
             let timestamp = self.get_timestamp();
             ink::codegen::EmitEvent::<Contract>::emit_event(
                 self.env(),
@@ -384,7 +391,7 @@ pub mod contract {
                     timestamp,
                     address,
                     pool,
-                    index,
+                    indexes,
                 },
             );
         }
@@ -543,12 +550,14 @@ pub mod contract {
             let calculate_swap_result =
                 self.calculate_swap(pool_key, x_to_y, amount, by_amount_in, sqrt_price_limit)?;
 
-            for (tick, has_crossed) in calculate_swap_result.ticks.iter() {
+            let mut crossed_tick_indexes: Vec<i32> = vec![];
+
+            for tick in calculate_swap_result.ticks.iter() {
                 self.ticks.update(pool_key, tick.index, tick)?;
-                if *has_crossed {
-                    self.emit_cross_tick_event(caller, pool_key, tick.index);
-                }
+                crossed_tick_indexes.push(tick.index);
             }
+
+            self.emit_cross_tick_event(caller, pool_key, crossed_tick_indexes);
 
             self.pools.update(pool_key, &calculate_swap_result.pool)?;
 
@@ -2839,7 +2848,7 @@ pub mod contract {
             let crosses_after_quote =
                 ((pool_after_quote.current_tick_index - pool_before.current_tick_index) / 10).abs();
             assert_eq!(crosses_after_quote, 0);
-            assert_eq!(quote_result.ticks.len() - 1, 146); // 146 ticks crossed
+            assert_eq!(quote_result.ticks.len() - 1, 145);
 
             swap!(
                 client,

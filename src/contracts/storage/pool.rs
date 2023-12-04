@@ -129,17 +129,6 @@ impl Pool {
         }
     }
 
-    pub fn update_current_tick_index_when_deinitialized(
-        &mut self,
-        result: SwapResult,
-        fee_tier: FeeTier,
-    ) {
-        self.current_tick_index = unwrap!(get_tick_at_sqrt_price(
-            result.next_sqrt_price,
-            fee_tier.tick_spacing
-        ));
-    }
-
     #[allow(clippy::too_many_arguments)]
     pub fn cross_tick(
         &mut self,
@@ -183,7 +172,10 @@ impl Pool {
                 tick.index
             };
         } else {
-            self.update_current_tick_index_when_deinitialized(result, fee_tier);
+            self.current_tick_index = unwrap!(get_tick_at_sqrt_price(
+                result.next_sqrt_price,
+                fee_tier.tick_spacing
+            ));
         };
 
         (total_amount, has_crossed)
