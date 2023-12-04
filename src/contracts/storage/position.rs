@@ -1,11 +1,11 @@
 use super::{Pool, PoolKey, Tick}; // Tickmap
 use crate::{
     math::{
-        math::*,
+        clamm::*,
         types::{
             fee_growth::{calculate_fee_growth_inside, FeeGrowth},
             liquidity::Liquidity,
-            sqrt_price::sqrt_price::SqrtPrice,
+            ratio::sqrt_price::SqrtPrice,
             token_amount::TokenAmount,
         },
     },

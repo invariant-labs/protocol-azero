@@ -1,6 +1,6 @@
 use crate::contracts::PoolKey;
 use crate::math::{
-    types::sqrt_price::sqrt_price::{calculate_sqrt_price, SqrtPrice},
+    types::ratio::sqrt_price::{calculate_sqrt_price, SqrtPrice},
     MAX_TICK,
 };
 use ink::storage::Mapping;

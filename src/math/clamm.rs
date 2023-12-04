@@ -2,7 +2,7 @@ use decimal::*;
 use traceable_result::*;
 
 use crate::math::consts::*;
-use crate::math::types::{liquidity::*, percentage::*, sqrt_price::sqrt_price::*, token_amount::*};
+use crate::math::types::{liquidity::*, percentage::*, ratio::sqrt_price::*, token_amount::*};
 
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub struct SwapResult {

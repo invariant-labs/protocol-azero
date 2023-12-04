@@ -2,7 +2,7 @@ use crate::{
     contract::{CalculateSwapResult, Hop, QuoteResult},
     contracts::{FeeTier, Pool, PoolKey, Position, Tick},
     math::{
-        liquidity::Liquidity, percentage::Percentage, sqrt_price::sqrt_price::SqrtPrice,
+        liquidity::Liquidity, percentage::Percentage, ratio::sqrt_price::SqrtPrice,
         token_amount::TokenAmount,
     },
     InvariantError,

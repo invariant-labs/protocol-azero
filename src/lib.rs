@@ -3,7 +3,6 @@
 extern crate alloc;
 mod contracts;
 pub mod math;
-
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum InvariantError {
@@ -41,15 +40,15 @@ pub mod contract {
     use crate::contracts::PoolKeys;
     use crate::contracts::Tick;
     use crate::contracts::Tickmap;
-    use crate::contracts::{FeeTier, FeeTiers, PoolKey, Pools, Position, Positions, Ticks}; //
+    use crate::contracts::{FeeTier, FeeTiers, PoolKey, Pools, Position, Positions, Ticks};
     use crate::math::calculate_min_amount_out;
     use crate::math::check_tick;
     use crate::math::percentage::Percentage;
-    use crate::math::sqrt_price::log::get_tick_at_sqrt_price;
-    use crate::math::sqrt_price::sqrt_price::SqrtPrice;
+    use crate::math::ratio::log::get_tick_at_sqrt_price;
+    use crate::math::ratio::sqrt_price::SqrtPrice;
     use crate::math::token_amount::TokenAmount;
-    use crate::math::types::liquidity::Liquidity;
-    // use crate
+    use crate::math::types::liquidity::Liquidity; //
+                                                  // use crate
     use crate::math::{compute_swap_step, MAX_SQRT_PRICE, MIN_SQRT_PRICE};
     use decimal::*;
     use ink::contract_ref;
@@ -189,7 +188,7 @@ pub mod contract {
             sqrt_price_limit: SqrtPrice,
         ) -> Result<CalculateSwapResult, InvariantError> {
             let current_timestamp = self.env().block_timestamp();
-            let caller = self.env().caller();
+            // let caller = self.env().caller();
             if amount.is_zero() {
                 return Err(InvariantError::AmountIsZero);
             }
@@ -300,6 +299,7 @@ pub mod contract {
             })
         }
 
+        #[allow(dead_code)]
         fn remove_tick(&mut self, key: PoolKey, index: i32) -> Result<(), InvariantError> {
             self.ticks.remove(key, index)?;
 
@@ -557,7 +557,7 @@ pub mod contract {
                 crossed_tick_indexes.push(tick.index);
             }
 
-            if crossed_tick_indexes.len() > 0 {
+            if !crossed_tick_indexes.is_empty() {
                 self.emit_cross_tick_event(caller, pool_key, crossed_tick_indexes);
             }
 
@@ -1070,8 +1070,8 @@ pub mod contract {
         use crate::contracts::{get_liquidity, get_liquidity_by_x, get_liquidity_by_y};
         use crate::math::fee_growth::FeeGrowth;
         use crate::math::get_delta_y;
-        use crate::math::sqrt_price::log::get_tick_at_sqrt_price;
-        use crate::math::sqrt_price::sqrt_price::{calculate_sqrt_price, get_max_tick};
+        use crate::math::ratio::log::get_tick_at_sqrt_price;
+        use crate::math::ratio::sqrt_price::{calculate_sqrt_price, get_max_tick};
         use crate::math::MAX_TICK;
         use ink::prelude::vec;
         use ink::prelude::vec::Vec;

@@ -1,18 +1,22 @@
 use super::{FeeTier, Oracle, Tick}; // Tickmap
+                                    // use crate::contracts::
 use crate::{
     contracts::PoolKey,
     math::{
-        math::*,
-        sqrt_price::sqrt_price::calculate_sqrt_price,
+        clamm::*,
         types::{
             fee_growth::FeeGrowth,
             liquidity::Liquidity,
             percentage::Percentage,
-            sqrt_price::{log::get_tick_at_sqrt_price, sqrt_price::SqrtPrice},
+            ratio::{
+                log::get_tick_at_sqrt_price,
+                sqrt_price::{calculate_sqrt_price, SqrtPrice},
+            },
             token_amount::TokenAmount,
         },
     },
 };
+
 use decimal::*;
 use ink::primitives::AccountId;
 use traceable_result::*;

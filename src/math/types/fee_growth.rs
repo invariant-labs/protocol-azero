@@ -106,7 +106,7 @@ mod tests {
     use super::*;
     use crate::math::consts::MAX_TICK;
     // use crate::math::calculate_sqrt_price;
-    use crate::math::types::sqrt_price::sqrt_price::SqrtPrice;
+    use crate::math::types::ratio::sqrt_price::SqrtPrice;
     // use decimal::{BetweenDecimals, Decimal, Factories};
 
     #[test]
