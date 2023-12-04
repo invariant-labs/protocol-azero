@@ -29,6 +29,7 @@ pub enum InvariantError {
     TokensAreTheSame,
     AmountUnderMinimumAmountOut,
     InvalidFee,
+    LiquidityGrossNotZero,
 }
 #[ink::contract]
 pub mod contract {
@@ -299,10 +300,14 @@ pub mod contract {
             })
         }
 
-        #[allow(dead_code)]
-        fn remove_tick(&mut self, key: PoolKey, index: i32) -> Result<(), InvariantError> {
-            self.ticks.remove(key, index)?;
+        fn remove_tick(&mut self, key: PoolKey, tick: Tick) -> Result<(), InvariantError> {
+            if !tick.liquidity_gross.is_zero() {
+                return Err(InvariantError::LiquidityGrossNotZero);
+            }
 
+            self.tickmap
+                .flip(false, tick.index, key.fee_tier.tick_spacing, key);
+            self.ticks.remove(key, tick.index)?;
             Ok(())
         }
 
@@ -799,35 +804,17 @@ pub mod contract {
             self.pools.update(position.pool_key, pool).unwrap();
 
             if deinitialize_lower_tick {
-                self.tickmap.flip(
-                    false,
-                    lower_tick.index,
-                    position.pool_key.fee_tier.tick_spacing,
-                    position.pool_key,
-                );
-                self.ticks
-                    .remove(position.pool_key, position.lower_tick_index)
-                    .unwrap();
+                self.remove_tick(position.pool_key, lower_tick)?;
             } else {
                 self.ticks
-                    .update(position.pool_key, position.lower_tick_index, &lower_tick)
-                    .unwrap();
+                    .update(position.pool_key, position.lower_tick_index, &lower_tick)?;
             }
 
             if deinitialize_upper_tick {
-                self.tickmap.flip(
-                    false,
-                    upper_tick.index,
-                    position.pool_key.fee_tier.tick_spacing,
-                    position.pool_key,
-                );
-                self.ticks
-                    .remove(position.pool_key, position.upper_tick_index)
-                    .unwrap();
+                self.remove_tick(position.pool_key, upper_tick)?;
             } else {
                 self.ticks
-                    .update(position.pool_key, position.upper_tick_index, &upper_tick)
-                    .unwrap();
+                    .update(position.pool_key, position.upper_tick_index, &upper_tick)?;
             }
 
             self.positions.remove(caller, index).unwrap();
