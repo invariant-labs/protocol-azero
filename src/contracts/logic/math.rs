@@ -343,7 +343,7 @@ mod tests {
 
     #[test]
     fn get_liquidity_by_y_test() {
-        let y = TokenAmount(476_000_000_00);
+        let y = TokenAmount(47_600_000_000);
         let current_sqrt_price = calculate_sqrt_price(-20000).unwrap();
         // below current tick
         {
@@ -400,7 +400,7 @@ mod tests {
 
     #[test]
     fn get_liquidity_test() {
-        let y = TokenAmount(476_000_000_00);
+        let y = TokenAmount(47_600_000_000);
         let current_sqrt_price = calculate_sqrt_price(-20000).unwrap();
 
         // below current tick
@@ -469,7 +469,7 @@ mod tests {
         {
             let lower_tick = 150;
             let upper_tick = 800;
-            let x = TokenAmount(43_000_000_0);
+            let x = TokenAmount(430_000_000);
             let expected_y = TokenAmount(0);
             let expected_l = Liquidity::new(13548826311623850);
             let result_up = get_liquidity(

@@ -1,15 +1,9 @@
 [package]
 name = "test_helpers"
-version= "4.0.0-beta.1"
-authors = ["Brushfam <varex.silver@727.ventures>"]
+version = "0.1.0"
+authors = ["Invariant Labs"]
 edition = "2021"
-
-[dependencies]
-decimal = { path = "../decimal" }
 
 [lib]
 name = "test_helpers"
 path = "lib.rs"
-
-[profile.dev]
-codegen-units = 16
