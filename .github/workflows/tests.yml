@@ -14,14 +14,6 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v3
 
-      # - name: Cache Crates
-      #   uses: actions/cache@v3
-      #   with:
-      #     path: ~/.cargo 
-      #     key: ${{ runner.os }}-rust-${{ hashFiles('rust-toolchain.toml') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-rust
-
       - name: Cache Crates
         uses: actions/cache@v3
         with:
@@ -30,11 +22,6 @@ jobs:
 
       - name: Install Rust toolchain
         uses: Cardinal-Cryptography/github-actions/install-rust-toolchain@v1
-
-      # - name: Install Rust toolchain
-      #   run: |
-      #     rustup show
-      #     rustup component add rust-src
 
       - name: Run cargo fmt
         uses: actions-rs/cargo@v1
@@ -48,8 +35,6 @@ jobs:
           command: clippy
           # args: --all-targets -- --no-deps -D warnings (TODO: fix clippy warnings first)
 
-
-
       - name: Check if substrate-contracts-node exists
         id: check-substrate-contracts-node
         continue-on-error: true
@@ -59,21 +44,12 @@ jobs:
         if: ${{ steps.check-substrate-contracts-node.outcome == 'failure' }}
         run: |
           sudo apt-get install -y protobuf-compiler libprotobuf-dev
-      
-        
+              
       - name: Install substrate-contracts-node
         if: ${{ steps.check-substrate-contracts-node.outcome == 'failure' }}
         run: |
           cargo install cargo-dylint dylint-link
           cargo install --force --locked contracts-node
-
-      # TODO: try downlaod binary from github release
-      # - name: Install substrate-contracts-node
-      #   if: ${{ steps.check-cargo-contract.outcome == 'failure' }}
-      #   uses: actions-rs/cargo@v1
-      #   with:
-      #     command: install
-      #     args: --force --locked contracts-node
 
       - name: Run unit tests
         uses: actions-rs/cargo@v1
@@ -82,7 +58,7 @@ jobs:
           args: --features e2e-tests
 
   build:
-    name: Build the contract
+    name: Release build the contract
     runs-on: ubuntu-latest
 
     steps:
@@ -104,29 +80,8 @@ jobs:
           command: install
           args: --locked cargo-contract
 
-      # - name: Install Protobuf
-      #   run: |
-      #     sudo apt-get install -y protobuf-compiler libprotobuf-dev
-
-      # - name: Install substrate-contracts-node
-      #   uses: actions-rs/cargo@v1
-      #   with:
-      #     command: install
-      #     args: --locked contracts-node
-
-      # - name: Install substrate-contracts-node
-      #   run: |
-      #     cargo install cargo-dylint dylint-link
-      #     cargo install --force --locked cargo-contract
-
       - name: Build contract
         uses: actions-rs/cargo@v1
         with:
           command: contract
           args: build --release
-
-      # - name: Run unit tests
-      #   uses: actions-rs/cargo@v1
-      #   with:
-      #     command: test
-      #     args: --features e2e-tests
