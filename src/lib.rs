@@ -45,9 +45,11 @@ pub mod contract {
     use crate::math::calculate_min_amount_out;
     use crate::math::check_tick;
     use crate::math::percentage::Percentage;
+    use crate::math::sqrt_price::log::get_tick_at_sqrt_price;
     use crate::math::sqrt_price::sqrt_price::SqrtPrice;
     use crate::math::token_amount::TokenAmount;
     use crate::math::types::liquidity::Liquidity;
+    // use crate
     use crate::math::{compute_swap_step, MAX_SQRT_PRICE, MIN_SQRT_PRICE};
     use decimal::*;
     use ink::contract_ref;
@@ -73,7 +75,7 @@ pub mod contract {
         timestamp: u64,
         address: AccountId,
         pool: PoolKey,
-        index: i32,
+        indexes: Vec<i32>,
     }
 
     #[ink(event)]
@@ -254,35 +256,32 @@ pub mod contract {
                     return Err(InvariantError::PriceLimitReached);
                 }
 
-                // TODO: refactor
-                let mut tick = Tick::default();
+                if let Some((tick_index, is_initialized)) = limiting_tick {
+                    if is_initialized {
+                        let mut tick = self.ticks.get(pool_key, tick_index).unwrap();
 
-                let update_limiting_tick = limiting_tick.map(|(index, bool)| {
-                    if bool {
-                        tick = self.ticks.get(pool_key, index).unwrap();
-                        (index, Some(&mut tick))
-                    } else {
-                        (index, None)
+                        let (amount_to_add, has_crossed) = pool.cross_tick(
+                            result,
+                            swap_limit,
+                            &mut tick,
+                            &mut remaining_amount,
+                            by_amount_in,
+                            x_to_y,
+                            current_timestamp,
+                            self.state.protocol_fee,
+                            pool_key.fee_tier,
+                        );
+
+                        total_amount_in += amount_to_add;
+                        if has_crossed {
+                            ticks.push(tick);
+                        }
                     }
-                });
-
-                let has_crossed = pool.cross_tick(
-                    result,
-                    swap_limit,
-                    update_limiting_tick,
-                    &mut remaining_amount,
-                    by_amount_in,
-                    x_to_y,
-                    current_timestamp,
-                    &mut total_amount_in,
-                    self.state.protocol_fee,
-                    pool_key.fee_tier,
-                );
-
-                if has_crossed {
-                    self.emit_cross_tick_event(caller, pool_key, limiting_tick.unwrap().0);
-
-                    ticks.push(tick);
+                } else {
+                    pool.current_tick_index = unwrap!(get_tick_at_sqrt_price(
+                        result.next_sqrt_price,
+                        pool_key.fee_tier.tick_spacing
+                    ));
                 }
             }
 
@@ -384,7 +383,7 @@ pub mod contract {
             );
         }
 
-        fn emit_cross_tick_event(&self, address: AccountId, pool: PoolKey, index: i32) {
+        fn emit_cross_tick_event(&self, address: AccountId, pool: PoolKey, indexes: Vec<i32>) {
             let timestamp = self.get_timestamp();
             ink::codegen::EmitEvent::<Contract>::emit_event(
                 self.env(),
@@ -392,7 +391,7 @@ pub mod contract {
                     timestamp,
                     address,
                     pool,
-                    index,
+                    indexes,
                 },
             );
         }
@@ -551,8 +550,15 @@ pub mod contract {
             let calculate_swap_result =
                 self.calculate_swap(pool_key, x_to_y, amount, by_amount_in, sqrt_price_limit)?;
 
+            let mut crossed_tick_indexes: Vec<i32> = vec![];
+
             for tick in calculate_swap_result.ticks.iter() {
                 self.ticks.update(pool_key, tick.index, tick)?;
+                crossed_tick_indexes.push(tick.index);
+            }
+
+            if crossed_tick_indexes.len() > 0 {
+                self.emit_cross_tick_event(caller, pool_key, crossed_tick_indexes);
             }
 
             self.pools.update(pool_key, &calculate_swap_result.pool)?;
