@@ -1,13 +1,10 @@
+use super::Pool;
 use crate::math::types::{
     fee_growth::FeeGrowth, liquidity::Liquidity, ratio::sqrt_price::calculate_sqrt_price,
     ratio::sqrt_price::SqrtPrice,
 };
-
-use traceable_result::*;
-
 use decimal::*;
-
-use super::Pool;
+use traceable_result::*;
 
 #[derive(Debug, Copy, Clone, scale::Decode, scale::Encode, PartialEq)]
 #[cfg_attr(

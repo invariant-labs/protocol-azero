@@ -1,5 +1,4 @@
-use super::{FeeTier, Oracle, Tick}; // Tickmap
-                                    // use crate::contracts::
+use super::{FeeTier, Oracle, Tick};
 use crate::{
     contracts::PoolKey,
     math::{

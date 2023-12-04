@@ -33,7 +33,7 @@ pub enum InvariantError {
 #[ink::contract]
 pub mod contract {
     use crate::InvariantError;
-    // use math::fee_growth::FeeGrowth;
+
     use crate::contracts::state::State;
     use crate::contracts::Invariant;
     use crate::contracts::Pool;
@@ -48,7 +48,7 @@ pub mod contract {
     use crate::math::ratio::sqrt_price::SqrtPrice;
     use crate::math::token_amount::TokenAmount;
     use crate::math::types::liquidity::Liquidity; //
-                                                  // use crate
+
     use crate::math::{compute_swap_step, MAX_SQRT_PRICE, MIN_SQRT_PRICE};
     use decimal::*;
     use ink::contract_ref;
@@ -188,7 +188,7 @@ pub mod contract {
             sqrt_price_limit: SqrtPrice,
         ) -> Result<CalculateSwapResult, InvariantError> {
             let current_timestamp = self.env().block_timestamp();
-            // let caller = self.env().caller();
+
             if amount.is_zero() {
                 return Err(InvariantError::AmountIsZero);
             }

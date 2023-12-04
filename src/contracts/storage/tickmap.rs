@@ -4,6 +4,7 @@ use crate::math::{
     MAX_TICK,
 };
 use ink::storage::Mapping;
+
 pub const TICK_SEARCH_RANGE: i32 = 256;
 pub const CHUNK_SIZE: i32 = 64;
 
