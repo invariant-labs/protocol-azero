@@ -1,8 +1,15 @@
-## Overview
+<div align="center">
+    <h1>⚡Invariant protocol⚡</h1>
+    <p>
+        | <a href="https://docs.invariant.app/docs/aleph_zero">DOCS 📚</a> |
+        <a href="https://invariant.app/math-spec-a0.pdf">MATH SPEC 📄</a> |
+        <a href="https://discord.gg/VzS3C9wR">DISCORD 🌐</a> |
+    </p>
+</div>
 
-This repository contains an Concentrated Liquidity Automated Market Maker smart contract. It is designed to provide users with the ability to efficiently manage and optimize liquidity pools with concentrated positions on [Aleph ZERO](https://alephzero.org/). The smart contract not only enables users to create and manage liquidity pools with concentrated positions but also facilitates token swaps directly through the smart contract. Please note that tokens interacting with this CLAMM program must adhere to the PSP22 standard.
+Invariant protocol is an AMM built on [Aleph Zero](https://alephzero.org), leveraging high capital efficiency and the ability to list markets in a permissionless manner. At the core of the DEX is the Concentrated Liquidity mechanism, designed to handle tokens compatible with the [PSP22 standard](https://github.com/w3f/PSPs/blob/master/PSPs/psp-22.md). The protocol is structured around a single contract architecture.
 
-## Getting Started
+## 🔨 Getting Started
 
 ### Prerequisites
 
@@ -29,22 +36,22 @@ rustup component add rust-src && cargo install --force --locked cargo-contract
 cargo install contracts-node --git https://github.com/paritytech/substrate-contracts-node.git
 ```
 
-### Installation
+### Build protocol
 
-#### Clone repository
+- Clone repository
 
 ```bash
 git clone git@github.com:invariant-labs/protocol-a0.git
-```
-
-- Run tests
-
-```bash
-cargo test --features e2e-tests
 ```
 
 - Build contract
 
 ```bash
 cargo contract build
+```
+
+- Run tests
+
+```bash
+cargo test --features e2e-tests
 ```
