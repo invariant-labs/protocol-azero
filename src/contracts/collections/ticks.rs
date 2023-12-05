@@ -77,8 +77,8 @@ mod tests {
         assert_eq!(ticks.get(pool_key, 0), Ok(tick));
         assert_eq!(ticks.get(pool_key, 1), Err(InvariantError::TickNotFound));
 
-        // let result = ticks.add(pool_key, 0, &tick);
-        // assert_eq!(result, Err(InvariantError::TickAlreadyExist));
+        let result = ticks.add(pool_key, 0, &tick);
+        assert_eq!(result, Err(InvariantError::TickAlreadyExist));
     }
 
     #[ink::test]

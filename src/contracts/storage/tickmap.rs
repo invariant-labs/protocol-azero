@@ -249,40 +249,6 @@ mod tests {
     use decimal::*;
     use ink::primitives::AccountId;
 
-    // #[ink::test]
-    // fn test_price_limit() {
-    //     let token_0: AccountId = AccountId::from([0x01; 32]);
-    //     let token_1: AccountId = AccountId::from([0x02; 32]);
-    //     let fee_tier: FeeTier = FeeTier {
-    //         fee: Percentage::new(1),
-    //         tick_spacing: 1,
-    //     };
-    //     let pool_key: PoolKey = PoolKey::new(token_0, token_1, fee_tier);
-
-    //     let tickmap = &mut Tickmap::default();
-
-    //     // tick spacing equals 5 is threshold from which entire price range is available
-    //     const TICK_LIMIT: i32 = 44_364; // taken from inv math
-    //     let tick_spacing = 5;
-    //     let max_absolute_tick = (MAX_TICK / tick_spacing as i32) * tick_spacing as i32;
-    //     let (max_tick_byte, max_tick_bit) = tick_to_position(max_absolute_tick, tick_spacing);
-    //     let (min_tick_byte, min_tick_bit) = tick_to_position(-max_absolute_tick, tick_spacing);
-    //     let min_index = 64 * min_tick_byte as usize + min_tick_bit as usize;
-    //     let max_index = 64 * max_tick_byte as usize + max_tick_bit as usize;
-    //     let max_tick = (max_index as i32 - TICK_LIMIT) * tick_spacing as i32;
-    //     let min_tick = (min_index as i32 - TICK_LIMIT) * tick_spacing as i32;
-
-    //     // 88728 indexes
-    //     assert_eq!(min_index, 1);
-    //     assert_eq!(max_index, 88727);
-    //     // <-221_815, 221_815>
-    //     assert_eq!(max_tick, 221_815);
-    //     assert_eq!(min_tick, -221_815);
-    //     // try to access price edges
-    //     tickmap.get(max_absolute_tick, tick_spacing, pool_key);
-    //     tickmap.get(-max_absolute_tick, tick_spacing, pool_key);
-    // }
-
     #[ink::test]
     fn test_get_closer_limit() {
         let token_0: AccountId = AccountId::from([0x01; 32]);

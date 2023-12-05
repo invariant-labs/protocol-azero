@@ -78,13 +78,11 @@ impl Tick {
 
         // When going to higher tick net_liquidity should be added and for going lower subtracted
         if (pool.current_tick_index >= self.index) ^ self.sign {
-            // trunk-ignore(clippy/assign_op_pattern)
             pool.liquidity = pool
                 .liquidity
                 .checked_add(self.liquidity_change)
                 .map_err(|_| err!("pool.liquidity + tick.liquidity_change overflow"))?;
         } else {
-            // trunk-ignore(clippy/assign_op_pattern)
             pool.liquidity = pool
                 .liquidity
                 .checked_sub(self.liquidity_change)
@@ -439,7 +437,7 @@ mod tests {
         // exceed max tick liquidity
         {
             let mut tick = Tick {
-                // index: 5,
+                index: 5,
                 sign: true,
                 liquidity_change: Liquidity::from_integer(100_000),
                 liquidity_gross: Liquidity::from_integer(100_000),

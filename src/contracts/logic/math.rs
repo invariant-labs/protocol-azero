@@ -352,7 +352,7 @@ mod tests {
         let current_sqrt_price = calculate_sqrt_price(-20000).unwrap();
         // below current tick
         {
-            let expected_l = Liquidity::new(2789052279103923275); // PROTOCOL = 2789052279103923275
+            let expected_l = Liquidity::new(2789052279103923275);
             let expected_x = TokenAmount(0);
             let lower_tick = -22000;
             let upper_tick = -21000;
