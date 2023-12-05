@@ -104,7 +104,7 @@ pub fn calculate_fee_growth_inside(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::math::consts::MAX_TICK;
+    use crate::math::consts::{MAX_TICK, TICK_SEARCH_RANGE};
     use crate::math::types::sqrt_price::SqrtPrice;
 
     #[test]
@@ -217,7 +217,7 @@ mod tests {
         // max FeeGrowth case insdie of domain
         {
             let max_tick_spacing = 100;
-            let tick_search_range = 256; // TODO: replace it with const
+            let tick_search_range = TICK_SEARCH_RANGE;
             let p_u = SqrtPrice::from_tick(MAX_TICK).unwrap();
             let p_l =
                 SqrtPrice::from_tick(MAX_TICK - max_tick_spacing * tick_search_range).unwrap();

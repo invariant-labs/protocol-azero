@@ -164,7 +164,6 @@ impl Position {
         lower_tick: &mut Tick,
         upper_tick: &mut Tick,
         current_timestamp: u64,
-        // tickmap: &mut Tickmap,
         liquidity_delta: Liquidity,
         slippage_limit_lower: SqrtPrice,
         slippage_limit_upper: SqrtPrice,
@@ -174,13 +173,6 @@ impl Position {
         if pool.sqrt_price < slippage_limit_lower || pool.sqrt_price > slippage_limit_upper {
             return Err(InvariantError::PriceLimitReached);
         }
-
-        // if !tickmap.get(lower_tick.index, pool.tick_spacing) {
-        //     tickmap.flip(true, lower_tick.index, pool.tick_spacing)
-        // }
-        // if !tickmap.get(upper_tick.index, pool.tick_spacing) {
-        //     tickmap.flip(true, upper_tick.index, pool.tick_spacing)
-        // }
 
         // init position
         let mut position = Position {
