@@ -10,7 +10,7 @@ on:
 
 jobs:
   checks:
-    name: Uint and e2e tests + linit
+    name: Uint and e2e tests
     runs-on: ubuntu-latest
 
     steps:
@@ -25,18 +25,6 @@ jobs:
 
       - name: Install Rust toolchain
         uses: Cardinal-Cryptography/github-actions/install-rust-toolchain@v1
-
-      - name: Run cargo fmt
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
-
-      - name: Run clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --all-targets -- --no-deps -D warnings
 
       - name: Check if substrate-contracts-node exists
         id: check-substrate-contracts-node
@@ -61,7 +49,7 @@ jobs:
           args: --features e2e-tests
 
   build:
-    name: Release build the contract
+    name: Release build the contract + lint
     runs-on: ubuntu-latest
 
     steps:
@@ -73,6 +61,18 @@ jobs:
         with:
           path: ~/.cargo
           key: ${{ runner.os }}-contract-build-env-${{ hashFiles('rust-toolchain.toml') }}
+
+      - name: Run cargo fmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+      - name: Run clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all-targets -- --no-deps -D warnings
 
       - name: Install Rust toolchain
         uses: Cardinal-Cryptography/github-actions/install-rust-toolchain@v1
