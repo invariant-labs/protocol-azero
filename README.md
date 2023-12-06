@@ -16,7 +16,6 @@ Invariant protocol is an AMM built on [Aleph Zero](https://alephzero.org), lever
 - Rust & Cargo ([rustup](https://www.rust-lang.org/tools/install))
 - cargo-contract ([cargo-contract](https://github.com/paritytech/cargo-contract))
 - substrate-contracts-node ([substrate-contracts-node](https://github.com/paritytech/substrate-contracts-node))
-- ink! ([ink!](https://use.ink/getting-started/setup))
 
 #### Rust & Cargo
 
