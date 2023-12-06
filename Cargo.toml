@@ -7,9 +7,6 @@ edition = "2021"
 [dependencies]
 # local
 decimal = { path = "src/decimal" }
-# math = { path = "src/math", default-features = false, features = [
-#   "ink-as-dependency",
-# ] }
 traceable_result = { path = "src/traceable_result" }
 
 # ink
