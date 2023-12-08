@@ -32,6 +32,7 @@ pub enum InvariantError {
     AmountUnderMinimumAmountOut,
     InvalidFee,
     NotEmptyTickDeinitialization,
+    InvalidInitTick,
 }
 #[ink::contract]
 pub mod contract {
@@ -894,6 +895,9 @@ pub mod contract {
             if !self.fee_tiers.contains(fee_tier) {
                 return Err(InvariantError::FeeTierNotFound);
             };
+
+            check_tick(init_tick, fee_tier.tick_spacing)
+                .map_err(|_| InvariantError::InvalidInitTick)?;
 
             let pool_key = PoolKey::new(token_0, token_1, fee_tier)?;
             if self.pools.get(pool_key).is_ok() {

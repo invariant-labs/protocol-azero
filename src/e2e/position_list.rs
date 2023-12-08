@@ -30,7 +30,7 @@ pub mod e2e_tests {
 
         let alice = ink_e2e::alice();
 
-        let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
+        let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 3).unwrap();
 
         add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
 
