@@ -84,7 +84,6 @@ pub mod e2e_tests {
         let swap_amount = TokenAmount::new(amount);
         approve!(client, TokenRef, token_x, dex, amount, alice).unwrap();
 
-        // let target_sqrt_price = calculate_sqrt_price(-98).unwrap();
         let target_sqrt_price = SqrtPrice::new(MAX_SQRT_PRICE);
         let quoted_target_sqrt_price = quote!(
             client,
