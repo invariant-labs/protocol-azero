@@ -79,7 +79,7 @@ pub mod e2e_tests {
             init_tick,
             alice
         );
-        assert_eq!(result, Err(Invariant::PoolAlreadyExists));
+        assert_eq!(result, Err(InvariantError::PoolAlreadyExist));
 
         Ok(())
     }
@@ -87,7 +87,7 @@ pub mod e2e_tests {
     #[ink_e2e::test]
     async fn test_create_pool_with_same_tokens(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let dex = create_dex!(client, ContractRef, Percentage::new(0));
-        let (token_x, token_y) = create_tokens!(client, TokenRef, 500, 500);
+        let (token_x, _) = create_tokens!(client, TokenRef, 500, 500);
 
         let fee_tier = FeeTier::new(Percentage::from_scale(5, 1), 100).unwrap();
         let init_tick = 0;
@@ -129,7 +129,7 @@ pub mod e2e_tests {
             ContractRef,
             dex,
             token_x,
-            token_x,
+            token_y,
             fee_tier,
             init_tick,
             alice
