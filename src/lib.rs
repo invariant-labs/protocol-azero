@@ -28,7 +28,7 @@ pub enum InvariantError {
     UnauthorizedFeeReceiver,
     ZeroLiquidity,
     TransferError,
-    TokensAreTheSame,
+    TokensAreSame,
     AmountUnderMinimumAmountOut,
     InvalidFee,
     NotEmptyTickDeinitialization,
