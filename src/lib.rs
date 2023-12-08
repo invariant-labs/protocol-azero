@@ -105,7 +105,7 @@ pub mod contract {
         x_to_y: bool,
     }
 
-    #[derive(scale::Decode, Default, scale::Encode, Clone, Debug)]
+    #[derive(scale::Decode, Default, scale::Encode, Clone, Debug, PartialEq)]
     #[cfg_attr(
         feature = "std",
         derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout,)

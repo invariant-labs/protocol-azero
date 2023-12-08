@@ -24,7 +24,7 @@ pub mod e2e_tests {
     type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
     #[ink_e2e::test]
-    async fn create_position(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+    async fn test_create_position(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let dex = create_dex!(client, ContractRef, Percentage::new(0));
         let (token_x, token_y) = create_tokens!(client, TokenRef, 500, 500);
 
@@ -69,7 +69,7 @@ pub mod e2e_tests {
     }
 
     #[ink_e2e::test]
-    async fn remove_position_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+    async fn test_remove_position(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
         let alice = ink_e2e::alice();
         let bob = ink_e2e::bob();
@@ -242,7 +242,7 @@ pub mod e2e_tests {
     }
 
     #[ink_e2e::test]
-    async fn position_within_current_tick_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+    async fn test_position_within_current_tick(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let max_tick_test = 177_450; // for tickSpacing 4
         let min_tick_test = -max_tick_test;
         let alice = ink_e2e::alice();
@@ -340,7 +340,7 @@ pub mod e2e_tests {
     }
 
     #[ink_e2e::test]
-    async fn position_below_current_tick_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+    async fn test_position_below_current_tick(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let alice = ink_e2e::alice();
         let init_tick = -23028;
 
@@ -438,7 +438,7 @@ pub mod e2e_tests {
     }
 
     #[ink_e2e::test]
-    async fn position_above_current_tick_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+    async fn test_position_above_current_tick(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let alice = ink_e2e::alice();
         let init_tick = -23028;
 

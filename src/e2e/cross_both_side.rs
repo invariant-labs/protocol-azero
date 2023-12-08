@@ -1,5 +1,6 @@
 #[cfg(test)]
 pub mod e2e_tests {
+    use crate::InvariantError;
     use crate::{
         contract::ContractRef,
         contracts::{entrypoints::Invariant, FeeTier, PoolKey},
@@ -18,14 +19,14 @@ pub mod e2e_tests {
     use ink_e2e::build_message;
     use test_helpers::{
         add_fee_tier, address_of, approve, create_dex, create_pool, create_position, create_tokens,
-        get_pool, get_tick, mint, quote, swap,
+        get_pool, get_tick, mint, swap,
     };
     use token::{TokenRef, PSP22};
 
     type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
     #[ink_e2e::test]
-    async fn cross_both_side_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+    async fn test_cross_both_side(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
         let alice = ink_e2e::alice();
         let init_tick = 0;
@@ -305,8 +306,9 @@ pub mod e2e_tests {
     }
 
     #[ink_e2e::test]
-    #[should_panic]
-    async fn cross_both_side_not_cross_case_test(mut client: ink_e2e::Client<C, E>) -> () {
+    async fn test_cross_both_side_not_cross_case(
+        mut client: ink_e2e::Client<C, E>,
+    ) -> E2EResult<()> {
         let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
         let alice = ink_e2e::alice();
         let init_tick = 0;
@@ -452,20 +454,8 @@ pub mod e2e_tests {
         assert_eq!(pool.sqrt_price, expected_price);
 
         let slippage = SqrtPrice::new(MIN_SQRT_PRICE);
-        let target_sqrt_price = quote!(
-            client,
-            ContractRef,
-            dex,
-            pool_key,
-            true,
-            not_cross_amount,
-            true,
-            slippage
-        )
-        .unwrap()
-        .target_sqrt_price;
 
-        swap!(
+        let result = swap!(
             client,
             ContractRef,
             dex,
@@ -473,9 +463,11 @@ pub mod e2e_tests {
             true,
             not_cross_amount,
             true,
-            target_sqrt_price,
+            slippage,
             alice
-        )
-        .unwrap();
+        );
+
+        assert_eq!(result, Err(InvariantError::NoGainSwap));
+        Ok(())
     }
 }

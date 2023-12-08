@@ -51,7 +51,9 @@ pub mod e2e_tests {
     }
 
     #[ink_e2e::test]
-    async fn test_not_admin_change_fee_reciever(mut client: ink_e2e::Client<C, E>) -> () {
+    async fn test_not_admin_change_fee_reciever(
+        mut client: ink_e2e::Client<C, E>,
+    ) -> E2EResult<()> {
         let dex = create_dex!(client, ContractRef, Percentage::new(0));
         let (token_x, token_y) = create_tokens!(client, TokenRef, 500, 500);
 
@@ -79,5 +81,6 @@ pub mod e2e_tests {
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
         let result = change_fee_receiver!(client, ContractRef, dex, pool_key, bob, user);
         assert_eq!(result, Err(InvariantError::NotAdmin));
+        Ok(())
     }
 }

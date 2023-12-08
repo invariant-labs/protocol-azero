@@ -23,13 +23,13 @@ pub mod e2e_tests {
     type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
     #[ink_e2e::test]
-    async fn multiple_swap_x_to_y(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+    async fn test_multiple_swap_x_to_y(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         multiple_swap!(client, ContractRef, TokenRef, true);
         Ok(())
     }
 
     #[ink_e2e::test]
-    async fn multiple_swap_y_to_x(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+    async fn test_multiple_swap_y_to_x(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         multiple_swap!(client, ContractRef, TokenRef, false);
         Ok(())
     }

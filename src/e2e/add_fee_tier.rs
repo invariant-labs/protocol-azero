@@ -60,7 +60,7 @@ pub mod e2e_tests {
     }
 
     #[ink_e2e::test]
-    async fn test_add_existing_fee_tier(mut client: ink_e2e::Client<C, E>) -> () {
+    async fn test_add_existing_fee_tier(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let admin = ink_e2e::alice();
         let dex = create_dex!(client, ContractRef, Percentage::new(0));
 
@@ -70,16 +70,18 @@ pub mod e2e_tests {
         let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 1).unwrap();
         let result = add_fee_tier!(client, ContractRef, dex, fee_tier, admin);
         assert_eq!(result, Err(InvariantError::FeeTierAlreadyExist));
+        Ok(())
     }
 
     #[ink_e2e::test]
-    async fn test_add_fee_tier_not_admin(mut client: ink_e2e::Client<C, E>) -> () {
+    async fn test_add_fee_tier_not_admin(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let user = ink_e2e::bob();
         let dex = create_dex!(client, ContractRef, Percentage::new(0));
 
         let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 1).unwrap();
         let result = add_fee_tier!(client, ContractRef, dex, fee_tier, user);
         assert_eq!(result, Err(InvariantError::NotAdmin));
+        Ok(())
     }
 
     #[ink_e2e::test]
@@ -93,7 +95,9 @@ pub mod e2e_tests {
     }
 
     #[ink_e2e::test]
-    async fn test_add_fee_tier_tick_spacing_zero(mut client: ink_e2e::Client<C, E>) -> () {
+    async fn test_add_fee_tier_tick_spacing_zero(
+        mut client: ink_e2e::Client<C, E>,
+    ) -> E2EResult<()> {
         let admin = ink_e2e::alice();
         let dex = create_dex!(client, ContractRef, Percentage::new(0));
 
@@ -104,12 +108,13 @@ pub mod e2e_tests {
 
         let result = add_fee_tier!(client, ContractRef, dex, fee_tier, admin);
         assert_eq!(result, Err(InvariantError::InvalidTickSpacing));
+        Ok(())
     }
 
     #[ink_e2e::test]
     async fn test_add_fee_tier_over_upper_bound_tick_spacing(
         mut client: ink_e2e::Client<C, E>,
-    ) -> () {
+    ) -> E2EResult<()> {
         let admin = ink_e2e::alice();
         let dex = create_dex!(client, ContractRef, Percentage::new(0));
 
@@ -120,10 +125,11 @@ pub mod e2e_tests {
 
         let result = add_fee_tier!(client, ContractRef, dex, fee_tier, admin);
         assert_eq!(result, Err(InvariantError::InvalidTickSpacing));
+        Ok(())
     }
 
     #[ink_e2e::test]
-    async fn test_add_fee_tier_fee_above_limit(mut client: ink_e2e::Client<C, E>) -> () {
+    async fn test_add_fee_tier_fee_above_limit(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let admin = ink_e2e::alice();
         let dex = create_dex!(client, ContractRef, Percentage::new(0));
 
@@ -134,5 +140,6 @@ pub mod e2e_tests {
 
         let result = add_fee_tier!(client, ContractRef, dex, fee_tier, admin);
         assert_eq!(result, Err(InvariantError::InvalidFee));
+        Ok(())
     }
 }

@@ -28,21 +28,27 @@ pub mod e2e_tests {
     type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
     #[ink_e2e::test]
-    async fn limits_big_deposit_x_and_swap_y(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+    async fn test_limits_big_deposit_x_and_swap_y(
+        mut client: ink_e2e::Client<C, E>,
+    ) -> E2EResult<()> {
         big_deposit_and_swap!(client, ContractRef, TokenRef, true);
 
         Ok(())
     }
 
     #[ink_e2e::test]
-    async fn limits_big_deposit_y_and_swap_x(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+    async fn test_limits_big_deposit_y_and_swap_x(
+        mut client: ink_e2e::Client<C, E>,
+    ) -> E2EResult<()> {
         big_deposit_and_swap!(client, ContractRef, TokenRef, false);
 
         Ok(())
     }
 
     #[ink_e2e::test]
-    async fn limits_big_deposit_both_tokens(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+    async fn test_limits_big_deposit_both_tokens(
+        mut client: ink_e2e::Client<C, E>,
+    ) -> E2EResult<()> {
         let (dex, token_x, token_y) =
             init_dex_and_tokens_max_mint_amount!(client, ContractRef, TokenRef);
 
@@ -119,7 +125,9 @@ pub mod e2e_tests {
     }
 
     #[ink_e2e::test]
-    async fn deposit_limits_at_upper_limit(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+    async fn test_deposit_limits_at_upper_limit(
+        mut client: ink_e2e::Client<C, E>,
+    ) -> E2EResult<()> {
         let (dex, token_x, token_y) =
             init_dex_and_tokens_max_mint_amount!(client, ContractRef, TokenRef);
 
@@ -181,7 +189,7 @@ pub mod e2e_tests {
     }
 
     #[ink_e2e::test]
-    async fn limits_big_deposit_and_swaps(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+    async fn test_limits_big_deposit_and_swaps(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let (dex, token_x, token_y) =
             init_dex_and_tokens_max_mint_amount!(client, ContractRef, TokenRef);
 
@@ -283,7 +291,9 @@ pub mod e2e_tests {
     }
 
     #[ink_e2e::test]
-    async fn limits_full_range_with_max_liquidity(mut client: ink_e2e::Client<C, E>) -> () {
+    async fn test_limits_full_range_with_max_liquidity(
+        mut client: ink_e2e::Client<C, E>,
+    ) -> E2EResult<()> {
         let (dex, token_x, token_y) =
             init_dex_and_tokens_max_mint_amount!(client, ContractRef, TokenRef);
 
@@ -336,5 +346,6 @@ pub mod e2e_tests {
         let expected_y = 42534896005851865508212194815854; // < 2^106
         assert_eq!(contract_amount_x, expected_x);
         assert_eq!(contract_amount_y, expected_y);
+        Ok(())
     }
 }
