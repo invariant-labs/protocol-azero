@@ -17,7 +17,7 @@ pub mod e2e_tests {
     type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
     #[ink_e2e::test]
-    async fn change_fee_reciever_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+    async fn test_change_fee_reciever(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let dex = create_dex!(client, ContractRef, Percentage::new(0));
         let (token_x, token_y) = create_tokens!(client, TokenRef, 500, 500);
 
@@ -51,7 +51,7 @@ pub mod e2e_tests {
     }
 
     #[ink_e2e::test]
-    async fn not_admin_change_fee_reciever_test(mut client: ink_e2e::Client<C, E>) -> () {
+    async fn test_not_admin_change_fee_reciever(mut client: ink_e2e::Client<C, E>) -> () {
         let dex = create_dex!(client, ContractRef, Percentage::new(0));
         let (token_x, token_y) = create_tokens!(client, TokenRef, 500, 500);
 

@@ -13,7 +13,7 @@ pub mod e2e_tests {
     type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
     #[ink_e2e::test]
-    async fn remove_fee_tier_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+    async fn test_remove_fee_tier(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let admin = ink_e2e::alice();
         let dex = create_dex!(client, ContractRef, Percentage::new(0));
 
@@ -36,8 +36,7 @@ pub mod e2e_tests {
     }
 
     #[ink_e2e::test]
-
-    async fn remove_not_existing_fee_tier(mut client: ink_e2e::Client<C, E>) -> () {
+    async fn test_remove_not_existing_fee_tier(mut client: ink_e2e::Client<C, E>) -> () {
         let admin = ink_e2e::alice();
         let dex = create_dex!(client, ContractRef, Percentage::new(0));
 
@@ -50,8 +49,7 @@ pub mod e2e_tests {
     }
 
     #[ink_e2e::test]
-
-    async fn remove_fee_tier_not_admin(mut client: ink_e2e::Client<C, E>) -> () {
+    async fn test_remove_fee_tier_not_admin(mut client: ink_e2e::Client<C, E>) -> () {
         let admin = ink_e2e::alice();
         let user = ink_e2e::bob();
         let dex = create_dex!(client, ContractRef, Percentage::new(0));

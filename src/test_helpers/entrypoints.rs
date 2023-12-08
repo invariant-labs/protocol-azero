@@ -38,7 +38,7 @@ macro_rules! withdraw_protocol_fee {
 macro_rules! change_protocol_fee {
     ($client:ident, $dex:ty, $dex_address:expr, $protocol_fee:expr, $caller:ident) => {{
         let message = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.change_protocol_fee($pool_key));
+            .call(|contract| contract.change_protocol_fee($protocol_fee));
         let result = $client
             .call_dry_run(&$caller, &message, 0, None)
             .await

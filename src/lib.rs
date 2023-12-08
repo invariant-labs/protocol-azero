@@ -849,7 +849,7 @@ pub mod contract {
                 return Err(InvariantError::InvalidTickSpacing);
             }
 
-            if fee_tier.fee > Percentage::from_integer(1) {
+            if fee_tier.fee >= Percentage::from_integer(1) {
                 return Err(InvariantError::InvalidFee);
             }
 
