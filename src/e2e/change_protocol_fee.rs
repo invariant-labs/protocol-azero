@@ -1,5 +1,6 @@
 #[cfg(test)]
 pub mod e2e_tests {
+    use crate::InvariantError;
     use crate::{
         contract::ContractRef, contracts::entrypoints::Invariant,
         math::types::percentage::Percentage,
@@ -51,15 +52,16 @@ pub mod e2e_tests {
     }
 
     #[ink_e2e::test]
-    #[should_panic]
-    async fn change_protocol_fee_should_panic(mut client: ink_e2e::Client<C, E>) -> () {
+    async fn change_protocol_fee_not_admin(mut client: ink_e2e::Client<C, E>) -> () {
         let contract = create_dex!(client, ContractRef, Percentage::new(0));
 
         let _msg = build_message::<ContractRef>(contract)
             .call(|contract| contract.change_protocol_fee(Percentage::new(1)));
-        client
-            .call(&ink_e2e::bob(), _msg, 0, None)
+        let result = client
+            .call_dry_run(&ink_e2e::bob(), &_msg, 0, None)
             .await
-            .expect("changing protocol fee failed");
+            .return_value();
+
+        assert_eq!(result, Err(InvariantError::NotAdmin));
     }
 }

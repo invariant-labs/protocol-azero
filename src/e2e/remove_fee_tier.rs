@@ -1,6 +1,7 @@
 #[cfg(test)]
 pub mod e2e_tests {
     use crate::math::types::percentage::Percentage;
+    use crate::InvariantError;
     use crate::{
         contract::ContractRef,
         contracts::{entrypoints::Invariant, FeeTier},
@@ -35,7 +36,7 @@ pub mod e2e_tests {
     }
 
     #[ink_e2e::test]
-    #[should_panic]
+
     async fn remove_not_existing_fee_tier(mut client: ink_e2e::Client<C, E>) -> () {
         let admin = ink_e2e::alice();
         let dex = create_dex!(client, ContractRef, Percentage::new(0));
@@ -44,11 +45,12 @@ pub mod e2e_tests {
         add_fee_tier!(client, ContractRef, dex, fee_tier, admin).unwrap();
 
         let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 2).unwrap();
-        remove_fee_tier!(client, ContractRef, dex, fee_tier, admin).unwrap();
+        let result = remove_fee_tier!(client, ContractRef, dex, fee_tier, admin);
+        assert_eq!(result, Err(InvariantError::FeeTierNotFound));
     }
 
     #[ink_e2e::test]
-    #[should_panic]
+
     async fn remove_fee_tier_not_admin(mut client: ink_e2e::Client<C, E>) -> () {
         let admin = ink_e2e::alice();
         let user = ink_e2e::bob();
@@ -60,6 +62,7 @@ pub mod e2e_tests {
         let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 2).unwrap();
         add_fee_tier!(client, ContractRef, dex, fee_tier, admin).unwrap();
 
-        remove_fee_tier!(client, ContractRef, dex, fee_tier, user).unwrap();
+        let result = remove_fee_tier!(client, ContractRef, dex, fee_tier, user);
+        assert_eq!(result, Err(InvariantError::NotAdmin));
     }
 }

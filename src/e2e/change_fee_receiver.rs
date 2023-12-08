@@ -1,5 +1,6 @@
 #[cfg(test)]
 pub mod e2e_tests {
+    use crate::InvariantError;
     use crate::{
         contract::ContractRef,
         contracts::{entrypoints::Invariant, FeeTier, PoolKey},
@@ -50,7 +51,6 @@ pub mod e2e_tests {
     }
 
     #[ink_e2e::test]
-    #[should_panic]
     async fn not_admin_change_fee_reciever_test(mut client: ink_e2e::Client<C, E>) -> () {
         let dex = create_dex!(client, ContractRef, Percentage::new(0));
         let (token_x, token_y) = create_tokens!(client, TokenRef, 500, 500);
@@ -77,6 +77,7 @@ pub mod e2e_tests {
         let user = ink_e2e::bob();
         let bob = address_of!(Bob);
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
-        change_fee_receiver!(client, ContractRef, dex, pool_key, bob, user).unwrap();
+        let result = change_fee_receiver!(client, ContractRef, dex, pool_key, bob, user);
+        assert_eq!(result, Err(InvariantError::NotAdmin));
     }
 }

@@ -1,5 +1,6 @@
 #[cfg(test)]
 pub mod e2e_tests {
+    use crate::InvariantError;
     use crate::{
         contract::ContractRef,
         contracts::{entrypoints::Invariant, FeeTier, PoolKey},
@@ -59,9 +60,9 @@ pub mod e2e_tests {
     }
 
     #[ink_e2e::test]
-    #[should_panic]
-    async fn protocol_fee_should_panic(mut client: ink_e2e::Client<C, E>) -> () {
+    async fn protocol_fee_not_admin(mut client: ink_e2e::Client<C, E>) -> () {
         let (dex, token_x, token_y) = init_dex_and_tokens!(client, ContractRef, TokenRef);
+        init_basic_pool!(client, ContractRef, TokenRef, dex, token_x, token_y);
         init_basic_position!(client, ContractRef, TokenRef, dex, token_x, token_y);
         init_basic_swap!(client, ContractRef, TokenRef, dex, token_x, token_y);
 
@@ -75,6 +76,7 @@ pub mod e2e_tests {
         )
         .unwrap();
         let bob = ink_e2e::bob();
-        withdraw_protocol_fee!(client, ContractRef, dex, pool_key, bob).unwrap();
+        let result = withdraw_protocol_fee!(client, ContractRef, dex, pool_key, bob);
+        assert_eq!(result, Err(InvariantError::NotFeeReceiver));
     }
 }
