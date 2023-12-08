@@ -5,9 +5,7 @@ pub mod e2e_tests {
         contracts::{entrypoints::Invariant, FeeTier, PoolKey},
         math::{
             types::{
-                liquidity::Liquidity,
-                percentage::Percentage,
-                sqrt_price::{calculate_sqrt_price, SqrtPrice},
+                liquidity::Liquidity, percentage::Percentage, sqrt_price::SqrtPrice,
                 token_amount::TokenAmount,
             },
             MAX_SQRT_PRICE, MIN_SQRT_PRICE,
@@ -86,7 +84,23 @@ pub mod e2e_tests {
         let swap_amount = TokenAmount::new(amount);
         approve!(client, TokenRef, token_x, dex, amount, alice).unwrap();
 
-        let target_sqrt_price = calculate_sqrt_price(-98).unwrap();
+        // let target_sqrt_price = calculate_sqrt_price(-98).unwrap();
+        let target_sqrt_price = SqrtPrice::new(MAX_SQRT_PRICE);
+        let quoted_target_sqrt_price = quote!(
+            client,
+            ContractRef,
+            dex,
+            pool_key,
+            false,
+            swap_amount,
+            true,
+            target_sqrt_price
+        )
+        .unwrap()
+        .target_sqrt_price;
+
+        let target_sqrt_price = quoted_target_sqrt_price - SqrtPrice::new(1);
+
         let result = swap!(
             client,
             ContractRef,
@@ -98,7 +112,7 @@ pub mod e2e_tests {
             target_sqrt_price,
             alice
         );
-        assert_eq!(result, Err(InvariantError::WrongLimit));
+        assert_eq!(result, Err(InvariantError::PriceLimitReached));
         Ok(())
     }
 
