@@ -845,6 +845,14 @@ pub mod contract {
         fn add_fee_tier(&mut self, fee_tier: FeeTier) -> Result<(), InvariantError> {
             let caller = self.env().caller();
 
+            if fee_tier.tick_spacing == 0 || fee_tier.tick_spacing > 100 {
+                return Err(InvariantError::InvalidTickSpacing);
+            }
+
+            if fee_tier.fee >= Percentage::from_integer(1) {
+                return Err(InvariantError::InvalidFee);
+            }
+
             if caller != self.state.admin {
                 return Err(InvariantError::NotAdmin);
             }
