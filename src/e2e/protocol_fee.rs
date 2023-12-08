@@ -60,7 +60,7 @@ pub mod e2e_tests {
     }
 
     #[ink_e2e::test]
-    async fn test_protocol_fee_not_admin(mut client: ink_e2e::Client<C, E>) -> () {
+    async fn test_protocol_fee_not_admin(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let (dex, token_x, token_y) = init_dex_and_tokens!(client, ContractRef, TokenRef);
         init_basic_pool!(client, ContractRef, TokenRef, dex, token_x, token_y);
         init_basic_position!(client, ContractRef, TokenRef, dex, token_x, token_y);
@@ -78,5 +78,6 @@ pub mod e2e_tests {
         let bob = ink_e2e::bob();
         let result = withdraw_protocol_fee!(client, ContractRef, dex, pool_key, bob);
         assert_eq!(result, Err(InvariantError::NotFeeReceiver));
+        Ok(())
     }
 }

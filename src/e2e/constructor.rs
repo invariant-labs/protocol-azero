@@ -8,7 +8,7 @@ pub mod e2e_tests {
     type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
     #[ink_e2e::test]
-    async fn constructor_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+    async fn test_constructor(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let constructor = TokenRef::new(500, None, None, 0);
         let _token: AccountId = client
             .instantiate("token", &ink_e2e::alice(), constructor, 0, None)

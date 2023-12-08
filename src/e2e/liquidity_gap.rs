@@ -13,6 +13,7 @@ pub mod e2e_tests {
             },
             MIN_SQRT_PRICE,
         },
+        InvariantError,
     };
     use decimal::*;
     use ink_e2e::build_message;
@@ -25,7 +26,7 @@ pub mod e2e_tests {
     type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
     #[ink_e2e::test]
-    async fn liquidity_gap_test(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+    async fn test_liquidity_gap(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
         let alice = ink_e2e::alice();
         let bob = ink_e2e::bob();
@@ -241,8 +242,7 @@ pub mod e2e_tests {
     }
 
     #[ink_e2e::test]
-    #[should_panic]
-    async fn no_liquidity_swap(mut client: ink_e2e::Client<C, E>) -> () {
+    async fn test_no_liquidity_swap(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
         let alice = ink_e2e::alice();
         let bob = ink_e2e::bob();
@@ -391,7 +391,8 @@ pub mod e2e_tests {
 
         let swap_amount = TokenAmount(1);
         let target_sqrt_price = SqrtPrice::new(MIN_SQRT_PRICE);
-        let quoted_target_sqrt_price = quote!(
+
+        let result = swap!(
             client,
             ContractRef,
             dex,
@@ -399,21 +400,11 @@ pub mod e2e_tests {
             true,
             swap_amount,
             true,
-            target_sqrt_price
-        )
-        .unwrap()
-        .target_sqrt_price;
-        swap!(
-            client,
-            ContractRef,
-            dex,
-            pool_key,
-            true,
-            swap_amount,
-            true,
-            quoted_target_sqrt_price,
+            target_sqrt_price,
             bob
-        )
-        .unwrap();
+        );
+        assert_eq!(result, Err(InvariantError::NoGainSwap));
+
+        Ok(())
     }
 }

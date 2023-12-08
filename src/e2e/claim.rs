@@ -23,7 +23,7 @@ pub mod e2e_tests {
     type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
     #[ink_e2e::test]
-    async fn claim(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+    async fn test_claim(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let (dex, token_x, token_y) = init_dex_and_tokens!(client, ContractRef, TokenRef);
         init_basic_pool!(client, ContractRef, TokenRef, dex, token_x, token_y);
         init_basic_position!(client, ContractRef, TokenRef, dex, token_x, token_y);

@@ -7,6 +7,7 @@ pub mod e2e_tests {
             fee_growth::FeeGrowth, liquidity::Liquidity, percentage::Percentage,
             sqrt_price::SqrtPrice,
         },
+        InvariantError,
     };
     use decimal::*;
     use ink_e2e::build_message;
@@ -20,8 +21,9 @@ pub mod e2e_tests {
     type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
     #[ink_e2e::test]
-    #[should_panic]
-    async fn remove_position_from_empty_list(mut client: ink_e2e::Client<C, E>) -> () {
+    async fn test_remove_position_from_empty_list(
+        mut client: ink_e2e::Client<C, E>,
+    ) -> E2EResult<()> {
         let dex = create_dex!(client, ContractRef, Percentage::from_scale(6, 3));
         let initial_amount = 10u128.pow(10);
         let (token_x, token_y) = create_tokens!(client, TokenRef, initial_amount, initial_amount);
@@ -46,11 +48,13 @@ pub mod e2e_tests {
         )
         .unwrap();
 
-        remove_position!(client, ContractRef, dex, 0, alice).unwrap();
+        let result = remove_position!(client, ContractRef, dex, 0, alice);
+        assert_eq!(result, Err(InvariantError::PositionNotFound));
+        Ok(())
     }
 
     #[ink_e2e::test]
-    async fn add_multiple_positions(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+    async fn test_add_multiple_positions(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let alice = ink_e2e::alice();
         let init_tick = -23028;
 
@@ -250,8 +254,9 @@ pub mod e2e_tests {
     }
 
     #[ink_e2e::test]
-    #[should_panic]
-    async fn test_only_owner_can_modify_position_list(mut client: ink_e2e::Client<C, E>) -> () {
+    async fn test_only_owner_can_modify_position_list(
+        mut client: ink_e2e::Client<C, E>,
+    ) -> E2EResult<()> {
         let alice = ink_e2e::alice();
         let init_tick = -23028;
 
@@ -403,15 +408,16 @@ pub mod e2e_tests {
                 get_all_positions!(client, ContractRef, dex, alice).len() - 1;
 
             let unauthorized_user = ink_e2e::bob();
-            remove_position!(
+            let result = remove_position!(
                 client,
                 ContractRef,
                 dex,
                 last_position_index_before as u32,
                 unauthorized_user
-            )
-            .unwrap();
+            );
+            assert_eq!(result, Err(InvariantError::PositionNotFound));
         }
+        Ok(())
     }
 
     #[ink_e2e::test]
@@ -670,8 +676,9 @@ pub mod e2e_tests {
     }
 
     #[ink_e2e::test]
-    #[should_panic]
-    async fn test_only_owner_can_transfer_position(mut client: ink_e2e::Client<C, E>) -> () {
+    async fn test_only_owner_can_transfer_position(
+        mut client: ink_e2e::Client<C, E>,
+    ) -> E2EResult<()> {
         let alice = ink_e2e::alice();
         let init_tick = -23028;
 
@@ -769,20 +776,23 @@ pub mod e2e_tests {
         {
             let transferred_index = 0;
 
-            transfer_position!(
+            let result = transfer_position!(
                 client,
                 ContractRef,
                 dex,
                 transferred_index,
                 address_of!(Alice),
                 bob
-            )
-            .unwrap();
+            );
+            assert_eq!(result, Err(InvariantError::PositionNotFound));
         }
+        Ok(())
     }
 
     #[ink_e2e::test]
-    async fn multiple_positions_on_same_tick(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+    async fn test_multiple_positions_on_same_tick(
+        mut client: ink_e2e::Client<C, E>,
+    ) -> E2EResult<()> {
         let alice = ink_e2e::alice();
         let init_tick = 0;
 
