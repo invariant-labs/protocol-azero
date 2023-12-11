@@ -253,7 +253,6 @@ pub mod e2e_tests {
         // between  -> 1.000225003749000000000000
         // tick = 6 -> 1.000300030001000000000000
         let init_sqrt_price = SqrtPrice::new(1000225003749000000000000);
-        println!("init_sqrt_price: {}", init_sqrt_price);
         add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
 
         let result = create_pool!(
