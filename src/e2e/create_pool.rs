@@ -204,6 +204,12 @@ pub mod e2e_tests {
         )
         .unwrap();
 
+        let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+        assert_eq!(
+            pool.current_tick_index,
+            init_tick - fee_tier.tick_spacing as i32
+        );
+
         Ok(())
     }
 
@@ -235,6 +241,25 @@ pub mod e2e_tests {
             alice
         );
         assert_eq!(result, Err(InvariantError::InvalidInitSqrtPrice));
+        let correct_init_tick = 4;
+        create_pool!(
+            client,
+            ContractRef,
+            dex,
+            token_x,
+            token_y,
+            fee_tier,
+            init_sqrt_price,
+            correct_init_tick,
+            alice
+        )
+        .unwrap();
+
+        let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+        assert_eq!(
+            pool.current_tick_index,
+            correct_init_tick - fee_tier.tick_spacing as i32
+        );
 
         Ok(())
     }
@@ -267,6 +292,26 @@ pub mod e2e_tests {
             alice
         );
         assert_eq!(result, Err(InvariantError::InvalidInitSqrtPrice));
+
+        let correct_init_tick = 6;
+        create_pool!(
+            client,
+            ContractRef,
+            dex,
+            token_x,
+            token_y,
+            fee_tier,
+            init_sqrt_price,
+            correct_init_tick,
+            alice
+        )
+        .unwrap();
+
+        let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+        assert_eq!(
+            pool.current_tick_index,
+            correct_init_tick - fee_tier.tick_spacing as i32
+        );
 
         Ok(())
     }

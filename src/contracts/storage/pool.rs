@@ -58,7 +58,7 @@ impl Default for Pool {
 impl Pool {
     pub fn create(
         init_sqrt_price: SqrtPrice,
-        init_tick: i32,
+        mut init_tick: i32,
         current_timestamp: u64,
         tick_spacing: u16,
         fee_receiver: AccountId,
@@ -66,9 +66,13 @@ impl Pool {
         let upper_bound = unwrap!(SqrtPrice::from_tick(init_tick));
         let lower_bound = unwrap!(SqrtPrice::from_tick(init_tick - tick_spacing as i32));
 
-        if init_sqrt_price > upper_bound || init_sqrt_price <= lower_bound {
+        if init_sqrt_price > upper_bound || init_sqrt_price < lower_bound {
             return Err(InvariantError::InvalidInitSqrtPrice);
         }
+        if init_sqrt_price < upper_bound && init_sqrt_price >= lower_bound {
+            init_tick -= tick_spacing as i32;
+        }
+
         Ok(Self {
             sqrt_price: init_sqrt_price,
             current_tick_index: init_tick,
@@ -231,6 +235,73 @@ mod tests {
         assert_eq!(pool.start_timestamp, current_timestamp);
         assert_eq!(pool.last_timestamp, current_timestamp);
         assert_eq!(pool.fee_receiver, fee_receiver);
+
+        {
+            let init_tick = 0;
+            let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap() - SqrtPrice::new(1);
+            let tick_spacing = 3;
+            let pool = Pool::create(
+                init_sqrt_price,
+                init_tick,
+                current_timestamp,
+                tick_spacing,
+                fee_receiver,
+            )
+            .unwrap();
+            assert_eq!(pool.current_tick_index, -3);
+        }
+        {
+            let init_tick = 2;
+            let init_sqrt_price = SqrtPrice::new(1000175003749000000000000);
+            let tick_spacing = 1;
+            let pool = Pool::create(
+                init_sqrt_price,
+                init_tick,
+                current_timestamp,
+                tick_spacing,
+                fee_receiver,
+            );
+            assert_eq!(pool, Err(InvariantError::InvalidInitSqrtPrice));
+            let correct_init_tick = 4;
+            let pool = Pool::create(
+                init_sqrt_price,
+                correct_init_tick,
+                current_timestamp,
+                tick_spacing,
+                fee_receiver,
+            )
+            .unwrap();
+            assert_eq!(
+                pool.current_tick_index,
+                correct_init_tick - tick_spacing as i32
+            );
+        }
+        {
+            let init_tick = 3;
+            let init_sqrt_price = SqrtPrice::new(1000225003749000000000000);
+            let tick_spacing = 3;
+            let pool = Pool::create(
+                init_sqrt_price,
+                init_tick,
+                current_timestamp,
+                tick_spacing,
+                fee_receiver,
+            );
+            assert_eq!(pool, Err(InvariantError::InvalidInitSqrtPrice));
+            let correct_init_tick = 6;
+            let pool = Pool::create(
+                init_sqrt_price,
+                correct_init_tick,
+                current_timestamp,
+                tick_spacing,
+                fee_receiver,
+            )
+            .unwrap();
+            assert_eq!(
+                pool.current_tick_index,
+                correct_init_tick - tick_spacing as i32
+            );
+        }
     }
 
     #[test]
