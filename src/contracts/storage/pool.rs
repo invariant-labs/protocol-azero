@@ -9,6 +9,7 @@ use crate::{
             sqrt_price::SqrtPrice, token_amount::TokenAmount,
         },
     },
+    InvariantError,
 };
 
 use decimal::*;
@@ -59,16 +60,23 @@ impl Pool {
         init_sqrt_price: SqrtPrice,
         init_tick: i32,
         current_timestamp: u64,
+        tick_spacing: u16,
         fee_receiver: AccountId,
-    ) -> Self {
-        Self {
+    ) -> Result<Self, InvariantError> {
+        let upper_bound = unwrap!(SqrtPrice::from_tick(init_tick));
+        let lower_bound = unwrap!(SqrtPrice::from_tick(init_tick - tick_spacing as i32));
+
+        if init_sqrt_price > upper_bound || init_sqrt_price <= lower_bound {
+            return Err(InvariantError::InvalidInitSqrtPrice);
+        }
+        Ok(Self {
             sqrt_price: init_sqrt_price,
             current_tick_index: init_tick,
             start_timestamp: current_timestamp,
             last_timestamp: current_timestamp,
             fee_receiver,
             ..Self::default()
-        }
+        })
     }
 
     pub fn add_fee(
@@ -209,7 +217,14 @@ mod tests {
         let fee_receiver = AccountId::from([1; 32]);
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
 
-        let pool = Pool::create(init_sqrt_price, init_tick, current_timestamp, fee_receiver);
+        let pool = Pool::create(
+            init_sqrt_price,
+            init_tick,
+            current_timestamp,
+            1,
+            fee_receiver,
+        )
+        .unwrap();
 
         assert_eq!(pool.sqrt_price, calculate_sqrt_price(init_tick).unwrap());
         assert_eq!(pool.current_tick_index, init_tick);

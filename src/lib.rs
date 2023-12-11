@@ -901,15 +901,6 @@ pub mod contract {
             check_tick(init_tick, fee_tier.tick_spacing)
                 .map_err(|_| InvariantError::InvalidInitTick)?;
 
-            let upper_bound = unwrap!(SqrtPrice::from_tick(init_tick));
-            let lower_bound = unwrap!(SqrtPrice::from_tick(
-                init_tick - fee_tier.tick_spacing as i32
-            ));
-
-            if init_sqrt_price > upper_bound || init_sqrt_price <= lower_bound {
-                return Err(InvariantError::InvalidInitSqrtPrice);
-            }
-
             let pool_key = PoolKey::new(token_0, token_1, fee_tier)?;
             if self.pools.get(pool_key).is_ok() {
                 return Err(InvariantError::PoolAlreadyExist);
@@ -918,8 +909,9 @@ pub mod contract {
                 init_sqrt_price,
                 init_tick,
                 current_timestamp,
+                fee_tier.tick_spacing,
                 self.state.admin,
-            );
+            )?;
             self.pools.add(pool_key, &pool)?;
             self.pool_keys.add(pool_key)?;
 
