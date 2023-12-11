@@ -289,6 +289,9 @@ pub trait Invariant {
     /// - Fails if the specified fee tier cannot be found.
     /// - Fails if the user attempts to create a pool for the same tokens.
     /// - Fails if Pool with same tokens and fee tier already exist.
+    /// - Fails if the init tick is not divisible by the tick spacing.
+    /// - Fails if the init sqrt price is not related to the init tick.
+    ///
     #[ink(message)]
     fn create_pool(
         &mut self,
