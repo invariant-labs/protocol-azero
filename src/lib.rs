@@ -914,7 +914,12 @@ pub mod contract {
             if self.pools.get(pool_key).is_ok() {
                 return Err(InvariantError::PoolAlreadyExist);
             };
-            let pool = Pool::create(init_tick, current_timestamp, self.state.admin);
+            let pool = Pool::create(
+                init_sqrt_price,
+                init_tick,
+                current_timestamp,
+                self.state.admin,
+            );
             self.pools.add(pool_key, &pool)?;
             self.pool_keys.add(pool_key)?;
 

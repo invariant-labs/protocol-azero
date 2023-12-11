@@ -5,11 +5,8 @@ use crate::{
         clamm::*,
         log::get_tick_at_sqrt_price,
         types::{
-            fee_growth::FeeGrowth,
-            liquidity::Liquidity,
-            percentage::Percentage,
-            sqrt_price::{calculate_sqrt_price, SqrtPrice},
-            token_amount::TokenAmount,
+            fee_growth::FeeGrowth, liquidity::Liquidity, percentage::Percentage,
+            sqrt_price::SqrtPrice, token_amount::TokenAmount,
         },
     },
 };
@@ -58,9 +55,14 @@ impl Default for Pool {
 }
 
 impl Pool {
-    pub fn create(init_tick: i32, current_timestamp: u64, fee_receiver: AccountId) -> Self {
+    pub fn create(
+        init_sqrt_price: SqrtPrice,
+        init_tick: i32,
+        current_timestamp: u64,
+        fee_receiver: AccountId,
+    ) -> Self {
         Self {
-            sqrt_price: unwrap!(calculate_sqrt_price(init_tick)),
+            sqrt_price: init_sqrt_price,
             current_tick_index: init_tick,
             start_timestamp: current_timestamp,
             last_timestamp: current_timestamp,
@@ -195,6 +197,7 @@ impl Pool {
 
 #[cfg(test)]
 mod tests {
+    use crate::math::types::sqrt_price::calculate_sqrt_price;
     use decimal::Factories;
 
     use super::*;
@@ -204,8 +207,9 @@ mod tests {
         let init_tick = 100;
         let current_timestamp = 100;
         let fee_receiver = AccountId::from([1; 32]);
+        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
 
-        let pool = Pool::create(init_tick, current_timestamp, fee_receiver);
+        let pool = Pool::create(init_sqrt_price, init_tick, current_timestamp, fee_receiver);
 
         assert_eq!(pool.sqrt_price, calculate_sqrt_price(init_tick).unwrap());
         assert_eq!(pool.current_tick_index, init_tick);
