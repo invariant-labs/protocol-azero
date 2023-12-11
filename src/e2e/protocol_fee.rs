@@ -6,8 +6,11 @@ pub mod e2e_tests {
         contracts::{entrypoints::Invariant, FeeTier, PoolKey},
         math::{
             types::{
-                fee_growth::FeeGrowth, liquidity::Liquidity, percentage::Percentage,
-                sqrt_price::SqrtPrice, token_amount::TokenAmount,
+                fee_growth::FeeGrowth,
+                liquidity::Liquidity,
+                percentage::Percentage,
+                sqrt_price::{calculate_sqrt_price, SqrtPrice},
+                token_amount::TokenAmount,
             },
             MIN_SQRT_PRICE,
         },

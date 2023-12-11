@@ -282,6 +282,7 @@ pub trait Invariant {
     /// - `token_0`: The address of the first token.
     /// - `token_1`: The address of the second token.
     /// - `fee_tier`: A struct identifying the pool fee and tick spacing.
+    /// - `init_sqrt_price`: The square root of the price for the initial pool related to `init_tick`.
     /// - `init_tick`: The initial tick at which the pool will be created.
     ///
     /// # Errors
@@ -294,6 +295,7 @@ pub trait Invariant {
         token_0: AccountId,
         token_1: AccountId,
         fee_tier: FeeTier,
+        init_sqrt_price: SqrtPrice,
         init_tick: i32,
     ) -> Result<(), InvariantError>;
 

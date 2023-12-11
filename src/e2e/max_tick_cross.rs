@@ -6,7 +6,9 @@ pub mod e2e_tests {
         math::{
             log::get_tick_at_sqrt_price,
             types::{
-                liquidity::Liquidity, percentage::Percentage, sqrt_price::SqrtPrice,
+                liquidity::Liquidity,
+                percentage::Percentage,
+                sqrt_price::{calculate_sqrt_price, SqrtPrice},
                 token_amount::TokenAmount,
             },
             MIN_SQRT_PRICE,

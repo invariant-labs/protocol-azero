@@ -4,8 +4,10 @@ pub mod e2e_tests {
         contract::ContractRef,
         contracts::{entrypoints::Invariant, FeeTier, PoolKey},
         math::types::{
-            fee_growth::FeeGrowth, liquidity::Liquidity, percentage::Percentage,
-            sqrt_price::SqrtPrice,
+            fee_growth::FeeGrowth,
+            liquidity::Liquidity,
+            percentage::Percentage,
+            sqrt_price::{calculate_sqrt_price, SqrtPrice},
         },
         InvariantError,
     };
@@ -35,7 +37,7 @@ pub mod e2e_tests {
         add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
 
         let init_tick = -23028;
-
+        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
         create_pool!(
             client,
             ContractRef,
@@ -43,6 +45,7 @@ pub mod e2e_tests {
             token_x,
             token_y,
             fee_tier,
+            init_sqrt_price,
             init_tick,
             alice
         )
@@ -57,7 +60,7 @@ pub mod e2e_tests {
     async fn test_add_multiple_positions(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let alice = ink_e2e::alice();
         let init_tick = -23028;
-
+        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
         let dex = create_dex!(client, ContractRef, Percentage::new(0));
         let initial_balance = 10u128.pow(10);
 
@@ -74,6 +77,7 @@ pub mod e2e_tests {
             token_x,
             token_y,
             fee_tier,
+            init_sqrt_price,
             init_tick,
             alice
         )
@@ -259,6 +263,7 @@ pub mod e2e_tests {
     ) -> E2EResult<()> {
         let alice = ink_e2e::alice();
         let init_tick = -23028;
+        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
 
         let dex = create_dex!(client, ContractRef, Percentage::new(0));
         let initial_balance = 10u128.pow(10);
@@ -276,6 +281,7 @@ pub mod e2e_tests {
             token_x,
             token_y,
             fee_tier,
+            init_sqrt_price,
             init_tick,
             alice
         )
@@ -424,6 +430,7 @@ pub mod e2e_tests {
     async fn test_transfer_position_ownership(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let alice = ink_e2e::alice();
         let init_tick = -23028;
+        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
 
         let dex = create_dex!(client, ContractRef, Percentage::new(0));
         let initial_balance = 10u128.pow(10);
@@ -441,6 +448,7 @@ pub mod e2e_tests {
             token_x,
             token_y,
             fee_tier,
+            init_sqrt_price,
             init_tick,
             alice
         )
@@ -681,6 +689,7 @@ pub mod e2e_tests {
     ) -> E2EResult<()> {
         let alice = ink_e2e::alice();
         let init_tick = -23028;
+        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
 
         let dex = create_dex!(client, ContractRef, Percentage::new(0));
         let initial_balance = 10u128.pow(10);
@@ -698,6 +707,7 @@ pub mod e2e_tests {
             token_x,
             token_y,
             fee_tier,
+            init_sqrt_price,
             init_tick,
             alice
         )
@@ -795,7 +805,7 @@ pub mod e2e_tests {
     ) -> E2EResult<()> {
         let alice = ink_e2e::alice();
         let init_tick = 0;
-
+        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
         let dex = create_dex!(client, ContractRef, Percentage::new(0));
         let initial_balance = 100_000_000;
 
@@ -812,6 +822,7 @@ pub mod e2e_tests {
             token_x,
             token_y,
             fee_tier,
+            init_sqrt_price,
             init_tick,
             alice
         )

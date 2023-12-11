@@ -33,6 +33,7 @@ pub enum InvariantError {
     InvalidFee,
     NotEmptyTickDeinitialization,
     InvalidInitTick,
+    InvalidInitSqrtPrice,
 }
 #[ink::contract]
 pub mod contract {
@@ -888,6 +889,7 @@ pub mod contract {
             token_0: AccountId,
             token_1: AccountId,
             fee_tier: FeeTier,
+            init_sqrt_price: SqrtPrice,
             init_tick: i32,
         ) -> Result<(), InvariantError> {
             let current_timestamp = self.env().block_timestamp();
@@ -898,6 +900,15 @@ pub mod contract {
 
             check_tick(init_tick, fee_tier.tick_spacing)
                 .map_err(|_| InvariantError::InvalidInitTick)?;
+
+            let upper_bound = unwrap!(SqrtPrice::from_tick(init_tick));
+            let lower_bound = unwrap!(SqrtPrice::from_tick(
+                init_tick - fee_tier.tick_spacing as i32
+            ));
+
+            if init_sqrt_price > upper_bound || init_sqrt_price <= lower_bound {
+                return Err(InvariantError::InvalidInitSqrtPrice);
+            }
 
             let pool_key = PoolKey::new(token_0, token_1, fee_tier)?;
             if self.pools.get(pool_key).is_ok() {
@@ -951,6 +962,7 @@ pub mod contract {
 
         use crate::math::consts::MAX_TICK;
         use crate::math::percentage::Percentage;
+        use crate::math::sqrt_price::calculate_sqrt_price;
 
         #[ink::test]
         fn initialize_works() {
@@ -967,6 +979,8 @@ pub mod contract {
                 tick_spacing: 1,
             };
 
+            let init_sqrt_price = calculate_sqrt_price(0).unwrap();
+
             contract.add_fee_tier(fee_tier).unwrap();
 
             let result = contract.create_pool(
@@ -976,6 +990,7 @@ pub mod contract {
                     fee: Percentage::new(1),
                     tick_spacing: 1,
                 },
+                init_sqrt_price,
                 0,
             );
             assert!(result.is_ok());
@@ -986,6 +1001,7 @@ pub mod contract {
                     fee: Percentage::new(1),
                     tick_spacing: 1,
                 },
+                init_sqrt_price,
                 0,
             );
             assert_eq!(result, Err(InvariantError::PoolAlreadyExist));
@@ -996,6 +1012,7 @@ pub mod contract {
             let mut contract = Contract::new(Percentage::new(0));
             let token_0 = AccountId::from([0x01; 32]);
             let token_1 = AccountId::from([0x02; 32]);
+            let init_sqrt_price = calculate_sqrt_price(0).unwrap();
             let result = contract.get_pool(
                 token_1,
                 token_0,
@@ -1013,7 +1030,7 @@ pub mod contract {
 
             contract.add_fee_tier(fee_tier).unwrap();
 
-            let result = contract.create_pool(token_0, token_1, fee_tier, 0);
+            let result = contract.create_pool(token_0, token_1, fee_tier, init_sqrt_price, 0);
             assert!(result.is_ok());
             let result = contract.get_pool(
                 token_1,
@@ -1029,6 +1046,7 @@ pub mod contract {
         #[ink::test]
         fn create_tick() {
             let mut contract = Contract::new(Percentage::new(0));
+            let init_sqrt_price = calculate_sqrt_price(0).unwrap();
             let token_0 = AccountId::from([0x01; 32]);
             let token_1 = AccountId::from([0x02; 32]);
             let fee_tier = FeeTier {
@@ -1044,7 +1062,13 @@ pub mod contract {
             assert_eq!(result, Err(InvariantError::PoolNotFound));
 
             contract.add_fee_tier(fee_tier).unwrap();
-            let _ = contract.create_pool(pool_key.token_x, pool_key.token_y, pool_key.fee_tier, 0);
+            let _ = contract.create_pool(
+                pool_key.token_x,
+                pool_key.token_y,
+                pool_key.fee_tier,
+                init_sqrt_price,
+                0,
+            );
             let result = contract.create_tick(pool_key, 0);
             assert!(result.is_ok());
         }
