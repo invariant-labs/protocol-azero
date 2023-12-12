@@ -10,6 +10,7 @@ pub mod e2e_tests {
             },
             MIN_SQRT_PRICE,
         },
+        InvariantError,
     };
     use decimal::*;
     use ink_e2e::build_message;
@@ -52,6 +53,21 @@ pub mod e2e_tests {
         );
         assert_eq!(position.fee_growth_inside_x, pool.fee_growth_global_x);
         assert_eq!(position.tokens_owed_x, TokenAmount(0));
+
+        Ok(())
+    }
+
+    #[ink_e2e::test]
+    async fn test_claim_not_owner(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        let (dex, token_x, token_y) = init_dex_and_tokens!(client, ContractRef, TokenRef);
+        init_basic_pool!(client, ContractRef, TokenRef, dex, token_x, token_y);
+        init_basic_position!(client, ContractRef, TokenRef, dex, token_x, token_y);
+        init_basic_swap!(client, ContractRef, TokenRef, dex, token_x, token_y);
+
+        let user = ink_e2e::bob();
+        let result = claim_fee!(client, ContractRef, dex, 0, user);
+
+        assert_eq!(result, Err(InvariantError::PositionNotFound));
 
         Ok(())
     }
