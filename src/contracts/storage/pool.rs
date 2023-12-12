@@ -67,7 +67,8 @@ impl Pool {
     ) -> Result<Self, InvariantError> {
         if init_tick + tick_spacing as i32 > MAX_TICK {
             let max_tick = get_max_tick(tick_spacing);
-            if init_sqrt_price > unwrap!(SqrtPrice::from_tick(max_tick)) {
+            let max_sqrt_price = unwrap!(SqrtPrice::from_tick(max_tick));
+            if init_sqrt_price != max_sqrt_price {
                 return Err(InvariantError::InvalidInitSqrtPrice);
             }
         } else {
@@ -301,6 +302,59 @@ mod tests {
             )
             .unwrap();
             assert_eq!(pool.current_tick_index, correct_init_tick);
+        }
+        {
+            let init_tick = MAX_TICK;
+            let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
+            let tick_spacing = 1;
+            Pool::create(
+                init_sqrt_price,
+                init_tick,
+                current_timestamp,
+                tick_spacing,
+                fee_receiver,
+            )
+            .unwrap();
+        }
+        {
+            let init_tick = MAX_TICK;
+            let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap() - SqrtPrice::new(1);
+            let tick_spacing = 1;
+            Pool::create(
+                init_sqrt_price,
+                init_tick,
+                current_timestamp,
+                tick_spacing,
+                fee_receiver,
+            )
+            .unwrap_err();
+        }
+        {
+            let init_tick = MAX_TICK;
+            let init_sqrt_price = SqrtPrice::from_integer(1);
+            let tick_spacing = 1;
+            Pool::create(
+                init_sqrt_price,
+                init_tick,
+                current_timestamp,
+                tick_spacing,
+                fee_receiver,
+            )
+            .unwrap_err();
+        }
+        {
+            let init_tick = MAX_TICK - 1;
+            let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
+            let tick_spacing = 1;
+            let pool = Pool::create(
+                init_sqrt_price,
+                init_tick,
+                current_timestamp,
+                tick_spacing,
+                fee_receiver,
+            )
+            .unwrap();
+            assert_eq!(pool.current_tick_index, init_tick);
         }
     }
 
