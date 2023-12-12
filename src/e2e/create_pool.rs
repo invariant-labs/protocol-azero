@@ -188,7 +188,7 @@ pub mod e2e_tests {
 
         let fee_tier = FeeTier::new(Percentage::from_scale(5, 1), 3).unwrap();
         let init_tick = 0;
-        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap() - SqrtPrice::new(1);
+        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap() + SqrtPrice::new(1);
         add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
 
         create_pool!(
@@ -205,10 +205,7 @@ pub mod e2e_tests {
         .unwrap();
 
         let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
-        assert_eq!(
-            pool.current_tick_index,
-            init_tick - fee_tier.tick_spacing as i32
-        );
+        assert_eq!(pool.current_tick_index, init_tick);
 
         Ok(())
     }
@@ -241,7 +238,7 @@ pub mod e2e_tests {
             alice
         );
         assert_eq!(result, Err(InvariantError::InvalidInitSqrtPrice));
-        let correct_init_tick = 4;
+        let correct_init_tick = 3;
         create_pool!(
             client,
             ContractRef,
@@ -256,10 +253,7 @@ pub mod e2e_tests {
         .unwrap();
 
         let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
-        assert_eq!(
-            pool.current_tick_index,
-            correct_init_tick - fee_tier.tick_spacing as i32
-        );
+        assert_eq!(pool.current_tick_index, correct_init_tick);
 
         Ok(())
     }
@@ -273,7 +267,7 @@ pub mod e2e_tests {
         let alice = ink_e2e::alice();
 
         let fee_tier = FeeTier::new(Percentage::from_scale(5, 1), 3).unwrap();
-        let init_tick = 3;
+        let init_tick = 0;
         // tick = 3 -> 1.000150003749000000000000
         // between  -> 1.000225003749000000000000
         // tick = 6 -> 1.000300030001000000000000
@@ -293,7 +287,7 @@ pub mod e2e_tests {
         );
         assert_eq!(result, Err(InvariantError::InvalidInitSqrtPrice));
 
-        let correct_init_tick = 6;
+        let correct_init_tick = 3;
         create_pool!(
             client,
             ContractRef,
@@ -308,10 +302,7 @@ pub mod e2e_tests {
         .unwrap();
 
         let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
-        assert_eq!(
-            pool.current_tick_index,
-            correct_init_tick - fee_tier.tick_spacing as i32
-        );
+        assert_eq!(pool.current_tick_index, correct_init_tick);
 
         Ok(())
     }
