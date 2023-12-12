@@ -4,10 +4,12 @@ use crate::{
     math::{
         clamm::*,
         log::get_tick_at_sqrt_price,
+        sqrt_price::get_max_tick,
         types::{
             fee_growth::FeeGrowth, liquidity::Liquidity, percentage::Percentage,
             sqrt_price::SqrtPrice, token_amount::TokenAmount,
         },
+        MAX_TICK,
     },
     InvariantError,
 };
@@ -63,16 +65,19 @@ impl Pool {
         tick_spacing: u16,
         fee_receiver: AccountId,
     ) -> Result<Self, InvariantError> {
-        let lower_bound = unwrap!(SqrtPrice::from_tick(init_tick));
-        let upper_bound = unwrap!(SqrtPrice::from_tick(init_tick + tick_spacing as i32));
+        if init_tick + tick_spacing as i32 > MAX_TICK {
+            let max_tick = get_max_tick(tick_spacing);
+            if init_sqrt_price > unwrap!(SqrtPrice::from_tick(max_tick)) {
+                return Err(InvariantError::InvalidInitSqrtPrice);
+            }
+        } else {
+            let lower_bound = unwrap!(SqrtPrice::from_tick(init_tick));
+            let upper_bound = unwrap!(SqrtPrice::from_tick(init_tick + tick_spacing as i32));
 
-        if init_sqrt_price > upper_bound || init_sqrt_price < lower_bound {
-            return Err(InvariantError::InvalidInitSqrtPrice);
+            if init_sqrt_price >= upper_bound || init_sqrt_price < lower_bound {
+                return Err(InvariantError::InvalidInitSqrtPrice);
+            }
         }
-
-        // if init_sqrt_price < upper_bound && init_sqrt_price >= lower_bound {
-        //     init_tick -= tick_spacing as i32;
-        // }
 
         Ok(Self {
             sqrt_price: init_sqrt_price,
