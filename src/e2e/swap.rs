@@ -6,7 +6,7 @@ pub mod e2e_tests {
         math::{
             types::{
                 fee_growth::FeeGrowth, liquidity::Liquidity, percentage::Percentage,
-                sqrt_price::SqrtPrice, token_amount::TokenAmount,
+                sqrt_price::calculate_sqrt_price, sqrt_price::SqrtPrice, token_amount::TokenAmount,
             },
             MAX_SQRT_PRICE, MIN_SQRT_PRICE,
         },
@@ -43,6 +43,8 @@ pub mod e2e_tests {
 
         add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
 
+        let init_tick = 0;
+        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
         create_pool!(
             client,
             ContractRef,
@@ -50,7 +52,8 @@ pub mod e2e_tests {
             token_x,
             token_y,
             fee_tier,
-            0,
+            init_sqrt_price,
+            init_tick,
             alice
         )
         .unwrap();
@@ -198,6 +201,8 @@ pub mod e2e_tests {
 
         add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
 
+        let init_tick = 0;
+        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
         create_pool!(
             client,
             ContractRef,
@@ -205,7 +210,8 @@ pub mod e2e_tests {
             token_x,
             token_y,
             fee_tier,
-            0,
+            init_sqrt_price,
+            init_tick,
             alice
         )
         .unwrap();

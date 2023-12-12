@@ -30,7 +30,7 @@ pub mod e2e_tests {
         let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
         let alice = ink_e2e::alice();
         let init_tick = 0;
-
+        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
         let initial_mint = 10u128.pow(10);
 
         let dex = create_dex!(client, ContractRef, Percentage::from_scale(1, 2));
@@ -47,6 +47,7 @@ pub mod e2e_tests {
             token_x,
             token_y,
             fee_tier,
+            init_sqrt_price,
             init_tick,
             alice
         )
@@ -312,7 +313,7 @@ pub mod e2e_tests {
         let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
         let alice = ink_e2e::alice();
         let init_tick = 0;
-
+        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
         let initial_mint = 10u128.pow(10);
 
         let dex = create_dex!(client, ContractRef, Percentage::from_scale(1, 2));
@@ -329,6 +330,7 @@ pub mod e2e_tests {
             token_x,
             token_y,
             fee_tier,
+            init_sqrt_price,
             init_tick,
             alice
         )

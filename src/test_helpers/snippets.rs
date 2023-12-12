@@ -197,6 +197,7 @@ macro_rules! init_basic_pool {
         add_fee_tier!($client, $dex, $dex_address, fee_tier, alice).unwrap();
 
         let init_tick = 0;
+        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
         create_pool!(
             $client,
             $dex,
@@ -204,6 +205,7 @@ macro_rules! init_basic_pool {
             $token_x_address,
             $token_y_address,
             fee_tier,
+            init_sqrt_price,
             init_tick,
             alice
         )
@@ -222,6 +224,7 @@ macro_rules! init_slippage_pool_with_liquidity {
         add_fee_tier!($client, $dex, $dex_address, fee_tier, alice).unwrap();
 
         let init_tick = 0;
+        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
         create_pool!(
             $client,
             $dex,
@@ -229,6 +232,7 @@ macro_rules! init_slippage_pool_with_liquidity {
             $token_x_address,
             $token_y_address,
             fee_tier,
+            init_sqrt_price,
             init_tick,
             alice
         )
@@ -683,7 +687,19 @@ macro_rules! big_deposit_and_swap {
         add_fee_tier!($client, $dex, dex, fee_tier, alice).unwrap();
 
         let init_tick = 0;
-        create_pool!($client, $dex, dex, token_x, token_y, fee_tier, init_tick, alice).unwrap();
+        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
+        create_pool!(
+            $client,
+            $dex,
+            dex,
+            token_x,
+            token_y,
+            fee_tier,
+            init_sqrt_price,
+            init_tick,
+            alice
+        )
+        .unwrap();
 
         let lower_tick = if $x_to_y {
             -(fee_tier.tick_spacing as i32)
@@ -790,7 +806,19 @@ macro_rules! multiple_swap {
         add_fee_tier!($client, $dex, dex, fee_tier, alice).unwrap();
 
         let init_tick = 0;
-        create_pool!($client, $dex, dex, token_x, token_y, fee_tier, init_tick, alice).unwrap();
+        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
+        create_pool!(
+            $client,
+            $dex,
+            dex,
+            token_x,
+            token_y,
+            fee_tier,
+            init_sqrt_price,
+            init_tick,
+            alice
+        )
+        .unwrap();
 
         let mint_amount = 10u128.pow(10);
         approve!($client, $token, token_x, dex, mint_amount, alice).unwrap();

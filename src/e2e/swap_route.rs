@@ -3,7 +3,10 @@ pub mod e2e_tests {
     use crate::{
         contract::{ContractRef, Hop},
         contracts::{entrypoints::Invariant, FeeTier, PoolKey},
-        math::types::{liquidity::Liquidity, percentage::Percentage, token_amount::TokenAmount},
+        math::types::{
+            liquidity::Liquidity, percentage::Percentage, sqrt_price::calculate_sqrt_price,
+            token_amount::TokenAmount,
+        },
     };
     use decimal::*;
     use ink_e2e::build_message;
@@ -37,6 +40,7 @@ pub mod e2e_tests {
         add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
 
         let init_tick = 0;
+        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
         create_pool!(
             client,
             ContractRef,
@@ -44,12 +48,14 @@ pub mod e2e_tests {
             token_x,
             token_y,
             fee_tier,
+            init_sqrt_price,
             init_tick,
             alice
         )
         .unwrap();
 
         let init_tick = 0;
+        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
         create_pool!(
             client,
             ContractRef,
@@ -57,6 +63,7 @@ pub mod e2e_tests {
             token_y,
             token_z,
             fee_tier,
+            init_sqrt_price,
             init_tick,
             alice
         )

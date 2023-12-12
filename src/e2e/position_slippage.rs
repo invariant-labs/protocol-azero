@@ -3,7 +3,11 @@ pub mod e2e_tests {
     use crate::{
         contract::ContractRef,
         contracts::{entrypoints::Invariant, FeeTier, PoolKey},
-        math::types::{liquidity::Liquidity, percentage::Percentage, sqrt_price::SqrtPrice},
+        math::types::{
+            liquidity::Liquidity,
+            percentage::Percentage,
+            sqrt_price::{calculate_sqrt_price, SqrtPrice},
+        },
         InvariantError,
     };
     use decimal::*;

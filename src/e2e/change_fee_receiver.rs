@@ -5,6 +5,7 @@ pub mod e2e_tests {
         contract::ContractRef,
         contracts::{entrypoints::Invariant, FeeTier, PoolKey},
         math::types::percentage::Percentage,
+        math::types::sqrt_price::calculate_sqrt_price,
     };
     use decimal::*;
     use ink_e2e::build_message;
@@ -23,6 +24,7 @@ pub mod e2e_tests {
 
         let fee_tier = FeeTier::new(Percentage::from_scale(5, 1), 1).unwrap();
         let init_tick = 0;
+        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
 
         let alice = ink_e2e::alice();
 
@@ -35,6 +37,7 @@ pub mod e2e_tests {
             token_x,
             token_y,
             fee_tier,
+            init_sqrt_price,
             init_tick,
             alice
         );
@@ -59,6 +62,7 @@ pub mod e2e_tests {
 
         let fee_tier = FeeTier::new(Percentage::from_scale(5, 1), 100).unwrap();
         let init_tick = 0;
+        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
 
         let admin = ink_e2e::alice();
 
@@ -71,6 +75,7 @@ pub mod e2e_tests {
             token_x,
             token_y,
             fee_tier,
+            init_sqrt_price,
             init_tick,
             admin
         );
