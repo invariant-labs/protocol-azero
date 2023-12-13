@@ -1,7 +1,7 @@
 #[cfg(test)]
 pub mod e2e_tests {
     use crate::{
-        contract::{ContractRef, Hop},
+        contract::{ContractRef, SwapHop},
         contracts::{entrypoints::Invariant, FeeTier, PoolKey},
         math::types::{
             liquidity::Liquidity, percentage::Percentage, sqrt_price::calculate_sqrt_price,
@@ -111,11 +111,11 @@ pub mod e2e_tests {
         let amount_in = TokenAmount(1000);
         let slippage = Percentage::new(0);
         let swaps = vec![
-            Hop {
+            SwapHop {
                 pool_key: pool_key_1,
                 x_to_y: true,
             },
-            Hop {
+            SwapHop {
                 pool_key: pool_key_2,
                 x_to_y: true,
             },
