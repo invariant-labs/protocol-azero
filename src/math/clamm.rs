@@ -364,13 +364,115 @@ pub fn calculate_min_amount_out(
     expected_amount_out: TokenAmount,
     slippage: Percentage,
 ) -> TokenAmount {
-    expected_amount_out.big_mul(Percentage::from_integer(1u8) - slippage)
+    expected_amount_out.big_mul_up(Percentage::from_integer(1u8) - slippage)
 }
 
 #[cfg(test)]
 mod tests {
 
     use super::*;
+
+    #[test]
+    fn test_calculate_min_amount_out() {
+        // 0% fee
+        {
+            let expected_amount_out = TokenAmount(100);
+            let slippage = Percentage::from_integer(0);
+            let result = calculate_min_amount_out(expected_amount_out, slippage);
+            assert_eq!(result, TokenAmount(100));
+        }
+        // 0.1% fee
+        {
+            let expected_amount_out = TokenAmount(100);
+            let slippage = Percentage::from_scale(1, 3);
+            let result = calculate_min_amount_out(expected_amount_out, slippage);
+            assert_eq!(result, TokenAmount(100));
+        }
+        // 0.9% fee
+        {
+            let expected_amount_out = TokenAmount(123);
+            let slippage = Percentage::from_scale(9, 3);
+            let result = calculate_min_amount_out(expected_amount_out, slippage);
+            assert_eq!(result, TokenAmount(122));
+        }
+        // 1% fee
+        {
+            let expected_amount_out = TokenAmount(100);
+            let slippage = Percentage::from_scale(1, 2);
+            let result = calculate_min_amount_out(expected_amount_out, slippage);
+            assert_eq!(result, TokenAmount(99));
+        }
+        // 3% fee
+        {
+            let expected_amount_out = TokenAmount(100);
+            let slippage = Percentage::from_scale(3, 2);
+            let result = calculate_min_amount_out(expected_amount_out, slippage);
+            assert_eq!(result, TokenAmount(97));
+        }
+        // 5% fee
+        {
+            let expected_amount_out = TokenAmount(100);
+            let slippage = Percentage::from_scale(5, 2);
+            let result = calculate_min_amount_out(expected_amount_out, slippage);
+            assert_eq!(result, TokenAmount(95));
+        }
+        // 10% fee
+        {
+            let expected_amount_out = TokenAmount(100);
+            let slippage = Percentage::from_scale(1, 1);
+            let result = calculate_min_amount_out(expected_amount_out, slippage);
+            assert_eq!(result, TokenAmount(90));
+        }
+        // 20% fee
+        {
+            let expected_amount_out = TokenAmount(100);
+            let slippage = Percentage::from_scale(2, 1);
+            let result = calculate_min_amount_out(expected_amount_out, slippage);
+            assert_eq!(result, TokenAmount(80));
+        }
+        // 50% fee
+        {
+            let expected_amount_out = TokenAmount(100);
+            let slippage = Percentage::from_scale(5, 1);
+            let result = calculate_min_amount_out(expected_amount_out, slippage);
+            assert_eq!(result, TokenAmount(50));
+        }
+        // 100% fee
+        {
+            let expected_amount_out = TokenAmount(100);
+            let slippage = Percentage::from_integer(1);
+            let result = calculate_min_amount_out(expected_amount_out, slippage);
+            assert_eq!(result, TokenAmount(0));
+        }
+    }
+
+    #[test]
+    fn test_domain_calculate_min_amount_out() {
+        let min_amount = TokenAmount(0);
+        let max_amount = TokenAmount::max_instance();
+        let min_fee = Percentage::new(0);
+        let max_fee = Percentage::from_integer(1);
+        // min amount min fee
+        {
+            let result = calculate_min_amount_out(min_amount, min_fee);
+            assert_eq!(result, TokenAmount(0));
+        }
+        // min amount max fee
+        {
+            let result = calculate_min_amount_out(min_amount, max_fee);
+            assert_eq!(result, TokenAmount(0));
+        }
+        // max amount max fee
+        {
+            let result = calculate_min_amount_out(max_amount, max_fee);
+            assert_eq!(result, TokenAmount(0));
+        }
+        // max amount min fee
+        {
+            let result = calculate_min_amount_out(max_amount, min_fee);
+            assert_eq!(result, max_amount);
+        }
+    }
 
     #[test]
     fn test_domain_get_next_sqrt_price_from_input() {

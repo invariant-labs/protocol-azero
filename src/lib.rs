@@ -138,7 +138,7 @@ pub mod contract {
         feature = "std",
         derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout,)
     )]
-    pub struct Hop {
+    pub struct SwapHop {
         pub pool_key: PoolKey,
         pub x_to_y: bool,
     }
@@ -308,12 +308,12 @@ pub mod contract {
             &mut self,
             is_swap: bool,
             amount_in: TokenAmount,
-            swaps: Vec<Hop>,
+            swaps: Vec<SwapHop>,
         ) -> Result<TokenAmount, InvariantError> {
             let mut next_swap_amount = amount_in;
 
             for swap in swaps.iter() {
-                let Hop { pool_key, x_to_y } = *swap;
+                let SwapHop { pool_key, x_to_y } = *swap;
 
                 let sqrt_price_limit = if x_to_y {
                     SqrtPrice::new(MIN_SQRT_PRICE)
@@ -651,7 +651,7 @@ pub mod contract {
             amount_in: TokenAmount,
             expected_amount_out: TokenAmount,
             slippage: Percentage,
-            swaps: Vec<Hop>,
+            swaps: Vec<SwapHop>,
         ) -> Result<(), InvariantError> {
             let amount_out = self.route(true, amount_in, swaps)?;
 
@@ -688,7 +688,7 @@ pub mod contract {
         fn quote_route(
             &mut self,
             amount_in: TokenAmount,
-            swaps: Vec<Hop>,
+            swaps: Vec<SwapHop>,
         ) -> Result<TokenAmount, InvariantError> {
             let amount_out = self.route(false, amount_in, swaps)?;
 

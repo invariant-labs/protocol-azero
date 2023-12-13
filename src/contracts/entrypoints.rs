@@ -1,5 +1,5 @@
 use crate::{
-    contract::{CalculateSwapResult, Hop, QuoteResult},
+    contract::{CalculateSwapResult, QuoteResult, SwapHop},
     contracts::{FeeTier, Pool, PoolKey, Position, Tick},
     math::{
         liquidity::Liquidity, percentage::Percentage, sqrt_price::SqrtPrice,
@@ -147,7 +147,7 @@ pub trait Invariant {
         amount_in: TokenAmount,
         expected_amount_out: TokenAmount,
         slippage: Percentage,
-        swaps: Vec<Hop>,
+        swaps: Vec<SwapHop>,
     ) -> Result<(), InvariantError>;
 
     /// Simulates the swap without its execution.
@@ -188,7 +188,7 @@ pub trait Invariant {
     fn quote_route(
         &mut self,
         amount_in: TokenAmount,
-        swaps: Vec<Hop>,
+        swaps: Vec<SwapHop>,
     ) -> Result<TokenAmount, InvariantError>;
 
     /// Transfers a position between users.
