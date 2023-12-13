@@ -286,7 +286,7 @@ pub mod e2e_tests {
         let lower_tick_index = min_tick_test + 10;
         let upper_tick_index = max_tick_test - 10;
 
-        let liquidity_delta = Liquidity::new(initial_balance);
+        let liquidity_delta = Liquidity::from_integer(100);
 
         let pool_state = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
 
@@ -383,7 +383,7 @@ pub mod e2e_tests {
         let lower_tick_index = -46080;
         let upper_tick_index = -23040;
 
-        let liquidity_delta = Liquidity::new(initial_balance);
+        let liquidity_delta = Liquidity::from_integer(10_000);
 
         let pool_state_before =
             get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
@@ -482,7 +482,7 @@ pub mod e2e_tests {
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
         let lower_tick_index = -22980;
         let upper_tick_index = 0;
-        let liquidity_delta = Liquidity::new(initial_balance);
+        let liquidity_delta = Liquidity::from_integer(10_000);
 
         let pool_state = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
 
