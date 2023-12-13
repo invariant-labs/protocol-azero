@@ -266,7 +266,7 @@ macro_rules! init_slippage_pool_with_liquidity {
         let pool_key = PoolKey::new($token_x_address, $token_y_address, fee_tier).unwrap();
         let lower_tick = -1000;
         let upper_tick = 1000;
-        let liquidity = Liquidity::new(10u128.pow(16));
+        let liquidity = Liquidity::from_integer(10_000_000_000u128);
 
         let pool_before = get_pool!(
             $client,
