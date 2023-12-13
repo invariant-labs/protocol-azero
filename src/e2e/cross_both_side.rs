@@ -79,7 +79,7 @@ pub mod e2e_tests {
         approve!(client, TokenRef, token_x, dex, mint_amount, alice).unwrap();
         approve!(client, TokenRef, token_y, dex, mint_amount, alice).unwrap();
 
-        let liquidity_delta = Liquidity::new(20006000000000);
+        let liquidity_delta = Liquidity::from_integer(20006000);
 
         let pool_state = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
 
@@ -222,7 +222,7 @@ pub mod e2e_tests {
         approve!(client, TokenRef, token_x, dex, massive_x, alice).unwrap();
         approve!(client, TokenRef, token_y, dex, massive_y, alice).unwrap();
 
-        let massive_liquidity_delta = Liquidity::new(19996000399699881985603000000);
+        let massive_liquidity_delta = Liquidity::from_integer(19996000399699881985603u128);
 
         create_position!(
             client,
@@ -265,6 +265,12 @@ pub mod e2e_tests {
         .unwrap();
 
         let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+
+        let expected_liquidity = Liquidity::from_integer(19996000399699901991603u128);
+        let expected_liquidity_change_on_last_tick =
+            Liquidity::from_integer(19996000399699901991603u128);
+        let expected_liquidity_change_on_upper_tick = Liquidity::from_integer(20006000);
+
         assert_eq!(pool.current_tick_index, -20);
         assert_eq!(
             pool.fee_growth_global_x,
@@ -273,10 +279,7 @@ pub mod e2e_tests {
         assert_eq!(pool.fee_growth_global_y, FeeGrowth::new(0));
         assert_eq!(pool.fee_protocol_token_x, TokenAmount(4));
         assert_eq!(pool.fee_protocol_token_y, TokenAmount(2));
-        assert_eq!(
-            pool.liquidity,
-            Liquidity::new(19996000399699901991603000000)
-        );
+        assert_eq!(pool.liquidity, expected_liquidity);
         assert_eq!(pool.sqrt_price, SqrtPrice::new(999500149964999999999999));
 
         let final_last_tick = get_tick!(client, ContractRef, dex, pool_key, -20).unwrap();
@@ -284,7 +287,7 @@ pub mod e2e_tests {
         assert_eq!(final_last_tick.fee_growth_outside_y, FeeGrowth::new(0));
         assert_eq!(
             final_last_tick.liquidity_change,
-            Liquidity::new(19996000399699901991603000000)
+            expected_liquidity_change_on_last_tick
         );
 
         let final_lower_tick = get_tick!(client, ContractRef, dex, pool_key, -10).unwrap();
@@ -300,7 +303,7 @@ pub mod e2e_tests {
         assert_eq!(final_upper_tick.fee_growth_outside_y, FeeGrowth::new(0));
         assert_eq!(
             final_upper_tick.liquidity_change,
-            Liquidity::new(20006000000000)
+            expected_liquidity_change_on_upper_tick
         );
 
         Ok(())
