@@ -887,43 +887,31 @@ macro_rules! multiple_swap {
         }
 
         let pool = get_pool!($client, $dex, dex, token_x, token_y, fee_tier).unwrap();
-        if $x_to_y {
-            assert_eq!(pool.current_tick_index, -821);
-        } else {
-            assert_eq!(pool.current_tick_index, 820);
-        }
-        assert_eq!(pool.fee_growth_global_x, FeeGrowth::new(0));
-        assert_eq!(pool.fee_growth_global_y, FeeGrowth::new(0));
-        if $x_to_y {
-            assert_eq!(pool.fee_protocol_token_x, TokenAmount(10));
-            assert_eq!(pool.fee_protocol_token_y, TokenAmount(0));
-        } else {
-            assert_eq!(pool.fee_protocol_token_x, TokenAmount(0));
-            assert_eq!(pool.fee_protocol_token_y, TokenAmount(10));
-        }
-        assert_eq!(pool.liquidity, liquidity_delta);
-        if $x_to_y {
-            assert_eq!(pool.sqrt_price, SqrtPrice::new(959805958620596146276151));
-        } else {
-            assert_eq!(pool.sqrt_price, SqrtPrice::new(1041877257604411525269920));
-        }
-
         let dex_amount_x = balance_of!($client, $token, token_x, dex);
         let dex_amount_y = balance_of!($client, $token, token_y, dex);
-        if $x_to_y {
-            assert_eq!(dex_amount_x, 200);
-            assert_eq!(dex_amount_y, 20);
-        } else {
-            assert_eq!(dex_amount_x, 20);
-            assert_eq!(dex_amount_y, 200);
-        }
-
         let user_amount_x = balance_of!($client, $token, token_x, address_of!(Bob));
         let user_amount_y = balance_of!($client, $token, token_y, address_of!(Bob));
+
+        assert_eq!(pool.fee_growth_global_x, FeeGrowth::new(0));
+        assert_eq!(pool.fee_growth_global_y, FeeGrowth::new(0));
+        assert_eq!(pool.liquidity, liquidity_delta);
+
         if $x_to_y {
+            assert_eq!(pool.current_tick_index, -821);
+            assert_eq!(pool.fee_protocol_token_x, TokenAmount(10));
+            assert_eq!(pool.fee_protocol_token_y, TokenAmount(0));
+            assert_eq!(pool.sqrt_price, SqrtPrice::new(959805958620596146276151));
+            assert_eq!(dex_amount_x, 200);
+            assert_eq!(dex_amount_y, 20);
             assert_eq!(user_amount_x, 0);
             assert_eq!(user_amount_y, 80);
         } else {
+            assert_eq!(pool.current_tick_index, 820);
+            assert_eq!(pool.fee_protocol_token_x, TokenAmount(0));
+            assert_eq!(pool.fee_protocol_token_y, TokenAmount(10));
+            assert_eq!(pool.sqrt_price, SqrtPrice::new(1041877257604411525269920));
+            assert_eq!(dex_amount_x, 20);
+            assert_eq!(dex_amount_y, 200);
             assert_eq!(user_amount_x, 80);
             assert_eq!(user_amount_y, 0);
         }
