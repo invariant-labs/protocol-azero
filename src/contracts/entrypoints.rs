@@ -271,12 +271,12 @@ pub trait Invariant {
     /// # Errors
     /// - Fails if an unauthorized user attempts to remove a fee tier.
     /// - Fails if fee tier does not exist
-    ///
     #[ink(message)]
     fn remove_fee_tier(&mut self, fee_tier: FeeTier) -> Result<(), InvariantError>;
 
     /// Allows a user to create a custom pool on a specified token pair and fee tier.
-    /// The contract specifies the order of tokens as x and y. The choice is deterministic.
+    /// The contract specifies the order of tokens as x and y, the lower token address assigned as token x.
+    /// The choice is deterministic.
     ///
     /// # Parameters
     /// - `token_0`: The address of the first token.
@@ -291,7 +291,6 @@ pub trait Invariant {
     /// - Fails if Pool with same tokens and fee tier already exist.
     /// - Fails if the init tick is not divisible by the tick spacing.
     /// - Fails if the init sqrt price is not related to the init tick.
-    ///
     #[ink(message)]
     fn create_pool(
         &mut self,
@@ -342,7 +341,7 @@ pub trait Invariant {
     #[ink(message)]
     fn get_pools(&self) -> Vec<PoolKey>;
 
-    /// Retrieves added fee tiers
+    /// Retrieves available fee tiers
     #[ink(message)]
     fn get_fee_tiers(&self) -> Vec<FeeTier>;
 }
