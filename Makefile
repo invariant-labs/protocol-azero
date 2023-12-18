@@ -13,5 +13,5 @@ chain-start:
 
 setup:
 	@./scripts/deploy.sh
-	@./scripts/update_contract_addresses.sh
-	@./scripts/update_contract_metadata.sh
+	# @./scripts/update_contract_addresses.sh
+	# @./scripts/update_contract_metadata.sh
