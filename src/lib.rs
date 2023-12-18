@@ -779,6 +779,7 @@ pub mod contract {
             let current_timestamp = self.env().block_timestamp();
 
             let mut position = self.positions.get(caller, index)?;
+            let withdrawed_liquidity = position.liquidity;
 
             let mut lower_tick = self
                 .ticks
@@ -829,7 +830,7 @@ pub mod contract {
             self.emit_remove_position_event(
                 caller,
                 position.pool_key,
-                position.liquidity,
+                withdrawed_liquidity,
                 lower_tick.index,
                 upper_tick.index,
                 pool.sqrt_price,
