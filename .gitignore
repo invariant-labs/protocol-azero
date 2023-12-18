@@ -3,3 +3,4 @@ target
 **/*.rs.bk
 node_modules
 .vscode/
+temp_file
