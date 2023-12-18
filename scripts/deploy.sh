@@ -19,8 +19,6 @@ popd () {
     command popd "$@" > /dev/null
 }
 
-cd ..
-
 CONTRACTS_PATH=$(pwd)
 echo "Path ${CONTRACTS_PATH}"
 
