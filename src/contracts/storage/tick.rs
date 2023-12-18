@@ -99,7 +99,7 @@ impl Tick {
         is_upper: bool,
         is_deposit: bool,
     ) -> TrackableResult<()> {
-        self.liquidity_gross = self.calculate_new_liquidity_gross_safely(
+        self.liquidity_gross = self.calculate_new_liquidity_gross(
             is_deposit,
             liquidity_delta,
             max_liquidity_per_tick,
@@ -122,7 +122,7 @@ impl Tick {
         }
     }
 
-    fn calculate_new_liquidity_gross_safely(
+    fn calculate_new_liquidity_gross(
         self,
         sign: bool,
         liquidity_delta: Liquidity,
