@@ -1,4 +1,5 @@
 PHONY:  chain-clean chain-restart chain-start
+export n ?= wss://ws.test.azero.dev
 
 chain-stop:
 	@ps aux | grep substrate-contracts-node | tr -s ' ' | cut -d ' ' -f 2 | xargs -r kill -9
@@ -12,6 +13,9 @@ chain-start:
 	substrate-contracts-node --rpc-port 9944 --dev
 
 setup:
-	@./scripts/deploy.sh
+	@./scripts/deploy.sh -- $(n)
 	# @./scripts/update_contract_addresses.sh
 	# @./scripts/update_contract_metadata.sh
+
+call:
+	@./scripts/call.sh

@@ -22,7 +22,13 @@ popd () {
 CONTRACTS_PATH=$(pwd)
 echo "Path ${CONTRACTS_PATH}"
 
-NODE_URL=${NODE_URL:="ws://localhost:9944"}
+# Check if NODE_URL is localhost, and set a different URL accordingly
+if [ "$n" == "localhost" ]; then
+  NODE_URL="ws://localhost:9944"
+  else 
+  NODE_URL="wss://ws.test.azero.dev"
+fi
+
 AUTHORITY_SEED=${AUTHORITY_SEED:="//Alice"}
 
 echo "node=${NODE_URL}"
@@ -70,7 +76,7 @@ temp_file=$(mktemp)
 # Remove temporary file when finished.
 trap "rm -f $temp_file" 0 2 3 15 
 
-SALT=${INVARIANT_VERSION:-01}
+SALT=${INVARIANT_VERSION:-03}
 INVARIANT_CONTRACT_FILE="target/ink/contract.contract"
 
 echo "Instantiating Invariant contract (version: ${SALT})"
