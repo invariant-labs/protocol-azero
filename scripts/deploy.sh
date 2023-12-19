@@ -76,14 +76,14 @@ temp_file=$(mktemp)
 # Remove temporary file when finished.
 trap "rm -f $temp_file" 0 2 3 15 
 
-SALT=${INVARIANT_VERSION:-03}
+SALT=${INVARIANT_VERSION:-0}
 INVARIANT_CONTRACT_FILE="target/ink/contract.contract"
 
 echo "Instantiating Invariant contract (version: ${SALT})"
 cargo contract instantiate --url "$NODE_URL" --salt ${SALT} --suri "$AUTHORITY_SEED" $INVARIANT_CONTRACT_FILE --constructor new --args "0" --execute --skip-confirm --output-json > temp_file
 
 # No salt instantiation
-# cargo contract instantiate --url "$NODE_URL" --suri "$AUTHORITY_SEED" $INVARIANT_CONTRACT_FILE --constructor new --args "0" --execute --skip-confirm --output-json > temp_file
+# cargo contract instantiate --url "$NODE_URL" --suri "$AUTHORITY_SEED" $INVARIANT_CONTRACT_FILE --constructor new --args "1" --execute --skip-confirm --output-json > temp_file
 
 INVARIANT_ADDRESS=$(cat temp_file | jq  '.events[] | select((.pallet == "Contracts") and (.name = "Instantiated")) | .fields[] | select(.name == "contract") | .value.Literal' | tail -1 | tr -d '"')
 if [[ -z INVARIANT_ADDRESS && -v INVARIANT_ADDRESS ]]; then
