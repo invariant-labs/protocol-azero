@@ -16,6 +16,3 @@ setup:
 	@./scripts/deploy.sh -- $(n)
 	# @./scripts/update_contract_addresses.sh
 	# @./scripts/update_contract_metadata.sh
-
-call:
-	@./scripts/call.sh
