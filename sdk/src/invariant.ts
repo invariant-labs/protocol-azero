@@ -79,6 +79,7 @@ export class Invariant {
         },
         fee
       );
+
       if (result.isOk && output) {
         resolve(JSON.parse(output.toString()).ok);
       } else {
