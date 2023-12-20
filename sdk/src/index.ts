@@ -8,17 +8,18 @@ dotenv.config();
   const { abi, wasm } = await getDeploymentData();
   const invariant = new Invariant(api, account, 100000000000, 100000000000);
 
-  let init_fee = { v: 10 };
-  await invariant.new(abi, wasm, init_fee);
+  let initFee = { v: 10 };
+  await invariant.new(abi, wasm, initFee);
 
-  let previous_fee = await invariant.getProtocolFee();
-  console.log(previous_fee);
+  let initialFee = await invariant.getProtocolFee();
+  console.log(initialFee);
 
-  let new_fee_struct = {
-    v: 100000000000,
+  let newFeeStruct = {
+    v: 100,
   };
-  await invariant.changeProtocolFee(new_fee_struct);
+  console.log(`Changing protocol fee to: ${newFeeStruct.v}`);
+  await invariant.changeProtocolFee(newFeeStruct);
 
-  let new_fee = await invariant.getProtocolFee();
-  console.log(new_fee);
+  let newFee = await invariant.getProtocolFee();
+  console.log(newFee);
 })();
