@@ -40,19 +40,23 @@ export class Invariant {
     );
   }
 
-  async getProtocolFee(): Promise<void> {
+  async sendQuery(
+    message: string,
+    signer: string,
+    params: any[]
+  ): Promise<void> {
     if (!this.contract) {
       throw new Error("contract not deployed");
     }
 
-    const { result, output } = await this.contract.query[
-      "invariant::getProtocolFee"
-    ](this.account.address, {
-      gasLimit: this.weight,
-      storageDepositLimit: null,
-    });
-
-    console.log(output?.toHuman());
+    const { result, output } = await this.contract.query[message](
+      signer,
+      {
+        gasLimit: this.weight,
+        storageDepositLimit: null,
+      },
+      ...params
+    );
 
     if (result.isOk && output) {
       return JSON.parse(output.toString()).ok;
@@ -61,24 +65,42 @@ export class Invariant {
     }
   }
 
-  async changeProtocolFee(fee: { v: number }): Promise<string> {
+  async sendTx(
+    message: string,
+    signer: IKeyringPair,
+    params: any[]
+  ): Promise<string> {
     if (!this.contract) {
       throw new Error("contract not deployed");
     }
 
-    const call = this.contract.tx["invariant::changeProtocolFee"](
+    const call = this.contract.tx[message](
       {
         gasLimit: this.weight,
         storageDepositLimit: null,
       },
-      fee
+      ...params
     );
 
     return new Promise<string>(async (resolve, reject) => {
-      await call.signAndSend(this.account, (result) => {
+      await call.signAndSend(signer, (result) => {
         if (result.isFinalized) resolve(result.txHash.toHex());
         else if (result.isError) reject(result.dispatchError);
       });
     });
+  }
+
+  async getProtocolFee(): Promise<void> {
+    return await this.sendQuery(
+      "invariant::getProtocolFee",
+      this.account.address,
+      []
+    );
+  }
+
+  async changeProtocolFee(fee: { v: number }): Promise<string> {
+    return await this.sendTx("invariant::changeProtocolFee", this.account, [
+      fee,
+    ]);
   }
 }
