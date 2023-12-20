@@ -45,3 +45,7 @@ export const getDeploymentData = async () => {
     throw new Error("contract.json or contract.wasm not found");
   }
 };
+
+export const sleep = async (ms: number) => {
+  return await new Promise((resolve) => setTimeout(resolve, ms));
+};
