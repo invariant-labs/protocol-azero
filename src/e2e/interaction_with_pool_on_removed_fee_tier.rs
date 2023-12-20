@@ -135,7 +135,7 @@ pub mod e2e_tests {
             assert_eq!(owner_list_before.len() - 1, owner_list_after.len());
             assert_eq!(owner_list_after.len(), 0);
 
-            // Equals fields od transferred position
+            // Equals fields of transferred position
             positions_equals!(recipient_position, removed_position);
         }
         // Readd fee tier and create same pool
