@@ -41,45 +41,37 @@ export class Invariant {
   }
 
   async getProtocolFee(): Promise<void> {
-    return new Promise(async (resolve, reject) => {
-      if (!this.contract) {
-        reject(new Error("contract not deployed"));
-        return;
-      }
+    if (!this.contract) {
+      throw new Error("contract not deployed");
+    }
 
-      const { result, output } = await this.contract.query[
-        "invariant::getProtocolFee"
-      ](this.account.address, {
-        gasLimit: this.weight,
-        storageDepositLimit: null,
-      });
-
-      if (result.isOk && output) {
-        resolve(JSON.parse(output.toString()).ok);
-      } else {
-        reject(new Error(result.asErr.toHuman()?.toString()));
-      }
+    const { result, output } = await this.contract.query[
+      "invariant::getProtocolFee"
+    ](this.account.address, {
+      gasLimit: this.weight,
+      storageDepositLimit: null,
     });
+
+    if (result.isOk && output) {
+      return JSON.parse(output.toString()).ok;
+    } else {
+      throw new Error(result.asErr.toHuman()?.toString());
+    }
   }
 
-  async changeProtocolFee(fee: { v: number }): Promise<void> {
-    return new Promise(async (resolve, reject) => {
-      if (!this.contract) {
-        reject(new Error("contract not deployed"));
-        return;
-      }
+  async changeProtocolFee(fee: { v: number }): Promise<String> {
+    if (!this.contract) {
+      throw new Error("contract not deployed");
+    }
 
-      const call = await this.contract.tx["invariant::changeProtocolFee"](
-        {
-          gasLimit: this.weight,
-          storageDepositLimit: null,
-        },
-        fee
-      );
+    const call = this.contract.tx["invariant::changeProtocolFee"](
+      {
+        gasLimit: this.weight,
+        storageDepositLimit: null,
+      },
+      fee
+    );
 
-      await call.signAndSend(this.account, (result) => {
-        if (result.isFinalized) resolve();
-      });
-    });
+    return (await call.signAndSend(this.account)).toHex();
   }
 }

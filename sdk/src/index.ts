@@ -3,7 +3,7 @@ import { Invariant } from "./invariant.js";
 import { getDeploymentData, initPolkadotJs } from "./utils.js";
 dotenv.config();
 
-(async function main() {
+const main = async () => {
   const { api, account } = await initPolkadotJs();
   const { abi, wasm } = await getDeploymentData();
   const invariant = new Invariant(api, account, 100000000000, 100000000000);
@@ -17,9 +17,19 @@ dotenv.config();
   let newFeeStruct = {
     v: 100,
   };
+
   console.log(`Changing protocol fee to: ${newFeeStruct.v}`);
-  await invariant.changeProtocolFee(newFeeStruct);
+
+  let txHash = await invariant.changeProtocolFee(newFeeStruct);
+
+  console.log("Received txHash  = ", txHash);
+
+  console.log("Entrypoint passed");
 
   let newFee = await invariant.getProtocolFee();
   console.log(newFee);
-})();
+
+  console.log("Passed.");
+};
+
+main();
