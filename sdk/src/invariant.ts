@@ -69,10 +69,7 @@ export class Invariant {
         return;
       }
 
-      const { result, output } = await this.contract.query[
-        "invariant::changeProtocolFee"
-      ](
-        this.account.address,
+      const call = await this.contract.tx["invariant::changeProtocolFee"](
         {
           gasLimit: this.weight,
           storageDepositLimit: null,
@@ -80,11 +77,9 @@ export class Invariant {
         fee
       );
 
-      if (result.isOk && output) {
-        resolve(JSON.parse(output.toString()).ok);
-      } else {
-        reject(new Error(result.asErr.toHuman()?.toString()));
-      }
+      await call.signAndSend(this.account, (result) => {
+        if (result.isFinalized) resolve();
+      });
     });
   }
 }
