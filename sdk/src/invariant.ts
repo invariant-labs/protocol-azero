@@ -52,6 +52,8 @@ export class Invariant {
       storageDepositLimit: null,
     });
 
+    console.log(output?.toHuman());
+
     if (result.isOk && output) {
       return JSON.parse(output.toString()).ok;
     } else {
@@ -59,7 +61,7 @@ export class Invariant {
     }
   }
 
-  async changeProtocolFee(fee: { v: number }): Promise<String> {
+  async changeProtocolFee(fee: { v: number }): Promise<string> {
     if (!this.contract) {
       throw new Error("contract not deployed");
     }
@@ -72,6 +74,11 @@ export class Invariant {
       fee
     );
 
-    return (await call.signAndSend(this.account)).toHex();
+    return new Promise<string>(async (resolve, reject) => {
+      await call.signAndSend(this.account, (result) => {
+        if (result.isFinalized) resolve(result.txHash.toHex());
+        else if (result.isError) reject(result.dispatchError);
+      });
+    });
   }
 }
