@@ -37,22 +37,18 @@ pub enum InvariantError {
 }
 #[ink::contract]
 pub mod contract {
-    use crate::InvariantError;
-
-    use crate::contracts::state::State;
-    use crate::contracts::Invariant;
-    use crate::contracts::Pool;
-    use crate::contracts::PoolKeys;
-    use crate::contracts::Tick;
-    use crate::contracts::Tickmap;
-    use crate::contracts::{FeeTier, FeeTiers, PoolKey, Pools, Position, Positions, Ticks};
+    use crate::contracts::{
+        FeeTier, FeeTiers, Invariant, InvariantConfig, Pool, PoolKey, PoolKeys, Pools, Position,
+        Positions, Tick, Tickmap, Ticks,
+    };
     use crate::math::calculate_min_amount_out;
     use crate::math::check_tick;
     use crate::math::log::get_tick_at_sqrt_price;
     use crate::math::percentage::Percentage;
     use crate::math::sqrt_price::SqrtPrice;
     use crate::math::token_amount::TokenAmount;
-    use crate::math::types::liquidity::Liquidity; //
+    use crate::math::types::liquidity::Liquidity;
+    use crate::InvariantError; //
 
     use crate::math::{compute_swap_step, MAX_SQRT_PRICE, MIN_SQRT_PRICE};
     use decimal::*;
@@ -152,14 +148,14 @@ pub mod contract {
         ticks: Ticks,
         fee_tiers: FeeTiers,
         pool_keys: PoolKeys,
-        state: State,
+        config: InvariantConfig,
     }
 
     impl Contract {
         #[ink(constructor)]
         pub fn new(protocol_fee: Percentage) -> Self {
             Self {
-                state: State {
+                config: InvariantConfig {
                     admin: Self::env().caller(),
                     protocol_fee,
                 },
@@ -247,7 +243,7 @@ pub mod contract {
                     remaining_amount -= result.amount_out;
                 }
 
-                unwrap!(pool.add_fee(result.fee_amount, x_to_y, self.state.protocol_fee));
+                unwrap!(pool.add_fee(result.fee_amount, x_to_y, self.config.protocol_fee));
                 event_fee_amount += result.fee_amount;
 
                 pool.sqrt_price = result.next_sqrt_price;
@@ -272,7 +268,7 @@ pub mod contract {
                             by_amount_in,
                             x_to_y,
                             current_timestamp,
-                            self.state.protocol_fee,
+                            self.config.protocol_fee,
                             pool_key.fee_tier,
                         );
 
@@ -442,7 +438,7 @@ pub mod contract {
     impl Invariant for Contract {
         #[ink(message)]
         fn get_protocol_fee(&self) -> Percentage {
-            self.state.protocol_fee
+            self.config.protocol_fee
         }
 
         #[ink(message)]
@@ -474,11 +470,11 @@ pub mod contract {
         fn change_protocol_fee(&mut self, protocol_fee: Percentage) -> Result<(), InvariantError> {
             let caller = self.env().caller();
 
-            if caller != self.state.admin {
+            if caller != self.config.admin {
                 return Err(InvariantError::NotAdmin);
             }
 
-            self.state.protocol_fee = protocol_fee;
+            self.config.protocol_fee = protocol_fee;
             Ok(())
         }
 
@@ -490,7 +486,7 @@ pub mod contract {
         ) -> Result<(), InvariantError> {
             let caller = self.env().caller();
 
-            if caller != self.state.admin {
+            if caller != self.config.admin {
                 return Err(InvariantError::NotAdmin);
             }
 
@@ -850,7 +846,7 @@ pub mod contract {
                 return Err(InvariantError::InvalidFee);
             }
 
-            if caller != self.state.admin {
+            if caller != self.config.admin {
                 return Err(InvariantError::NotAdmin);
             }
 
@@ -863,7 +859,7 @@ pub mod contract {
         fn remove_fee_tier(&mut self, fee_tier: FeeTier) -> Result<(), InvariantError> {
             let caller = self.env().caller();
 
-            if caller != self.state.admin {
+            if caller != self.config.admin {
                 return Err(InvariantError::NotAdmin);
             }
 
@@ -905,7 +901,7 @@ pub mod contract {
                 init_tick,
                 current_timestamp,
                 fee_tier.tick_spacing,
-                self.state.admin,
+                self.config.admin,
             )?;
             self.pools.add(pool_key, &pool)?;
             self.pool_keys.add(pool_key)?;
