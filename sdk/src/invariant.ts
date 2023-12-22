@@ -84,8 +84,9 @@ export class Invariant {
 
     return new Promise<string>(async (resolve, reject) => {
       await call.signAndSend(signer, (result) => {
+        if (result.dispatchInfo) resolve(result.txHash.toHex());
         if (result.isFinalized) resolve(result.txHash.toHex());
-        else if (result.isError) reject(result.dispatchError);
+        if (result.isError) reject(result.dispatchError);
       });
     });
   }

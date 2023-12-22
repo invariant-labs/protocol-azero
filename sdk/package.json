@@ -7,7 +7,8 @@
   "scripts": {
     "prebuild": "rm -rf target && cp ../target/ink/contract.wasm ./metadata/ && cp ../target/ink/contract.json ./metadata/",
     "build": "npx tsc",
-    "start": "npx tsc && ts-node target/index.js"
+    "start": "npx tsc && ts-node target/index.js testnet",
+    "local": "npx tsc && ts-node target/index.js local"
   },
   "dependencies": {
     "@polkadot/api": "^10.11.2",
