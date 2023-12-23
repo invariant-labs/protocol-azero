@@ -7,6 +7,7 @@
   "scripts": {
     "prebuild": "rm -rf target && cp ../target/ink/contract.wasm ./metadata/ && cp ../target/ink/contract.json ./metadata/",
     "build": "npx tsc",
+    "start-node": "substrate-contracts-node purge-chain -y && substrate-contracts-node --rpc-port 9944 --dev",
     "start": "npx tsc && ts-node target/index.js testnet",
     "local": "npx tsc && ts-node target/index.js local"
   },
