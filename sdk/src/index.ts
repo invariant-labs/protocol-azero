@@ -4,7 +4,8 @@ import { getDeploymentData, initPolkadotJs } from "./utils.js";
 dotenv.config();
 
 const main = async () => {
-  const { api, account } = await initPolkadotJs();
+  const selectedChain = process.argv[2];
+  const { api, account } = await initPolkadotJs(selectedChain);
   const { abi, wasm } = await getDeploymentData();
   const invariant = new Invariant(api, account, 100000000000, 100000000000);
 
