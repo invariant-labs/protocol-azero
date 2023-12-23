@@ -24,7 +24,11 @@ export const initPolkadotJs = async (
     console.log("Using testnet");
     const chainId = process.env.CHAIN;
     const chain = getSubstrateChain(chainId);
-    if (!chain) throw new Error("chain not found");
+
+    if (!chain) {
+      throw new Error("chain not found");
+    }
+
     const { api } = await initApi(chain, { noInitWarn: true });
     const account = await getAccount(api);
     return { api, account };
@@ -42,7 +46,9 @@ const getAccount = async (api: ApiPromise): Promise<IKeyringPair> => {
 
   const keyring = new Keyring({ type: "sr25519" });
 
-  if (!accountUri) throw new Error("invalid account uti");
+  if (!accountUri) {
+    throw new Error("invalid account uti");
+  }
 
   const account = keyring.addFromUri(accountUri);
   const balance = await getBalance(api, account.address);
