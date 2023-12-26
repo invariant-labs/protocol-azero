@@ -29,6 +29,7 @@ const main = async () => {
   console.log(newFee);
 
   console.log("Passed.");
+  process.exit(0);
 };
 
 main();
