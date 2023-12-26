@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x89fd1ac0bc66d54b9eaf158fad99af87b490fe71083fd328e0c04e46832752f5",
+    "hash": "0x777dd7f7ddf3b04b84ec1e0145975604e34e9ea6c506bfb1145282190dcabc37",
     "language": "ink! 4.3.0",
     "compiler": "rustc 1.72.1",
     "build_info": {
@@ -1926,10 +1926,10 @@
                       "name": "protocol_fee"
                     }
                   ],
-                  "name": "State"
+                  "name": "InvariantConfig"
                 }
               },
-              "name": "state"
+              "name": "config"
             }
           ],
           "name": "Contract"
