@@ -4,6 +4,15 @@ import { WeightV2 } from "@polkadot/types/interfaces";
 import { IKeyringPair } from "@polkadot/types/types/interfaces";
 import { deployContract } from "@scio-labs/use-inkathon/helpers";
 
+const CONTRACT_NAME = 'invariant'
+
+export enum InvariantQuery {
+    ProtocolFee = `${CONTRACT_NAME}::getProtocolFee`,
+}
+
+export enum InvariantTx {
+    ChangeProtocolFee = `${CONTRACT_NAME}::changeProtocolFee`,
+}
 export class Invariant {
   contract: ContractPromise | null = null;
   api: ApiPromise;
@@ -41,7 +50,7 @@ export class Invariant {
   }
 
   async sendQuery(
-    message: string,
+    message: InvariantQuery,
     signer: string,
     params: any[]
   ): Promise<void> {
@@ -66,7 +75,7 @@ export class Invariant {
   }
 
   async sendTx(
-    message: string,
+    message: InvariantTx,
     signer: IKeyringPair,
     params: any[]
   ): Promise<string> {
@@ -99,14 +108,14 @@ export class Invariant {
 
   async getProtocolFee(): Promise<void> {
     return await this.sendQuery(
-      "invariant::getProtocolFee",
+      InvariantQuery.ProtocolFee,
       this.account.address,
       []
     );
   }
 
   async changeProtocolFee(fee: { v: number }): Promise<string> {
-    return await this.sendTx("invariant::changeProtocolFee", this.account, [
+    return await this.sendTx(InvariantTx.ChangeProtocolFee, this.account, [
       fee,
     ]);
   }
