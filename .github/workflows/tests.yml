@@ -106,3 +106,48 @@ jobs:
         with:
           command: contract
           args: build --release
+
+  sdk-build:
+    name: Build SDK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Cache Crates
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo
+          key: |
+            ${{ runner.os }}-contract-build-env-${{ hashFiles('rust-toolchain.toml') }}
+            ${{ runner.os }}-substrate-contracts-node-${{ hashFiles('rust-toolchain.toml') }}
+
+      - name: Install Rust toolchain
+        uses: Cardinal-Cryptography/github-actions/install-rust-toolchain@v1
+
+      - name: Check if substrate-contracts-node exists
+        id: check-substrate-contracts-node
+        continue-on-error: true
+        run: substrate-contracts-node --version
+
+      - name: Install Protobuf
+        if: ${{ steps.check-substrate-contracts-node.outcome == 'failure' }}
+        run: |
+          sudo apt-get install -y protobuf-compiler libprotobuf-dev
+              
+      - name: Install substrate-contracts-node
+        if: ${{ steps.check-substrate-contracts-node.outcome == 'failure' }}
+        run: |
+          cargo install cargo-dylint dylint-link
+          cargo install --force --locked contracts-node
+
+      - name: Install cargo contract
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: --locked cargo-contract
+
+      - name: Build sdk
+        run: |
+          cd sdk && npm run build
