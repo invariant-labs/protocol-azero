@@ -150,4 +150,4 @@ jobs:
 
       - name: Build sdk
         run: |
-          cd sdk && npm run build
+          cd sdk && npm i && npm run build
