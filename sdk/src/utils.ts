@@ -10,39 +10,28 @@ import { Network } from "./network.js";
 
 export const initPolkadotJs = async (
   network: Network
-): Promise<{
-  api: ApiPromise;
-  account: IKeyringPair;
-}> => {
+): Promise<ApiPromise> => {
   if (network === Network.Local) {
     console.log("Using local chain");
     const wsProvider = new WsProvider(process.env.LOCAL);
     const api = await ApiPromise.create({ provider: wsProvider });
     await api.isReady;
-    const keyring = new Keyring({ type: "sr25519" });
-    const account = await getEnvAccount(keyring);
-    await printBalance(api, account)
-    return { api, account };
+    return api;
   } else if (network === Network.Testnet) {
     console.log("Using testnet");
     const chainId = process.env.CHAIN;
     const chain = getSubstrateChain(chainId);
-
     if (!chain) {
       throw new Error("chain not found");
     }
-
     const { api } = await initApi(chain, { noInitWarn: true });
-    const keyring = new Keyring({ type: "sr25519" });
-    const account = await getEnvAccount(keyring);
-    await printBalance(api, account)
-    return { api, account };
+    return api;
   } else {
     throw new Error("Invalid network");
   }
 };
 
-const getEnvAccount = async (keyring: Keyring): Promise<IKeyringPair> => {
+export const getEnvAccount = async (keyring: Keyring): Promise<IKeyringPair> => {
     const accountUri = process.env.ACCOUNT_URI;
 
     if (!accountUri) {
@@ -51,7 +40,7 @@ const getEnvAccount = async (keyring: Keyring): Promise<IKeyringPair> => {
     return keyring.addFromUri(accountUri);
 }
 
-const printBalance = async (api: ApiPromise, account: IKeyringPair) => {
+export const printBalance = async (api: ApiPromise, account: IKeyringPair) => {
   const network = (await api.rpc.system.chain())?.toString() || "";
   const version = (await api.rpc.system.version())?.toString() || "";
   const balance = await getBalance(api, account.address);

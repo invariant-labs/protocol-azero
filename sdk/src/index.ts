@@ -1,12 +1,17 @@
 import dotenv from "dotenv";
 import { Invariant } from "./invariant.js";
-import { getDeploymentData, initPolkadotJs } from "./utils.js";
+import { getDeploymentData, getEnvAccount, initPolkadotJs, printBalance } from "./utils.js";
 import { Network } from "./network.js";
+import { Keyring } from "@polkadot/api";
 dotenv.config();
 
 const main = async () => {
   const network = Network.getFromEnv();
-  const { api, account } = await initPolkadotJs(network);
+  const api = await initPolkadotJs(network);
+  const keyring = new Keyring({ type: "sr25519" });
+  const account = await getEnvAccount(keyring);
+  await printBalance(api, account)
+
   const { abi, wasm } = await getDeploymentData();
   const invariant = new Invariant(api, account, 100000000000, 100000000000);
 
