@@ -6,14 +6,15 @@ import {
   initPolkadotJs as initApi,
 } from "@scio-labs/use-inkathon/helpers";
 import { readFile } from "fs/promises";
+import { Network } from "./network.js";
 
 export const initPolkadotJs = async (
-  selectedChain: string
+  network: Network
 ): Promise<{
   api: ApiPromise;
   account: IKeyringPair;
 }> => {
-  if (selectedChain === "local") {
+  if (network === Network.Local) {
     console.log("Using local chain");
     const wsProvider = new WsProvider(process.env.LOCAL);
     const api = await ApiPromise.create({ provider: wsProvider });
@@ -22,7 +23,7 @@ export const initPolkadotJs = async (
     const account = await getEnvAccount(keyring);
     await printBalance(api, account)
     return { api, account };
-  } else if (selectedChain === "testnet") {
+  } else if (network === Network.Testnet) {
     console.log("Using testnet");
     const chainId = process.env.CHAIN;
     const chain = getSubstrateChain(chainId);
