@@ -148,8 +148,11 @@ jobs:
           command: install
           args: --locked cargo-contract
 
-      - name: Build sdk
+      - name: Install packages
         run: |
           cd sdk
           npm i
+
+      - name: Build sdk
+        run: |
           npm run build
