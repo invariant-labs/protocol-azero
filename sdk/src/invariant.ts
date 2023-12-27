@@ -3,16 +3,8 @@ import { ContractPromise } from "@polkadot/api-contract";
 import { WeightV2 } from "@polkadot/types/interfaces";
 import { IKeyringPair } from "@polkadot/types/types/interfaces";
 import { deployContract } from "@scio-labs/use-inkathon/helpers";
+import { InvariantQuery, InvariantTx } from "./schema.js";
 
-const CONTRACT_NAME = 'invariant'
-
-export enum InvariantQuery {
-    ProtocolFee = `${CONTRACT_NAME}::getProtocolFee`,
-}
-
-export enum InvariantTx {
-    ChangeProtocolFee = `${CONTRACT_NAME}::changeProtocolFee`,
-}
 export class Invariant {
   contract: ContractPromise | null = null;
   api: ApiPromise;
