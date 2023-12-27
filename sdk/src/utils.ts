@@ -18,7 +18,9 @@ export const initPolkadotJs = async (
     const wsProvider = new WsProvider(process.env.LOCAL);
     const api = await ApiPromise.create({ provider: wsProvider });
     await api.isReady;
-    const account = await getAccount(api);
+    const keyring = new Keyring({ type: "sr25519" });
+    const account = await getEnvAccount(keyring);
+    await printBalance(api, account)
     return { api, account };
   } else if (selectedChain === "testnet") {
     console.log("Using testnet");
@@ -30,31 +32,32 @@ export const initPolkadotJs = async (
     }
 
     const { api } = await initApi(chain, { noInitWarn: true });
-    const account = await getAccount(api);
+    const keyring = new Keyring({ type: "sr25519" });
+    const account = await getEnvAccount(keyring);
+    await printBalance(api, account)
     return { api, account };
   } else {
     throw new Error("Invalid network");
   }
 };
 
-const getAccount = async (api: ApiPromise): Promise<IKeyringPair> => {
-  const accountUri = process.env.ACCOUNT_URI;
+const getEnvAccount = async (keyring: Keyring): Promise<IKeyringPair> => {
+    const accountUri = process.env.ACCOUNT_URI;
 
+    if (!accountUri) {
+      throw new Error("invalid account uri");
+    }
+    return keyring.addFromUri(accountUri);
+}
+
+const printBalance = async (api: ApiPromise, account: IKeyringPair) => {
   const network = (await api.rpc.system.chain())?.toString() || "";
   const version = (await api.rpc.system.version())?.toString() || "";
-  console.log(`network: ${network} (${version})`);
-
-  const keyring = new Keyring({ type: "sr25519" });
-
-  if (!accountUri) {
-    throw new Error("invalid account uti");
-  }
-
-  const account = keyring.addFromUri(accountUri);
   const balance = await getBalance(api, account.address);
+
+  console.log(`network: ${network} (${version})`);
   console.log(`account: ${account.address} (${balance.balanceFormatted})\n`);
-  return account;
-};
+}
 
 export const getDeploymentData = async () => {
   try {
