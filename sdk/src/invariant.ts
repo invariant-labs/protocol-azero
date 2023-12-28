@@ -5,6 +5,7 @@ import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { deployContract } from '@scio-labs/use-inkathon/helpers'
 import { InvariantQuery, InvariantTx } from './schema.js'
 import { DeployedContract } from '@scio-labs/use-inkathon'
+import { Network } from './network.js'
 
 export class Invariant {
   public static readonly DEFAULT_REF_TIME = 100000000000
@@ -14,10 +15,12 @@ export class Invariant {
   api: ApiPromise
   account: IKeyringPair
   weight: WeightV2
+  waitForFinalization: boolean
 
   constructor(
     api: ApiPromise,
     account: IKeyringPair,
+    network: Network,
     refTime: number = Invariant.DEFAULT_REF_TIME,
     proofSize: number = Invariant.DEFAULT_PROOF_SIZE
   ) {
@@ -27,6 +30,7 @@ export class Invariant {
       refTime,
       proofSize
     }) as WeightV2
+    this.waitForFinalization = network != Network.Local
   }
 
   async load(deploymentAddress: string, abi: any): Promise<void> {
@@ -58,7 +62,12 @@ export class Invariant {
     }
   }
 
-  async sendTx(message: InvariantTx, signer: IKeyringPair, params: any[]): Promise<string> {
+  async sendTx(
+    message: InvariantTx,
+    signer: IKeyringPair,
+    params: any[],
+    block: boolean = true
+  ): Promise<string> {
     if (!this.contract) {
       throw new Error('contract not loaded')
     }
@@ -73,14 +82,17 @@ export class Invariant {
 
     return new Promise<string>(async (resolve, reject) => {
       await call.signAndSend(signer, result => {
-        if (result.dispatchInfo) {
+        if (!block) {
+          resolve(result.txHash.toHex())
+        }
+        if (result.isError) {
+          reject(result.toHuman())
+        }
+        if (result.isCompleted && !this.waitForFinalization) {
           resolve(result.txHash.toHex())
         }
         if (result.isFinalized) {
           resolve(result.txHash.toHex())
-        }
-        if (result.isError) {
-          reject(result.dispatchError)
         }
       })
     })

@@ -13,7 +13,7 @@ const main = async () => {
   await printBalance(api, account)
 
   const { abi, wasm } = await getDeploymentData()
-  const invariant = new Invariant(api, account)
+  const invariant = new Invariant(api, account, network)
 
   let initFee = { v: 10 }
   const deployContract = await invariant.deploy(abi, wasm, initFee)
