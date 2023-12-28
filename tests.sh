@@ -27,4 +27,4 @@ cargo test --features e2e-tests
 
 # build contract
 cargo contract build
-cargo cobtract build --release
+cargo contract build --release
