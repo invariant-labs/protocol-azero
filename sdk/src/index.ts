@@ -1,8 +1,8 @@
+import { Keyring } from '@polkadot/api'
 import dotenv from 'dotenv'
 import { Invariant } from './invariant.js'
-import { getDeploymentData, getEnvAccount, initPolkadotApi, printBalance } from './utils.js'
 import { Network } from './network.js'
-import { Keyring } from '@polkadot/api'
+import { getDeploymentData, getEnvAccount, initPolkadotApi, printBalance } from './utils.js'
 dotenv.config()
 
 const main = async () => {
@@ -23,8 +23,8 @@ const main = async () => {
   let initialFee = await invariant.getProtocolFee()
   console.log(initialFee)
 
-  let newFeeStruct = {
-    v: 100
+  const newFeeStruct = {
+    v: 18446744073709551615n
   }
 
   console.log(`Changing protocol fee to: ${newFeeStruct.v}`)
