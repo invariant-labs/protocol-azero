@@ -7,13 +7,11 @@ import { Network } from './network.js'
 
 export const initPolkadotApi = async (network: Network): Promise<ApiPromise> => {
   if (network === Network.Local) {
-    console.log('Using local chain')
     const wsProvider = new WsProvider(process.env.LOCAL)
     const api = await ApiPromise.create({ provider: wsProvider })
     await api.isReady
     return api
   } else if (network === Network.Testnet) {
-    console.log('Using testnet')
     const chainId = process.env.CHAIN
     const chain = getSubstrateChain(chainId)
     if (!chain) {
