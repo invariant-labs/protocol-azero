@@ -16,11 +16,11 @@ const main = async () => {
   const { abi, wasm } = await getDeploymentData()
   const invariant = new Invariant(api, account, network)
 
-  let initFee = { v: 10 }
+  const initFee = { v: 10 }
   const deployContract = await invariant.deploy(abi, wasm, initFee)
   await invariant.load(deployContract.address, abi)
 
-  let initialFee = await invariant.getProtocolFee()
+  const initialFee = await invariant.getProtocolFee()
   console.log(initialFee)
 
   const newFeeStruct = {
@@ -29,11 +29,11 @@ const main = async () => {
 
   console.log(`Changing protocol fee to: ${newFeeStruct.v}`)
 
-  let txHash = await invariant.changeProtocolFee(newFeeStruct)
+  const txHash = await invariant.changeProtocolFee(newFeeStruct)
 
   console.log('Received txHash  = ', txHash)
 
-  let newFee = await invariant.getProtocolFee()
+  const newFee = await invariant.getProtocolFee()
   console.log(newFee)
 
   console.log('Passed.')

@@ -10,7 +10,8 @@
     "start:testnet": "npx tsc && ts-node target/index.js testnet",
     "start:local": "npx tsc && ts-node target/index.js local",
     "node:start": "substrate-contracts-node purge-chain -y && substrate-contracts-node --rpc-port 9944 --dev",
-    "contract:build": "cd .. && cargo contract build --release && cd sdk"
+    "contract:build": "cd .. && cargo contract build --release && cd sdk",
+    "lint": "eslint . --ext .ts"
   },
   "dependencies": {
     "@polkadot/api": "^10.11.2",
@@ -22,5 +23,10 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.16.0",
+    "@typescript-eslint/parser": "^6.16.0",
+    "eslint": "^8.56.0"
+  }
 }

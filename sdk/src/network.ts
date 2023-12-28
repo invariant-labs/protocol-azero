@@ -10,7 +10,7 @@ export namespace Network {
   }
 
   export function getFromEnv(): Network {
-    let network = Network.valueOf(process.argv[2])
+    const network = Network.valueOf(process.argv[2])
     if (!network) {
       throw new Error('network not found')
     }
