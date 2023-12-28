@@ -1,7 +1,7 @@
+use crate::liquidity::Liquidity;
+use core::convert::{TryFrom, TryInto};
 use decimal::*;
 use traceable_result::*;
-
-use crate::math::types::liquidity::Liquidity;
 
 #[decimal(24)]
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, scale::Decode, scale::Encode)]
