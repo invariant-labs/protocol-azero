@@ -2,10 +2,10 @@ import { ApiPromise } from '@polkadot/api'
 import { ContractPromise } from '@polkadot/api-contract'
 import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
-import { deployContract } from '@scio-labs/use-inkathon/helpers'
-import { InvariantQuery, InvariantTx } from './schema.js'
 import { DeployedContract } from '@scio-labs/use-inkathon'
+import { deployContract } from '@scio-labs/use-inkathon/helpers'
 import { Network } from './network.js'
+import { InvariantQuery, InvariantTx } from './schema.js'
 
 export class Invariant {
   public static readonly DEFAULT_REF_TIME = 100000000000
