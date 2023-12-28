@@ -7,6 +7,7 @@ dotenv.config()
 
 const main = async () => {
   const network = Network.getFromEnv()
+  console.log(`Using ${network}`)
   const api = await initPolkadotApi(network)
   const keyring = new Keyring({ type: 'sr25519' })
   const account = await getEnvAccount(keyring)
