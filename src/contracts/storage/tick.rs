@@ -1,9 +1,9 @@
 use super::Pool;
-use crate::math::types::{
+use decimal::*;
+use math::types::{
     fee_growth::FeeGrowth, liquidity::Liquidity, sqrt_price::calculate_sqrt_price,
     sqrt_price::SqrtPrice,
 };
-use decimal::*;
 use traceable_result::*;
 
 #[derive(Debug, Copy, Clone, scale::Decode, scale::Encode, PartialEq)]

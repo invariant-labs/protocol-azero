@@ -1,21 +1,17 @@
 use super::{FeeTier, Oracle, Tick};
-use crate::{
-    contracts::PoolKey,
-    math::{
-        clamm::*,
-        log::get_tick_at_sqrt_price,
-        sqrt_price::get_max_tick,
-        types::{
-            fee_growth::FeeGrowth, liquidity::Liquidity, percentage::Percentage,
-            sqrt_price::SqrtPrice, token_amount::TokenAmount,
-        },
-        MAX_TICK,
-    },
-    InvariantError,
-};
-
+use crate::{contracts::PoolKey, InvariantError};
 use decimal::*;
 use ink::primitives::AccountId;
+use math::{
+    clamm::*,
+    log::get_tick_at_sqrt_price,
+    sqrt_price::get_max_tick,
+    types::{
+        fee_growth::FeeGrowth, liquidity::Liquidity, percentage::Percentage, sqrt_price::SqrtPrice,
+        token_amount::TokenAmount,
+    },
+    MAX_TICK,
+};
 use traceable_result::*;
 
 #[derive(PartialEq, Debug, Clone, scale::Decode, scale::Encode)]

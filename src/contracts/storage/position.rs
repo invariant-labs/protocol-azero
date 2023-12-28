@@ -1,18 +1,15 @@
 use super::{Pool, PoolKey, Tick};
-use crate::{
-    math::{
-        clamm::*,
-        types::{
-            fee_growth::{calculate_fee_growth_inside, FeeGrowth},
-            liquidity::Liquidity,
-            sqrt_price::SqrtPrice,
-            token_amount::TokenAmount,
-        },
-    },
-    InvariantError,
-};
+use crate::InvariantError;
 use decimal::*;
+use math::calculate_max_liquidity_per_tick;
+use math::liquidity::Liquidity;
+use math::types::{
+    fee_growth::{calculate_fee_growth_inside, FeeGrowth},
+    sqrt_price::SqrtPrice,
+    token_amount::TokenAmount,
+};
 use traceable_result::*;
+
 #[derive(PartialEq, Default, Debug, Copy, Clone, scale::Decode, scale::Encode)]
 #[cfg_attr(
     feature = "std",

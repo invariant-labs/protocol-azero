@@ -1,5 +1,5 @@
-use crate::math::types::percentage::Percentage;
 use ink::primitives::AccountId;
+use math::types::percentage::Percentage;
 
 #[ink::storage_item]
 #[derive(Debug)]

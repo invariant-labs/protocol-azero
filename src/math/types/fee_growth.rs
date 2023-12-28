@@ -1,4 +1,4 @@
-use crate::{liquidity::*, token_amount::*};
+use crate::liquidity::*;
 
 use crate::token_amount::TokenAmount;
 use core::convert::{TryFrom, TryInto};
@@ -6,11 +6,23 @@ use decimal::*;
 use traceable_result::*;
 
 #[decimal(28)]
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, scale::Decode, scale::Encode)]
-#[cfg_attr(
-    feature = "std",
-    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+#[derive(
+    Default,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    scale::Decode,
+    scale::Encode,
+    scale_info::TypeInfo,
+    ink::storage::traits::StorageLayout,
 )]
+// #[cfg_attr(
+//     feature = "std",
+//     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+// )]
 pub struct FeeGrowth {
     pub v: u128,
 }

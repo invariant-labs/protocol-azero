@@ -8,7 +8,7 @@ edition = "2021"
 # local
 decimal = { path = "src/decimal" }
 traceable_result = { path = "src/traceable_result" }
-math = {path = "src/math"}
+math = { path = "src/math", default-features = false, features = ["ink-as-dependency"] }
 
 # ink
 ink = { version = "4.2.0", default-features = false, optional = true }

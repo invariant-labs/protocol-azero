@@ -90,28 +90,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
 
 [[package]]
-name = "cc"
-version = "1.0.83"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f1174fb0b6ec23863f8b971027804a42614e347eafb0a95bf0b12cdae21fc4d0"
-dependencies = [
- "libc",
-]
-
-[[package]]
 name = "cfg-if"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
-
-[[package]]
-name = "cpufeatures"
-version = "0.2.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ce420fe07aecd3e67c5f910618fe65e94158f6dcc0adf44e00d69ce2bdfe0fd0"
-dependencies = [
- "libc",
-]
 
 [[package]]
 name = "crunchy"
@@ -351,7 +333,6 @@ dependencies = [
  "derive_more",
  "ink_env",
  "ink_macro",
- "ink_metadata",
  "ink_prelude",
  "ink_primitives",
  "ink_storage",
@@ -392,32 +373,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "ink_engine"
-version = "4.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "722ec3a5eb557124b001c60ff8f961079f6d566af643edea579f152b15822fe5"
-dependencies = [
- "blake2",
- "derive_more",
- "ink_primitives",
- "parity-scale-codec",
- "secp256k1",
- "sha2",
- "sha3",
-]
-
-[[package]]
 name = "ink_env"
 version = "4.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "584e73bc0982f6f1a067bb63ebc75262f6dc54ed2a17060efa73eaba84dc9308"
 dependencies = [
  "arrayref",
- "blake2",
  "cfg-if",
  "derive_more",
  "ink_allocator",
- "ink_engine",
  "ink_prelude",
  "ink_primitives",
  "ink_storage_traits",
@@ -425,12 +389,6 @@ dependencies = [
  "parity-scale-codec",
  "paste",
  "rlibc",
- "scale-decode",
- "scale-encode",
- "scale-info",
- "secp256k1",
- "sha2",
- "sha3",
  "static_assertions",
 ]
 
@@ -462,20 +420,6 @@ dependencies = [
  "quote",
  "syn 2.0.43",
  "synstructure",
-]
-
-[[package]]
-name = "ink_metadata"
-version = "4.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3fddff95ce3e01f42002fdaf96edda691dbccb08c9ae76d7101daa1fa634e601"
-dependencies = [
- "derive_more",
- "impl-serde",
- "ink_prelude",
- "ink_primitives",
- "scale-info",
- "serde",
 ]
 
 [[package]]
@@ -512,12 +456,10 @@ dependencies = [
  "cfg-if",
  "derive_more",
  "ink_env",
- "ink_metadata",
  "ink_prelude",
  "ink_primitives",
  "ink_storage_traits",
  "parity-scale-codec",
- "scale-info",
 ]
 
 [[package]]
@@ -526,11 +468,9 @@ version = "4.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a8dcb50f70377ac35c28d63b06383a0a3cbb79542ea4cdc5b00e3e2b3de4a549"
 dependencies = [
- "ink_metadata",
  "ink_prelude",
  "ink_primitives",
  "parity-scale-codec",
- "scale-info",
 ]
 
 [[package]]
@@ -540,21 +480,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "276ec31bcb4a9ee45f58bec6f9ec700ae4cf4f4f8f2fa7e06cb406bd5ffdd770"
 dependencies = [
  "num-traits",
-]
-
-[[package]]
-name = "invt"
-version = "0.1.0"
-dependencies = [
- "decimal",
- "ink",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "serde-wasm-bindgen",
- "traceable_result",
- "tsify",
- "wasm-bindgen",
 ]
 
 [[package]]
@@ -593,15 +518,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "keccak"
-version = "0.1.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8f6d5ed8676d904364de097082f4e7d240b571b67989ced0240f08b7f966f940"
-dependencies = [
- "cpufeatures",
-]
-
-[[package]]
 name = "libc"
 version = "0.2.151"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -618,6 +534,21 @@ name = "log"
 version = "0.4.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b5e6163cb8c49088c2c36f57875e58ccd8c87c7427f7fbd50ea6710b2f3f2e8f"
+
+[[package]]
+name = "math"
+version = "0.1.0"
+dependencies = [
+ "decimal",
+ "ink",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "serde-wasm-bindgen",
+ "traceable_result",
+ "tsify",
+ "wasm-bindgen",
+]
 
 [[package]]
 name = "memchr"
@@ -844,7 +775,6 @@ dependencies = [
  "derive_more",
  "parity-scale-codec",
  "scale-info-derive",
- "serde",
 ]
 
 [[package]]
@@ -857,24 +787,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 1.0.109",
-]
-
-[[package]]
-name = "secp256k1"
-version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "25996b82292a7a57ed3508f052cfff8640d38d32018784acd714758b43da9c8f"
-dependencies = [
- "secp256k1-sys",
-]
-
-[[package]]
-name = "secp256k1-sys"
-version = "0.8.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "70a129b9e9efbfb223753b9163c4ab3b13cff7fd9c7f010fbac25ab4099fa07e"
-dependencies = [
- "cc",
 ]
 
 [[package]]
@@ -928,27 +840,6 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
-]
-
-[[package]]
-name = "sha2"
-version = "0.10.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "793db75ad2bcafc3ffa7c68b215fee268f537982cd901d132f89c6343f3a3dc8"
-dependencies = [
- "cfg-if",
- "cpufeatures",
- "digest",
-]
-
-[[package]]
-name = "sha3"
-version = "0.10.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "75872d278a8f37ef87fa0ddbda7802605cb18344497949862c0d4dcb291eba60"
-dependencies = [
- "digest",
- "keccak",
 ]
 
 [[package]]

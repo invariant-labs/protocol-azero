@@ -3,7 +3,6 @@
 extern crate alloc;
 mod contracts;
 pub mod e2e;
-pub mod math;
 
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
@@ -41,20 +40,20 @@ pub mod contract {
         FeeTier, FeeTiers, Invariant, InvariantConfig, Pool, PoolKey, PoolKeys, Pools, Position,
         Positions, Tick, Tickmap, Ticks,
     };
-    use crate::math::calculate_min_amount_out;
-    use crate::math::check_tick;
-    use crate::math::log::get_tick_at_sqrt_price;
-    use crate::math::percentage::Percentage;
-    use crate::math::sqrt_price::SqrtPrice;
-    use crate::math::token_amount::TokenAmount;
-    use crate::math::types::liquidity::Liquidity;
-    use crate::InvariantError; //
+    use crate::InvariantError;
+    use math::calculate_min_amount_out;
+    use math::check_tick;
+    use math::log::get_tick_at_sqrt_price;
+    use math::percentage::Percentage;
+    use math::sqrt_price::SqrtPrice;
+    use math::token_amount::TokenAmount;
+    use math::types::liquidity::Liquidity; //
 
-    use crate::math::{compute_swap_step, MAX_SQRT_PRICE, MIN_SQRT_PRICE};
     use decimal::*;
     use ink::contract_ref;
     use ink::prelude::vec;
     use ink::prelude::vec::Vec;
+    use math::{compute_swap_step, MAX_SQRT_PRICE, MIN_SQRT_PRICE};
     use token::PSP22;
     use traceable_result::unwrap;
 

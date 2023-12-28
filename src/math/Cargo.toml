@@ -1,5 +1,5 @@
 [package]
-name = "invt"
+name = "math"
 version = "0.1.0"
 authors = ["The wasm-bindgen Developers"]
 edition = "2018"
@@ -19,16 +19,16 @@ decimal = { path= "../decimal" }
 traceable_result = { path = "../traceable_result" }
 
 # ink
-ink = { version = "4.3.0", default-features = false, optional = true}
+ink = { version = "4.2.0", default-features = false}
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = [
   "derive",
 ] }
 scale-info = { version = "2.6", default-features = false, features = [
   "derive",
-], optional = true }
+] }
 
 
 [features]
 # default = ["std"]
-std = ["ink/std", "scale/std", "scale-info/std"]
+# std = ["ink/std", "scale/std", "scale-info/std"]
 ink-as-dependency = []
