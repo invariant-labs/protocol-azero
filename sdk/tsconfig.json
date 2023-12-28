@@ -8,7 +8,8 @@
     "skipLibCheck": true,
     "rootDir": "./src",
     "outDir": "./target",
-    "moduleResolution": "bundler"
+    "moduleResolution": "bundler",
+    "types": ["mocha", "chai"]
   },
-  "include": ["./src"]
+  "exclude": ["./tests/*.ts"]
 }
