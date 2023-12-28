@@ -1,13 +1,13 @@
 import dotenv from "dotenv";
 import { Invariant } from "./invariant.js";
-import { getDeploymentData, getEnvAccount, initPolkadotJs, printBalance } from "./utils.js";
+import { getDeploymentData, getEnvAccount, initPolkadotApi, printBalance } from "./utils.js";
 import { Network } from "./network.js";
 import { Keyring } from "@polkadot/api";
 dotenv.config();
 
 const main = async () => {
   const network = Network.getFromEnv();
-  const api = await initPolkadotJs(network);
+  const api = await initPolkadotApi(network);
   const keyring = new Keyring({ type: "sr25519" });
   const account = await getEnvAccount(keyring);
   await printBalance(api, account)
@@ -16,7 +16,8 @@ const main = async () => {
   const invariant = new Invariant(api, account);
 
   let initFee = { v: 10 };
-  await invariant.new(abi, wasm, initFee);
+  const deployContract = await invariant.deploy(abi, wasm, initFee);
+  await invariant.load(deployContract.address, abi);
 
   let initialFee = await invariant.getProtocolFee();
   console.log(initialFee);

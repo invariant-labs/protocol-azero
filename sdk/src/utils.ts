@@ -8,7 +8,7 @@ import {
 import { readFile } from "fs/promises";
 import { Network } from "./network.js";
 
-export const initPolkadotJs = async (
+export const initPolkadotApi = async (
   network: Network
 ): Promise<ApiPromise> => {
   if (network === Network.Local) {

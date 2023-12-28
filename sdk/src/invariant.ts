@@ -4,6 +4,7 @@ import { WeightV2 } from "@polkadot/types/interfaces";
 import { IKeyringPair } from "@polkadot/types/types/interfaces";
 import { deployContract } from "@scio-labs/use-inkathon/helpers";
 import { InvariantQuery, InvariantTx } from "./schema.js";
+import { DeployedContract } from "@scio-labs/use-inkathon";
 
 export class Invariant {
   public static readonly DEFAULT_REF_TIME = 100000000000;
@@ -28,19 +29,22 @@ export class Invariant {
     }) as WeightV2;
   }
 
-  async new(abi: any, wasm: Buffer, fee: { v: number }): Promise<void> {
-    const invariant_deployment = await deployContract(
+  async load(deploymentAddress: string, abi: any): Promise<void> {
+    this.contract = new ContractPromise(
+      this.api,
+      abi,
+      deploymentAddress
+    );
+  }
+
+  async deploy(abi: any, wasm: Buffer, fee: { v: number }): Promise<DeployedContract> {
+    return await deployContract(
       this.api,
       this.account,
       abi,
       wasm,
       "new",
       [fee]
-    );
-    this.contract = new ContractPromise(
-      this.api,
-      abi,
-      invariant_deployment.address
     );
   }
 
@@ -50,7 +54,7 @@ export class Invariant {
     params: any[]
   ): Promise<void> {
     if (!this.contract) {
-      throw new Error("contract not deployed");
+      throw new Error("contract not loaded");
     }
 
     const { result, output } = await this.contract.query[message](
@@ -75,7 +79,7 @@ export class Invariant {
     params: any[]
   ): Promise<string> {
     if (!this.contract) {
-      throw new Error("contract not deployed");
+      throw new Error("contract not loaded");
     }
 
     const call = this.contract.tx[message](
