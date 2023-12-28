@@ -13,7 +13,7 @@ const main = async () => {
   await printBalance(api, account)
 
   const { abi, wasm } = await getDeploymentData();
-  const invariant = new Invariant(api, account, 100000000000, 100000000000);
+  const invariant = new Invariant(api, account);
 
   let initFee = { v: 10 };
   await invariant.new(abi, wasm, initFee);

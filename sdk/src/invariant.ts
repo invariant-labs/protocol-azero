@@ -6,6 +6,9 @@ import { deployContract } from "@scio-labs/use-inkathon/helpers";
 import { InvariantQuery, InvariantTx } from "./schema.js";
 
 export class Invariant {
+  public static readonly DEFAULT_REF_TIME = 100000000000;
+  public static readonly DEFAULT_PROOF_SIZE = 100000000000;
+
   contract: ContractPromise | null = null;
   api: ApiPromise;
   account: IKeyringPair;
@@ -14,8 +17,8 @@ export class Invariant {
   constructor(
     api: ApiPromise,
     account: IKeyringPair,
-    refTime: number,
-    proofSize: number
+    refTime: number = Invariant.DEFAULT_REF_TIME,
+    proofSize: number = Invariant.DEFAULT_PROOF_SIZE
   ) {
     this.api = api;
     this.account = account;
