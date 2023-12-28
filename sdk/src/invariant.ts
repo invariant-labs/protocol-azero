@@ -102,7 +102,7 @@ export class Invariant {
     return await this.sendQuery(InvariantQuery.ProtocolFee, this.account.address, [])
   }
 
-  async changeProtocolFee(fee: { v: number }): Promise<string> {
+  async changeProtocolFee(fee: { v: bigint }): Promise<string> {
     return await this.sendTx(InvariantTx.ChangeProtocolFee, this.account, [fee])
   }
 }

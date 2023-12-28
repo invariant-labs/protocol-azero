@@ -24,7 +24,7 @@ const main = async () => {
   console.log(initialFee)
 
   const newFeeStruct = {
-    v: 100
+    v: 18446744073709551615n
   }
 
   console.log(`Changing protocol fee to: ${newFeeStruct.v}`)
