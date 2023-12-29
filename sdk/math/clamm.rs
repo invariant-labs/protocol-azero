@@ -188,7 +188,7 @@ pub fn get_delta_y(
     })?))
 }
 
-fn get_next_sqrt_price_from_input(
+pub fn get_next_sqrt_price_from_input(
     starting_sqrt_price: SqrtPrice,
     liquidity: Liquidity,
     amount: TokenAmount,
@@ -204,7 +204,7 @@ fn get_next_sqrt_price_from_input(
     ok_or_mark_trace!(result)
 }
 
-fn get_next_sqrt_price_from_output(
+pub fn get_next_sqrt_price_from_output(
     starting_sqrt_price: SqrtPrice,
     liquidity: Liquidity,
     amount: TokenAmount,
@@ -244,7 +244,7 @@ pub fn get_next_sqrt_price_x_up(
     ))
 }
 
-fn get_next_sqrt_price_y_down(
+pub fn get_next_sqrt_price_y_down(
     starting_sqrt_price: SqrtPrice,
     liquidity: Liquidity,
     y: TokenAmount,
