@@ -9,18 +9,6 @@ import { Network } from './network.js'
 import { PSP22Query, PSP22Tx } from './schema.js'
 import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME, sendQuery, sendTx } from './utils.js'
 
-export enum PSP22Message {
-  Mint = 'psp22Mintable::mint',
-  Transfer = 'psp22::transfer',
-  Approve = 'psp22::approve',
-  TokenName = 'psp22Metadata::tokenName',
-  TokenSymbol = 'psp22Metadata::tokenSymbol',
-  TokenDecimals = 'psp22Metadata::tokenDecimals',
-  BalanceOf = 'psp22::balanceOf',
-  TotalSupply = 'psp22::totalSupply',
-  Allowance = 'psp22::allowance'
-}
-
 export class PSP22 {
   contract: ContractPromise | null = null
   api: ApiPromise
