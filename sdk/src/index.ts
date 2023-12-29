@@ -62,8 +62,14 @@ const main = async () => {
   const wazeroData = await getDeploymentData('wrapped_azero')
   const wazero = new WrappedAZERO(api)
 
-  const wazeroDeploy = await wazero.deploy(account, wazeroData.abi, wazeroData.wasm)
-  await wazero.load(wazeroDeploy.address, wazeroData.abi)
+  if (process.env.WAZERO_ADDRESS) {
+    await wazero.load(process.env.WAZERO_ADDRESS, wazeroData.abi)
+    console.log('loaded wazero')
+  } else {
+    const wazeroDeploy = await wazero.deploy(account, wazeroData.abi, wazeroData.wasm)
+    await wazero.load(wazeroDeploy.address, wazeroData.abi)
+    console.log('deployed and loaded wazero')
+  }
 
   // change protocol fee
   const initialFee = await invariant.getProtocolFee(account)
