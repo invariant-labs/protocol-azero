@@ -166,5 +166,6 @@ jobs:
       - name: Test SDK
         working-directory: ./sdk
         run: |
-          ./tests.sh
+          npm run node:start
+          npm run test
         shell: bash
