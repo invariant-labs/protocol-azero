@@ -4,7 +4,6 @@ import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { DeployedContract } from '@scio-labs/use-inkathon'
 import { deployContract } from '@scio-labs/use-inkathon/helpers'
-import { Network } from './network.js'
 import { InvariantQuery, InvariantTx } from './schema.js'
 import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME, sendQuery, sendTx } from './utils.js'
 
@@ -13,11 +12,9 @@ export class Invariant {
   api: ApiPromise
   gasLimit: WeightV2
   storageDepositLimit: number | null
-  waitForFinalization: boolean
 
   constructor(
     api: ApiPromise,
-    network: Network,
     storageDepositLimit: number | null = null,
     refTime: number = DEFAULT_REF_TIME,
     proofSize: number = DEFAULT_PROOF_SIZE
@@ -28,7 +25,6 @@ export class Invariant {
       proofSize
     }) as WeightV2
     this.storageDepositLimit = storageDepositLimit
-    this.waitForFinalization = network != Network.Local
   }
 
   async deploy(
@@ -63,8 +59,7 @@ export class Invariant {
       0,
       account,
       InvariantTx.ChangeProtocolFee,
-      [fee],
-      this.waitForFinalization
+      [fee]
     )
   }
 }

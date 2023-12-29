@@ -28,8 +28,8 @@ const main = async () => {
   await printBalance(api, testAccount)
 
   // deploy invariant
-  const invariantData = await getDeploymentData('contract')
-  const invariant = new Invariant(api, network)
+  const invariantData = await getDeploymentData('invariant')
+  const invariant = new Invariant(api)
 
   const initFee = { v: 10 }
   const invariantDeploy = await invariant.deploy(
@@ -42,7 +42,7 @@ const main = async () => {
 
   // deploy token
   const tokenData = await getDeploymentData('psp22')
-  const token = new PSP22(api, network)
+  const token = new PSP22(api)
 
   const name = api.createType('Option<String>', 'Coin')
   const symbol = api.createType('Option<String>', 'COIN')
@@ -60,7 +60,7 @@ const main = async () => {
 
   // deploy wrapped azero
   const wazeroData = await getDeploymentData('wrapped_azero')
-  const wazero = new WrappedAZERO(api, network)
+  const wazero = new WrappedAZERO(api)
 
   const wazeroDeploy = await wazero.deploy(account, wazeroData.abi, wazeroData.wasm)
   await wazero.load(wazeroDeploy.address, wazeroData.abi)

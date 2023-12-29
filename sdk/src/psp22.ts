@@ -5,7 +5,6 @@ import { WeightV2 } from '@polkadot/types/interfaces'
 import { Codec, IKeyringPair } from '@polkadot/types/types'
 import { DeployedContract } from '@scio-labs/use-inkathon'
 import { deployContract } from '@scio-labs/use-inkathon/helpers'
-import { Network } from './network.js'
 import { PSP22Query, PSP22Tx } from './schema.js'
 import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME, sendQuery, sendTx } from './utils.js'
 
@@ -26,11 +25,9 @@ export class PSP22 {
   api: ApiPromise
   gasLimit: WeightV2
   storageDepositLimit: number | null
-  waitForFinalization: boolean
 
   constructor(
     api: ApiPromise,
-    network: Network,
     storageDepositLimit: number | null = null,
     refTime: number = DEFAULT_REF_TIME,
     proofSize: number = DEFAULT_PROOF_SIZE
@@ -41,7 +38,6 @@ export class PSP22 {
       proofSize
     }) as WeightV2
     this.storageDepositLimit = storageDepositLimit
-    this.waitForFinalization = network != Network.Local
   }
 
   async deploy(
@@ -68,8 +64,7 @@ export class PSP22 {
       0,
       account,
       PSP22Tx.Mint,
-      [value],
-      this.waitForFinalization
+      [value]
     )
   }
 
@@ -82,7 +77,6 @@ export class PSP22 {
       account,
       PSP22Tx.Mint,
       [value],
-      this.waitForFinalization,
       false
     )
   }
@@ -95,8 +89,7 @@ export class PSP22 {
       0,
       account,
       PSP22Tx.Transfer,
-      [to, value, data],
-      this.waitForFinalization
+      [to, value, data]
     )
   }
 
@@ -114,7 +107,6 @@ export class PSP22 {
       account,
       PSP22Tx.Transfer,
       [to, value, data],
-      this.waitForFinalization,
       false
     )
   }

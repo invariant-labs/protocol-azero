@@ -114,7 +114,6 @@ export async function sendTx(
   signer: IKeyringPair,
   message: InvariantTx | PSP22Tx | WrappedAZEROTx,
   data: any[],
-  waitForFinalization: boolean = true,
   block: boolean = true
 ): Promise<string> {
   if (!contract) {
@@ -138,10 +137,7 @@ export async function sendTx(
       if (result.isError) {
         reject(result.toHuman())
       }
-      if (result.isCompleted && !waitForFinalization) {
-        resolve(result.txHash.toHex())
-      }
-      if (result.isFinalized) {
+      if (result.isCompleted) {
         resolve(result.txHash.toHex())
       }
     })
