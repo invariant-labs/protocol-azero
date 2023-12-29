@@ -8,10 +8,9 @@ edition = "2021"
 # local
 decimal = { path = "src/decimal" }
 traceable_result = { path = "src/traceable_result" }
-math = {path = "src/math"}
 
 # ink
-ink = { version = "4.2.0", default-features = false, optional = true }
+ink = { version = "4.2.0", default-features = false }
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = [
   "derive",
 ] }
@@ -29,7 +28,6 @@ test_helpers = { path = "src/test_helpers", default-features = false }
 [lib]
 name = "contract"
 path = "src/lib.rs"
-crate-type = ["cdylib"]
 
 [features]
 default = ["std"]

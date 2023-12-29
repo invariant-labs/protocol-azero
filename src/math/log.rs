@@ -1,7 +1,7 @@
 use traceable_result::*;
 
-use crate::consts::*;
-use crate::types::sqrt_price::SqrtPrice;
+use crate::math::consts::*;
+use crate::math::types::sqrt_price::SqrtPrice;
 
 const LOG2_SCALE: u8 = 32;
 const LOG2_DOUBLE_SCALE: u8 = 64;

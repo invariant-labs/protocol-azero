@@ -1,5 +1,3 @@
-extern crate alloc;
-
 pub mod clamm;
 pub mod consts;
 pub mod log;
