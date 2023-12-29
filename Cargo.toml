@@ -29,7 +29,6 @@ test_helpers = { path = "src/test_helpers", default-features = false }
 [lib]
 name = "contract"
 path = "src/lib.rs"
-crate-type = ["cdylib"]
 
 [features]
 default = ["std"]

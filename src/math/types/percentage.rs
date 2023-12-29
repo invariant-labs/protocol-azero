@@ -11,10 +11,13 @@ use decimal::*;
     PartialOrd,
     scale::Decode,
     scale::Encode,
-    scale_info::TypeInfo,
-    ink::storage::traits::StorageLayout,
+    // scale_info::TypeInfo,
+    // ink::storage::traits::StorageLayout,
 )]
-// #[cfg_attr(feature = "std", derive())]
+#[cfg_attr(
+    feature = "std",
+    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+)]
 pub struct Percentage {
     pub v: u64,
 }
