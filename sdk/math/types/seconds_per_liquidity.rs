@@ -3,13 +3,15 @@ use core::convert::{TryFrom, TryInto};
 use decimal::*;
 use traceable_result::*;
 
+use serde::{Deserialize, Serialize};
+use tsify::Tsify;
+use wasm_bindgen::prelude::*;
+
 #[decimal(24)]
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, scale::Decode, scale::Encode)]
-#[cfg_attr(
-    feature = "std",
-    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
-)]
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Serialize, Deserialize, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct SecondsPerLiquidity {
+    #[tsify(type = "BigInt")]
     pub v: u128,
 }
 

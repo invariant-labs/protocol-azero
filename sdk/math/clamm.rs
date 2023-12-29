@@ -4,7 +4,12 @@ use core::convert::TryInto;
 use decimal::*;
 use traceable_result::*;
 
-#[derive(PartialEq, Debug, Copy, Clone)]
+use serde::{Deserialize, Serialize};
+use tsify::Tsify;
+use wasm_bindgen::prelude::*;
+
+#[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct SwapResult {
     pub next_sqrt_price: SqrtPrice,
     pub amount_in: TokenAmount,

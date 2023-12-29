@@ -4,14 +4,14 @@ use core::convert::{TryFrom, TryInto};
 use decimal::*;
 use traceable_result::*;
 
-#[decimal(0)]
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, scale::Decode, scale::Encode)]
-#[cfg_attr(
-    feature = "std",
-    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
-)]
+use serde::{Deserialize, Serialize};
+use tsify::Tsify;
+use wasm_bindgen::prelude::*;
 
-pub struct TokenAmount(pub u128);
+#[decimal(0)]
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Serialize, Deserialize, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+pub struct TokenAmount(#[tsify(type = "BigInt")] pub u128);
 
 impl TokenAmount {
     pub fn from_big_sqrt_price(value: U256) -> TrackableResult<TokenAmount> {
