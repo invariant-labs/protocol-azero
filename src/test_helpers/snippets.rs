@@ -3,7 +3,7 @@ macro_rules! create_dex {
     ($client:ident,  $dex:ty, $protocol_fee:expr) => {{
         let constructor = <$dex>::new($protocol_fee);
         $client
-            .instantiate("contract", &ink_e2e::alice(), constructor, 0, None)
+            .instantiate("invariant", &ink_e2e::alice(), constructor, 0, None)
             .await
             .expect("dex new failed")
             .account_id

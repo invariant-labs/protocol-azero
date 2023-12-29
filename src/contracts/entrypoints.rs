@@ -1,6 +1,6 @@
 use crate::{
-    contract::{CalculateSwapResult, QuoteResult, SwapHop},
     contracts::{FeeTier, Pool, PoolKey, Position, Tick},
+    invariant::{CalculateSwapResult, QuoteResult, SwapHop},
     math::{
         liquidity::Liquidity, percentage::Percentage, sqrt_price::SqrtPrice,
         token_amount::TokenAmount,
@@ -11,7 +11,7 @@ use alloc::vec::Vec;
 use ink::primitives::AccountId;
 
 #[ink::trait_definition]
-pub trait Invariant {
+pub trait InvariantTrait {
     /// Retrieves the protocol fee represented as a percentage.
     #[ink(message)]
     fn get_protocol_fee(&self) -> Percentage;

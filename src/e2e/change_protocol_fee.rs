@@ -2,7 +2,7 @@
 pub mod e2e_tests {
     use crate::InvariantError;
     use crate::{
-        contract::ContractRef, contracts::entrypoints::Invariant,
+        contracts::entrypoints::InvariantTrait, invariant::InvariantRef,
         math::types::percentage::Percentage,
     };
     use decimal::*;
@@ -13,14 +13,14 @@ pub mod e2e_tests {
 
     #[ink_e2e::test]
     async fn test_change_protocol_fee(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-        let contract = create_dex!(client, ContractRef, Percentage::new(0));
+        let contract = create_dex!(client, InvariantRef, Percentage::new(0));
         let alice = ink_e2e::alice();
 
-        let protocol_fee = get_protocol_fee!(client, ContractRef, contract);
+        let protocol_fee = get_protocol_fee!(client, InvariantRef, contract);
         assert_eq!(protocol_fee, Percentage::new(0));
 
-        change_protocol_fee!(client, ContractRef, contract, Percentage::new(1), alice).unwrap();
-        let protocol_fee = get_protocol_fee!(client, ContractRef, contract);
+        change_protocol_fee!(client, InvariantRef, contract, Percentage::new(1), alice).unwrap();
+        let protocol_fee = get_protocol_fee!(client, InvariantRef, contract);
         assert_eq!(protocol_fee, Percentage::new(1));
 
         Ok(())
@@ -30,10 +30,10 @@ pub mod e2e_tests {
     async fn test_change_protocol_fee_not_admin(
         mut client: ink_e2e::Client<C, E>,
     ) -> E2EResult<()> {
-        let contract = create_dex!(client, ContractRef, Percentage::new(0));
+        let contract = create_dex!(client, InvariantRef, Percentage::new(0));
         let user = ink_e2e::bob();
 
-        let result = change_protocol_fee!(client, ContractRef, contract, Percentage::new(1), user);
+        let result = change_protocol_fee!(client, InvariantRef, contract, Percentage::new(1), user);
         assert_eq!(result, Err(InvariantError::NotAdmin));
         Ok(())
     }

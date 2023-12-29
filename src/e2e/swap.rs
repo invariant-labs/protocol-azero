@@ -1,8 +1,8 @@
 #[cfg(test)]
 pub mod e2e_tests {
     use crate::{
-        contract::ContractRef,
-        contracts::{entrypoints::Invariant, FeeTier, PoolKey},
+        contracts::{entrypoints::InvariantTrait, FeeTier, PoolKey},
+        invariant::InvariantRef,
         math::{
             types::{
                 fee_growth::FeeGrowth, liquidity::Liquidity, percentage::Percentage,
@@ -24,16 +24,16 @@ pub mod e2e_tests {
 
     #[ink_e2e::test]
     async fn swap(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-        let (dex, token_x, token_y) = init_dex_and_tokens!(client, ContractRef, TokenRef);
-        init_basic_pool!(client, ContractRef, TokenRef, dex, token_x, token_y);
-        init_basic_position!(client, ContractRef, TokenRef, dex, token_x, token_y);
-        init_basic_swap!(client, ContractRef, TokenRef, dex, token_x, token_y);
+        let (dex, token_x, token_y) = init_dex_and_tokens!(client, InvariantRef, TokenRef);
+        init_basic_pool!(client, InvariantRef, TokenRef, dex, token_x, token_y);
+        init_basic_position!(client, InvariantRef, TokenRef, dex, token_x, token_y);
+        init_basic_swap!(client, InvariantRef, TokenRef, dex, token_x, token_y);
         Ok(())
     }
 
     #[ink_e2e::test]
     async fn test_swap_x_to_y(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-        let dex = create_dex!(client, ContractRef, Percentage::from_scale(6, 3));
+        let dex = create_dex!(client, InvariantRef, Percentage::from_scale(6, 3));
         let initial_amount = 10u128.pow(10);
         let (token_x, token_y) = create_tokens!(client, TokenRef, initial_amount, initial_amount);
 
@@ -41,13 +41,13 @@ pub mod e2e_tests {
 
         let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
 
-        add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
+        add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
 
         let init_tick = 0;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
         create_pool!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             token_x,
             token_y,
@@ -71,7 +71,7 @@ pub mod e2e_tests {
 
         create_position!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             pool_key,
             lower_tick_index,
@@ -85,7 +85,7 @@ pub mod e2e_tests {
 
         create_position!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             pool_key,
             middle_tick_index,
@@ -97,7 +97,7 @@ pub mod e2e_tests {
         )
         .unwrap();
 
-        let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+        let pool = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
 
         assert_eq!(pool.liquidity, liquidity_delta);
 
@@ -110,7 +110,7 @@ pub mod e2e_tests {
         let slippage = SqrtPrice::new(MIN_SQRT_PRICE);
         let target_sqrt_price = quote!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             pool_key,
             true,
@@ -126,7 +126,7 @@ pub mod e2e_tests {
 
         swap!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             pool_key,
             true,
@@ -138,16 +138,17 @@ pub mod e2e_tests {
         .unwrap();
 
         // Load states
-        let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
-        let lower_tick = get_tick!(client, ContractRef, dex, pool_key, lower_tick_index).unwrap();
-        let middle_tick = get_tick!(client, ContractRef, dex, pool_key, middle_tick_index).unwrap();
-        let upper_tick = get_tick!(client, ContractRef, dex, pool_key, upper_tick_index).unwrap();
+        let pool = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
+        let lower_tick = get_tick!(client, InvariantRef, dex, pool_key, lower_tick_index).unwrap();
+        let middle_tick =
+            get_tick!(client, InvariantRef, dex, pool_key, middle_tick_index).unwrap();
+        let upper_tick = get_tick!(client, InvariantRef, dex, pool_key, upper_tick_index).unwrap();
         let lower_tick_bit =
-            is_tick_initialized!(client, ContractRef, dex, pool_key, lower_tick_index);
+            is_tick_initialized!(client, InvariantRef, dex, pool_key, lower_tick_index);
         let middle_tick_bit =
-            is_tick_initialized!(client, ContractRef, dex, pool_key, middle_tick_index);
+            is_tick_initialized!(client, InvariantRef, dex, pool_key, middle_tick_index);
         let upper_tick_bit =
-            is_tick_initialized!(client, ContractRef, dex, pool_key, upper_tick_index);
+            is_tick_initialized!(client, InvariantRef, dex, pool_key, upper_tick_index);
         let bob_x = balance_of!(client, TokenRef, token_x, address_of!(Bob));
         let bob_y = balance_of!(client, TokenRef, token_y, address_of!(Bob));
         let dex_x = balance_of!(client, TokenRef, token_x, dex);
@@ -191,7 +192,7 @@ pub mod e2e_tests {
 
     #[ink_e2e::test]
     async fn test_swap_y_to_x(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-        let dex = create_dex!(client, ContractRef, Percentage::from_scale(6, 3));
+        let dex = create_dex!(client, InvariantRef, Percentage::from_scale(6, 3));
         let initial_amount = 10u128.pow(10);
         let (token_x, token_y) = create_tokens!(client, TokenRef, initial_amount, initial_amount);
 
@@ -199,13 +200,13 @@ pub mod e2e_tests {
 
         let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
 
-        add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
+        add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
 
         let init_tick = 0;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
         create_pool!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             token_x,
             token_y,
@@ -229,7 +230,7 @@ pub mod e2e_tests {
 
         create_position!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             pool_key,
             lower_tick_index,
@@ -243,7 +244,7 @@ pub mod e2e_tests {
 
         create_position!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             pool_key,
             middle_tick_index,
@@ -255,7 +256,7 @@ pub mod e2e_tests {
         )
         .unwrap();
 
-        let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+        let pool = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
 
         assert_eq!(pool.liquidity, liquidity_delta);
 
@@ -269,7 +270,7 @@ pub mod e2e_tests {
 
         let target_sqrt_price = quote!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             pool_key,
             false,
@@ -285,7 +286,7 @@ pub mod e2e_tests {
 
         swap!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             pool_key,
             false,
@@ -297,16 +298,17 @@ pub mod e2e_tests {
         .unwrap();
 
         // Load states
-        let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
-        let lower_tick = get_tick!(client, ContractRef, dex, pool_key, lower_tick_index).unwrap();
-        let middle_tick = get_tick!(client, ContractRef, dex, pool_key, middle_tick_index).unwrap();
-        let upper_tick = get_tick!(client, ContractRef, dex, pool_key, upper_tick_index).unwrap();
+        let pool = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
+        let lower_tick = get_tick!(client, InvariantRef, dex, pool_key, lower_tick_index).unwrap();
+        let middle_tick =
+            get_tick!(client, InvariantRef, dex, pool_key, middle_tick_index).unwrap();
+        let upper_tick = get_tick!(client, InvariantRef, dex, pool_key, upper_tick_index).unwrap();
         let lower_tick_bit =
-            is_tick_initialized!(client, ContractRef, dex, pool_key, lower_tick_index);
+            is_tick_initialized!(client, InvariantRef, dex, pool_key, lower_tick_index);
         let middle_tick_bit =
-            is_tick_initialized!(client, ContractRef, dex, pool_key, middle_tick_index);
+            is_tick_initialized!(client, InvariantRef, dex, pool_key, middle_tick_index);
         let upper_tick_bit =
-            is_tick_initialized!(client, ContractRef, dex, pool_key, upper_tick_index);
+            is_tick_initialized!(client, InvariantRef, dex, pool_key, upper_tick_index);
         let bob_x = balance_of!(client, TokenRef, token_x, address_of!(Bob));
         let bob_y = balance_of!(client, TokenRef, token_y, address_of!(Bob));
         let dex_x = balance_of!(client, TokenRef, token_x, dex);

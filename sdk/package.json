@@ -5,7 +5,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "prebuild": "npm run contract:build && rm -rf target && cp ../target/ink/contract.wasm ./metadata/ && cp ../target/ink/contract.json ./metadata/",
+    "prebuild": "npm run contract:build && rm -rf target && cp ../target/ink/invariant.wasm ./contracts/invariant/ && cp ../target/ink/invariant.json ./contracts/invariant",
     "build": "npx tsc",
     "start:testnet": "npx tsc && ts-node target/index.js testnet",
     "start:local": "npx tsc && ts-node target/index.js local",
