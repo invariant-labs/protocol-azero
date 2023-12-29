@@ -1,5 +1,5 @@
 [package]
-name = "contract"
+name = "invariant"
 version = "0.1.0"
 authors = ["Invariant Labs"]
 edition = "2021"
@@ -26,7 +26,7 @@ ink_e2e = "4.3.0"
 test_helpers = { path = "src/test_helpers", default-features = false }
 
 [lib]
-name = "contract"
+name = "invariant"
 path = "src/lib.rs"
 
 [features]

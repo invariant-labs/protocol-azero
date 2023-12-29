@@ -1,10 +1,21 @@
+import { Keyring } from '@polkadot/api'
+import { getBalance, transferBalance } from '@scio-labs/use-inkathon'
 import dotenv from 'dotenv'
-import { Liquidity, SqrtPrice, getDeltaY } from '../math/pkg/math.js'
-// import { Invariant } from './invariant.js'
-// import { Network } from './network.js'
-// import { getDeploymentData, getEnvAccount, initPolkadotApi, printBalance } from './utils.js'
-
+import { Invariant } from './invariant.js'
+import { Network } from './network.js'
+import { PSP22 } from './psp22.js'
+import {
+  getDeploymentData,
+  getEnvAccount,
+  getEnvTestAccount,
+  initPolkadotApi,
+  printBalance
+} from './utils.js'
+import { WrappedAZERO } from './wrapped_azero.js'
 dotenv.config()
+
+import { Liquidity, SqrtPrice, getDeltaY } from '../math/pkg/math.js'
+
 
 const main = async () => {
   {
@@ -18,37 +29,101 @@ const main = async () => {
     console.log(delta_y_up)
     console.log(delta_y_down)
   }
-  // const network = Network.getFromEnv()
-  // console.log(`Using ${network}`)
-  // const api = await initPolkadotApi(network)
-  // const keyring = new Keyring({ type: 'sr25519' })
-  // const account = await getEnvAccount(keyring)
-  // await printBalance(api, account)
 
-  // const { abi, wasm } = await getDeploymentData()
-  // const invariant = new Invariant(api, account, network)
+  const network = Network.getFromEnv()
+  console.log(`using ${network}`)
 
-  // const initFee = { v: 10 }
-  // const deployContract = await invariant.deploy(abi, wasm, initFee)
-  // await invariant.load(deployContract.address, abi)
+  const api = await initPolkadotApi(network)
 
-  // const initialFee = await invariant.getProtocolFee()
-  // console.log(initialFee)
+  const keyring = new Keyring({ type: 'sr25519' })
+  const account = await getEnvAccount(keyring)
+  const testAccount = await getEnvTestAccount(keyring)
 
-  // const newFeeStruct = {
-  //   v: 18446744073709551615n
-  // }
+  await printBalance(api, account)
+  await printBalance(api, testAccount)
 
-  // console.log(`Changing protocol fee to: ${newFeeStruct.v}`)
+  // deploy invariant
+  const invariantData = await getDeploymentData('invariant')
+  const invariant = new Invariant(api, network)
 
-  // const txHash = await invariant.changeProtocolFee(newFeeStruct)
+  const initFee = { v: 10 }
+  const invariantDeploy = await invariant.deploy(
+    account,
+    invariantData.abi,
+    invariantData.wasm,
+    initFee
+  )
+  await invariant.load(invariantDeploy.address, invariantData.abi)
 
-  // console.log('Received txHash  = ', txHash)
+  // deploy token
+  const tokenData = await getDeploymentData('psp22')
+  const token = new PSP22(api, network)
 
-  // const newFee = await invariant.getProtocolFee()
-  // console.log(newFee)
+  const name = api.createType('Option<String>', 'Coin')
+  const symbol = api.createType('Option<String>', 'COIN')
 
-  // console.log('Passed.')
+  const tokenDeploy = await token.deploy(
+    account,
+    tokenData.abi,
+    tokenData.wasm,
+    1000,
+    name,
+    symbol,
+    0
+  )
+  await token.load(tokenDeploy.address, tokenData.abi)
+
+  // deploy wrapped azero
+  const wazeroData = await getDeploymentData('wrapped_azero')
+  const wazero = new WrappedAZERO(api, network)
+
+  if (process.env.WAZERO_ADDRESS) {
+    await wazero.load(process.env.WAZERO_ADDRESS, wazeroData.abi)
+    console.log('loaded wazero')
+  } else {
+    const wazeroDeploy = await wazero.deploy(account, wazeroData.abi, wazeroData.wasm)
+    await wazero.load(wazeroDeploy.address, wazeroData.abi)
+    console.log('deployed and loaded wazero')
+  }
+
+  // change protocol fee
+  const initialFee = await invariant.getProtocolFee(account)
+  const newFeeStruct = {
+    v: 18446744073709551615n
+  }
+  await invariant.changeProtocolFee(account, newFeeStruct)
+  const newFee = await invariant.getProtocolFee(account)
+  console.log('old fee: ', initialFee, ', new fee: ', newFee)
+
+  // perform token operations
+  await token.mint(account, 500)
+
+  console.log(
+    'token name: ',
+    await token.tokenName(account),
+    ', token symbol: ',
+    await token.tokenSymbol(account),
+    ', token decimals: ',
+    await token.tokenDecimals(account)
+  )
+
+  const data = api.createType('Vec<u8>', [])
+  await token.transfer(account, account.address, 250, data)
+
+  await transferBalance(api, account, testAccount.address, 1000000000000)
+  console.log('account balance: ', (await getBalance(api, account.address)).balanceFormatted)
+  console.log(
+    'test account balance: ',
+    (await getBalance(api, testAccount.address)).balanceFormatted
+  )
+
+  // wrap and unwrap azero
+  console.log('balance before deposit: ', await wazero.balanceOf(account, account.address))
+  await wazero.deposit(account, 1000000000000)
+  console.log('balance after deposit: ', await wazero.balanceOf(account, account.address))
+  await wazero.withdraw(account, 1000000000000)
+  console.log('balance after withdraw: ', await wazero.balanceOf(account, account.address))
+
   process.exit(0)
 }
 

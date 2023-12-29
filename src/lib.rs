@@ -36,10 +36,10 @@ pub enum InvariantError {
     InvalidInitSqrtPrice,
 }
 #[ink::contract]
-pub mod contract {
+pub mod invariant {
     use crate::contracts::{
-        FeeTier, FeeTiers, Invariant, InvariantConfig, Pool, PoolKey, PoolKeys, Pools, Position,
-        Positions, Tick, Tickmap, Ticks,
+        FeeTier, FeeTiers, InvariantConfig, InvariantTrait, Pool, PoolKey, PoolKeys, Pools,
+        Position, Positions, Tick, Tickmap, Ticks,
     };
     use crate::math::calculate_min_amount_out;
     use crate::math::check_tick;
@@ -141,7 +141,7 @@ pub mod contract {
 
     #[ink(storage)]
     #[derive(Default)]
-    pub struct Contract {
+    pub struct Invariant {
         positions: Positions,
         pools: Pools,
         tickmap: Tickmap,
@@ -151,7 +151,7 @@ pub mod contract {
         config: InvariantConfig,
     }
 
-    impl Contract {
+    impl Invariant {
         #[ink(constructor)]
         pub fn new(protocol_fee: Percentage) -> Self {
             Self {
@@ -353,7 +353,7 @@ pub mod contract {
             x_to_y: bool,
         ) {
             let timestamp = self.get_timestamp();
-            ink::codegen::EmitEvent::<Contract>::emit_event(
+            ink::codegen::EmitEvent::<Invariant>::emit_event(
                 self.env(),
                 SwapEvent {
                     timestamp,
@@ -379,7 +379,7 @@ pub mod contract {
             current_sqrt_price: SqrtPrice,
         ) {
             let timestamp = self.get_timestamp();
-            ink::codegen::EmitEvent::<Contract>::emit_event(
+            ink::codegen::EmitEvent::<Invariant>::emit_event(
                 self.env(),
                 CreatePositionEvent {
                     timestamp,
@@ -403,7 +403,7 @@ pub mod contract {
             current_sqrt_price: SqrtPrice,
         ) {
             let timestamp = self.get_timestamp();
-            ink::codegen::EmitEvent::<Contract>::emit_event(
+            ink::codegen::EmitEvent::<Invariant>::emit_event(
                 self.env(),
                 RemovePositionEvent {
                     timestamp,
@@ -419,7 +419,7 @@ pub mod contract {
 
         fn emit_cross_tick_event(&self, address: AccountId, pool: PoolKey, indexes: Vec<i32>) {
             let timestamp = self.get_timestamp();
-            ink::codegen::EmitEvent::<Contract>::emit_event(
+            ink::codegen::EmitEvent::<Invariant>::emit_event(
                 self.env(),
                 CrossTickEvent {
                     timestamp,
@@ -435,7 +435,7 @@ pub mod contract {
         }
     }
 
-    impl Invariant for Contract {
+    impl InvariantTrait for Invariant {
         #[ink(message)]
         fn get_protocol_fee(&self) -> Percentage {
             self.config.protocol_fee
@@ -954,12 +954,12 @@ pub mod contract {
 
         #[ink::test]
         fn initialize_works() {
-            let _ = Contract::new(Percentage::new(0));
+            let _ = Invariant::new(Percentage::new(0));
         }
 
         #[ink::test]
         fn test_add_pool() {
-            let mut contract = Contract::new(Percentage::new(0));
+            let mut contract = Invariant::new(Percentage::new(0));
             let token_0 = AccountId::from([0x01; 32]);
             let token_1 = AccountId::from([0x02; 32]);
             let fee_tier = FeeTier {
@@ -997,7 +997,7 @@ pub mod contract {
 
         #[ink::test]
         fn test_get_pool() {
-            let mut contract = Contract::new(Percentage::new(0));
+            let mut contract = Invariant::new(Percentage::new(0));
             let token_0 = AccountId::from([0x01; 32]);
             let token_1 = AccountId::from([0x02; 32]);
             let init_sqrt_price = calculate_sqrt_price(0).unwrap();
@@ -1033,7 +1033,7 @@ pub mod contract {
 
         #[ink::test]
         fn create_tick() {
-            let mut contract = Contract::new(Percentage::new(0));
+            let mut contract = Invariant::new(Percentage::new(0));
             let init_sqrt_price = calculate_sqrt_price(0).unwrap();
             let token_0 = AccountId::from([0x01; 32]);
             let token_1 = AccountId::from([0x02; 32]);
@@ -1063,7 +1063,7 @@ pub mod contract {
 
         #[ink::test]
         fn test_fee_tiers() {
-            let mut contract = Contract::new(Percentage::new(0));
+            let mut contract = Invariant::new(Percentage::new(0));
             let fee_tier = FeeTier::new(Percentage::new(1), 10u16).unwrap();
             let fee_tier_value = FeeTier {
                 fee: Percentage::new(1),

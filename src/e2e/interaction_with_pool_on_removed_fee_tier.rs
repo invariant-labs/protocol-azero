@@ -1,8 +1,8 @@
 #[cfg(test)]
 pub mod e2e_tests {
     use crate::{
-        contract::ContractRef,
-        contracts::{entrypoints::Invariant, FeeTier, PoolKey},
+        contracts::{entrypoints::InvariantTrait, FeeTier, PoolKey},
+        invariant::InvariantRef,
         math::{
             types::{
                 fee_growth::FeeGrowth,
@@ -32,15 +32,15 @@ pub mod e2e_tests {
     async fn test_interaction_with_pool_on_removed_fee_tier(
         mut client: ink_e2e::Client<C, E>,
     ) -> E2EResult<()> {
-        let (dex, token_x, token_y) = init_dex_and_tokens!(client, ContractRef, TokenRef);
-        init_basic_pool!(client, ContractRef, TokenRef, dex, token_x, token_y);
+        let (dex, token_x, token_y) = init_dex_and_tokens!(client, InvariantRef, TokenRef);
+        init_basic_pool!(client, InvariantRef, TokenRef, dex, token_x, token_y);
         let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
         let deployer = ink_e2e::alice();
         // Remove Fee Tier
         {
-            remove_fee_tier!(client, ContractRef, dex, fee_tier, deployer).unwrap();
-            let exist = fee_tier_exist!(client, ContractRef, dex, fee_tier);
+            remove_fee_tier!(client, InvariantRef, dex, fee_tier, deployer).unwrap();
+            let exist = fee_tier_exist!(client, InvariantRef, dex, fee_tier);
             assert!(!exist);
         }
         // Attempt to create same pool again
@@ -49,7 +49,7 @@ pub mod e2e_tests {
             let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
             let result = create_pool!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 token_x,
                 token_y,
@@ -62,15 +62,16 @@ pub mod e2e_tests {
         }
         // Init  position
         {
-            init_basic_position!(client, ContractRef, TokenRef, dex, token_x, token_y);
+            init_basic_position!(client, InvariantRef, TokenRef, dex, token_x, token_y);
         }
         // Init swap
         {
-            init_basic_swap!(client, ContractRef, TokenRef, dex, token_x, token_y);
+            init_basic_swap!(client, InvariantRef, TokenRef, dex, token_x, token_y);
         }
         // Claim fee
         {
-            let (claimed_x, claimed_y) = claim_fee!(client, ContractRef, dex, 0, deployer).unwrap();
+            let (claimed_x, claimed_y) =
+                claim_fee!(client, InvariantRef, dex, 0, deployer).unwrap();
             assert_eq!(claimed_x, TokenAmount(5));
             assert_eq!(claimed_y, TokenAmount(0));
         }
@@ -78,7 +79,7 @@ pub mod e2e_tests {
         {
             change_fee_receiver!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 pool_key,
                 address_of!(Bob),
@@ -89,36 +90,37 @@ pub mod e2e_tests {
         // Withdraw protocol fee
         {
             let fee_receiver = ink_e2e::bob();
-            withdraw_protocol_fee!(client, ContractRef, dex, pool_key, fee_receiver).unwrap();
+            withdraw_protocol_fee!(client, InvariantRef, dex, pool_key, fee_receiver).unwrap();
         }
         // Close position
         {
-            remove_position!(client, ContractRef, dex, 0, deployer).unwrap();
+            remove_position!(client, InvariantRef, dex, 0, deployer).unwrap();
         }
         // Get pool
         {
-            get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+            get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
         }
         // Get Pools
         {
-            let pools = get_pools!(client, ContractRef, dex);
+            let pools = get_pools!(client, InvariantRef, dex);
             assert_eq!(pools.len(), 1);
         }
         // Transfer position
         {
-            init_basic_position!(client, ContractRef, TokenRef, dex, token_x, token_y);
+            init_basic_position!(client, InvariantRef, TokenRef, dex, token_x, token_y);
             let transferred_index = 0;
             let position_owner = deployer;
             let recipient = ink_e2e::bob();
             let recipient_address = address_of!(Bob);
-            let owner_list_before = get_all_positions!(client, ContractRef, dex, position_owner);
-            let recipient_list_before = get_all_positions!(client, ContractRef, dex, recipient);
+            let owner_list_before = get_all_positions!(client, InvariantRef, dex, position_owner);
+            let recipient_list_before = get_all_positions!(client, InvariantRef, dex, recipient);
             let removed_position =
-                get_position!(client, ContractRef, dex, transferred_index, position_owner).unwrap();
+                get_position!(client, InvariantRef, dex, transferred_index, position_owner)
+                    .unwrap();
 
             transfer_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 transferred_index,
                 recipient_address,
@@ -127,9 +129,9 @@ pub mod e2e_tests {
             .unwrap();
 
             let recipient_position =
-                get_position!(client, ContractRef, dex, transferred_index, recipient).unwrap();
-            let owner_list_after = get_all_positions!(client, ContractRef, dex, position_owner);
-            let recipient_list_after = get_all_positions!(client, ContractRef, dex, recipient);
+                get_position!(client, InvariantRef, dex, transferred_index, recipient).unwrap();
+            let owner_list_after = get_all_positions!(client, InvariantRef, dex, position_owner);
+            let recipient_list_after = get_all_positions!(client, InvariantRef, dex, recipient);
 
             assert_eq!(recipient_list_after.len(), recipient_list_before.len() + 1);
             assert_eq!(owner_list_before.len() - 1, owner_list_after.len());
@@ -141,12 +143,12 @@ pub mod e2e_tests {
         // Readd fee tier and create same pool
         {
             let deployer = ink_e2e::alice();
-            add_fee_tier!(client, ContractRef, dex, fee_tier, deployer).unwrap();
+            add_fee_tier!(client, InvariantRef, dex, fee_tier, deployer).unwrap();
             let init_tick = 0;
             let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
             let result = create_pool!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 token_x,
                 token_y,

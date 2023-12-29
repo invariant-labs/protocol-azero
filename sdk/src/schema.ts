@@ -1,9 +1,27 @@
-const CONTRACT_NAME = 'invariant'
-
 export enum InvariantQuery {
-  ProtocolFee = `${CONTRACT_NAME}::getProtocolFee`
+  ProtocolFee = 'invariantTrait::getProtocolFee'
 }
 
 export enum InvariantTx {
-  ChangeProtocolFee = `${CONTRACT_NAME}::changeProtocolFee`
+  ChangeProtocolFee = 'invariantTrait::changeProtocolFee'
+}
+
+export enum PSP22Query {
+  TokenName = 'psp22Metadata::tokenName',
+  TokenSymbol = 'psp22Metadata::tokenSymbol',
+  TokenDecimals = 'psp22Metadata::tokenDecimals',
+  BalanceOf = 'psp22::balanceOf',
+  TotalSupply = 'psp22::totalSupply',
+  Allowance = 'psp22::allowance'
+}
+
+export enum PSP22Tx {
+  Mint = 'psp22Mintable::mint',
+  Transfer = 'psp22::transfer',
+  Approve = 'psp22::approve'
+}
+
+export enum WrappedAZEROTx {
+  Deposit = 'wrappedAZERO::deposit',
+  Withdraw = 'wrappedAZERO::withdraw'
 }

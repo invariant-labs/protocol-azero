@@ -1,8 +1,8 @@
 #[cfg(test)]
 pub mod e2e_tests {
     use crate::{
-        contract::ContractRef,
-        contracts::{entrypoints::Invariant, FeeTier, PoolKey},
+        contracts::{entrypoints::InvariantTrait, FeeTier, PoolKey},
+        invariant::InvariantRef,
         math::types::{
             fee_growth::FeeGrowth,
             liquidity::Liquidity,
@@ -26,7 +26,7 @@ pub mod e2e_tests {
     async fn test_remove_position_from_empty_list(
         mut client: ink_e2e::Client<C, E>,
     ) -> E2EResult<()> {
-        let dex = create_dex!(client, ContractRef, Percentage::from_scale(6, 3));
+        let dex = create_dex!(client, InvariantRef, Percentage::from_scale(6, 3));
         let initial_amount = 10u128.pow(10);
         let (token_x, token_y) = create_tokens!(client, TokenRef, initial_amount, initial_amount);
 
@@ -34,13 +34,13 @@ pub mod e2e_tests {
 
         let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 3).unwrap();
 
-        add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
+        add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
 
         let init_tick = -23028;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
         create_pool!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             token_x,
             token_y,
@@ -51,7 +51,7 @@ pub mod e2e_tests {
         )
         .unwrap();
 
-        let result = remove_position!(client, ContractRef, dex, 0, alice);
+        let result = remove_position!(client, InvariantRef, dex, 0, alice);
         assert_eq!(result, Err(InvariantError::PositionNotFound));
         Ok(())
     }
@@ -61,18 +61,18 @@ pub mod e2e_tests {
         let alice = ink_e2e::alice();
         let init_tick = -23028;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
-        let dex = create_dex!(client, ContractRef, Percentage::new(0));
+        let dex = create_dex!(client, InvariantRef, Percentage::new(0));
         let initial_balance = 10u128.pow(10);
 
         let (token_x, token_y) = create_tokens!(client, TokenRef, initial_balance, initial_balance);
 
         let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 3).unwrap();
 
-        add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
+        add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
 
         create_pool!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             token_x,
             token_y,
@@ -89,13 +89,13 @@ pub mod e2e_tests {
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
         let tick_indexes = [-9780, -42, 0, 9, 276, 32343, -50001];
         let liquidity_delta = Liquidity::from_integer(1_000_000);
-        let pool_state = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+        let pool_state = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
 
         // Open three positions
         {
             create_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 pool_key,
                 tick_indexes[0],
@@ -109,7 +109,7 @@ pub mod e2e_tests {
 
             create_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 pool_key,
                 tick_indexes[0],
@@ -123,7 +123,7 @@ pub mod e2e_tests {
 
             create_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 pool_key,
                 tick_indexes[0],
@@ -137,7 +137,7 @@ pub mod e2e_tests {
 
             create_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 pool_key,
                 tick_indexes[1],
@@ -153,12 +153,12 @@ pub mod e2e_tests {
         // Remove middle position
         {
             let position_index_to_remove = 2;
-            let positions_list_before = get_all_positions!(client, ContractRef, dex, alice);
+            let positions_list_before = get_all_positions!(client, InvariantRef, dex, alice);
             let last_position = positions_list_before[positions_list_before.len() - 1];
 
-            remove_position!(client, ContractRef, dex, position_index_to_remove, alice).unwrap();
+            remove_position!(client, InvariantRef, dex, position_index_to_remove, alice).unwrap();
 
-            let positions_list_after = get_all_positions!(client, ContractRef, dex, alice);
+            let positions_list_after = get_all_positions!(client, InvariantRef, dex, alice);
             let tested_position = positions_list_after[position_index_to_remove as usize];
 
             // Last position should be at removed index
@@ -185,11 +185,11 @@ pub mod e2e_tests {
         }
         // Add position in place of the removed one
         {
-            let positions_list_before = get_all_positions!(client, ContractRef, dex, alice);
+            let positions_list_before = get_all_positions!(client, InvariantRef, dex, alice);
 
             create_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 pool_key,
                 tick_indexes[1],
@@ -201,17 +201,17 @@ pub mod e2e_tests {
             )
             .unwrap();
 
-            let positions_list_after = get_all_positions!(client, ContractRef, dex, alice);
+            let positions_list_after = get_all_positions!(client, InvariantRef, dex, alice);
             assert_eq!(positions_list_before.len() + 1, positions_list_after.len());
         }
         // Remove last position
         {
             let last_position_index_before =
-                get_all_positions!(client, ContractRef, dex, alice).len() - 1;
+                get_all_positions!(client, InvariantRef, dex, alice).len() - 1;
 
             remove_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 last_position_index_before as u32,
                 alice
@@ -219,28 +219,28 @@ pub mod e2e_tests {
             .unwrap();
 
             let last_position_index_after =
-                get_all_positions!(client, ContractRef, dex, alice).len() - 1;
+                get_all_positions!(client, InvariantRef, dex, alice).len() - 1;
 
             assert_eq!(last_position_index_before - 1, last_position_index_after)
         }
         // Remove all positions
         {
-            let last_position_index = get_all_positions!(client, ContractRef, dex, alice).len();
+            let last_position_index = get_all_positions!(client, InvariantRef, dex, alice).len();
 
             for i in (0..last_position_index).rev() {
-                remove_position!(client, ContractRef, dex, i as u32, alice).unwrap();
+                remove_position!(client, InvariantRef, dex, i as u32, alice).unwrap();
             }
 
-            let list_length = get_all_positions!(client, ContractRef, dex, alice).len();
+            let list_length = get_all_positions!(client, InvariantRef, dex, alice).len();
             assert_eq!(list_length, 0);
         }
         // Add position to cleared list
         {
-            let list_length_before = get_all_positions!(client, ContractRef, dex, alice).len();
+            let list_length_before = get_all_positions!(client, InvariantRef, dex, alice).len();
 
             create_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 pool_key,
                 tick_indexes[0],
@@ -251,7 +251,7 @@ pub mod e2e_tests {
                 alice
             )
             .unwrap();
-            let list_length_after = get_all_positions!(client, ContractRef, dex, alice).len();
+            let list_length_after = get_all_positions!(client, InvariantRef, dex, alice).len();
             assert_eq!(list_length_after, list_length_before + 1);
         }
         Ok(())
@@ -265,18 +265,18 @@ pub mod e2e_tests {
         let init_tick = -23028;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
 
-        let dex = create_dex!(client, ContractRef, Percentage::new(0));
+        let dex = create_dex!(client, InvariantRef, Percentage::new(0));
         let initial_balance = 10u128.pow(10);
 
         let (token_x, token_y) = create_tokens!(client, TokenRef, initial_balance, initial_balance);
 
         let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 3).unwrap();
 
-        add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
+        add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
 
         create_pool!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             token_x,
             token_y,
@@ -293,13 +293,13 @@ pub mod e2e_tests {
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
         let tick_indexes = [-9780, -42, 0, 9, 276, 32343, -50001];
         let liquidity_delta = Liquidity::from_integer(1_000_000);
-        let pool_state = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+        let pool_state = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
 
         // Open three positions
         {
             create_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 pool_key,
                 tick_indexes[0],
@@ -313,7 +313,7 @@ pub mod e2e_tests {
 
             create_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 pool_key,
                 tick_indexes[0],
@@ -327,7 +327,7 @@ pub mod e2e_tests {
 
             create_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 pool_key,
                 tick_indexes[0],
@@ -341,7 +341,7 @@ pub mod e2e_tests {
 
             create_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 pool_key,
                 tick_indexes[1],
@@ -357,12 +357,12 @@ pub mod e2e_tests {
         // Remove middle position
         {
             let position_index_to_remove = 2;
-            let positions_list_before = get_all_positions!(client, ContractRef, dex, alice);
+            let positions_list_before = get_all_positions!(client, InvariantRef, dex, alice);
             let last_position = positions_list_before[positions_list_before.len() - 1];
 
-            remove_position!(client, ContractRef, dex, position_index_to_remove, alice).unwrap();
+            remove_position!(client, InvariantRef, dex, position_index_to_remove, alice).unwrap();
 
-            let positions_list_after = get_all_positions!(client, ContractRef, dex, alice);
+            let positions_list_after = get_all_positions!(client, InvariantRef, dex, alice);
             let tested_position = positions_list_after[position_index_to_remove as usize];
 
             // Last position should be at removed index
@@ -389,11 +389,11 @@ pub mod e2e_tests {
         }
         // Add position in place of the removed one
         {
-            let positions_list_before = get_all_positions!(client, ContractRef, dex, alice);
+            let positions_list_before = get_all_positions!(client, InvariantRef, dex, alice);
 
             create_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 pool_key,
                 tick_indexes[1],
@@ -405,18 +405,18 @@ pub mod e2e_tests {
             )
             .unwrap();
 
-            let positions_list_after = get_all_positions!(client, ContractRef, dex, alice);
+            let positions_list_after = get_all_positions!(client, InvariantRef, dex, alice);
             assert_eq!(positions_list_before.len() + 1, positions_list_after.len());
         }
         // Remove last position
         {
             let last_position_index_before =
-                get_all_positions!(client, ContractRef, dex, alice).len() - 1;
+                get_all_positions!(client, InvariantRef, dex, alice).len() - 1;
 
             let unauthorized_user = ink_e2e::bob();
             let result = remove_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 last_position_index_before as u32,
                 unauthorized_user
@@ -432,18 +432,18 @@ pub mod e2e_tests {
         let init_tick = -23028;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
 
-        let dex = create_dex!(client, ContractRef, Percentage::new(0));
+        let dex = create_dex!(client, InvariantRef, Percentage::new(0));
         let initial_balance = 10u128.pow(10);
 
         let (token_x, token_y) = create_tokens!(client, TokenRef, initial_balance, initial_balance);
 
         let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 3).unwrap();
 
-        add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
+        add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
 
         create_pool!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             token_x,
             token_y,
@@ -460,11 +460,11 @@ pub mod e2e_tests {
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
         let tick_indexes = [-9780, -42, 0, 9, 276, 32343, -50001];
         let liquidity_delta = Liquidity::from_integer(1_000_000);
-        let pool_state = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+        let pool_state = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
         {
             create_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 pool_key,
                 tick_indexes[0],
@@ -475,7 +475,7 @@ pub mod e2e_tests {
                 alice
             )
             .unwrap();
-            let list_length = get_all_positions!(client, ContractRef, dex, alice).len();
+            let list_length = get_all_positions!(client, InvariantRef, dex, alice).len();
 
             assert_eq!(list_length, 1)
         }
@@ -486,7 +486,7 @@ pub mod e2e_tests {
         {
             create_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 pool_key,
                 tick_indexes[0],
@@ -499,7 +499,7 @@ pub mod e2e_tests {
             .unwrap();
             create_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 pool_key,
                 tick_indexes[1],
@@ -512,7 +512,7 @@ pub mod e2e_tests {
             .unwrap();
             create_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 pool_key,
                 tick_indexes[1],
@@ -527,15 +527,15 @@ pub mod e2e_tests {
         // Transfer first position
         {
             let transferred_index = 0;
-            let owner_list_before = get_all_positions!(client, ContractRef, dex, alice);
-            let recipient_list_before = get_all_positions!(client, ContractRef, dex, bob);
+            let owner_list_before = get_all_positions!(client, InvariantRef, dex, alice);
+            let recipient_list_before = get_all_positions!(client, InvariantRef, dex, bob);
             let removed_position =
-                get_position!(client, ContractRef, dex, transferred_index, alice).unwrap();
+                get_position!(client, InvariantRef, dex, transferred_index, alice).unwrap();
             let last_position_before = owner_list_before[owner_list_before.len() - 1];
 
             transfer_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 transferred_index,
                 bob_address,
@@ -544,11 +544,11 @@ pub mod e2e_tests {
             .unwrap();
 
             let recipient_position =
-                get_position!(client, ContractRef, dex, transferred_index, bob).unwrap();
-            let owner_list_after = get_all_positions!(client, ContractRef, dex, alice);
-            let recipient_list_after = get_all_positions!(client, ContractRef, dex, bob);
+                get_position!(client, InvariantRef, dex, transferred_index, bob).unwrap();
+            let owner_list_after = get_all_positions!(client, InvariantRef, dex, alice);
+            let recipient_list_after = get_all_positions!(client, InvariantRef, dex, bob);
             let owner_first_position_after =
-                get_position!(client, ContractRef, dex, transferred_index, alice).unwrap();
+                get_position!(client, InvariantRef, dex, transferred_index, alice).unwrap();
 
             assert_eq!(recipient_list_after.len(), recipient_list_before.len() + 1);
             assert_eq!(owner_list_before.len() - 1, owner_list_after.len());
@@ -563,13 +563,13 @@ pub mod e2e_tests {
         // Transfer middle position
         {
             let transferred_index = 1;
-            let owner_list_before = get_all_positions!(client, ContractRef, dex, alice);
-            let recipient_list_before = get_all_positions!(client, ContractRef, dex, bob);
+            let owner_list_before = get_all_positions!(client, InvariantRef, dex, alice);
+            let recipient_list_before = get_all_positions!(client, InvariantRef, dex, bob);
             let last_position_before = owner_list_before[owner_list_before.len() - 1];
 
             transfer_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 transferred_index,
                 bob_address,
@@ -577,10 +577,10 @@ pub mod e2e_tests {
             )
             .unwrap();
 
-            let owner_list_after = get_all_positions!(client, ContractRef, dex, alice);
-            let recipient_list_after = get_all_positions!(client, ContractRef, dex, bob);
+            let owner_list_after = get_all_positions!(client, InvariantRef, dex, alice);
+            let recipient_list_after = get_all_positions!(client, InvariantRef, dex, bob);
             let owner_first_position_after =
-                get_position!(client, ContractRef, dex, transferred_index, alice).unwrap();
+                get_position!(client, InvariantRef, dex, transferred_index, alice).unwrap();
 
             assert_eq!(recipient_list_after.len(), recipient_list_before.len() + 1);
             assert_eq!(owner_list_before.len() - 1, owner_list_after.len());
@@ -590,14 +590,14 @@ pub mod e2e_tests {
         }
         // Transfer last position
         {
-            let owner_list_before = get_all_positions!(client, ContractRef, dex, alice);
+            let owner_list_before = get_all_positions!(client, InvariantRef, dex, alice);
             let transferred_index = (owner_list_before.len() - 1) as u32;
             let removed_position =
-                get_position!(client, ContractRef, dex, transferred_index, alice).unwrap();
+                get_position!(client, InvariantRef, dex, transferred_index, alice).unwrap();
 
             transfer_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 transferred_index,
                 bob_address,
@@ -605,10 +605,10 @@ pub mod e2e_tests {
             )
             .unwrap();
 
-            let recipient_list_after = get_all_positions!(client, ContractRef, dex, bob);
+            let recipient_list_after = get_all_positions!(client, InvariantRef, dex, bob);
             let recipient_position_index = (recipient_list_after.len() - 1) as u32;
             let recipient_position =
-                get_position!(client, ContractRef, dex, recipient_position_index, bob).unwrap();
+                get_position!(client, InvariantRef, dex, recipient_position_index, bob).unwrap();
 
             positions_equals!(removed_position, recipient_position);
         }
@@ -616,13 +616,13 @@ pub mod e2e_tests {
         // Clear position
         {
             let transferred_index = 0;
-            let recipient_list_before = get_all_positions!(client, ContractRef, dex, bob);
+            let recipient_list_before = get_all_positions!(client, InvariantRef, dex, bob);
             let removed_position =
-                get_position!(client, ContractRef, dex, transferred_index, alice).unwrap();
+                get_position!(client, InvariantRef, dex, transferred_index, alice).unwrap();
 
             transfer_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 transferred_index,
                 bob_address,
@@ -630,11 +630,11 @@ pub mod e2e_tests {
             )
             .unwrap();
 
-            let recipient_list_after = get_all_positions!(client, ContractRef, dex, bob);
+            let recipient_list_after = get_all_positions!(client, InvariantRef, dex, bob);
             let recipient_position_index = (recipient_list_after.len() - 1) as u32;
             let recipient_position =
-                get_position!(client, ContractRef, dex, recipient_position_index, bob).unwrap();
-            let owner_list_after = get_all_positions!(client, ContractRef, dex, alice);
+                get_position!(client, InvariantRef, dex, recipient_position_index, bob).unwrap();
+            let owner_list_after = get_all_positions!(client, InvariantRef, dex, alice);
 
             assert_eq!(recipient_list_after.len(), recipient_list_before.len() + 1);
             assert_eq!(0, owner_list_after.len());
@@ -646,15 +646,15 @@ pub mod e2e_tests {
         // Get back position
         {
             let transferred_index = 0;
-            let owner_list_before = get_all_positions!(client, ContractRef, dex, alice);
-            let recipient_list_before = get_all_positions!(client, ContractRef, dex, bob);
+            let owner_list_before = get_all_positions!(client, InvariantRef, dex, alice);
+            let recipient_list_before = get_all_positions!(client, InvariantRef, dex, bob);
             let removed_position =
-                get_position!(client, ContractRef, dex, transferred_index, bob).unwrap();
+                get_position!(client, InvariantRef, dex, transferred_index, bob).unwrap();
             let last_position_before = recipient_list_before[recipient_list_before.len() - 1];
 
             transfer_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 transferred_index,
                 address_of!(Alice),
@@ -662,13 +662,13 @@ pub mod e2e_tests {
             )
             .unwrap();
 
-            let owner_list_after = get_all_positions!(client, ContractRef, dex, alice);
-            let recipient_list_after = get_all_positions!(client, ContractRef, dex, bob);
+            let owner_list_after = get_all_positions!(client, InvariantRef, dex, alice);
+            let recipient_list_after = get_all_positions!(client, InvariantRef, dex, bob);
             let recipient_first_position_after =
-                get_position!(client, ContractRef, dex, transferred_index, bob).unwrap();
+                get_position!(client, InvariantRef, dex, transferred_index, bob).unwrap();
 
             let owner_new_position =
-                get_position!(client, ContractRef, dex, transferred_index, alice).unwrap();
+                get_position!(client, InvariantRef, dex, transferred_index, alice).unwrap();
 
             assert_eq!(recipient_list_after.len(), recipient_list_before.len() - 1);
             assert_eq!(owner_list_before.len() + 1, owner_list_after.len());
@@ -691,18 +691,18 @@ pub mod e2e_tests {
         let init_tick = -23028;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
 
-        let dex = create_dex!(client, ContractRef, Percentage::new(0));
+        let dex = create_dex!(client, InvariantRef, Percentage::new(0));
         let initial_balance = 10u128.pow(10);
 
         let (token_x, token_y) = create_tokens!(client, TokenRef, initial_balance, initial_balance);
 
         let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 3).unwrap();
 
-        add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
+        add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
 
         create_pool!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             token_x,
             token_y,
@@ -719,11 +719,11 @@ pub mod e2e_tests {
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
         let tick_indexes = [-9780, -42, 0, 9, 276, 32343, -50001];
         let liquidity_delta = Liquidity::from_integer(1_000_000);
-        let pool_state = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+        let pool_state = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
         {
             create_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 pool_key,
                 tick_indexes[0],
@@ -734,7 +734,7 @@ pub mod e2e_tests {
                 alice
             )
             .unwrap();
-            let list_length = get_all_positions!(client, ContractRef, dex, alice).len();
+            let list_length = get_all_positions!(client, InvariantRef, dex, alice).len();
 
             assert_eq!(list_length, 1)
         }
@@ -744,7 +744,7 @@ pub mod e2e_tests {
         {
             create_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 pool_key,
                 tick_indexes[0],
@@ -757,7 +757,7 @@ pub mod e2e_tests {
             .unwrap();
             create_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 pool_key,
                 tick_indexes[1],
@@ -770,7 +770,7 @@ pub mod e2e_tests {
             .unwrap();
             create_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 pool_key,
                 tick_indexes[1],
@@ -788,7 +788,7 @@ pub mod e2e_tests {
 
             let result = transfer_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 transferred_index,
                 address_of!(Alice),
@@ -806,18 +806,18 @@ pub mod e2e_tests {
         let alice = ink_e2e::alice();
         let init_tick = 0;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
-        let dex = create_dex!(client, ContractRef, Percentage::new(0));
+        let dex = create_dex!(client, InvariantRef, Percentage::new(0));
         let initial_balance = 100_000_000;
 
         let (token_x, token_y) = create_tokens!(client, TokenRef, initial_balance, initial_balance);
 
         let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 10).unwrap();
 
-        add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
+        add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
 
         create_pool!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             token_x,
             token_y,
@@ -840,11 +840,11 @@ pub mod e2e_tests {
             let liquidity_delta = Liquidity::new(100);
 
             let pool_state =
-                get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+                get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
 
             create_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 pool_key,
                 lower_tick_index,
@@ -856,11 +856,11 @@ pub mod e2e_tests {
             )
             .unwrap();
 
-            let first_position = get_position!(client, ContractRef, dex, 0, alice).unwrap();
+            let first_position = get_position!(client, InvariantRef, dex, 0, alice).unwrap();
 
             create_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 pool_key,
                 lower_tick_index,
@@ -872,11 +872,11 @@ pub mod e2e_tests {
             )
             .unwrap();
 
-            let second_position = get_position!(client, ContractRef, dex, 1, alice).unwrap();
+            let second_position = get_position!(client, InvariantRef, dex, 1, alice).unwrap();
 
             create_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 pool_key,
                 lower_tick_index,
@@ -888,7 +888,7 @@ pub mod e2e_tests {
             )
             .unwrap();
 
-            let third_position = get_position!(client, ContractRef, dex, 2, alice).unwrap();
+            let third_position = get_position!(client, InvariantRef, dex, 2, alice).unwrap();
 
             assert!(first_position.lower_tick_index == second_position.lower_tick_index);
             assert!(first_position.upper_tick_index == second_position.upper_tick_index);
@@ -897,11 +897,11 @@ pub mod e2e_tests {
 
             // Load states
             let pool_state =
-                get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+                get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
             let lower_tick =
-                get_tick!(client, ContractRef, dex, pool_key, lower_tick_index).unwrap();
+                get_tick!(client, InvariantRef, dex, pool_key, lower_tick_index).unwrap();
             let upper_tick =
-                get_tick!(client, ContractRef, dex, pool_key, upper_tick_index).unwrap();
+                get_tick!(client, InvariantRef, dex, pool_key, upper_tick_index).unwrap();
             let expected_liquidity = Liquidity::new(liquidity_delta.get() * 3);
             let zero_fee = FeeGrowth::new(0);
 
@@ -951,11 +951,11 @@ pub mod e2e_tests {
             let liquidity_delta = Liquidity::new(100);
 
             let pool_state =
-                get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+                get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
 
             create_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 pool_key,
                 lower_tick_index,
@@ -967,7 +967,7 @@ pub mod e2e_tests {
             )
             .unwrap();
 
-            let first_position = get_position!(client, ContractRef, dex, 3, alice).unwrap();
+            let first_position = get_position!(client, InvariantRef, dex, 3, alice).unwrap();
 
             // Check first position
             assert!(first_position.pool_key == pool_key);
@@ -982,7 +982,7 @@ pub mod e2e_tests {
 
             create_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 pool_key,
                 lower_tick_index,
@@ -994,7 +994,7 @@ pub mod e2e_tests {
             )
             .unwrap();
 
-            let second_position = get_position!(client, ContractRef, dex, 4, alice).unwrap();
+            let second_position = get_position!(client, InvariantRef, dex, 4, alice).unwrap();
 
             // Check second position
             assert!(second_position.pool_key == pool_key);
@@ -1008,7 +1008,7 @@ pub mod e2e_tests {
             let upper_tick_index = 20;
             create_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 pool_key,
                 lower_tick_index,
@@ -1020,7 +1020,7 @@ pub mod e2e_tests {
             )
             .unwrap();
 
-            let third_position = get_position!(client, ContractRef, dex, 5, alice).unwrap();
+            let third_position = get_position!(client, InvariantRef, dex, 5, alice).unwrap();
 
             // Check third position
             assert!(third_position.pool_key == pool_key);
@@ -1032,14 +1032,14 @@ pub mod e2e_tests {
 
             // Load states
             let pool_state =
-                get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
-            let tick_n20 = get_tick!(client, ContractRef, dex, pool_key, -20).unwrap();
-            let tick_n10 = get_tick!(client, ContractRef, dex, pool_key, -10).unwrap();
-            let tick_10 = get_tick!(client, ContractRef, dex, pool_key, 10).unwrap();
-            let tick_20 = get_tick!(client, ContractRef, dex, pool_key, 20).unwrap();
-            let tick_n20_bit = is_tick_initialized!(client, ContractRef, dex, pool_key, -20);
-            let tick_n10_bit = is_tick_initialized!(client, ContractRef, dex, pool_key, -10);
-            let tick_20_bit = is_tick_initialized!(client, ContractRef, dex, pool_key, 20);
+                get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
+            let tick_n20 = get_tick!(client, InvariantRef, dex, pool_key, -20).unwrap();
+            let tick_n10 = get_tick!(client, InvariantRef, dex, pool_key, -10).unwrap();
+            let tick_10 = get_tick!(client, InvariantRef, dex, pool_key, 10).unwrap();
+            let tick_20 = get_tick!(client, InvariantRef, dex, pool_key, 20).unwrap();
+            let tick_n20_bit = is_tick_initialized!(client, InvariantRef, dex, pool_key, -20);
+            let tick_n10_bit = is_tick_initialized!(client, InvariantRef, dex, pool_key, -10);
+            let tick_20_bit = is_tick_initialized!(client, InvariantRef, dex, pool_key, 20);
 
             let expected_active_liquidity = Liquidity::new(400);
 
