@@ -18,7 +18,7 @@ describe('invariant', function () {
   it('deploys', async () => {
     const { api, account } = await init()
 
-    const invariantData = await getDeploymentData('contract')
+    const invariantData = await getDeploymentData('invariant')
     const invariant = new Invariant(api, Network.Local)
 
     const initFee = { v: 10 }
@@ -34,7 +34,7 @@ describe('invariant', function () {
   it('changes protocol fee', async () => {
     const { api, account } = await init()
 
-    const invariantData = await getDeploymentData('contract')
+    const invariantData = await getDeploymentData('invariant')
     const invariant = new Invariant(api, Network.Local)
 
     const initFee = { v: 10 }
@@ -47,12 +47,12 @@ describe('invariant', function () {
     await invariant.load(invariantDeploy.address, invariantData.abi)
 
     const newFeeStruct = {
-      v: 100
+      v: 100n
     }
 
     await invariant.changeProtocolFee(account, newFeeStruct)
     const newFee = await invariant.getProtocolFee(account)
 
-    assert.deepEqual(newFee, newFeeStruct)
+    assert.deepEqual(newFee, { v: 100 })
   })
 })

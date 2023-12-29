@@ -1,8 +1,8 @@
 #[cfg(test)]
 pub mod e2e_tests {
     use crate::{
-        contract::ContractRef,
-        contracts::{entrypoints::Invariant, get_liquidity, FeeTier, PoolKey},
+        contracts::{entrypoints::InvariantTrait, get_liquidity, FeeTier, PoolKey},
+        invariant::InvariantRef,
         math::{
             types::{
                 fee_growth::FeeGrowth,
@@ -26,13 +26,13 @@ pub mod e2e_tests {
 
     #[ink_e2e::test]
     async fn test_multiple_swap_x_to_y(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-        multiple_swap!(client, ContractRef, TokenRef, true);
+        multiple_swap!(client, InvariantRef, TokenRef, true);
         Ok(())
     }
 
     #[ink_e2e::test]
     async fn test_multiple_swap_y_to_x(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-        multiple_swap!(client, ContractRef, TokenRef, false);
+        multiple_swap!(client, InvariantRef, TokenRef, false);
         Ok(())
     }
 }

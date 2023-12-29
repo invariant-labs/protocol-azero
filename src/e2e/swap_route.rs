@@ -1,8 +1,8 @@
 #[cfg(test)]
 pub mod e2e_tests {
     use crate::{
-        contract::{ContractRef, SwapHop},
-        contracts::{entrypoints::Invariant, FeeTier, PoolKey},
+        contracts::{entrypoints::InvariantTrait, FeeTier, PoolKey},
+        invariant::{InvariantRef, SwapHop},
         math::types::{
             liquidity::Liquidity, percentage::Percentage, sqrt_price::calculate_sqrt_price,
             token_amount::TokenAmount,
@@ -22,7 +22,7 @@ pub mod e2e_tests {
     #[ink_e2e::test]
     async fn swap_route(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let (dex, token_x, token_y, token_z) =
-            init_dex_and_3_tokens!(client, ContractRef, TokenRef);
+            init_dex_and_3_tokens!(client, InvariantRef, TokenRef);
 
         let alice = ink_e2e::alice();
         approve!(client, TokenRef, token_x, dex, u64::MAX as u128, alice).unwrap();
@@ -37,13 +37,13 @@ pub mod e2e_tests {
 
         let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 1).unwrap();
 
-        add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
+        add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
 
         let init_tick = 0;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
         create_pool!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             token_x,
             token_y,
@@ -58,7 +58,7 @@ pub mod e2e_tests {
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
         create_pool!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             token_y,
             token_z,
@@ -74,12 +74,12 @@ pub mod e2e_tests {
 
         let liquidity_delta = Liquidity::new(2u128.pow(63) - 1);
 
-        let pool_1 = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+        let pool_1 = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
         let slippage_limit_lower = pool_1.sqrt_price;
         let slippage_limit_upper = pool_1.sqrt_price;
         create_position!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             pool_key_1,
             -1,
@@ -91,12 +91,12 @@ pub mod e2e_tests {
         )
         .unwrap();
 
-        let pool_2 = get_pool!(client, ContractRef, dex, token_y, token_z, fee_tier).unwrap();
+        let pool_2 = get_pool!(client, InvariantRef, dex, token_y, token_z, fee_tier).unwrap();
         let slippage_limit_lower = pool_2.sqrt_price;
         let slippage_limit_upper = pool_2.sqrt_price;
         create_position!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             pool_key_2,
             -1,
@@ -122,11 +122,11 @@ pub mod e2e_tests {
         ];
 
         let expected_token_amount =
-            quote_route!(client, ContractRef, dex, amount_in, swaps.clone()).unwrap();
+            quote_route!(client, InvariantRef, dex, amount_in, swaps.clone()).unwrap();
 
         swap_route!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             amount_in,
             expected_token_amount,
@@ -144,11 +144,13 @@ pub mod e2e_tests {
         assert_eq!(bob_amount_y, 0);
         assert_eq!(bob_amount_z, 986);
 
-        let pool_1_after = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+        let pool_1_after =
+            get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
         assert_eq!(pool_1_after.fee_protocol_token_x, TokenAmount(1));
         assert_eq!(pool_1_after.fee_protocol_token_y, TokenAmount(0));
 
-        let pool_2_after = get_pool!(client, ContractRef, dex, token_y, token_z, fee_tier).unwrap();
+        let pool_2_after =
+            get_pool!(client, InvariantRef, dex, token_y, token_z, fee_tier).unwrap();
         assert_eq!(pool_2_after.fee_protocol_token_x, TokenAmount(1));
         assert_eq!(pool_2_after.fee_protocol_token_y, TokenAmount(0));
 
@@ -156,8 +158,8 @@ pub mod e2e_tests {
         let alice_amount_y_before = balance_of!(client, TokenRef, token_y, address_of!(Alice));
         let alice_amount_z_before = balance_of!(client, TokenRef, token_z, address_of!(Alice));
 
-        claim_fee!(client, ContractRef, dex, 0, alice).unwrap();
-        claim_fee!(client, ContractRef, dex, 1, alice).unwrap();
+        claim_fee!(client, InvariantRef, dex, 0, alice).unwrap();
+        claim_fee!(client, InvariantRef, dex, 1, alice).unwrap();
 
         let alice_amount_x_after = balance_of!(client, TokenRef, token_x, address_of!(Alice));
         let alice_amount_y_after = balance_of!(client, TokenRef, token_y, address_of!(Alice));

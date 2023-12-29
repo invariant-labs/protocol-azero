@@ -1,8 +1,8 @@
 #[cfg(test)]
 pub mod e2e_tests {
     use crate::{
-        contract::ContractRef,
-        contracts::{entrypoints::Invariant, FeeTier, PoolKey},
+        contracts::{entrypoints::InvariantTrait, FeeTier, PoolKey},
+        invariant::InvariantRef,
         math::{
             types::{
                 fee_growth::FeeGrowth,
@@ -34,16 +34,16 @@ pub mod e2e_tests {
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
         let initial_mint = 10u128.pow(10);
 
-        let dex = create_dex!(client, ContractRef, Percentage::from_scale(1, 2));
+        let dex = create_dex!(client, InvariantRef, Percentage::from_scale(1, 2));
         let (token_x, token_y) = create_tokens!(client, TokenRef, initial_mint, initial_mint);
 
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
 
-        add_fee_tier!(client, ContractRef, dex, fee_tier, alice).unwrap();
+        add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
 
         create_pool!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             token_x,
             token_y,
@@ -82,11 +82,11 @@ pub mod e2e_tests {
 
         let liquidity_delta = Liquidity::from_integer(20_006_000);
 
-        let pool_state = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+        let pool_state = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
 
         create_position!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             pool_key,
             lower_tick_index,
@@ -98,7 +98,7 @@ pub mod e2e_tests {
         )
         .unwrap();
 
-        let pool_state = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+        let pool_state = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
 
         assert_eq!(pool_state.liquidity, liquidity_delta);
 
@@ -122,7 +122,7 @@ pub mod e2e_tests {
         let target_sqrt_price = SqrtPrice::new(MIN_SQRT_PRICE);
         let quoted_target_sqrt_price = quote!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             pool_key,
             true,
@@ -135,7 +135,7 @@ pub mod e2e_tests {
 
         swap!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             pool_key,
             true,
@@ -146,7 +146,7 @@ pub mod e2e_tests {
         )
         .unwrap();
 
-        let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+        let pool = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
         let expected_price = calculate_sqrt_price(-10).unwrap();
         let expected_y_amount_out = 9999;
 
@@ -181,7 +181,7 @@ pub mod e2e_tests {
 
             let result = swap!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 pool_key,
                 true,
@@ -202,11 +202,11 @@ pub mod e2e_tests {
         approve!(client, TokenRef, token_x, dex, liquidity_delta.get(), alice).unwrap();
         approve!(client, TokenRef, token_y, dex, liquidity_delta.get(), alice).unwrap();
 
-        let pool_state = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+        let pool_state = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
 
         create_position!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             pool_key,
             lower_tick_after_swap,
@@ -234,7 +234,7 @@ pub mod e2e_tests {
         let target_sqrt_price = SqrtPrice::new(MIN_SQRT_PRICE);
         let quoted_target_sqrt_price = quote!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             pool_key,
             true,
@@ -247,7 +247,7 @@ pub mod e2e_tests {
 
         swap!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             pool_key,
             true,
@@ -257,7 +257,7 @@ pub mod e2e_tests {
             bob
         )
         .unwrap();
-        get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+        get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
 
         Ok(())
     }

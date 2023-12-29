@@ -48,20 +48,7 @@ export class PSP22 {
     this.contract = new ContractPromise(this.api, abi, deploymentAddress)
   }
 
-  async mint(account: IKeyringPair, value: number): Promise<string> {
-    return sendTx(
-      this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
-      0,
-      account,
-      PSP22Tx.Mint,
-      [value],
-      this.waitForFinalization
-    )
-  }
-
-  async mintWithoutFinalization(account: IKeyringPair, value: number): Promise<string> {
+  async mint(account: IKeyringPair, value: number, block: boolean = true): Promise<string> {
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -71,28 +58,16 @@ export class PSP22 {
       PSP22Tx.Mint,
       [value],
       this.waitForFinalization,
-      false
+      block
     )
   }
 
-  async transfer(account: IKeyringPair, to: string, value: number, data: Bytes): Promise<string> {
-    return sendTx(
-      this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
-      0,
-      account,
-      PSP22Tx.Transfer,
-      [to, value, data],
-      this.waitForFinalization
-    )
-  }
-
-  async transferWithoutFinalization(
+  async transfer(
     account: IKeyringPair,
     to: string,
     value: number,
-    data: Bytes
+    data: Bytes,
+    block: boolean = true
   ): Promise<string> {
     return sendTx(
       this.contract,
@@ -103,11 +78,16 @@ export class PSP22 {
       PSP22Tx.Transfer,
       [to, value, data],
       this.waitForFinalization,
-      false
+      block
     )
   }
 
-  async approve(account: IKeyringPair, spender: string, value: number): Promise<string> {
+  async approve(
+    account: IKeyringPair,
+    spender: string,
+    value: number,
+    block: boolean = true
+  ): Promise<string> {
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -115,7 +95,9 @@ export class PSP22 {
       0,
       account,
       PSP22Tx.Approve,
-      [spender, value]
+      [spender, value],
+      this.waitForFinalization,
+      block
     )
   }
 

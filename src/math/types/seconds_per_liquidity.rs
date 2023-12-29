@@ -155,7 +155,7 @@ pub mod tests {
             )
             .unwrap_err()
             .get();
-            assert_eq!(cause, "conversion to contract::math::types::seconds_per_liquidity::SecondsPerLiquidity type failed");
+            assert_eq!(cause, "conversion to invariant::math::types::seconds_per_liquidity::SecondsPerLiquidity type failed");
             assert_eq!(stack.len(), 1);
         }
 

@@ -1,8 +1,8 @@
 #[cfg(test)]
 pub mod e2e_tests {
     use crate::{
-        contract::ContractRef,
-        contracts::{entrypoints::Invariant, FeeTier, PoolKey},
+        contracts::{entrypoints::InvariantTrait, FeeTier, PoolKey},
+        invariant::InvariantRef,
         math::{
             types::{
                 fee_growth::FeeGrowth,
@@ -27,11 +27,11 @@ pub mod e2e_tests {
 
     #[ink_e2e::test]
     async fn test_cross(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-        let (dex, token_x, token_y) = init_dex_and_tokens!(client, ContractRef, TokenRef);
-        init_basic_pool!(client, ContractRef, TokenRef, dex, token_x, token_y);
-        init_basic_position!(client, ContractRef, TokenRef, dex, token_x, token_y);
-        init_cross_position!(client, ContractRef, TokenRef, dex, token_x, token_y);
-        init_cross_swap!(client, ContractRef, TokenRef, dex, token_x, token_y);
+        let (dex, token_x, token_y) = init_dex_and_tokens!(client, InvariantRef, TokenRef);
+        init_basic_pool!(client, InvariantRef, TokenRef, dex, token_x, token_y);
+        init_basic_position!(client, InvariantRef, TokenRef, dex, token_x, token_y);
+        init_cross_position!(client, InvariantRef, TokenRef, dex, token_x, token_y);
+        init_cross_swap!(client, InvariantRef, TokenRef, dex, token_x, token_y);
 
         let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
@@ -40,9 +40,10 @@ pub mod e2e_tests {
         let middle_tick_index = -10;
         let lower_tick_index = -20;
 
-        let upper_tick = get_tick!(client, ContractRef, dex, pool_key, upper_tick_index).unwrap();
-        let middle_tick = get_tick!(client, ContractRef, dex, pool_key, middle_tick_index).unwrap();
-        let lower_tick = get_tick!(client, ContractRef, dex, pool_key, lower_tick_index).unwrap();
+        let upper_tick = get_tick!(client, InvariantRef, dex, pool_key, upper_tick_index).unwrap();
+        let middle_tick =
+            get_tick!(client, InvariantRef, dex, pool_key, middle_tick_index).unwrap();
+        let lower_tick = get_tick!(client, InvariantRef, dex, pool_key, lower_tick_index).unwrap();
 
         assert_eq!(
             upper_tick.liquidity_change,

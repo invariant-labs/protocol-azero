@@ -5,10 +5,10 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "prebuild": "npm run contract:build && rm -rf target && cp ../target/ink/contract.wasm ./contracts/contract/ && cp ../target/ink/contract.json ./contracts/contract",
+    "prebuild": "npm run contract:build && rm -rf target && cp ../target/ink/invariant.wasm ./contracts/invariant/ && cp ../target/ink/invariant.json ./contracts/invariant",
     "build": "npx tsc",
-    "start:testnet": "npx tsc && ts-node target/index.js testnet",
-    "start:local": "npx tsc && ts-node target/index.js local",
+    "start:testnet": "npx tsc && ts-node target/src/index.js testnet",
+    "start:local": "npx tsc && ts-node target/src/index.js local",
     "node:start": "substrate-contracts-node purge-chain -y && substrate-contracts-node --rpc-port 9944 --dev",
     "node:stop": "cd .. && make chain-stop",
     "contract:build": "cd .. && cargo contract build --release && cd sdk",

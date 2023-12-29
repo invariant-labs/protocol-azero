@@ -1,8 +1,8 @@
 #[cfg(test)]
 pub mod e2e_tests {
     use crate::{
-        contract::ContractRef,
-        contracts::{entrypoints::Invariant, FeeTier, PoolKey},
+        contracts::{entrypoints::InvariantTrait, FeeTier, PoolKey},
+        invariant::InvariantRef,
         math::{
             types::{
                 fee_growth::FeeGrowth,
@@ -28,22 +28,22 @@ pub mod e2e_tests {
 
     #[ink_e2e::test]
     async fn test_claim(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-        let (dex, token_x, token_y) = init_dex_and_tokens!(client, ContractRef, TokenRef);
-        init_basic_pool!(client, ContractRef, TokenRef, dex, token_x, token_y);
-        init_basic_position!(client, ContractRef, TokenRef, dex, token_x, token_y);
-        init_basic_swap!(client, ContractRef, TokenRef, dex, token_x, token_y);
+        let (dex, token_x, token_y) = init_dex_and_tokens!(client, InvariantRef, TokenRef);
+        init_basic_pool!(client, InvariantRef, TokenRef, dex, token_x, token_y);
+        init_basic_position!(client, InvariantRef, TokenRef, dex, token_x, token_y);
+        init_basic_swap!(client, InvariantRef, TokenRef, dex, token_x, token_y);
 
         let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
         let alice = ink_e2e::alice();
-        let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+        let pool = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
         let user_amount_before_claim = balance_of!(client, TokenRef, token_x, address_of!(Alice));
         let dex_amount_before_claim = balance_of!(client, TokenRef, token_x, dex);
 
-        claim_fee!(client, ContractRef, dex, 0, alice).unwrap();
+        claim_fee!(client, InvariantRef, dex, 0, alice).unwrap();
 
         let user_amount_after_claim = balance_of!(client, TokenRef, token_x, address_of!(Alice));
         let dex_amount_after_claim = balance_of!(client, TokenRef, token_x, dex);
-        let position = get_position!(client, ContractRef, dex, 0, alice).unwrap();
+        let position = get_position!(client, InvariantRef, dex, 0, alice).unwrap();
         let expected_tokens_claimed = 5;
 
         assert_eq!(
@@ -62,13 +62,13 @@ pub mod e2e_tests {
 
     #[ink_e2e::test]
     async fn test_claim_not_owner(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-        let (dex, token_x, token_y) = init_dex_and_tokens!(client, ContractRef, TokenRef);
-        init_basic_pool!(client, ContractRef, TokenRef, dex, token_x, token_y);
-        init_basic_position!(client, ContractRef, TokenRef, dex, token_x, token_y);
-        init_basic_swap!(client, ContractRef, TokenRef, dex, token_x, token_y);
+        let (dex, token_x, token_y) = init_dex_and_tokens!(client, InvariantRef, TokenRef);
+        init_basic_pool!(client, InvariantRef, TokenRef, dex, token_x, token_y);
+        init_basic_position!(client, InvariantRef, TokenRef, dex, token_x, token_y);
+        init_basic_swap!(client, InvariantRef, TokenRef, dex, token_x, token_y);
 
         let user = ink_e2e::bob();
-        let result = claim_fee!(client, ContractRef, dex, 0, user);
+        let result = claim_fee!(client, InvariantRef, dex, 0, user);
 
         assert_eq!(result, Err(InvariantError::PositionNotFound));
 

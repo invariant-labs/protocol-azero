@@ -784,20 +784,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f7144d30dcf0fafbce74250a3963025d8d52177934239851c917d29f1df280c2"
 
 [[package]]
-name = "contract"
-version = "0.1.0"
-dependencies = [
- "decimal",
- "ink",
- "ink_e2e",
- "parity-scale-codec",
- "scale-info",
- "test_helpers",
- "token",
- "traceable_result",
-]
-
-[[package]]
 name = "contract-build"
 version = "3.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2200,6 +2186,20 @@ name = "intx"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f6f38a50a899dc47a6d0ed5508e7f601a2e34c3a85303514b5d137f3c10a0c75"
+
+[[package]]
+name = "invariant"
+version = "0.1.0"
+dependencies = [
+ "decimal",
+ "ink",
+ "ink_e2e",
+ "parity-scale-codec",
+ "scale-info",
+ "test_helpers",
+ "token",
+ "traceable_result",
+]
 
 [[package]]
 name = "io-lifetimes"

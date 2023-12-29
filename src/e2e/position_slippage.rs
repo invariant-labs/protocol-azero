@@ -1,8 +1,8 @@
 #[cfg(test)]
 pub mod e2e_tests {
     use crate::{
-        contract::ContractRef,
-        contracts::{entrypoints::Invariant, FeeTier, PoolKey},
+        contracts::{entrypoints::InvariantTrait, FeeTier, PoolKey},
+        invariant::InvariantRef,
         math::types::{
             liquidity::Liquidity,
             percentage::Percentage,
@@ -25,10 +25,10 @@ pub mod e2e_tests {
         mut client: ink_e2e::Client<C, E>,
     ) -> E2EResult<()> {
         let alice = ink_e2e::alice();
-        let (dex, token_x, token_y) = init_slippage_dex_and_tokens!(client, ContractRef, TokenRef);
+        let (dex, token_x, token_y) = init_slippage_dex_and_tokens!(client, InvariantRef, TokenRef);
         let pool_key = init_slippage_pool_with_liquidity!(
             client,
-            ContractRef,
+            InvariantRef,
             TokenRef,
             dex,
             token_x,
@@ -37,7 +37,7 @@ pub mod e2e_tests {
 
         let pool = get_pool!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             token_x,
             token_y,
@@ -52,7 +52,7 @@ pub mod e2e_tests {
             let tick = pool_key.fee_tier.tick_spacing as i32;
             create_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 pool_key,
                 -tick,
@@ -74,7 +74,7 @@ pub mod e2e_tests {
 
             create_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 pool_key,
                 -tick,
@@ -95,10 +95,10 @@ pub mod e2e_tests {
         mut client: ink_e2e::Client<C, E>,
     ) -> E2EResult<()> {
         let alice = ink_e2e::alice();
-        let (dex, token_x, token_y) = init_slippage_dex_and_tokens!(client, ContractRef, TokenRef);
+        let (dex, token_x, token_y) = init_slippage_dex_and_tokens!(client, InvariantRef, TokenRef);
         let pool_key = init_slippage_pool_with_liquidity!(
             client,
-            ContractRef,
+            InvariantRef,
             TokenRef,
             dex,
             token_x,
@@ -107,7 +107,7 @@ pub mod e2e_tests {
 
         get_pool!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             token_x,
             token_y,
@@ -121,7 +121,7 @@ pub mod e2e_tests {
         let tick = pool_key.fee_tier.tick_spacing as i32;
         let result = create_position!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             pool_key,
             -tick,
@@ -142,10 +142,10 @@ pub mod e2e_tests {
         mut client: ink_e2e::Client<C, E>,
     ) -> E2EResult<()> {
         let alice = ink_e2e::alice();
-        let (dex, token_x, token_y) = init_slippage_dex_and_tokens!(client, ContractRef, TokenRef);
+        let (dex, token_x, token_y) = init_slippage_dex_and_tokens!(client, InvariantRef, TokenRef);
         let pool_key = init_slippage_pool_with_liquidity!(
             client,
-            ContractRef,
+            InvariantRef,
             TokenRef,
             dex,
             token_x,
@@ -154,7 +154,7 @@ pub mod e2e_tests {
 
         get_pool!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             token_x,
             token_y,
@@ -168,7 +168,7 @@ pub mod e2e_tests {
         let tick = pool_key.fee_tier.tick_spacing as i32;
         let result = create_position!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             pool_key,
             -tick,

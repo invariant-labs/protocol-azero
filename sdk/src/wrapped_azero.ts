@@ -39,20 +39,7 @@ export class WrappedAZERO {
     this.contract = new ContractPromise(this.api, abi, deploymentAddress)
   }
 
-  async deposit(account: IKeyringPair, value: number): Promise<string> {
-    return sendTx(
-      this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
-      value,
-      account,
-      WrappedAZEROTx.Deposit,
-      [],
-      this.waitForFinalization
-    )
-  }
-
-  async depositWithoutFinalization(account: IKeyringPair, value: number): Promise<string> {
+  async deposit(account: IKeyringPair, value: number, block: boolean = true): Promise<string> {
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -62,24 +49,11 @@ export class WrappedAZERO {
       WrappedAZEROTx.Deposit,
       [],
       this.waitForFinalization,
-      false
+      block
     )
   }
 
-  async withdraw(account: IKeyringPair, value: number): Promise<string> {
-    return sendTx(
-      this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
-      0,
-      account,
-      WrappedAZEROTx.Withdraw,
-      [value],
-      this.waitForFinalization
-    )
-  }
-
-  async withdrawWithoutFinalization(account: IKeyringPair, value: number): Promise<string> {
+  async withdraw(account: IKeyringPair, value: number, block: boolean = true): Promise<string> {
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -89,11 +63,16 @@ export class WrappedAZERO {
       WrappedAZEROTx.Withdraw,
       [value],
       this.waitForFinalization,
-      false
+      block
     )
   }
 
-  async approve(account: IKeyringPair, spender: string, value: number): Promise<string> {
+  async approve(
+    account: IKeyringPair,
+    spender: string,
+    value: number,
+    block: boolean = true
+  ): Promise<string> {
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -101,7 +80,9 @@ export class WrappedAZERO {
       0,
       account,
       PSP22Tx.Approve,
-      [spender, value]
+      [spender, value],
+      this.waitForFinalization,
+      block
     )
   }
 

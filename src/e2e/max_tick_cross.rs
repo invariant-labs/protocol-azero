@@ -1,8 +1,8 @@
 #[cfg(test)]
 pub mod e2e_tests {
     use crate::{
-        contract::ContractRef,
-        contracts::{entrypoints::Invariant, FeeTier, PoolKey},
+        contracts::{entrypoints::InvariantTrait, FeeTier, PoolKey},
+        invariant::InvariantRef,
         math::{
             log::get_tick_at_sqrt_price,
             types::{
@@ -26,8 +26,8 @@ pub mod e2e_tests {
 
     #[ink_e2e::test]
     async fn max_tick_cross(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-        let (dex, token_x, token_y) = init_dex_and_tokens!(client, ContractRef, TokenRef);
-        init_basic_pool!(client, ContractRef, TokenRef, dex, token_x, token_y);
+        let (dex, token_x, token_y) = init_dex_and_tokens!(client, InvariantRef, TokenRef);
+        init_basic_pool!(client, InvariantRef, TokenRef, dex, token_x, token_y);
 
         let mint_amount = u128::MAX;
         let alice = ink_e2e::alice();
@@ -41,14 +41,14 @@ pub mod e2e_tests {
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
 
         for i in (-2560..20).step_by(10) {
-            let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+            let pool = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
 
             let slippage_limit_lower = pool.sqrt_price;
             let slippage_limit_upper = pool.sqrt_price;
 
             create_position!(
                 client,
-                ContractRef,
+                InvariantRef,
                 dex,
                 pool_key,
                 i,
@@ -61,7 +61,7 @@ pub mod e2e_tests {
             .unwrap();
         }
 
-        let pool = get_pool!(client, ContractRef, dex, token_x, token_y, fee_tier).unwrap();
+        let pool = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
         assert_eq!(pool.liquidity, liquidity);
 
         let amount = 760_000;
@@ -73,7 +73,7 @@ pub mod e2e_tests {
 
         let pool_before = get_pool!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             token_x,
             token_y,
@@ -85,7 +85,7 @@ pub mod e2e_tests {
         let slippage = SqrtPrice::new(MIN_SQRT_PRICE);
         let quote_result = quote!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             pool_key,
             true,
@@ -97,7 +97,7 @@ pub mod e2e_tests {
 
         let pool_after_quote = get_pool!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             token_x,
             token_y,
@@ -112,7 +112,7 @@ pub mod e2e_tests {
 
         swap!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             pool_key,
             true,
@@ -125,7 +125,7 @@ pub mod e2e_tests {
 
         let pool_after = get_pool!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             token_x,
             token_y,
