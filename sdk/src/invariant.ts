@@ -53,7 +53,7 @@ export class Invariant {
 
   async changeProtocolFee(
     account: IKeyringPair,
-    fee: { v: number },
+    fee: { v: bigint },
     block: boolean = true
   ): Promise<string> {
     return sendTx(

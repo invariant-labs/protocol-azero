@@ -74,7 +74,7 @@ const main = async () => {
   // change protocol fee
   const initialFee = await invariant.getProtocolFee(account)
   const newFeeStruct = {
-    v: 100
+    v: 18446744073709551615n
   }
   await invariant.changeProtocolFee(account, newFeeStruct)
   const newFee = await invariant.getProtocolFee(account)
