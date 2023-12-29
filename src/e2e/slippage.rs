@@ -1,8 +1,8 @@
 #[cfg(test)]
 pub mod e2e_tests {
     use crate::{
-        contract::ContractRef,
-        contracts::{entrypoints::Invariant, FeeTier, PoolKey},
+        contracts::{entrypoints::InvariantTrait, FeeTier, PoolKey},
+        invariant::InvariantRef,
         math::{
             types::{
                 liquidity::Liquidity,
@@ -29,10 +29,10 @@ pub mod e2e_tests {
     #[ink_e2e::test]
     async fn test_basic_slippage(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let alice = ink_e2e::alice();
-        let (dex, token_x, token_y) = init_slippage_dex_and_tokens!(client, ContractRef, TokenRef);
+        let (dex, token_x, token_y) = init_slippage_dex_and_tokens!(client, InvariantRef, TokenRef);
         let pool_key = init_slippage_pool_with_liquidity!(
             client,
-            ContractRef,
+            InvariantRef,
             TokenRef,
             dex,
             token_x,
@@ -45,7 +45,7 @@ pub mod e2e_tests {
         let target_sqrt_price = SqrtPrice::new(1009940000000000000000001);
         swap!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             pool_key,
             false,
@@ -58,7 +58,7 @@ pub mod e2e_tests {
         let expected_sqrt_price = SqrtPrice::new(1009940000000000000000000);
         let pool = get_pool!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             token_x,
             token_y,
@@ -73,10 +73,10 @@ pub mod e2e_tests {
     #[ink_e2e::test]
     async fn test_swap_close_to_limit(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let alice = ink_e2e::alice();
-        let (dex, token_x, token_y) = init_slippage_dex_and_tokens!(client, ContractRef, TokenRef);
+        let (dex, token_x, token_y) = init_slippage_dex_and_tokens!(client, InvariantRef, TokenRef);
         let pool_key = init_slippage_pool_with_liquidity!(
             client,
-            ContractRef,
+            InvariantRef,
             TokenRef,
             dex,
             token_x,
@@ -89,7 +89,7 @@ pub mod e2e_tests {
         let target_sqrt_price = SqrtPrice::new(MAX_SQRT_PRICE);
         let quoted_target_sqrt_price = quote!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             pool_key,
             false,
@@ -104,7 +104,7 @@ pub mod e2e_tests {
 
         let result = swap!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             pool_key,
             false,
@@ -119,9 +119,9 @@ pub mod e2e_tests {
 
     #[ink_e2e::test]
     async fn test_swap_exact_limit(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-        let (dex, token_x, token_y) = init_dex_and_tokens!(client, ContractRef, TokenRef);
-        init_basic_pool!(client, ContractRef, TokenRef, dex, token_x, token_y);
-        init_basic_position!(client, ContractRef, TokenRef, dex, token_x, token_y);
+        let (dex, token_x, token_y) = init_dex_and_tokens!(client, InvariantRef, TokenRef);
+        init_basic_pool!(client, InvariantRef, TokenRef, dex, token_x, token_y);
+        init_basic_position!(client, InvariantRef, TokenRef, dex, token_x, token_y);
 
         let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
 
@@ -138,7 +138,7 @@ pub mod e2e_tests {
         let swap_amount = TokenAmount::new(amount);
         swap_exact_limit!(
             client,
-            ContractRef,
+            InvariantRef,
             dex,
             pool_key,
             true,

@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x777dd7f7ddf3b04b84ec1e0145975604e34e9ea6c506bfb1145282190dcabc37",
+    "hash": "0x32636e28af681de922394cbf61166f037777da73f404276c91fef4a0489a09f2",
     "language": "ink! 4.3.0",
     "compiler": "rustc 1.72.1",
     "build_info": {
@@ -14,7 +14,7 @@
     }
   },
   "contract": {
-    "name": "contract",
+    "name": "invariant",
     "version": "0.1.0",
     "authors": [
       "Invariant Labs"
@@ -2048,7 +2048,7 @@
           }
         },
         "path": [
-          "contract",
+          "invariant",
           "contracts",
           "storage",
           "oracle",
@@ -2071,7 +2071,7 @@
           }
         },
         "path": [
-          "contract",
+          "invariant",
           "math",
           "types",
           "sqrt_price",
@@ -2117,7 +2117,7 @@
           }
         },
         "path": [
-          "contract",
+          "invariant",
           "contracts",
           "storage",
           "fee_tier",
@@ -2140,7 +2140,7 @@
           }
         },
         "path": [
-          "contract",
+          "invariant",
           "math",
           "types",
           "percentage",
@@ -2183,7 +2183,7 @@
           }
         },
         "path": [
-          "contract",
+          "invariant",
           "contracts",
           "storage",
           "pool_key",
@@ -2500,7 +2500,7 @@
           }
         },
         "path": [
-          "contract",
+          "invariant",
           "InvariantError"
         ]
       }
@@ -2520,7 +2520,7 @@
           }
         },
         "path": [
-          "contract",
+          "invariant",
           "math",
           "types",
           "liquidity",
@@ -2667,7 +2667,7 @@
           }
         },
         "path": [
-          "contract",
+          "invariant",
           "contracts",
           "storage",
           "position",
@@ -2690,7 +2690,7 @@
           }
         },
         "path": [
-          "contract",
+          "invariant",
           "math",
           "types",
           "fee_growth",
@@ -2712,7 +2712,7 @@
           }
         },
         "path": [
-          "contract",
+          "invariant",
           "math",
           "types",
           "token_amount",
@@ -2849,8 +2849,8 @@
           }
         },
         "path": [
-          "contract",
-          "contract",
+          "invariant",
+          "invariant",
           "CalculateSwapResult"
         ]
       }
@@ -2925,7 +2925,7 @@
           }
         },
         "path": [
-          "contract",
+          "invariant",
           "contracts",
           "storage",
           "pool",
@@ -2963,7 +2963,7 @@
           }
         },
         "path": [
-          "contract",
+          "invariant",
           "contracts",
           "storage",
           "oracle",
@@ -3031,7 +3031,7 @@
           }
         },
         "path": [
-          "contract",
+          "invariant",
           "contracts",
           "storage",
           "tick",
@@ -3069,8 +3069,8 @@
           }
         },
         "path": [
-          "contract",
-          "contract",
+          "invariant",
+          "invariant",
           "SwapHop"
         ]
       }
@@ -3189,8 +3189,8 @@
           }
         },
         "path": [
-          "contract",
-          "contract",
+          "invariant",
+          "invariant",
           "QuoteResult"
         ]
       }

@@ -1,6 +1,6 @@
 #[cfg(test)]
 pub mod e2e_tests {
-    use crate::{contract::ContractRef, math::types::percentage::Percentage};
+    use crate::{invariant::InvariantRef, math::types::percentage::Percentage};
     use decimal::*;
     use ink::primitives::AccountId;
     use token::TokenRef;
@@ -16,10 +16,10 @@ pub mod e2e_tests {
             .expect("Instantiate failed")
             .account_id;
 
-        let constructor = ContractRef::new(Percentage::new(0));
+        let constructor = InvariantRef::new(Percentage::new(0));
 
         let _contract: AccountId = client
-            .instantiate("contract", &ink_e2e::alice(), constructor, 0, None)
+            .instantiate("invariant", &ink_e2e::alice(), constructor, 0, None)
             .await
             .expect("Instantiate failed")
             .account_id;
