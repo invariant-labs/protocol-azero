@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x32636e28af681de922394cbf61166f037777da73f404276c91fef4a0489a09f2",
+    "hash": "0x898f90725df70db2d2f4c2db87dc9d31e3e647b5c1b7dbd6fa6589b4719c4241",
     "language": "ink! 4.3.0",
     "compiler": "rustc 1.72.1",
     "build_info": {
@@ -423,7 +423,7 @@
         "args": [],
         "default": false,
         "docs": [],
-        "label": "Invariant::get_protocol_fee",
+        "label": "InvariantTrait::get_protocol_fee",
         "mutates": false,
         "payable": false,
         "returnType": {
@@ -433,7 +433,7 @@
           ],
           "type": 20
         },
-        "selector": "0x8c58f657"
+        "selector": "0xe285b69a"
       },
       {
         "args": [
@@ -449,7 +449,7 @@
         ],
         "default": false,
         "docs": [],
-        "label": "Invariant::withdraw_protocol_fee",
+        "label": "InvariantTrait::withdraw_protocol_fee",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -459,7 +459,7 @@
           ],
           "type": 21
         },
-        "selector": "0xdc617df3"
+        "selector": "0x5a059796"
       },
       {
         "args": [
@@ -475,7 +475,7 @@
         ],
         "default": false,
         "docs": [],
-        "label": "Invariant::change_protocol_fee",
+        "label": "InvariantTrait::change_protocol_fee",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -485,7 +485,7 @@
           ],
           "type": 21
         },
-        "selector": "0x90d96d40"
+        "selector": "0xc8bd0f58"
       },
       {
         "args": [
@@ -510,7 +510,7 @@
         ],
         "default": false,
         "docs": [],
-        "label": "Invariant::change_fee_receiver",
+        "label": "InvariantTrait::change_fee_receiver",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -520,7 +520,7 @@
           ],
           "type": 21
         },
-        "selector": "0x4709aff0"
+        "selector": "0x0ebd3ec6"
       },
       {
         "args": [
@@ -581,7 +581,7 @@
         ],
         "default": false,
         "docs": [],
-        "label": "Invariant::create_position",
+        "label": "InvariantTrait::create_position",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -591,7 +591,7 @@
           ],
           "type": 25
         },
-        "selector": "0xe7ee1bce"
+        "selector": "0x0a1ca76b"
       },
       {
         "args": [
@@ -643,7 +643,7 @@
         ],
         "default": false,
         "docs": [],
-        "label": "Invariant::swap",
+        "label": "InvariantTrait::swap",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -653,7 +653,7 @@
           ],
           "type": 30
         },
-        "selector": "0xb40f0773"
+        "selector": "0x1c590004"
       },
       {
         "args": [
@@ -696,7 +696,7 @@
         ],
         "default": false,
         "docs": [],
-        "label": "Invariant::swap_route",
+        "label": "InvariantTrait::swap_route",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -706,7 +706,7 @@
           ],
           "type": 21
         },
-        "selector": "0x152f1768"
+        "selector": "0x5ff8d655"
       },
       {
         "args": [
@@ -758,7 +758,7 @@
         ],
         "default": false,
         "docs": [],
-        "label": "Invariant::quote",
+        "label": "InvariantTrait::quote",
         "mutates": false,
         "payable": false,
         "returnType": {
@@ -768,7 +768,7 @@
           ],
           "type": 39
         },
-        "selector": "0x4c8b81ba"
+        "selector": "0xa2bd3fc7"
       },
       {
         "args": [
@@ -793,7 +793,7 @@
         ],
         "default": false,
         "docs": [],
-        "label": "Invariant::quote_route",
+        "label": "InvariantTrait::quote_route",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -803,7 +803,7 @@
           ],
           "type": 42
         },
-        "selector": "0x37a57432"
+        "selector": "0x879b5256"
       },
       {
         "args": [
@@ -828,7 +828,7 @@
         ],
         "default": false,
         "docs": [],
-        "label": "Invariant::transfer_position",
+        "label": "InvariantTrait::transfer_position",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -838,7 +838,7 @@
           ],
           "type": 21
         },
-        "selector": "0x8cd05bb4"
+        "selector": "0xe5af145a"
       },
       {
         "args": [
@@ -854,7 +854,7 @@
         ],
         "default": false,
         "docs": [],
-        "label": "Invariant::get_position",
+        "label": "InvariantTrait::get_position",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -864,13 +864,13 @@
           ],
           "type": 25
         },
-        "selector": "0x40e0b0e9"
+        "selector": "0xccb84930"
       },
       {
         "args": [],
         "default": false,
         "docs": [],
-        "label": "Invariant::get_all_positions",
+        "label": "InvariantTrait::get_all_positions",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -880,7 +880,7 @@
           ],
           "type": 44
         },
-        "selector": "0xfc48d310"
+        "selector": "0xa509d69f"
       },
       {
         "args": [
@@ -896,7 +896,7 @@
         ],
         "default": false,
         "docs": [],
-        "label": "Invariant::claim_fee",
+        "label": "InvariantTrait::claim_fee",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -906,7 +906,7 @@
           ],
           "type": 46
         },
-        "selector": "0xa0a17d0f"
+        "selector": "0x4eb580e1"
       },
       {
         "args": [
@@ -922,7 +922,7 @@
         ],
         "default": false,
         "docs": [],
-        "label": "Invariant::remove_position",
+        "label": "InvariantTrait::remove_position",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -932,7 +932,7 @@
           ],
           "type": 46
         },
-        "selector": "0x26662c6f"
+        "selector": "0xfe63d239"
       },
       {
         "args": [
@@ -948,7 +948,7 @@
         ],
         "default": false,
         "docs": [],
-        "label": "Invariant::add_fee_tier",
+        "label": "InvariantTrait::add_fee_tier",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -958,7 +958,7 @@
           ],
           "type": 21
         },
-        "selector": "0x0413c4e6"
+        "selector": "0x009b6a3d"
       },
       {
         "args": [
@@ -974,7 +974,7 @@
         ],
         "default": false,
         "docs": [],
-        "label": "Invariant::remove_fee_tier",
+        "label": "InvariantTrait::remove_fee_tier",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -984,7 +984,7 @@
           ],
           "type": 21
         },
-        "selector": "0xf4ac6b34"
+        "selector": "0x3b497d6e"
       },
       {
         "args": [
@@ -1000,7 +1000,7 @@
         ],
         "default": false,
         "docs": [],
-        "label": "Invariant::fee_tier_exist",
+        "label": "InvariantTrait::fee_tier_exist",
         "mutates": false,
         "payable": false,
         "returnType": {
@@ -1010,7 +1010,7 @@
           ],
           "type": 49
         },
-        "selector": "0x6fde73f1"
+        "selector": "0x4e9e07ce"
       },
       {
         "args": [
@@ -1062,7 +1062,7 @@
         ],
         "default": false,
         "docs": [],
-        "label": "Invariant::create_pool",
+        "label": "InvariantTrait::create_pool",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -1072,7 +1072,7 @@
           ],
           "type": 21
         },
-        "selector": "0xfba00e56"
+        "selector": "0x98b595e9"
       },
       {
         "args": [
@@ -1106,7 +1106,7 @@
         ],
         "default": false,
         "docs": [],
-        "label": "Invariant::get_pool",
+        "label": "InvariantTrait::get_pool",
         "mutates": false,
         "payable": false,
         "returnType": {
@@ -1116,7 +1116,7 @@
           ],
           "type": 50
         },
-        "selector": "0x96c605de"
+        "selector": "0xf91e4a49"
       },
       {
         "args": [
@@ -1141,7 +1141,7 @@
         ],
         "default": false,
         "docs": [],
-        "label": "Invariant::get_tick",
+        "label": "InvariantTrait::get_tick",
         "mutates": false,
         "payable": false,
         "returnType": {
@@ -1151,7 +1151,7 @@
           ],
           "type": 52
         },
-        "selector": "0x641ac2ab"
+        "selector": "0xeebd620b"
       },
       {
         "args": [
@@ -1176,7 +1176,7 @@
         ],
         "default": false,
         "docs": [],
-        "label": "Invariant::is_tick_initialized",
+        "label": "InvariantTrait::is_tick_initialized",
         "mutates": false,
         "payable": false,
         "returnType": {
@@ -1186,13 +1186,13 @@
           ],
           "type": 49
         },
-        "selector": "0xe998f912"
+        "selector": "0xdbae15e5"
       },
       {
         "args": [],
         "default": false,
         "docs": [],
-        "label": "Invariant::get_pools",
+        "label": "InvariantTrait::get_pools",
         "mutates": false,
         "payable": false,
         "returnType": {
@@ -1202,13 +1202,13 @@
           ],
           "type": 54
         },
-        "selector": "0xd806db3e"
+        "selector": "0x6dd2d776"
       },
       {
         "args": [],
         "default": false,
         "docs": [],
-        "label": "Invariant::get_fee_tiers",
+        "label": "InvariantTrait::get_fee_tiers",
         "mutates": false,
         "payable": false,
         "returnType": {
@@ -1218,7 +1218,7 @@
           ],
           "type": 55
         },
-        "selector": "0x299b6d50"
+        "selector": "0xd05b6003"
       }
     ]
   },
@@ -1932,7 +1932,7 @@
               "name": "config"
             }
           ],
-          "name": "Contract"
+          "name": "Invariant"
         }
       },
       "root_key": "0x00000000"
