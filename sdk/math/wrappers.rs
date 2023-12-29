@@ -22,11 +22,20 @@ pub struct AmountDeltaResult {
 
 #[wasm_bindgen(js_name = "getDeltaY")]
 pub fn wrapped_get_delta_y(
-    sqrt_price_a: SqrtPrice,
-    sqrt_price_b: SqrtPrice,
-    liquidity: Liquidity,
-    rounding_up: bool,
+    js_sqrt_price_a: JsValue,
+    js_sqrt_price_b: JsValue,
+    js_liquidity: JsValue,
+    js_rounding_up: JsValue,
+    // sqrt_price_a: SqrtPrice,
+    // sqrt_price_b: SqrtPrice,
+    // liquidity: Liquidity,
+    // rounding_up: bool,
 ) -> Result<TokenAmount, JsValue> {
+    let sqrt_price_a: SqrtPrice = serde_wasm_bindgen::from_value(js_sqrt_price_a)?;
+    let sqrt_price_b: SqrtPrice = serde_wasm_bindgen::from_value(js_sqrt_price_b)?;
+    let liquidity: Liquidity = serde_wasm_bindgen::from_value(js_liquidity)?;
+    let rounding_up: bool = serde_wasm_bindgen::from_value(js_rounding_up)?;
+
     match get_delta_y(sqrt_price_a, sqrt_price_b, liquidity, rounding_up) {
         Ok(amount) => Ok(amount),
         Err(error) => Err(JsValue::from_str(&error.cause)),

@@ -81,18 +81,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "invt"
-version = "0.1.0"
-dependencies = [
- "decimal",
- "serde",
- "serde-wasm-bindgen",
- "traceable_result",
- "tsify",
- "wasm-bindgen",
-]
-
-[[package]]
 name = "itoa"
 version = "1.0.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -112,6 +100,18 @@ name = "log"
 version = "0.4.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b5e6163cb8c49088c2c36f57875e58ccd8c87c7427f7fbd50ea6710b2f3f2e8f"
+
+[[package]]
+name = "math"
+version = "0.1.0"
+dependencies = [
+ "decimal",
+ "serde",
+ "serde-wasm-bindgen",
+ "traceable_result",
+ "tsify",
+ "wasm-bindgen",
+]
 
 [[package]]
 name = "num-traits"
