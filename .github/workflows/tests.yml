@@ -108,7 +108,7 @@ jobs:
           args: build --release
 
   sdk-build:
-    name: Build SDK
+    name: Build and test SDK
     runs-on: ubuntu-latest
 
     steps:
@@ -162,3 +162,9 @@ jobs:
         working-directory: ./sdk
         run: |
           npm run build
+
+      - name: Test SDK
+        working-directory: ./sdk
+        run: |
+          ./tests.sh
+        shell: bash
