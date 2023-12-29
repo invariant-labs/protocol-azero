@@ -11,7 +11,7 @@ use wasm_bindgen::prelude::*;
 #[decimal(0)]
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
-pub struct TokenAmount(#[tsify(type = "BigInt")] pub u128);
+pub struct TokenAmount(#[tsify(type = "u128")] pub u128);
 
 impl TokenAmount {
     pub fn from_big_sqrt_price(value: U256) -> TrackableResult<TokenAmount> {

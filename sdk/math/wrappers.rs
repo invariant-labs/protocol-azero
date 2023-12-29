@@ -35,7 +35,8 @@ pub fn wrapped_get_delta_y(
     let sqrt_price_b: SqrtPrice = serde_wasm_bindgen::from_value(js_sqrt_price_b)?;
     let liquidity: Liquidity = serde_wasm_bindgen::from_value(js_liquidity)?;
     let rounding_up: bool = serde_wasm_bindgen::from_value(js_rounding_up)?;
-
+    // let amount = TokenAmount(0);
+    // Ok(amount)
     match get_delta_y(sqrt_price_a, sqrt_price_b, liquidity, rounding_up) {
         Ok(amount) => Ok(amount),
         Err(error) => Err(JsValue::from_str(&error.cause)),
@@ -44,11 +45,12 @@ pub fn wrapped_get_delta_y(
 
 #[wasm_bindgen(js_name = "getDeltaX")]
 pub fn wrapped_get_delta_x(
-    sqrt_price_a: SqrtPrice,
+    js_sqrt_price_a: JsValue,
     sqrt_price_b: SqrtPrice,
     liquidity: Liquidity,
     rounding_up: bool,
 ) -> Result<TokenAmount, JsValue> {
+    let sqrt_price_a: SqrtPrice = serde_wasm_bindgen::from_value(js_sqrt_price_a)?;
     match get_delta_x(sqrt_price_a, sqrt_price_b, liquidity, rounding_up) {
         Ok(amount) => Ok(amount),
         Err(error) => Err(JsValue::from_str(&error.cause)),
