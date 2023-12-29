@@ -4,6 +4,7 @@ import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types'
 import { DeployedContract } from '@scio-labs/use-inkathon'
 import { deployContract } from '@scio-labs/use-inkathon/helpers'
+import { Network } from './network.js'
 import { PSP22Query, PSP22Tx, WrappedAZEROTx } from './schema.js'
 import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME, sendQuery, sendTx } from './utils.js'
 
@@ -12,9 +13,11 @@ export class WrappedAZERO {
   api: ApiPromise
   gasLimit: WeightV2
   storageDepositLimit: number | null
+  waitForFinalization: boolean
 
   constructor(
     api: ApiPromise,
+    network: Network,
     storageDepositLimit: number | null = null,
     refTime: number = DEFAULT_REF_TIME,
     proofSize: number = DEFAULT_PROOF_SIZE
@@ -25,6 +28,7 @@ export class WrappedAZERO {
       proofSize
     }) as WeightV2
     this.storageDepositLimit = storageDepositLimit
+    this.waitForFinalization = network != Network.Local
   }
 
   async deploy(account: IKeyringPair, abi: any, wasm: Buffer): Promise<DeployedContract> {
@@ -44,6 +48,7 @@ export class WrappedAZERO {
       account,
       WrappedAZEROTx.Deposit,
       [],
+      this.waitForFinalization,
       block
     )
   }
@@ -57,6 +62,7 @@ export class WrappedAZERO {
       account,
       WrappedAZEROTx.Withdraw,
       [value],
+      this.waitForFinalization,
       block
     )
   }
@@ -75,6 +81,7 @@ export class WrappedAZERO {
       account,
       PSP22Tx.Approve,
       [spender, value],
+      this.waitForFinalization,
       block
     )
   }
