@@ -29,6 +29,6 @@ scale-info = { version = "2.6", default-features = false, features = [
 
 
 [features]
-# default = ["std"]
-# std = ["ink/std", "scale/std", "scale-info/std"]
+default = ["std"]
+std = ["ink/std", "scale/std", "scale-info/std"]
 ink-as-dependency = []
