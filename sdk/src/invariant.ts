@@ -51,7 +51,11 @@ export class Invariant {
     )
   }
 
-  async changeProtocolFee(account: IKeyringPair, fee: { v: number }): Promise<string> {
+  async changeProtocolFee(
+    account: IKeyringPair,
+    fee: { v: number },
+    block: boolean = true
+  ): Promise<string> {
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -59,7 +63,8 @@ export class Invariant {
       0,
       account,
       InvariantTx.ChangeProtocolFee,
-      [fee]
+      [fee],
+      block
     )
   }
 }
