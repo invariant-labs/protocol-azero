@@ -35,7 +35,7 @@ jobs:
         if: ${{ steps.check-substrate-contracts-node.outcome == 'failure' }}
         run: |
           sudo apt-get install -y protobuf-compiler libprotobuf-dev
-              
+
       - name: Install substrate-contracts-node
         if: ${{ steps.check-substrate-contracts-node.outcome == 'failure' }}
         run: |
@@ -76,7 +76,7 @@ jobs:
         if: ${{ steps.check-substrate-contracts-node.outcome == 'failure' }}
         run: |
           sudo apt-get install -y protobuf-compiler libprotobuf-dev
-              
+
       - name: Install substrate-contracts-node
         if: ${{ steps.check-substrate-contracts-node.outcome == 'failure' }}
         run: |
@@ -135,7 +135,7 @@ jobs:
         if: ${{ steps.check-substrate-contracts-node.outcome == 'failure' }}
         run: |
           sudo apt-get install -y protobuf-compiler libprotobuf-dev
-              
+
       - name: Install substrate-contracts-node
         if: ${{ steps.check-substrate-contracts-node.outcome == 'failure' }}
         run: |
@@ -152,6 +152,11 @@ jobs:
         working-directory: ./sdk
         run: |
           npm install
+
+      - name: Lint SDK packages
+        working-directory: ./sdk
+        run: |
+          npm run lint
 
       - name: Build SDK
         working-directory: ./sdk
