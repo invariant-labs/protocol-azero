@@ -105,7 +105,7 @@ pub mod contract {
     #[derive(scale::Decode, Default, scale::Encode, Clone, Debug, PartialEq)]
     #[cfg_attr(
         feature = "std",
-        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout,)
+        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
     )]
     pub struct CalculateSwapResult {
         pub amount_in: TokenAmount,
