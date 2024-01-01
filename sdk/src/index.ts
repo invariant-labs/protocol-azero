@@ -14,7 +14,7 @@ import {
 import { WrappedAZERO } from './wrapped_azero.js'
 dotenv.config()
 
-import { Liquidity, SqrtPrice, getDeltaY } from 'math'
+import { Liquidity, SqrtPrice, getDeltaY } from 'math/math.js'
 
 const main = async () => {
   {

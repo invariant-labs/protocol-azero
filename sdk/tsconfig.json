@@ -9,6 +9,10 @@
     "rootDir": "./",
     "outDir": "./target",
     "moduleResolution": "bundler",
+    "baseUrl": "./",
+    "paths": {
+      "math": ["./math/pkg"]
+    },
     "types": ["mocha", "chai"]
   }
 }
