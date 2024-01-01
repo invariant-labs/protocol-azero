@@ -16,14 +16,13 @@ dotenv.config()
 
 import { Liquidity, SqrtPrice, getDeltaY } from '../math/pkg/math.js'
 
-
 const main = async () => {
   {
     let sqrtPriceA: SqrtPrice = {
-      v: BigInt(234878324943782000000000000)
+      v: 234878324943782000000000000n
     }
-    let sqrtPriceB: SqrtPrice = { v: BigInt(87854456421658000000000000) }
-    let liquidity: Liquidity = { v: BigInt(983983249092) }
+    let sqrtPriceB: SqrtPrice = { v: 87854456421658000000000000n }
+    let liquidity: Liquidity = { v: 983983249092n }
     let delta_y_up = getDeltaY(sqrtPriceA, sqrtPriceB, liquidity, true)
     let delta_y_down = getDeltaY(sqrtPriceA, sqrtPriceB, liquidity, false)
     console.log(delta_y_up)
