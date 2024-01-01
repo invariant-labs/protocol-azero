@@ -18,13 +18,13 @@ import { Liquidity, SqrtPrice, getDeltaY } from '../math/pkg/math.js'
 
 const main = async () => {
   {
-    let sqrtPriceA: SqrtPrice = {
+    const sqrtPriceA: SqrtPrice = {
       v: 234878324943782000000000000n
     }
-    let sqrtPriceB: SqrtPrice = { v: 87854456421658000000000000n }
-    let liquidity: Liquidity = { v: 983983249092n }
-    let delta_y_up = getDeltaY(sqrtPriceA, sqrtPriceB, liquidity, true)
-    let delta_y_down = getDeltaY(sqrtPriceA, sqrtPriceB, liquidity, false)
+    const sqrtPriceB: SqrtPrice = { v: 87854456421658000000000000n }
+    const liquidity: Liquidity = { v: 983983249092n }
+    const delta_y_up = getDeltaY(sqrtPriceA, sqrtPriceB, liquidity, true)
+    const delta_y_down = getDeltaY(sqrtPriceA, sqrtPriceB, liquidity, false)
     console.log(delta_y_up)
     console.log(delta_y_down)
   }
