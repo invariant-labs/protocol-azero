@@ -148,6 +148,12 @@ jobs:
           command: install
           args: --locked cargo-contract
 
+      - name: Install wasm-bindgen-cli
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: --locked wasm-bindgen-cli
+
       - name: Install jq json precessor
         run: |
           sudo apt install -y jq
