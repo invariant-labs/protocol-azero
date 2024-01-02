@@ -10,10 +10,10 @@ describe('invariant', async () => {
   const keyring = new Keyring({ type: 'sr25519' })
   const account = await keyring.addFromUri('//Alice')
 
-  let invariant = await deployInvariant(api, account)
+  let invariant = await deployInvariant(api, account, { v: 10000000000n })
 
   beforeEach(async () => {
-    invariant = await deployInvariant(api, account)
+    invariant = await deployInvariant(api, account, { v: 10000000000n })
   })
 
   it('should change protocol fee', async () => {

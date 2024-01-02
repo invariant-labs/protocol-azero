@@ -151,12 +151,12 @@ export async function sendTx(
 
 export const deployInvariant = async (
   api: ApiPromise,
-  account: IKeyringPair
+  account: IKeyringPair,
+  initFee: { v: bigint }
 ): Promise<Invariant> => {
   const invariantData = await getDeploymentData('invariant')
   const invariant = new Invariant(api, Network.Local)
 
-  const initFee = { v: 10000000000n }
   const invariantDeploy = await invariant.deploy(
     account,
     invariantData.abi,
