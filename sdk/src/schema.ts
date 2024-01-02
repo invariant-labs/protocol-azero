@@ -32,16 +32,18 @@ export enum WrappedAZEROTx {
   Withdraw = 'wrappedAZERO::withdraw'
 }
 
+// TODO: replace this class
 export class FeeTier {
-  fee: { v: number }
-  tickSpacing: number
+  fee: { v: bigint }
+  tickSpacing: bigint
 
-  constructor(fee: number, tickSpacing: number) {
+  constructor(fee: bigint, tickSpacing: bigint) {
     this.fee = { v: fee }
     this.tickSpacing = tickSpacing
   }
 }
 
+// TODO: replace this class
 export class PoolKey {
   token0: string
   token1: string
@@ -51,5 +53,14 @@ export class PoolKey {
     this.token0 = token0
     this.token1 = token1
     this.fee_tier = fee_tier
+  }
+}
+
+// TODO: replace this class
+export class Type {
+  v: bigint
+
+  constructor(v: bigint) {
+    this.v = v
   }
 }

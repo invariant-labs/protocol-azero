@@ -6,7 +6,7 @@ import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { DeployedContract } from '@scio-labs/use-inkathon'
 import { deployContract } from '@scio-labs/use-inkathon/helpers'
 import { Network } from './network.js'
-import { InvariantQuery, InvariantTx, PoolKey } from './schema.js'
+import { FeeTier, InvariantQuery, InvariantTx, PoolKey, Type } from './schema.js'
 import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME, sendQuery, sendTx } from './utils.js'
 
 export class Invariant {
@@ -36,7 +36,7 @@ export class Invariant {
     account: IKeyringPair,
     abi: any,
     wasm: Buffer,
-    fee: { v: number }
+    fee: { v: bigint }
   ): Promise<DeployedContract> {
     return deployContract(this.api, account, abi, wasm, 'new', [fee])
   }
@@ -45,7 +45,7 @@ export class Invariant {
     this.contract = new ContractPromise(this.api, abi, deploymentAddress)
   }
 
-  async getProtocolFee(account: IKeyringPair): Promise<unknown> {
+  async getProtocolFee(account: IKeyringPair): Promise<Type> {
     return sendQuery(
       this.contract,
       this.gasLimit,
@@ -53,7 +53,7 @@ export class Invariant {
       account,
       InvariantQuery.ProtocolFee,
       []
-    )
+    ) as Promise<Type>
   }
 
   async changeProtocolFee(
@@ -76,7 +76,7 @@ export class Invariant {
 
   async addFeeTier(
     account: IKeyringPair,
-    fee_tier: { fee: { v: number }; tickSpacing: number },
+    fee_tier: FeeTier,
     block: boolean = true
   ): Promise<string> {
     return sendTx(
@@ -94,7 +94,7 @@ export class Invariant {
 
   async removeFeeTier(
     account: IKeyringPair,
-    fee_tier: { fee: { v: number }; tickSpacing: number },
+    fee_tier: FeeTier,
     block: boolean = true
   ): Promise<string> {
     return sendTx(
@@ -110,7 +110,7 @@ export class Invariant {
     )
   }
 
-  async getFeeTiers(account: IKeyringPair): Promise<unknown> {
+  async getFeeTiers(account: IKeyringPair): Promise<FeeTier[]> {
     return sendQuery(
       this.contract,
       this.gasLimit,
@@ -118,13 +118,10 @@ export class Invariant {
       account,
       InvariantQuery.GetFeeTiers,
       []
-    )
+    ) as Promise<FeeTier[]>
   }
 
-  async feeTierExist(
-    account: IKeyringPair,
-    fee_tier: { fee: { v: number }; tickSpacing: number }
-  ): Promise<unknown> {
+  async feeTierExist(account: IKeyringPair, fee_tier: FeeTier): Promise<boolean> {
     return sendQuery(
       this.contract,
       this.gasLimit,
@@ -132,15 +129,16 @@ export class Invariant {
       account,
       InvariantQuery.FeeTierExist,
       [fee_tier]
-    )
+    ) as Promise<boolean>
   }
 
+  // TODO: test this function
   async changeFeeReceiver(
     account: IKeyringPair,
     pool_key: PoolKey,
     fee_receiver: Codec,
     block: boolean = true
-  ): Promise<unknown> {
+  ): Promise<string> {
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -154,11 +152,12 @@ export class Invariant {
     )
   }
 
+  // TODO: test this function
   async withdrawProtocolFee(
     account: IKeyringPair,
     pool_key: PoolKey,
     block: boolean = true
-  ): Promise<unknown> {
+  ): Promise<string> {
     return sendTx(
       this.contract,
       this.gasLimit,
