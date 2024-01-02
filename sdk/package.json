@@ -7,15 +7,16 @@
   "scripts": {
     "prebuild": "npm run contract:build && rm -rf target && cp ../target/ink/invariant.wasm ./contracts/invariant/ && cp ../target/ink/invariant.json ./contracts/invariant",
     "build": "npx tsc",
-    "build:wasm": "cd math && wasm-pack build && npm run prepare:wasm",
-    "prepare:wasm": "jq '. + {\"type\": \"module\"}' math/pkg/package.json > temp && mv temp math/pkg/package.json",
     "start:testnet": "npx tsc && node --experimental-wasm-modules target/src/index.js testnet",
     "start:local": "npx tsc && node --experimental-wasm-modules target/src/index.js local",
+    "lint": "eslint . --ext .ts",
+    "test": "ts-mocha",
+    "wasm:build": "cd math && wasm-pack build && npm run wasm:package",
+    "wasm:package": "jq '. + {\"type\": \"module\"}' math/pkg/package.json > temp && mv temp math/pkg/package.json",
     "node:start": "substrate-contracts-node purge-chain -y && substrate-contracts-node --rpc-port 9944 --dev",
     "node:stop": "ps aux | grep substrate-contracts-node | tr -s ' ' | cut -d ' ' -f 2 | head -n 1 | xargs -r kill -9",
-    "contract:build": "cd .. && cargo contract build --release && cd sdk",
-    "lint": "eslint . --ext .ts",
-    "test": "ts-mocha"
+    "contract:build": "cd .. && cargo contract build --release && cd sdk"
+    
   },
   "dependencies": {
     "@polkadot/api": "^10.11.2",
