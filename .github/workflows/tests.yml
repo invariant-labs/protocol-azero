@@ -148,6 +148,10 @@ jobs:
           command: install
           args: --locked cargo-contract
 
+      - name: Install jq json precessor
+        run: |
+          sudo apt install -y jq
+
       - name: Install SDK packages
         working-directory: ./sdk
         run: |
@@ -157,6 +161,11 @@ jobs:
         working-directory: ./sdk
         run: |
           npm run lint
+
+      - name: Build math wasm bind_gen
+        working-directory: ./sdk
+        run: |
+          npm run wasm:build
 
       - name: Build SDK
         working-directory: ./sdk
