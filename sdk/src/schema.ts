@@ -7,7 +7,9 @@ export enum InvariantQuery {
 export enum InvariantTx {
   ChangeProtocolFee = 'invariantTrait::changeProtocolFee',
   AddFeeTier = 'invariantTrait::addFeeTier',
-  RemoveFeeTier = 'invariantTrait::removeFeeTier'
+  RemoveFeeTier = 'invariantTrait::removeFeeTier',
+  ChangeFeeReceiver = 'invariantTrait::changeFeeReceiver',
+  WithdrawProtocolFee = 'invariantTrait::withdrawProtocolFee'
 }
 
 export enum PSP22Query {
@@ -28,4 +30,26 @@ export enum PSP22Tx {
 export enum WrappedAZEROTx {
   Deposit = 'wrappedAZERO::deposit',
   Withdraw = 'wrappedAZERO::withdraw'
+}
+
+export class FeeTier {
+  fee: { v: number }
+  tickSpacing: number
+
+  constructor(fee: number, tickSpacing: number) {
+    this.fee = { v: fee }
+    this.tickSpacing = tickSpacing
+  }
+}
+
+export class PoolKey {
+  token0: string
+  token1: string
+  fee_tier: FeeTier
+
+  constructor(token0: string, token1: string, fee_tier: FeeTier) {
+    this.token0 = token0
+    this.token1 = token1
+    this.fee_tier = fee_tier
+  }
 }

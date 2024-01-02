@@ -90,10 +90,6 @@ export async function sendQuery(
     throw new Error('contract not loaded')
   }
 
-  if (message === InvariantQuery.GetFeeTiers) {
-    console.log(contract.query)
-  }
-
   const { result, output } = await contract.query[message](
     signer.address,
     {

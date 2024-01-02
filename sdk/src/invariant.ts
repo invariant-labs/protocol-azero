@@ -1,11 +1,12 @@
 import { ApiPromise } from '@polkadot/api'
 import { ContractPromise } from '@polkadot/api-contract'
 import { WeightV2 } from '@polkadot/types/interfaces'
+import { Codec } from '@polkadot/types/types'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { DeployedContract } from '@scio-labs/use-inkathon'
 import { deployContract } from '@scio-labs/use-inkathon/helpers'
 import { Network } from './network.js'
-import { InvariantQuery, InvariantTx } from './schema.js'
+import { InvariantQuery, InvariantTx, PoolKey } from './schema.js'
 import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME, sendQuery, sendTx } from './utils.js'
 
 export class Invariant {
@@ -131,6 +132,43 @@ export class Invariant {
       account,
       InvariantQuery.FeeTierExist,
       [fee_tier]
+    )
+  }
+
+  async changeFeeReceiver(
+    account: IKeyringPair,
+    pool_key: PoolKey,
+    fee_receiver: Codec,
+    block: boolean = true
+  ): Promise<unknown> {
+    return sendTx(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      0,
+      account,
+      InvariantTx.ChangeFeeReceiver,
+      [pool_key, fee_receiver],
+      this.waitForFinalization,
+      block
+    )
+  }
+
+  async withdrawProtocolFee(
+    account: IKeyringPair,
+    pool_key: PoolKey,
+    block: boolean = true
+  ): Promise<unknown> {
+    return sendTx(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      0,
+      account,
+      InvariantTx.WithdrawProtocolFee,
+      [pool_key],
+      this.waitForFinalization,
+      block
     )
   }
 }
