@@ -16,7 +16,6 @@
     "node:start": "substrate-contracts-node purge-chain -y && substrate-contracts-node --rpc-port 9944 --dev",
     "node:stop": "ps aux | grep substrate-contracts-node | tr -s ' ' | cut -d ' ' -f 2 | head -n 1 | xargs -r kill -9",
     "contract:build": "cd .. && cargo contract build --release && cd sdk"
-    
   },
   "dependencies": {
     "@polkadot/api": "^10.11.2",
@@ -37,6 +36,7 @@
     "@typescript-eslint/parser": "^6.16.0",
     "chai": "^5.0.0",
     "eslint": "^8.56.0",
-    "ts-mocha": "^10.0.0"
+    "ts-mocha": "^10.0.0",
+    "wasm-pack": "^0.12.1"
   }
 }
