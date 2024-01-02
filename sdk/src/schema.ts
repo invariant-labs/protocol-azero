@@ -1,9 +1,13 @@
 export enum InvariantQuery {
-  ProtocolFee = 'invariantTrait::getProtocolFee'
+  ProtocolFee = 'invariantTrait::getProtocolFee',
+  GetFeeTiers = 'invariantTrait::getFeeTiers',
+  FeeTierExist = 'invariantTrait::feeTierExist'
 }
 
 export enum InvariantTx {
-  ChangeProtocolFee = 'invariantTrait::changeProtocolFee'
+  ChangeProtocolFee = 'invariantTrait::changeProtocolFee',
+  AddFeeTier = 'invariantTrait::addFeeTier',
+  RemoveFeeTier = 'invariantTrait::removeFeeTier'
 }
 
 export enum PSP22Query {

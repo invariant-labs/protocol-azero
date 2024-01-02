@@ -72,4 +72,65 @@ export class Invariant {
       block
     )
   }
+
+  async addFeeTier(
+    account: IKeyringPair,
+    fee_tier: { fee: { v: number }; tickSpacing: number },
+    block: boolean = true
+  ): Promise<string> {
+    return sendTx(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      0,
+      account,
+      InvariantTx.AddFeeTier,
+      [fee_tier],
+      this.waitForFinalization,
+      block
+    )
+  }
+
+  async removeFeeTier(
+    account: IKeyringPair,
+    fee_tier: { fee: { v: number }; tickSpacing: number },
+    block: boolean = true
+  ): Promise<string> {
+    return sendTx(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      0,
+      account,
+      InvariantTx.RemoveFeeTier,
+      [fee_tier],
+      this.waitForFinalization,
+      block
+    )
+  }
+
+  async getFeeTiers(account: IKeyringPair): Promise<unknown> {
+    return sendQuery(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      account,
+      InvariantQuery.GetFeeTiers,
+      []
+    )
+  }
+
+  async feeTierExist(
+    account: IKeyringPair,
+    fee_tier: { fee: { v: number }; tickSpacing: number }
+  ): Promise<unknown> {
+    return sendQuery(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      account,
+      InvariantQuery.FeeTierExist,
+      [fee_tier]
+    )
+  }
 }
