@@ -44,7 +44,19 @@ const main = async () => {
   {
     const feeTier: FeeTier = newFeeTier({ v: 10n }, 55)
     console.log(feeTier)
-    const poolKey: PoolKey = newPoolKey('5FQJQ4Z6Z2Q', '5FQJQ4Z6Z2QBB', feeTier)
+    const poolKey: PoolKey = newPoolKey(
+      [
+        23, 45, 67, 89, 12, 34, 56, 78, 90, 43, 21, 76, 98, 54, 32, 10, 87, 65, 43, 21, 98, 76, 54,
+        32, 10, 87, 65, 43, 21, 98, 76, 54
+      ],
+      [
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
+        25, 26, 27, 28, 29, 30, 31
+      ],
+      // '5H79vf7qQKdpefChp4sGh8j4BNq8JoL5x8nez8RsEebPJu9D',
+      // '5DxazQgoKEPMLqyUBRpqgAV7JnGv3w6i4EACTU8RDJxPHisH',
+      feeTier
+    )
     console.log(poolKey)
   }
 

@@ -1,3 +1,4 @@
+pub mod accountid;
 pub mod errors;
 pub mod fee_tier;
 pub mod invariant_config;
@@ -6,6 +7,7 @@ pub mod pool_key;
 pub mod position;
 pub mod tick;
 
+pub use accountid::*;
 pub use errors::*;
 pub use fee_tier::*;
 pub use invariant_config::*;
