@@ -3,19 +3,19 @@ use crate::errors::InvariantError;
 use crate::FeeTier;
 use alloc::string::String;
 use serde::{Deserialize, Serialize};
+use tsify::Tsify;
 use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen]
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)] //
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize, Tsify)] //
+#[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct PoolKey {
     token_x: String,
     token_y: String,
     pub fee_tier: FeeTier,
 }
 
-#[wasm_bindgen]
 impl PoolKey {
-    #[wasm_bindgen(constructor)]
+    // #[wasm_bindgen(constructor)]
     pub fn new(token_0: String, token_1: String, fee_tier: FeeTier) -> Result<PoolKey, JsValue> {
         if token_0 == token_1 {
             return Err(JsValue::from(InvariantError::TokensAreSame.to_string()));

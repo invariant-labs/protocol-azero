@@ -3,10 +3,11 @@ use crate::errors::InvariantError;
 use decimal::*;
 use math::types::percentage::Percentage;
 use serde::{Deserialize, Serialize};
-// use tsify::Tsify;
+use tsify::Tsify;
 use wasm_bindgen::prelude::*;
-#[wasm_bindgen]
-#[derive(Debug, Copy, Clone, PartialEq, Serialize, Deserialize)]
+
+#[derive(Debug, Copy, Clone, PartialEq, Serialize, Deserialize, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct FeeTier {
     pub fee: Percentage,
     pub tick_spacing: u16,

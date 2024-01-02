@@ -11,8 +11,9 @@
     "start:local": "npx tsc && node --experimental-wasm-modules target/src/index.js local",
     "lint": "eslint . --ext .ts",
     "test": "ts-mocha",
-    "wasm:build": "cd math && wasm-pack build && npm run wasm:package",
-    "wasm:package": "jq '. + {\"type\": \"module\"}' math/pkg/package.json > temp && mv temp math/pkg/package.json",
+    "wasm:build": "cd math && wasm-pack build && npm run wasm:math_package && cd ../storage && wasm-pack build && npm run wasm:storage_package",
+    "wasm:math_package": "jq '. + {\"type\": \"module\"}' math/pkg/package.json > temp && mv temp math/pkg/package.json",
+    "wasm:storage_package": "jq '. + {\"type\": \"module\"}' storage/pkg/package.json > temp && mv temp storage/pkg/package.json",
     "node:start": "substrate-contracts-node purge-chain -y && substrate-contracts-node --rpc-port 9944 --dev",
     "node:stop": "ps aux | grep substrate-contracts-node | tr -s ' ' | cut -d ' ' -f 2 | head -n 1 | xargs -r kill -9",
     "contract:build": "cd .. && cargo contract build --release && cd sdk"
@@ -23,6 +24,7 @@
     "@scio-labs/use-inkathon": "^0.6.3",
     "dotenv": "^16.3.1",
     "math": "file:math/pkg",
+    "storage": "file:storage/pkg",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   },

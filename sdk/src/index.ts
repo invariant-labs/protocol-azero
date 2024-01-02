@@ -15,6 +15,7 @@ import { WrappedAZERO } from './wrapped_azero.js'
 dotenv.config()
 
 import { Liquidity, SqrtPrice, getDecimalScales, getDeltaY } from 'math/math.js'
+import { InvariantConfig, PoolKey } from 'storage/storage.js'
 
 const main = async () => {
   {
@@ -31,6 +32,22 @@ const main = async () => {
   {
     const scales = getDecimalScales()
     console.log(scales)
+  }
+  {
+    const cfg: InvariantConfig = {
+      admin: '5FQJQ4Z6Z2Q',
+      protocol_fee: { v: 10n }
+    }
+    console.log(cfg)
+    let poolKey: PoolKey = {
+      token_x: '5FQJQ4Z6Z2Q',
+      token_y: '5FQJQ4Z6Z2Q',
+      fee_tier: {
+        fee: { v: 10n },
+        tick_spacing: 100
+      }
+    }
+    console.log(poolKey)
   }
 
   const network = Network.getFromEnv()
