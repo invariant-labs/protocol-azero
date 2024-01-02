@@ -1,53 +1,23 @@
-import { ApiPromise, Keyring } from '@polkadot/api'
-import { IKeyringPair } from '@polkadot/types/types/interfaces'
+import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
-import { FeeTier, Type } from '../src/schema'
-import { getDeploymentData, initPolkadotApi } from '../src/utils'
+import { FeeTier } from '../src/schema'
+import { deployInvariant, initPolkadotApi } from '../src/utils'
 
-describe('invariant', function () {
-  const init = async (): Promise<{ api: ApiPromise; account: IKeyringPair }> => {
-    const api = await initPolkadotApi(Network.Local)
+describe('invariant', async () => {
+  const api = await initPolkadotApi(Network.Local)
 
-    const keyring = new Keyring({ type: 'sr25519' })
-    const account = await keyring.addFromUri('//Alice')
+  const keyring = new Keyring({ type: 'sr25519' })
+  const account = await keyring.addFromUri('//Alice')
 
-    return { api, account }
-  }
+  let invariant = await deployInvariant(api, account)
 
-  it('deploys', async () => {
-    const { api, account } = await init()
-
-    const invariantData = await getDeploymentData('invariant')
-    const invariant = new Invariant(api, Network.Local)
-
-    const initFee = { v: 10000000000n }
-    const invariantDeploy = await invariant.deploy(
-      account,
-      invariantData.abi,
-      invariantData.wasm,
-      initFee
-    )
-    await invariant.load(invariantDeploy.address, invariantData.abi)
+  beforeEach(async () => {
+    invariant = await deployInvariant(api, account)
   })
 
   it('should change protocol fee', async () => {
-    const { api, account } = await init()
-
-    const invariantData = await getDeploymentData('invariant')
-    const invariant = new Invariant(api, Network.Local)
-
-    const initFee = { v: 10000000000n }
-    const invariantDeploy = await invariant.deploy(
-      account,
-      invariantData.abi,
-      invariantData.wasm,
-      initFee
-    )
-    await invariant.load(invariantDeploy.address, invariantData.abi)
-
-    const newFeeStruct = new Type(20000000000n)
+    const newFeeStruct = { v: 20000000000n }
 
     await invariant.changeProtocolFee(account, newFeeStruct)
     const newFee = await invariant.getProtocolFee(account)
@@ -56,20 +26,6 @@ describe('invariant', function () {
   })
 
   it('should add fee tier', async () => {
-    const { api, account } = await init()
-
-    const invariantData = await getDeploymentData('invariant')
-    const invariant = new Invariant(api, Network.Local)
-
-    const initFee = { v: 10000000000n }
-    const invariantDeploy = await invariant.deploy(
-      account,
-      invariantData.abi,
-      invariantData.wasm,
-      initFee
-    )
-    await invariant.load(invariantDeploy.address, invariantData.abi)
-
     const feeTier = new FeeTier(10000000000n, 5n)
     const anotherFeeTier = new FeeTier(20000000000n, 10n)
 
@@ -93,20 +49,6 @@ describe('invariant', function () {
   })
 
   it('should remove fee tier', async () => {
-    const { api, account } = await init()
-
-    const invariantData = await getDeploymentData('invariant')
-    const invariant = new Invariant(api, Network.Local)
-
-    const initFee = { v: 10000000000n }
-    const invariantDeploy = await invariant.deploy(
-      account,
-      invariantData.abi,
-      invariantData.wasm,
-      initFee
-    )
-    await invariant.load(invariantDeploy.address, invariantData.abi)
-
     const feeTier = new FeeTier(10000000000n, 5n)
     const anotherFeeTier = new FeeTier(20000000000n, 10n)
 

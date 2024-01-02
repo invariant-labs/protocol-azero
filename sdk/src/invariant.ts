@@ -6,7 +6,7 @@ import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { DeployedContract } from '@scio-labs/use-inkathon'
 import { deployContract } from '@scio-labs/use-inkathon/helpers'
 import { Network } from './network.js'
-import { FeeTier, InvariantQuery, InvariantTx, PoolKey, Type } from './schema.js'
+import { FeeTier, InvariantQuery, InvariantTx, PoolKey } from './schema.js'
 import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME, sendQuery, sendTx } from './utils.js'
 
 export class Invariant {
@@ -45,7 +45,7 @@ export class Invariant {
     this.contract = new ContractPromise(this.api, abi, deploymentAddress)
   }
 
-  async getProtocolFee(account: IKeyringPair): Promise<Type> {
+  async getProtocolFee(account: IKeyringPair): Promise<{ v: bigint }> {
     return sendQuery(
       this.contract,
       this.gasLimit,
@@ -53,7 +53,7 @@ export class Invariant {
       account,
       InvariantQuery.ProtocolFee,
       []
-    ) as Promise<Type>
+    ) as Promise<{ v: bigint }>
   }
 
   async changeProtocolFee(

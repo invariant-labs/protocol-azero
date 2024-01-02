@@ -55,12 +55,3 @@ export class PoolKey {
     this.fee_tier = fee_tier
   }
 }
-
-// TODO: replace this class
-export class Type {
-  v: bigint
-
-  constructor(v: bigint) {
-    this.v = v
-  }
-}
