@@ -31,7 +31,7 @@ describe('invariant', function () {
     await invariant.load(invariantDeploy.address, invariantData.abi)
   })
 
-  it('changes protocol fee', async () => {
+  it('should change protocol fee', async () => {
     const { api, account } = await init()
 
     const invariantData = await getDeploymentData('invariant')
@@ -54,5 +54,33 @@ describe('invariant', function () {
     const newFee = await invariant.getProtocolFee(account)
 
     assert.deepEqual(newFee, { v: 100 })
+  })
+
+  it('should add fee tier', async () => {
+    const { api, account } = await init()
+
+    const invariantData = await getDeploymentData('invariant')
+    const invariant = new Invariant(api, Network.Local)
+
+    const initFee = { v: 10 }
+    const invariantDeploy = await invariant.deploy(
+      account,
+      invariantData.abi,
+      invariantData.wasm,
+      initFee
+    )
+    await invariant.load(invariantDeploy.address, invariantData.abi)
+
+    const newFeeTierStruct = {
+      fee: { v: 600 },
+      tickSpacing: 5
+    }
+
+    await invariant.addFeeTier(account, newFeeTierStruct)
+    const feeTierExists = await invariant.feeTierExist(account, newFeeTierStruct)
+    const feeTiers = await invariant.getFeeTiers(account)
+
+    assert.deepEqual(feeTierExists, true)
+    assert.deepEqual(feeTiers, [newFeeTierStruct])
   })
 })
