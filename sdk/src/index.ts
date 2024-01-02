@@ -14,8 +14,16 @@ import {
 import { WrappedAZERO } from './wrapped_azero.js'
 dotenv.config()
 
-import { Liquidity, SqrtPrice, getDecimalScales, getDeltaY } from 'math/math.js'
-import { FeeTier, PoolKey, newFeeTier, newPoolKey } from 'storage/storage.js'
+import {
+  FeeTier,
+  Liquidity,
+  PoolKey,
+  SqrtPrice,
+  getDecimalScales,
+  getDeltaY,
+  newFeeTier,
+  newPoolKey
+} from 'math/math.js'
 
 const main = async () => {
   {

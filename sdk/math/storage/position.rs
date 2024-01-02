@@ -1,7 +1,7 @@
 use super::PoolKey;
 use crate::alloc::string::ToString;
 
-use math::types::{fee_growth::FeeGrowth, liquidity::Liquidity, token_amount::TokenAmount};
+use crate::types::{fee_growth::FeeGrowth, liquidity::Liquidity, token_amount::TokenAmount};
 
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;

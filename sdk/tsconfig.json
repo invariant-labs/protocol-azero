@@ -11,8 +11,7 @@
     "moduleResolution": "bundler",
     "baseUrl": "./",
     "paths": {
-      "math": ["./math/pkg/math"],
-      "storage": ["./storage/pkg/storage"]
+      "math": ["./math/pkg/math"]
     },
     "types": ["mocha", "chai"]
   }

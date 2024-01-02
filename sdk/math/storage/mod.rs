@@ -1,6 +1,3 @@
-#![no_std]
-extern crate alloc;
-
 pub mod errors;
 pub mod fee_tier;
 pub mod invariant_config;

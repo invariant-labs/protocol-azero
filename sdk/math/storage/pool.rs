@@ -1,8 +1,8 @@
 use crate::alloc::string::ToString;
-use alloc::string::String;
-use math::types::{
+use crate::types::{
     fee_growth::FeeGrowth, liquidity::Liquidity, sqrt_price::SqrtPrice, token_amount::TokenAmount,
 };
+use alloc::string::String;
 
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;

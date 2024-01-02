@@ -1,8 +1,8 @@
 use crate::alloc::string::ToString;
+use crate::convert;
 use crate::errors::InvariantError;
+use crate::types::percentage::Percentage;
 use decimal::*;
-use math::convert;
-use math::types::percentage::Percentage;
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;

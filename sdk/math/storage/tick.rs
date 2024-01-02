@@ -1,5 +1,5 @@
+use crate::types::{fee_growth::FeeGrowth, liquidity::Liquidity, sqrt_price::SqrtPrice};
 use decimal::*;
-use math::types::{fee_growth::FeeGrowth, liquidity::Liquidity, sqrt_price::SqrtPrice};
 
 use crate::alloc::string::ToString;
 use serde::{Deserialize, Serialize};

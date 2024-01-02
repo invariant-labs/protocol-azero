@@ -1,6 +1,6 @@
 use crate::alloc::string::String;
 use crate::alloc::string::ToString;
-use math::types::percentage::Percentage;
+use crate::types::percentage::Percentage;
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;

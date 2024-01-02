@@ -1,8 +1,8 @@
 use crate::alloc::string::ToString;
+use crate::convert;
 use crate::errors::InvariantError;
 use crate::FeeTier;
 use alloc::string::String;
-use math::convert;
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;
