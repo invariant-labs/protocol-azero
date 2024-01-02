@@ -72,4 +72,26 @@ export class Invariant {
       block
     )
   }
+
+  async getTick(account: IKeyringPair): Promise<unknown> {
+    return sendQuery(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      account,
+      InvariantQuery.GetTick,
+      []
+    )
+  }
+
+  async isTickInitialized(account: IKeyringPair): Promise<unknown> {
+    return sendQuery(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      account,
+      InvariantQuery.IsTickInitialized,
+      []
+    )
+  }
 }
