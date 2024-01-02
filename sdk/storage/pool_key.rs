@@ -15,7 +15,6 @@ pub struct PoolKey {
 }
 
 impl PoolKey {
-    // #[wasm_bindgen(constructor)]
     pub fn new(token_0: String, token_1: String, fee_tier: FeeTier) -> Result<PoolKey, JsValue> {
         if token_0 == token_1 {
             return Err(JsValue::from(InvariantError::TokensAreSame.to_string()));
