@@ -30,8 +30,5 @@ cargo contract build --release
 
 # Build and test SDK
 cd sdk
-npm i
-npm run lint
-npm run wasm:build
-npm run build
+./build.sh
 ./tests.sh
