@@ -14,7 +14,7 @@ import {
 import { WrappedAZERO } from './wrapped_azero.js'
 dotenv.config()
 
-import { Liquidity, SqrtPrice, getDeltaY } from 'math/math.js'
+import { Liquidity, SqrtPrice, getDecimalScales, getDeltaY } from 'math/math.js'
 
 const main = async () => {
   {
@@ -27,6 +27,10 @@ const main = async () => {
     const delta_y_down = getDeltaY(sqrtPriceA, sqrtPriceB, liquidity, false)
     console.log(delta_y_up)
     console.log(delta_y_down)
+  }
+  {
+    const scales = getDecimalScales()
+    console.log(scales)
   }
 
   const network = Network.getFromEnv()
