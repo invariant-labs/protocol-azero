@@ -7,20 +7,11 @@ use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;
 
-#[derive(Debug, Copy, Clone, PartialEq, Serialize, Deserialize, Tsify)]
+#[derive(Default, Debug, Copy, Clone, PartialEq, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct FeeTier {
     pub fee: Percentage,
     pub tick_spacing: u16,
-}
-
-impl Default for FeeTier {
-    fn default() -> Self {
-        Self {
-            fee: Percentage::new(0),
-            tick_spacing: 1,
-        }
-    }
 }
 
 #[wasm_bindgen(js_name = "newFeeTier")]

@@ -43,25 +43,3 @@ pub fn new_pool_key(
         })
     }
 }
-
-impl PoolKey {
-    pub fn new(token_0: String, token_1: String, fee_tier: FeeTier) -> Result<PoolKey, JsValue> {
-        if token_0 == token_1 {
-            return Err(JsValue::from(InvariantError::TokensAreSame.to_string()));
-        }
-
-        if token_0 < token_1 {
-            Ok(PoolKey {
-                token_x: token_0,
-                token_y: token_1,
-                fee_tier,
-            })
-        } else {
-            Ok(PoolKey {
-                token_x: token_1,
-                token_y: token_0,
-                fee_tier,
-            })
-        }
-    }
-}
