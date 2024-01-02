@@ -212,8 +212,8 @@ impl Pool {
 
 #[cfg(test)]
 mod tests {
-    use crate::math::types::sqrt_price::calculate_sqrt_price;
     use decimal::Factories;
+    use math::types::sqrt_price::calculate_sqrt_price;
 
     use super::*;
 

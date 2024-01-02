@@ -1,3 +1,4 @@
+use crate::alloc::string::ToString;
 use crate::consts::*;
 use crate::types::{fixed_point::FixedPoint, token_amount::TokenAmount};
 use core::convert::{TryFrom, TryInto};

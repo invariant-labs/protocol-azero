@@ -155,7 +155,7 @@ impl Tick {
 mod tests {
     use decimal::{Decimal, Factories};
 
-    use crate::math::clamm::calculate_max_liquidity_per_tick;
+    use math::clamm::calculate_max_liquidity_per_tick;
 
     use super::*;
 

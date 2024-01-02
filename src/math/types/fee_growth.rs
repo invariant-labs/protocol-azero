@@ -1,5 +1,6 @@
 use crate::liquidity::*;
 
+use crate::alloc::string::ToString;
 use crate::token_amount::TokenAmount;
 use core::convert::{TryFrom, TryInto};
 use decimal::*;
@@ -122,8 +123,8 @@ pub fn calculate_fee_growth_inside(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::math::consts::{MAX_TICK, TICK_SEARCH_RANGE};
-    use crate::math::types::sqrt_price::SqrtPrice;
+    use crate::consts::{MAX_TICK, TICK_SEARCH_RANGE};
+    use crate::types::sqrt_price::SqrtPrice;
 
     #[test]
     fn test_unchecked_add() {
@@ -378,7 +379,7 @@ mod tests {
             let (_format, cause, stack) = fee_growth.to_fee(liquidity).unwrap_err().get();
             assert_eq!(
                 cause,
-                "conversion to contract::math::types::token_amount::TokenAmount type failed"
+                "conversion to math::types::token_amount::TokenAmount type failed"
             );
             assert_eq!(stack.len(), 1);
         }

@@ -1,3 +1,4 @@
+use crate::alloc::string::ToString;
 use core::convert::{TryFrom, TryInto};
 use decimal::*;
 #[decimal(12)]

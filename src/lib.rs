@@ -947,9 +947,9 @@ pub mod contract {
 
         use super::*;
 
-        use crate::math::consts::MAX_TICK;
-        use crate::math::percentage::Percentage;
-        use crate::math::sqrt_price::calculate_sqrt_price;
+        use math::consts::MAX_TICK;
+        use math::percentage::Percentage;
+        use math::sqrt_price::calculate_sqrt_price;
 
         #[ink::test]
         fn initialize_works() {

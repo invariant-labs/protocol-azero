@@ -245,9 +245,9 @@ mod tests {
 
     use super::*;
     use crate::contracts::FeeTier;
-    use crate::math::percentage::Percentage;
     use decimal::*;
     use ink::primitives::AccountId;
+    use math::percentage::Percentage;
 
     #[ink::test]
     fn test_get_closer_limit() {

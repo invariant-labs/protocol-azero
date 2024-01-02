@@ -40,8 +40,9 @@ impl FeeTiers {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::math::percentage::Percentage;
+
     use decimal::*;
+    use math::percentage::Percentage;
 
     #[ink::test]
     fn test_add() {
