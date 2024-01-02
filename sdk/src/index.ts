@@ -36,7 +36,7 @@ const main = async () => {
   {
     const feeTier: FeeTier = newFeeTier({ v: 10n }, 55)
     console.log(feeTier)
-    let poolKey: PoolKey = newPoolKey('5FQJQ4Z6Z2Q', '5FQJQ4Z6Z2QBB', feeTier)
+    const poolKey: PoolKey = newPoolKey('5FQJQ4Z6Z2Q', '5FQJQ4Z6Z2QBB', feeTier)
     console.log(poolKey)
   }
 
