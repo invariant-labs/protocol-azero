@@ -6,7 +6,7 @@ export enum InvariantQuery {
 
 export enum InvariantTx {
   ChangeProtocolFee = 'invariantTrait::changeProtocolFee',
-  createPool = 'invariantTrait::createPool'
+  CreatePool = 'invariantTrait::createPool'
 }
 
 export enum PSP22Query {

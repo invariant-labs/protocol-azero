@@ -4,7 +4,7 @@ import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { DeployedContract } from '@scio-labs/use-inkathon'
 import { deployContract } from '@scio-labs/use-inkathon/helpers'
-import { FeeTier, PoolKey, SqrtPrice } from 'math'
+import { FeeTier, Pool, SqrtPrice } from 'math'
 import { Network } from './network.js'
 import { InvariantQuery, InvariantTx } from './schema.js'
 import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME, sendQuery, sendTx } from './utils.js'
@@ -74,18 +74,23 @@ export class Invariant {
     )
   }
 
-  async getPool(account: IKeyringPair, pool_key: PoolKey, block: boolean = true): Promise<unknown> {
+  async getPool(
+    account: IKeyringPair,
+    token0: string,
+    token1: string,
+    fee_tier: FeeTier
+  ): Promise<Pool> {
     return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       account,
       InvariantQuery.GetPool,
-      [pool_key]
-    )
+      [token0, token1, fee_tier]
+    ) as Promise<Pool>
   }
 
-  async getPools(account: IKeyringPair, block: boolean = true): Promise<unknown> {
+  async getPools(account: IKeyringPair, block: boolean = true): Promise<Pool[]> {
     return sendQuery(
       this.contract,
       this.gasLimit,
@@ -93,16 +98,16 @@ export class Invariant {
       account,
       InvariantQuery.GetPools,
       []
-    )
+    ) as Promise<Pool[]>
   }
 
   async createPool(
     account: IKeyringPair,
     token_0: string,
     token_1: string,
-    fee_tier: FeeTier,
-    init_sqrt_price: SqrtPrice,
-    init_tick: bigint,
+    feeTier: FeeTier,
+    initSqrtPrice: SqrtPrice,
+    initTick: bigint,
     block: boolean = true
   ): Promise<string> {
     return sendTx(
@@ -111,8 +116,8 @@ export class Invariant {
       this.storageDepositLimit,
       0,
       account,
-      InvariantTx.createPool,
-      [token_0, token_1, fee_tier, init_sqrt_price, init_tick],
+      InvariantTx.CreatePool,
+      [token_0, token_1, feeTier, initSqrtPrice, initTick],
       this.waitForFinalization,
       block
     )
