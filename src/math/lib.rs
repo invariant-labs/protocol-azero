@@ -1,5 +1,8 @@
 #![no_std]
 extern crate alloc;
+#[allow(unused_imports)]
+use wasm_bindgen::prelude::*;
+
 pub mod clamm;
 pub mod consts;
 pub mod log;

@@ -9,14 +9,17 @@ use decimal::*;
     PartialEq,
     Eq,
     PartialOrd,
-    scale::Decode,
-    scale::Encode,
     // scale_info::TypeInfo,
     // ink::storage::traits::StorageLayout,
 )]
 #[cfg_attr(
     feature = "std",
-    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+    derive(
+        scale_info::TypeInfo,
+        scale::Decode,
+        scale::Encode,
+        ink::storage::traits::StorageLayout
+    )
 )]
 pub struct FixedPoint {
     pub v: u128,

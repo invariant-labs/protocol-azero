@@ -8,16 +8,17 @@ edition = "2021"
 # local
 decimal = { path = "src/decimal" }
 traceable_result = { path = "src/traceable_result" }
-math = { path = "src/math", default-features = false, features = ["ink-as-dependency"] }
+math = { path = "src/math", default-features = false}
 
 # ink
-ink = { version = "4.2.0", default-features = false, optional = true }
+ink = { version = "4.3.0", default-features = false }
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = [
   "derive",
 ] }
 scale-info = { version = "2.6", default-features = false, features = [
   "derive",
 ], optional = true }
+
 token = { path = "src/token", default-features = false, features = [
   "ink-as-dependency",
 ] }
