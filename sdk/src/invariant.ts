@@ -90,7 +90,7 @@ export class Invariant {
     ) as Promise<Pool>
   }
 
-  async getPools(account: IKeyringPair, block: boolean = true): Promise<Pool[]> {
+  async getPools(account: IKeyringPair): Promise<Pool[]> {
     return sendQuery(
       this.contract,
       this.gasLimit,
