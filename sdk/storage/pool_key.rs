@@ -10,8 +10,8 @@ use wasm_bindgen::prelude::*;
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize, Tsify)] //
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct PoolKey {
-    token_x: String,
-    token_y: String,
+    pub token_x: String,
+    pub token_y: String,
     pub fee_tier: FeeTier,
 }
 
