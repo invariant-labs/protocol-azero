@@ -1,7 +1,7 @@
 use crate::alloc::string::ToString;
-use crate::convert;
 use crate::errors::InvariantError;
 use crate::FeeTier;
+use crate::{convert, resolve};
 use alloc::string::String;
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
@@ -15,6 +15,32 @@ pub struct PoolKey {
     pub fee_tier: FeeTier,
 }
 
+impl PoolKey {
+    pub fn new(
+        token_0: String,
+        token_1: String,
+        fee_tier: FeeTier,
+    ) -> Result<Self, InvariantError> {
+        if token_0 == token_1 {
+            return Err(InvariantError::TokensAreSame);
+        }
+
+        if token_0 < token_1 {
+            Ok(PoolKey {
+                token_x: token_0,
+                token_y: token_1,
+                fee_tier,
+            })
+        } else {
+            Ok(PoolKey {
+                token_x: token_1,
+                token_y: token_0,
+                fee_tier,
+            })
+        }
+    }
+}
+
 #[wasm_bindgen(js_name = "newPoolKey")]
 pub fn new_pool_key(
     token_0: JsValue,
@@ -24,22 +50,5 @@ pub fn new_pool_key(
     let token_0: String = convert!(token_0)?;
     let token_1: String = convert!(token_1)?;
     let fee_tier: FeeTier = convert!(fee_tier)?;
-
-    if token_0 == token_1 {
-        return Err(JsValue::from(InvariantError::TokensAreSame.to_string()));
-    }
-
-    if token_0 < token_1 {
-        Ok(PoolKey {
-            token_x: token_0,
-            token_y: token_1,
-            fee_tier,
-        })
-    } else {
-        Ok(PoolKey {
-            token_x: token_1,
-            token_y: token_0,
-            fee_tier,
-        })
-    }
+    resolve!(PoolKey::new(token_0, token_1, fee_tier))
 }

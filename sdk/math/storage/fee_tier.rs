@@ -1,7 +1,7 @@
 use crate::alloc::string::ToString;
-use crate::convert;
 use crate::errors::InvariantError;
 use crate::types::percentage::Percentage;
+use crate::{convert, resolve};
 use decimal::*;
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
@@ -14,20 +14,23 @@ pub struct FeeTier {
     pub tick_spacing: u16,
 }
 
+impl FeeTier {
+    pub fn new(fee: Percentage, tick_spacing: u16) -> Result<Self, InvariantError> {
+        if tick_spacing == 0 || tick_spacing > 100 {
+            return Err(InvariantError::InvalidTickSpacing);
+        }
+
+        if fee > Percentage::from_integer(1) {
+            return Err(InvariantError::InvalidFee);
+        }
+
+        Ok(Self { fee, tick_spacing })
+    }
+}
+
 #[wasm_bindgen(js_name = "newFeeTier")]
 pub fn new_fee_tier(js_fee: JsValue, js_tick_spacing: JsValue) -> Result<FeeTier, JsValue> {
     let fee: Percentage = convert!(js_fee)?;
     let tick_spacing: u16 = convert!(js_tick_spacing)?;
-
-    if tick_spacing == 0 || tick_spacing > 100 {
-        return Err(JsValue::from(
-            InvariantError::InvalidTickSpacing.to_string(),
-        ));
-    }
-
-    if fee > Percentage::from_integer(1) {
-        return Err(JsValue::from(InvariantError::InvalidFee.to_string()));
-    }
-
-    Ok(FeeTier { fee, tick_spacing })
+    resolve!(FeeTier::new(fee, tick_spacing))
 }
