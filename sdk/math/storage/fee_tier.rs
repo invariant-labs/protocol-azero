@@ -2,6 +2,7 @@ use crate::alloc::string::ToString;
 use crate::errors::InvariantError;
 use crate::types::percentage::Percentage;
 use crate::{convert, resolve};
+use core::convert::TryInto;
 use decimal::*;
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
@@ -17,9 +18,9 @@ pub struct FeeTier {
 
 impl FeeTier {
     pub fn new(fee: Percentage, tick_spacing: u16) -> Result<Self, InvariantError> {
-        if tick_spacing == 0 || tick_spacing > 100 {
-            return Err(InvariantError::InvalidTickSpacing);
-        }
+        // if tick_spacing == 0 || tick_spacing > 100 {
+        //     return Err(InvariantError::InvalidTickSpacing);
+        // }
 
         if fee > Percentage::from_integer(1) {
             return Err(InvariantError::InvalidFee);

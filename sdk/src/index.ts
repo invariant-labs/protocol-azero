@@ -17,12 +17,10 @@ dotenv.config()
 import {
   FeeTier,
   Liquidity,
-  PoolKey,
   SqrtPrice,
   getDecimalScales,
   getDeltaY,
-  newFeeTier,
-  newPoolKey
+  newFeeTier
 } from 'math/math.js'
 
 const main = async () => {
@@ -41,17 +39,49 @@ const main = async () => {
     const scales = getDecimalScales()
     console.log(scales)
   }
+  // {
+  //   const feeTier: FeeTier = newFeeTier({ v: 10n }, 55n)
+  //   console.log(feeTier)
+  //   const poolKey: PoolKey = newPoolKey(
+  //     '5H79vf7qQKdpefChp4sGh8j4BNq8JoL5x8nez8RsEebPJu9D',
+  //     '5DxazQgoKEPMLqyUBRpqgAV7JnGv3w6i4EACTU8RDJxPHisH',
+  //     feeTier
+  //   )
+  //   console.log(poolKey)
+  // }
   {
-    const feeTier: FeeTier = newFeeTier({ v: 10n }, 55)
-    console.log(feeTier)
-    const poolKey: PoolKey = newPoolKey(
-      '5H79vf7qQKdpefChp4sGh8j4BNq8JoL5x8nez8RsEebPJu9D',
-      '5DxazQgoKEPMLqyUBRpqgAV7JnGv3w6i4EACTU8RDJxPHisH',
-      feeTier
-    )
-    console.log(poolKey)
+    try {
+      let tickSpacing = 55n
+      const feeTier: FeeTier = newFeeTier({ v: 10n }, tickSpacing)
+      console.log(feeTier)
+    } catch (e) {
+      console.log(e)
+    }
   }
-
+  {
+    try {
+      const feeTier: FeeTier = newFeeTier({ v: 10n }, 55.12)
+      console.log(feeTier)
+    } catch (e) {
+      console.log(e)
+    }
+  }
+  {
+    try {
+      const feeTier: FeeTier = newFeeTier({ v: 10n }, 65535)
+      console.log(feeTier)
+    } catch (e) {
+      console.log(e)
+    }
+  }
+  {
+    try {
+      const feeTier: FeeTier = newFeeTier({ v: 10n }, 65536)
+      console.log(feeTier)
+    } catch (e) {
+      console.log(e)
+    }
+  }
   const network = Network.getFromEnv()
   console.log(`using ${network}`)
 
