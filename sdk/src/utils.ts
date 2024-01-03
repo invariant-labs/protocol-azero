@@ -173,7 +173,6 @@ export const deployInvariant = async (
 export const deployPSP22 = async (
   api: ApiPromise,
   account: IKeyringPair,
-  initFee: Percentage,
   supply: bigint,
   name: string = 'Coin',
   symbol: string = 'COIN',

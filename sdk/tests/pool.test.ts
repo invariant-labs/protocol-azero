@@ -3,7 +3,7 @@ import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { assert } from 'chai'
 import { SqrtPrice, newFeeTier } from 'math/math.js'
 import { Network } from '../src/network'
-import { deployInvariant, initPolkadotApi, sleep } from '../src/utils'
+import { deployInvariant, initPolkadotApi } from '../src/utils'
 
 describe('invariant', async () => {
   const api = await initPolkadotApi(Network.Local)
@@ -51,8 +51,6 @@ describe('invariant', async () => {
       initSqrtPrice,
       initTick
     )
-
-    await sleep(1000)
 
     console.log(createPoolResult)
 
