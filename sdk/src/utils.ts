@@ -194,3 +194,25 @@ export const deployPSP22 = async (
 
   return token
 }
+
+export const convertObj = <T>(obj: T): T => {
+  const newObj: { [key: string]: any } = {}
+
+  Object.entries(obj as { [key: string]: any }).forEach(([key, value]) => {
+    newObj[key] = value
+
+    if (typeof value === 'number' || (typeof value === 'string' && value.startsWith('0x'))) {
+      newObj[key] = BigInt(value)
+    }
+
+    if (typeof value.v === 'number' || (typeof value.v === 'string' && value.v.startsWith('0x'))) {
+      newObj[key] = { v: BigInt(value.v) }
+    }
+
+    if (typeof value === 'object' && value.v === undefined) {
+      newObj[key] = convertObj(value)
+    }
+  })
+
+  return newObj as T
+}

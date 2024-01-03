@@ -7,7 +7,7 @@ import { deployContract } from '@scio-labs/use-inkathon/helpers'
 import { FeeTier, Liquidity, Percentage, Pool, PoolKey, Position, SqrtPrice, Tick } from 'math'
 import { Network } from './network.js'
 import { InvariantQuery, InvariantTx, Result } from './schema.js'
-import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME, sendQuery, sendTx } from './utils.js'
+import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME, convertObj, sendQuery, sendTx } from './utils.js'
 
 export class Invariant {
   contract: ContractPromise | null = null
@@ -277,16 +277,7 @@ export class Invariant {
 
     if (result.ok) {
       return {
-        ok: {
-          ...result.ok,
-          index: BigInt(result.ok.index),
-          liquidityChange: { v: BigInt(result.ok.liquidityChange.v) },
-          liquidityGross: { v: BigInt(result.ok.liquidityGross.v) },
-          sqrtPrice: { v: BigInt(result.ok.sqrtPrice.v) },
-          feeGrowthOutsideX: { v: BigInt(result.ok.feeGrowthOutsideX.v) },
-          feeGrowthOutsideY: { v: BigInt(result.ok.feeGrowthOutsideY.v) },
-          secondsOutside: BigInt(result.ok.secondsOutside)
-        }
+        ok: convertObj(result.ok)
       }
     } else {
       return {
