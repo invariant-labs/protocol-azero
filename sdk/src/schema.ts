@@ -1,11 +1,14 @@
 export enum InvariantQuery {
   ProtocolFee = 'invariantTrait::getProtocolFee',
+  GetPool = 'invariantTrait::getPool',
+  GetPools = 'invariantTrait::getPools',
   GetTick = 'invariantTrait::getTick',
   IsTickInitialized = 'invariantTrait::isTickInitialized'
 }
 
 export enum InvariantTx {
-  ChangeProtocolFee = 'invariantTrait::changeProtocolFee'
+  ChangeProtocolFee = 'invariantTrait::changeProtocolFee',
+  CreatePool = 'invariantTrait::createPool'
 }
 
 export enum PSP22Query {
