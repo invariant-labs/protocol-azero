@@ -1,7 +1,7 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
+import { newFeeTier } from 'math/math.js'
 import { Network } from '../src/network'
-import { FeeTier } from '../src/schema'
 import { deployInvariant, initPolkadotApi } from '../src/utils'
 
 describe('invariant', async () => {
@@ -26,8 +26,8 @@ describe('invariant', async () => {
   })
 
   it('should add fee tier', async () => {
-    const feeTier = new FeeTier(10000000000n, 5n)
-    const anotherFeeTier = new FeeTier(20000000000n, 10n)
+    const feeTier = newFeeTier({ v: 10000000000n }, 5)
+    const anotherFeeTier = newFeeTier({ v: 20000000000n }, 10)
 
     await invariant.addFeeTier(account, feeTier)
     let addedFeeTierExists = await invariant.feeTierExist(account, feeTier)
@@ -49,8 +49,8 @@ describe('invariant', async () => {
   })
 
   it('should remove fee tier', async () => {
-    const feeTier = new FeeTier(10000000000n, 5n)
-    const anotherFeeTier = new FeeTier(20000000000n, 10n)
+    const feeTier = newFeeTier({ v: 10000000000n }, 5)
+    const anotherFeeTier = newFeeTier({ v: 20000000000n }, 10)
 
     await invariant.addFeeTier(account, feeTier)
     await invariant.addFeeTier(account, anotherFeeTier)
