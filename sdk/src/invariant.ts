@@ -134,7 +134,7 @@ export class Invariant {
 
   async changeFeeReceiver(
     account: IKeyringPair,
-    pool_key: PoolKey,
+    poolKey: PoolKey,
     feeReceiver: string,
     block: boolean = true
   ): Promise<string> {
@@ -145,7 +145,7 @@ export class Invariant {
       0,
       account,
       InvariantTx.ChangeFeeReceiver,
-      [pool_key, feeReceiver],
+      [poolKey, feeReceiver],
       this.waitForFinalization,
       block
     )
