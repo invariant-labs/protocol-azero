@@ -5,6 +5,5 @@
     "loader=ts-node/esm",
     "experimental-wasm-modules"
   ],
-  "timeout": "60000",
   "exit": true
 }
