@@ -20,9 +20,10 @@ describe('invariant', async () => {
     token1 = await deployPSP22(api, account, 1000n)
   })
 
-  it.only('create pool', async () => {
+  it('create pool', async () => {
     const feeTier = newFeeTier({ v: 10000000000n }, 1)
     await invariant.addFeeTier(account, feeTier)
+    // await invariant.addFeeTier(account, feeTier)
     const addedFeeTierExists = await invariant.feeTierExist(account, feeTier)
     assert.deepEqual(addedFeeTierExists, true)
 

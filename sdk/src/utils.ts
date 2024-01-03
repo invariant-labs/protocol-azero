@@ -86,7 +86,7 @@ export async function sendQuery(
   gasLimit: WeightV2,
   storageDepositLimit: number | null,
   signer: IKeyringPair,
-  message: InvariantQuery | PSP22Query,
+  message: InvariantQuery | PSP22Query | InvariantTx | PSP22Tx | WrappedAZEROTx,
   data: any[]
 ): Promise<unknown> {
   if (!contract) {
@@ -124,6 +124,19 @@ export async function sendTx(
     throw new Error('contract not loaded')
   }
 
+  const queryResult = await sendQuery(
+    contract,
+    gasLimit,
+    storageDepositLimit,
+    signer,
+    message,
+    data
+  )
+
+  if ((queryResult as { err?: any }).err) {
+    throw new Error((queryResult as { err?: any }).err)
+  }
+
   const call = contract.tx[message](
     {
       gasLimit,
@@ -138,7 +151,7 @@ export async function sendTx(
       if (!block) {
         resolve(result.txHash.toHex())
       }
-      if (result.isError) {
+      if (result.isError || result.dispatchError) {
         reject(result.toHuman())
       }
       if (result.isCompleted && !waitForFinalization) {
