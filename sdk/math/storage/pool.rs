@@ -2,7 +2,6 @@ use crate::alloc::string::ToString;
 use crate::types::{
     fee_growth::FeeGrowth, liquidity::Liquidity, sqrt_price::SqrtPrice, token_amount::TokenAmount,
 };
-use crate::AccountId;
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;
@@ -22,6 +21,6 @@ pub struct Pool {
     pub start_timestamp: u64,
     #[tsify(type = "bigint")]
     pub last_timestamp: u64,
-    #[tsify(type = "number[]")]
-    pub fee_receiver: AccountId,
+    #[tsify(type = "string")]
+    pub fee_receiver: String,
 }
