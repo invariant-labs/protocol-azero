@@ -76,7 +76,7 @@ export class Invariant {
 
   async addFeeTier(
     account: IKeyringPair,
-    fee_tier: FeeTier,
+    feeTier: FeeTier,
     block: boolean = true
   ): Promise<string> {
     return sendTx(
@@ -86,7 +86,7 @@ export class Invariant {
       0,
       account,
       InvariantTx.AddFeeTier,
-      [fee_tier],
+      [feeTier],
       this.waitForFinalization,
       block
     )
@@ -94,7 +94,7 @@ export class Invariant {
 
   async removeFeeTier(
     account: IKeyringPair,
-    fee_tier: FeeTier,
+    feeTier: FeeTier,
     block: boolean = true
   ): Promise<string> {
     return sendTx(
@@ -104,7 +104,7 @@ export class Invariant {
       0,
       account,
       InvariantTx.RemoveFeeTier,
-      [fee_tier],
+      [feeTier],
       this.waitForFinalization,
       block
     )
@@ -121,21 +121,21 @@ export class Invariant {
     ) as Promise<FeeTier[]>
   }
 
-  async feeTierExist(account: IKeyringPair, fee_tier: FeeTier): Promise<boolean> {
+  async feeTierExist(account: IKeyringPair, feeTier: FeeTier): Promise<boolean> {
     return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       account,
       InvariantQuery.FeeTierExist,
-      [fee_tier]
+      [feeTier]
     ) as Promise<boolean>
   }
 
   async changeFeeReceiver(
     account: IKeyringPair,
     pool_key: PoolKey,
-    fee_receiver: string,
+    feeReceiver: string,
     block: boolean = true
   ): Promise<string> {
     return sendTx(
@@ -145,7 +145,7 @@ export class Invariant {
       0,
       account,
       InvariantTx.ChangeFeeReceiver,
-      [pool_key, fee_receiver],
+      [pool_key, feeReceiver],
       this.waitForFinalization,
       block
     )
@@ -153,7 +153,7 @@ export class Invariant {
 
   async withdrawProtocolFee(
     account: IKeyringPair,
-    pool_key: PoolKey,
+    poolKey: PoolKey,
     block: boolean = true
   ): Promise<string> {
     return sendTx(
@@ -163,7 +163,7 @@ export class Invariant {
       0,
       account,
       InvariantTx.WithdrawProtocolFee,
-      [pool_key],
+      [poolKey],
       this.waitForFinalization,
       block
     )
@@ -195,7 +195,7 @@ export class Invariant {
     account: IKeyringPair,
     token0: string,
     token1: string,
-    fee_tier: FeeTier
+    feeTier: FeeTier
   ): Promise<Pool> {
     return sendQuery(
       this.contract,
@@ -203,7 +203,7 @@ export class Invariant {
       this.storageDepositLimit,
       account,
       InvariantQuery.GetPool,
-      [token0, token1, fee_tier]
+      [token0, token1, feeTier]
     ) as Promise<Pool>
   }
 
@@ -220,8 +220,8 @@ export class Invariant {
 
   async createPool(
     account: IKeyringPair,
-    token_0: string,
-    token_1: string,
+    token0: string,
+    token1: string,
     feeTier: FeeTier,
     initSqrtPrice: SqrtPrice,
     initTick: bigint,
@@ -234,7 +234,7 @@ export class Invariant {
       0,
       account,
       InvariantTx.CreatePool,
-      [token_0, token_1, feeTier, initSqrtPrice, initTick],
+      [token0, token1, feeTier, initSqrtPrice, initTick],
       this.waitForFinalization,
       block
     )

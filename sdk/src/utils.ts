@@ -5,6 +5,7 @@ import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { getSubstrateChain } from '@scio-labs/use-inkathon/chains'
 import { getBalance, initPolkadotJs as initApi } from '@scio-labs/use-inkathon/helpers'
 import { readFile } from 'fs/promises'
+import { Percentage } from 'math'
 import { Invariant } from './invariant.js'
 import { Network } from './network.js'
 import { InvariantQuery, InvariantTx, PSP22Query, PSP22Tx, WrappedAZEROTx } from './schema.js'
@@ -152,7 +153,7 @@ export async function sendTx(
 export const deployInvariant = async (
   api: ApiPromise,
   account: IKeyringPair,
-  initFee: { v: bigint }
+  initFee: Percentage
 ): Promise<Invariant> => {
   const invariantData = await getDeploymentData('invariant')
   const invariant = new Invariant(api, Network.Local)
