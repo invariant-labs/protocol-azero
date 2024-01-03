@@ -13,22 +13,23 @@ describe('invariant', async () => {
   let invariant = await deployInvariant(api, account, { v: 10000000000n })
   let token0 = await deployPSP22(api, account, 1000n)
   let token1 = await deployPSP22(api, account, 1000n)
+
   beforeEach(async () => {
     invariant = await deployInvariant(api, account, { v: 10000000000n })
     token0 = await deployPSP22(api, account, 1000n)
     token1 = await deployPSP22(api, account, 1000n)
   })
 
-  it('create pool', async () => {
-    const feeTier = newFeeTier({ v: 10000000000n }, 5)
+  it.only('create pool', async () => {
+    const feeTier = newFeeTier({ v: 10000000000n }, 1)
     await invariant.addFeeTier(account, feeTier)
-    let addedFeeTierExists = await invariant.feeTierExist(account, feeTier)
+    const addedFeeTierExists = await invariant.feeTierExist(account, feeTier)
     assert.deepEqual(addedFeeTierExists, true)
 
-    const initSqrtPrice: SqrtPrice = { v: 1000000000000000000n }
-    const initTick = 1n
+    const initSqrtPrice: SqrtPrice = { v: 1000000000000000000000000n }
+    const initTick = 0n
 
-    const createPoolResult = await invariant.createPool(
+    await invariant.createPool(
       account,
       token0.address,
       token1.address,
@@ -37,12 +38,10 @@ describe('invariant', async () => {
       initTick
     )
 
-    // console.log(createPoolResult)
+    await invariant.getPool(account, token0.address, token1.address, feeTier)
 
-    const result = await invariant.getPool(account, token0.address, token1.address, feeTier)
-    console.log(result)
-
-    // const pools = await invariant.getPools(account)
-    // console.log(pools)
+    const pools = await invariant.getPools(account)
+    console.log('POOLS = ', pools)
+    assert.deepEqual(pools.length, 1)
   })
 })
