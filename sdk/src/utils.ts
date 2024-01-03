@@ -124,19 +124,6 @@ export async function sendTx(
     throw new Error('contract not loaded')
   }
 
-  const queryResult = await sendQuery(
-    contract,
-    gasLimit,
-    storageDepositLimit,
-    signer,
-    message,
-    data
-  )
-
-  if ((queryResult as { err?: any }).err) {
-    return (queryResult as { err?: any }).err
-  }
-
   const call = contract.tx[message](
     {
       gasLimit,
@@ -146,22 +133,29 @@ export async function sendTx(
     ...data
   )
 
-  return new Promise<string>(async (resolve, reject) => {
-    await call.signAndSend(signer, result => {
-      if (!block) {
-        resolve(result.txHash.toHex())
-      }
-      if (result.isError || result.dispatchError) {
-        reject(result.toHuman())
-      }
-      if (result.isCompleted && !waitForFinalization) {
-        resolve(result.txHash.toHex())
-      }
-      if (result.isFinalized) {
-        resolve(result.txHash.toHex())
-      }
+  try {
+    return await new Promise<string>(async (resolve, reject) => {
+      await call.signAndSend(signer, result => {
+        if (!block) {
+          resolve(result.txHash.toHex())
+        }
+        if (result.isError || result.dispatchError) {
+          console.log('ERROR BRACKETS')
+          const err = new Error(`Tx: ${message} reverted`)
+          reject(err)
+        }
+        if (result.isCompleted && !waitForFinalization) {
+          resolve(result.txHash.toHex())
+        }
+        if (result.isFinalized) {
+          resolve(result.txHash.toHex())
+        }
+      })
     })
-  })
+  } catch (error) {
+    console.error('Caught error:', error)
+    throw error
+  }
 }
 
 export const deployInvariant = async (
@@ -208,3 +202,25 @@ export const deployPSP22 = async (
   await token.load(tokenDeploy.address, tokenData.abi)
   return token
 }
+
+// export async function assertThrowsAsync(fn: Promise<any>, word?: string) {
+//   try {
+//     await fn
+//   } catch (e: any) {
+//     let err
+//     if (e.code) {
+//       err = '0x' + e.code.toString(16)
+//     } else {
+//       err = e.toString()
+//     }
+//     if (word) {
+//       const regex = new RegExp(`${word}$`)
+//       if (!regex.test(err)) {
+//         console.log(err)
+//         throw new Error('Invalid Error message')
+//       }
+//     }
+//     return
+//   }
+//   throw new Error('Function did not throw error')
+// }

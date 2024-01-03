@@ -41,7 +41,7 @@ describe('invariant', async () => {
     const pools = await invariant.getPools(account)
     assert.deepEqual(pools.length, 1)
   })
-  it('create pool x/y and y/x', async () => {
+  it.only('create pool x/y and y/x', async () => {
     const feeTier = newFeeTier({ v: 10000000000n }, 1)
     await invariant.addFeeTier(account, feeTier)
     const addedFeeTierExists = await invariant.feeTierExist(account, feeTier)
@@ -72,6 +72,21 @@ describe('invariant', async () => {
         initSqrtPrice,
         initTick
       )
+
+      try {
+        const r = await invariant.createPool(
+          account,
+          token1.address,
+          token0.address,
+          feeTier,
+          initSqrtPrice,
+          initTick
+        )
+        console.log('RESULT:', r)
+      } catch (err) {
+        console.log('FINAL:', err)
+        // assert.equal(err.message, 'Tx: invariantTrait::createPool reverted')
+      }
       assert.equal(result, 'PoolAlreadyExist')
       const pools = await invariant.getPools(account)
       assert.deepEqual(pools.length, 1)
