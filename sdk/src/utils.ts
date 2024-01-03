@@ -134,7 +134,7 @@ export async function sendTx(
   )
 
   if ((queryResult as { err?: any }).err) {
-    throw new Error((queryResult as { err?: any }).err)
+    return (queryResult as { err?: any }).err
   }
 
   const call = contract.tx[message](

@@ -23,7 +23,6 @@ describe('invariant', async () => {
   it('create pool', async () => {
     const feeTier = newFeeTier({ v: 10000000000n }, 1)
     await invariant.addFeeTier(account, feeTier)
-    // await invariant.addFeeTier(account, feeTier)
     const addedFeeTierExists = await invariant.feeTierExist(account, feeTier)
     assert.deepEqual(addedFeeTierExists, true)
 
@@ -39,10 +38,43 @@ describe('invariant', async () => {
       initTick
     )
 
-    await invariant.getPool(account, token0.address, token1.address, feeTier)
-
     const pools = await invariant.getPools(account)
-    console.log('POOLS = ', pools)
     assert.deepEqual(pools.length, 1)
+  })
+  it('create pool x/y and y/x', async () => {
+    const feeTier = newFeeTier({ v: 10000000000n }, 1)
+    await invariant.addFeeTier(account, feeTier)
+    const addedFeeTierExists = await invariant.feeTierExist(account, feeTier)
+    assert.deepEqual(addedFeeTierExists, true)
+
+    const initSqrtPrice: SqrtPrice = { v: 1000000000000000000000000n }
+    const initTick = 0n
+
+    {
+      await invariant.createPool(
+        account,
+        token0.address,
+        token1.address,
+        feeTier,
+        initSqrtPrice,
+        initTick
+      )
+
+      const pools = await invariant.getPools(account)
+      assert.deepEqual(pools.length, 1)
+    }
+    {
+      const result = await invariant.createPool(
+        account,
+        token1.address,
+        token0.address,
+        feeTier,
+        initSqrtPrice,
+        initTick
+      )
+      assert.equal(result, 'PoolAlreadyExist')
+      const pools = await invariant.getPools(account)
+      assert.deepEqual(pools.length, 1)
+    }
   })
 })
