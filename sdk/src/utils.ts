@@ -8,6 +8,7 @@ import { readFile } from 'fs/promises'
 import { Percentage } from 'math'
 import { Invariant } from './invariant.js'
 import { Network } from './network.js'
+import { PSP22 } from './psp22.js'
 import { InvariantQuery, InvariantTx, PSP22Query, PSP22Tx, WrappedAZEROTx } from './schema.js'
 
 export const DEFAULT_REF_TIME = 100000000000
@@ -85,7 +86,7 @@ export async function sendQuery(
   gasLimit: WeightV2,
   storageDepositLimit: number | null,
   signer: IKeyringPair,
-  message: InvariantQuery | PSP22Query,
+  message: InvariantQuery | PSP22Query | InvariantTx | PSP22Tx | WrappedAZEROTx,
   data: any[]
 ): Promise<unknown> {
   if (!contract) {
@@ -167,4 +168,29 @@ export const deployInvariant = async (
   await invariant.load(invariantDeploy.address, invariantData.abi)
 
   return invariant
+}
+
+export const deployPSP22 = async (
+  api: ApiPromise,
+  account: IKeyringPair,
+  supply: bigint,
+  name: string,
+  symbol: string,
+  decimals: bigint
+) => {
+  const tokenData = await getDeploymentData('psp22')
+  const token = new PSP22(api, Network.Local)
+
+  const tokenDeploy = await token.deploy(
+    account,
+    tokenData.abi,
+    tokenData.wasm,
+    supply,
+    name,
+    symbol,
+    decimals
+  )
+  await token.load(tokenDeploy.address, tokenData.abi)
+
+  return token
 }

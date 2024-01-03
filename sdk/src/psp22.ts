@@ -1,8 +1,8 @@
 import { ApiPromise } from '@polkadot/api'
 import { ContractPromise } from '@polkadot/api-contract'
-import { Bytes, Option } from '@polkadot/types'
+import { Bytes } from '@polkadot/types'
 import { WeightV2 } from '@polkadot/types/interfaces'
-import { Codec, IKeyringPair } from '@polkadot/types/types'
+import { IKeyringPair } from '@polkadot/types/types'
 import { DeployedContract } from '@scio-labs/use-inkathon'
 import { deployContract } from '@scio-labs/use-inkathon/helpers'
 import { Network } from './network.js'
@@ -36,10 +36,10 @@ export class PSP22 {
     account: IKeyringPair,
     abi: any,
     wasm: Buffer,
-    supply: number,
-    name: Option<Codec>,
-    symbol: Option<Codec>,
-    decimals: number
+    supply: bigint,
+    name: string,
+    symbol: string,
+    decimals: bigint
   ): Promise<DeployedContract> {
     return deployContract(this.api, account, abi, wasm, 'new', [supply, name, symbol, decimals])
   }
@@ -85,7 +85,7 @@ export class PSP22 {
   async approve(
     account: IKeyringPair,
     spender: string,
-    value: number,
+    value: bigint,
     block: boolean = true
   ): Promise<string> {
     return sendTx(

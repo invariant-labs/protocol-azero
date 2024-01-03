@@ -6,7 +6,7 @@ import { DeployedContract } from '@scio-labs/use-inkathon'
 import { deployContract } from '@scio-labs/use-inkathon/helpers'
 import { FeeTier, Liquidity, Percentage, Pool, PoolKey, Position, SqrtPrice, Tick } from 'math'
 import { Network } from './network.js'
-import { InvariantQuery, InvariantTx } from './schema.js'
+import { InvariantQuery, InvariantTx, Result } from './schema.js'
 import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME, sendQuery, sendTx } from './utils.js'
 
 export class Invariant {
@@ -265,15 +265,34 @@ export class Invariant {
     )
   }
 
-  async getTick(account: IKeyringPair, key: PoolKey, index: bigint): Promise<Tick> {
-    return sendQuery(
+  async getTick(account: IKeyringPair, key: PoolKey, index: bigint): Promise<Result<Tick>> {
+    const result = (await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       account,
       InvariantQuery.GetTick,
       [key, index]
-    ) as Promise<Tick>
+    )) as any
+
+    if (result.ok) {
+      return {
+        ok: {
+          ...result.ok,
+          index: BigInt(result.ok.index),
+          liquidityChange: { v: BigInt(result.ok.liquidityChange.v) },
+          liquidityGross: { v: BigInt(result.ok.liquidityGross.v) },
+          sqrtPrice: { v: BigInt(result.ok.sqrtPrice.v) },
+          feeGrowthOutsideX: { v: BigInt(result.ok.feeGrowthOutsideX.v) },
+          feeGrowthOutsideY: { v: BigInt(result.ok.feeGrowthOutsideY.v) },
+          secondsOutside: BigInt(result.ok.secondsOutside)
+        }
+      }
+    } else {
+      return {
+        err: result.err
+      }
+    }
   }
 
   async isTickInitialized(account: IKeyringPair, key: PoolKey, index: bigint): Promise<boolean> {

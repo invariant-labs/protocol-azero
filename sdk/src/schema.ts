@@ -42,3 +42,8 @@ export enum WrappedAZEROTx {
   Deposit = 'wrappedAZERO::deposit',
   Withdraw = 'wrappedAZERO::withdraw'
 }
+
+export type Result<T> = {
+  ok?: T
+  err?: any
+}
