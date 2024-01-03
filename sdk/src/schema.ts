@@ -1,5 +1,7 @@
 export enum InvariantQuery {
   ProtocolFee = 'invariantTrait::getProtocolFee',
+  GetFeeTiers = 'invariantTrait::getFeeTiers',
+  FeeTierExist = 'invariantTrait::feeTierExist',
   GetPool = 'invariantTrait::getPool',
   GetPools = 'invariantTrait::getPools',
   GetTick = 'invariantTrait::getTick',
@@ -14,7 +16,11 @@ export enum InvariantTx {
   CreatePosition = 'invariantTrait::createPosition',
   TransferPosition = 'invariantTrait::transferPosition',
   RemovePosition = 'invariantTrait::removePosition',
-  ClaimFee = 'invariantTrait::claimFee'
+  ClaimFee = 'invariantTrait::claimFee',
+  AddFeeTier = 'invariantTrait::addFeeTier',
+  RemoveFeeTier = 'invariantTrait::removeFeeTier',
+  ChangeFeeReceiver = 'invariantTrait::changeFeeReceiver',
+  WithdrawProtocolFee = 'invariantTrait::withdrawProtocolFee'
 }
 
 export enum PSP22Query {
