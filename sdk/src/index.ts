@@ -1,5 +1,4 @@
 import { Keyring } from '@polkadot/api'
-import { getBalance, transferBalance } from '@scio-labs/use-inkathon'
 import dotenv from 'dotenv'
 import { Invariant } from './invariant.js'
 import { Network } from './network.js'
@@ -14,6 +13,7 @@ import {
 import { WrappedAZERO } from './wrapped_azero.js'
 dotenv.config()
 
+import { getBalance, transferBalance } from '@scio-labs/use-inkathon'
 import {
   FeeTier,
   Liquidity,
@@ -99,7 +99,7 @@ const main = async () => {
   const wazeroData = await getDeploymentData('wrapped_azero')
   const wazero = new WrappedAZERO(api, network)
 
-  if (process.env.WAZERO_ADDRESS) {
+  if (process.env.WAZERO_ADDRESS && network !== Network.Local) {
     await wazero.load(process.env.WAZERO_ADDRESS, wazeroData.abi)
     console.log('loaded wazero')
   } else {

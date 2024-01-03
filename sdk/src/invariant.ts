@@ -4,7 +4,7 @@ import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { DeployedContract } from '@scio-labs/use-inkathon'
 import { deployContract } from '@scio-labs/use-inkathon/helpers'
-import { FeeTier, Percentage, PoolKey, Tick } from 'math'
+import { FeeTier, Percentage, Pool, PoolKey, SqrtPrice, Tick } from 'math'
 import { Network } from './network.js'
 import { InvariantQuery, InvariantTx } from './schema.js'
 import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME, sendQuery, sendTx } from './utils.js'
@@ -189,5 +189,54 @@ export class Invariant {
       InvariantQuery.IsTickInitialized,
       [key, index]
     ) as Promise<boolean>
+  }
+
+  async getPool(
+    account: IKeyringPair,
+    token0: string,
+    token1: string,
+    fee_tier: FeeTier
+  ): Promise<Pool> {
+    return sendQuery(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      account,
+      InvariantQuery.GetPool,
+      [token0, token1, fee_tier]
+    ) as Promise<Pool>
+  }
+
+  async getPools(account: IKeyringPair): Promise<Pool[]> {
+    return sendQuery(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      account,
+      InvariantQuery.GetPools,
+      []
+    ) as Promise<Pool[]>
+  }
+
+  async createPool(
+    account: IKeyringPair,
+    token_0: string,
+    token_1: string,
+    feeTier: FeeTier,
+    initSqrtPrice: SqrtPrice,
+    initTick: bigint,
+    block: boolean = true
+  ): Promise<string> {
+    return sendTx(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      0,
+      account,
+      InvariantTx.CreatePool,
+      [token_0, token_1, feeTier, initSqrtPrice, initTick],
+      this.waitForFinalization,
+      block
+    )
   }
 }
