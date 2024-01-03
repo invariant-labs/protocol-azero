@@ -3,12 +3,18 @@ export enum InvariantQuery {
   GetPool = 'invariantTrait::getPool',
   GetPools = 'invariantTrait::getPools',
   GetTick = 'invariantTrait::getTick',
-  IsTickInitialized = 'invariantTrait::isTickInitialized'
+  IsTickInitialized = 'invariantTrait::isTickInitialized',
+  GetPosition = 'invariantTrait::getPosition',
+  GetAllPositions = 'invariantTrait::getAllPositions'
 }
 
 export enum InvariantTx {
   ChangeProtocolFee = 'invariantTrait::changeProtocolFee',
-  CreatePool = 'invariantTrait::createPool'
+  CreatePool = 'invariantTrait::createPool',
+  CreatePosition = 'invariantTrait::createPosition',
+  TransferPosition = 'invariantTrait::transferPosition',
+  RemovePosition = 'invariantTrait::removePosition',
+  ClaimFee = 'invariantTrait::claimFee'
 }
 
 export enum PSP22Query {
