@@ -1,5 +1,7 @@
 export enum InvariantQuery {
   ProtocolFee = 'invariantTrait::getProtocolFee',
+  GetFeeTiers = 'invariantTrait::getFeeTiers',
+  FeeTierExist = 'invariantTrait::feeTierExist',
   GetPool = 'invariantTrait::getPool',
   GetPools = 'invariantTrait::getPools',
   GetTick = 'invariantTrait::getTick',
@@ -8,6 +10,10 @@ export enum InvariantQuery {
 
 export enum InvariantTx {
   ChangeProtocolFee = 'invariantTrait::changeProtocolFee',
+  AddFeeTier = 'invariantTrait::addFeeTier',
+  RemoveFeeTier = 'invariantTrait::removeFeeTier',
+  ChangeFeeReceiver = 'invariantTrait::changeFeeReceiver',
+  WithdrawProtocolFee = 'invariantTrait::withdrawProtocolFee',
   CreatePool = 'invariantTrait::createPool'
 }
 

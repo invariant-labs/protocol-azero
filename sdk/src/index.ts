@@ -68,7 +68,7 @@ const main = async () => {
   const invariantData = await getDeploymentData('invariant')
   const invariant = new Invariant(api, network)
 
-  const initFee = { v: 10 }
+  const initFee = { v: 10n }
   const invariantDeploy = await invariant.deploy(
     account,
     invariantData.abi,
