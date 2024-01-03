@@ -15,13 +15,15 @@ export class PSP22 {
   gasLimit: WeightV2
   storageDepositLimit: number | null
   waitForFinalization: boolean
+  address: string
 
   constructor(
     api: ApiPromise,
     network: Network,
     storageDepositLimit: number | null = null,
     refTime: number = DEFAULT_REF_TIME,
-    proofSize: number = DEFAULT_PROOF_SIZE
+    proofSize: number = DEFAULT_PROOF_SIZE,
+    address: string = ''
   ) {
     this.api = api
     this.gasLimit = api.registry.createType('WeightV2', {
@@ -30,6 +32,7 @@ export class PSP22 {
     }) as WeightV2
     this.storageDepositLimit = storageDepositLimit
     this.waitForFinalization = network != Network.Local
+    this.address = address
   }
 
   async deploy(

@@ -1,9 +1,8 @@
-import { ApiPromise, Keyring } from '@polkadot/api'
-import { IKeyringPair } from '@polkadot/types/types/interfaces'
+import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
 import { SqrtPrice, newFeeTier } from 'math/math.js'
 import { Network } from '../src/network'
-import { deployInvariant, initPolkadotApi } from '../src/utils'
+import { deployInvariant, deployPSP22, initPolkadotApi } from '../src/utils'
 
 describe('invariant', async () => {
   const api = await initPolkadotApi(Network.Local)
@@ -12,24 +11,12 @@ describe('invariant', async () => {
   const account = await keyring.addFromUri('//Alice')
 
   let invariant = await deployInvariant(api, account, { v: 10000000000n })
-  // let token_0 = await tokenToString.deplo
-
-  const deployToken = async (): Promise<{
-    api: ApiPromise
-    account: IKeyringPair
-    testAccount: IKeyringPair
-  }> => {
-    const api = await initPolkadotApi(Network.Local)
-
-    const keyring = new Keyring({ type: 'sr25519' })
-    const account = await keyring.addFromUri('//Alice')
-    const testAccount = await keyring.addFromUri('//Bob')
-
-    return { api, account, testAccount }
-  }
-
+  let token0 = await deployPSP22(api, account, 1000n)
+  let token1 = await deployPSP22(api, account, 1000n)
   beforeEach(async () => {
     invariant = await deployInvariant(api, account, { v: 10000000000n })
+    token0 = await deployPSP22(api, account, 1000n)
+    token1 = await deployPSP22(api, account, 1000n)
   })
 
   it('create pool', async () => {
@@ -38,26 +25,24 @@ describe('invariant', async () => {
     let addedFeeTierExists = await invariant.feeTierExist(account, feeTier)
     assert.deepEqual(addedFeeTierExists, true)
 
-    const token0: string = '5H79vf7qQKdpefChp4sGh8j4BNq8JoL5x8nez8RsEebPJu9D'
-    const token1: string = '5DxazQgoKEPMLqyUBRpqgAV7JnGv3w6i4EACTU8RDJxPHisH'
     const initSqrtPrice: SqrtPrice = { v: 1000000000000000000n }
     const initTick = 1n
 
     const createPoolResult = await invariant.createPool(
       account,
-      token0,
-      token1,
+      token0.address,
+      token1.address,
       feeTier,
       initSqrtPrice,
       initTick
     )
 
-    console.log(createPoolResult)
+    // console.log(createPoolResult)
 
-    const result = await invariant.getPool(account, token0, token1, feeTier)
+    const result = await invariant.getPool(account, token0.address, token1.address, feeTier)
     console.log(result)
 
-    const pools = await invariant.getPools(account)
-    console.log(pools)
+    // const pools = await invariant.getPools(account)
+    // console.log(pools)
   })
 })

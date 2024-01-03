@@ -190,6 +190,8 @@ export const deployPSP22 = async (
     symbol,
     decimals
   )
+  token.address = tokenDeploy.address
+
   await token.load(tokenDeploy.address, tokenData.abi)
   return token
 }
