@@ -1,7 +1,6 @@
 import { ApiPromise } from '@polkadot/api'
 import { ContractPromise } from '@polkadot/api-contract'
 import { WeightV2 } from '@polkadot/types/interfaces'
-import { Codec } from '@polkadot/types/types'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { DeployedContract } from '@scio-labs/use-inkathon'
 import { deployContract } from '@scio-labs/use-inkathon/helpers'
@@ -133,11 +132,10 @@ export class Invariant {
     ) as Promise<boolean>
   }
 
-  // TODO: test this function
   async changeFeeReceiver(
     account: IKeyringPair,
     pool_key: PoolKey,
-    fee_receiver: Codec,
+    fee_receiver: string,
     block: boolean = true
   ): Promise<string> {
     return sendTx(
@@ -153,7 +151,6 @@ export class Invariant {
     )
   }
 
-  // TODO: test this function
   async withdrawProtocolFee(
     account: IKeyringPair,
     pool_key: PoolKey,
