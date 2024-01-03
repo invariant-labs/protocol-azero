@@ -5,8 +5,9 @@ import { Codec } from '@polkadot/types/types'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { DeployedContract } from '@scio-labs/use-inkathon'
 import { deployContract } from '@scio-labs/use-inkathon/helpers'
+import { FeeTier, PoolKey } from 'math'
 import { Network } from './network.js'
-import { FeeTier, InvariantQuery, InvariantTx, PoolKey } from './schema.js'
+import { InvariantQuery, InvariantTx } from './schema.js'
 import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME, sendQuery, sendTx } from './utils.js'
 
 export class Invariant {
