@@ -1,5 +1,7 @@
 export enum InvariantQuery {
-  ProtocolFee = 'invariantTrait::getProtocolFee'
+  ProtocolFee = 'invariantTrait::getProtocolFee',
+  GetTick = 'invariantTrait::getTick',
+  IsTickInitialized = 'invariantTrait::isTickInitialized'
 }
 
 export enum InvariantTx {
