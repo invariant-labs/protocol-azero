@@ -1,4 +1,4 @@
-use super::{FeeTier, Oracle, Tick};
+use super::{FeeTier, Tick};
 use crate::{
     contracts::PoolKey,
     math::{
@@ -34,8 +34,6 @@ pub struct Pool {
     pub start_timestamp: u64,
     pub last_timestamp: u64,
     pub fee_receiver: AccountId,
-    pub oracle_address: Oracle,
-    pub oracle_initialized: bool,
 }
 
 impl Default for Pool {
@@ -51,8 +49,6 @@ impl Default for Pool {
             start_timestamp: u64::default(),
             last_timestamp: u64::default(),
             fee_receiver: AccountId::from([0x0; 32]),
-            oracle_address: Default::default(),
-            oracle_initialized: bool::default(),
         }
     }
 }
