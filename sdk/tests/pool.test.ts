@@ -1,4 +1,5 @@
-import { Keyring } from '@polkadot/api'
+import { ApiPromise, Keyring } from '@polkadot/api'
+import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { assert } from 'chai'
 import { SqrtPrice, newFeeTier } from 'math/math.js'
 import { Network } from '../src/network'
@@ -11,6 +12,21 @@ describe('invariant', async () => {
   const account = await keyring.addFromUri('//Alice')
 
   let invariant = await deployInvariant(api, account, { v: 10000000000n })
+  // let token_0 = await tokenToString.deplo
+
+  const deployToken = async (): Promise<{
+    api: ApiPromise
+    account: IKeyringPair
+    testAccount: IKeyringPair
+  }> => {
+    const api = await initPolkadotApi(Network.Local)
+
+    const keyring = new Keyring({ type: 'sr25519' })
+    const account = await keyring.addFromUri('//Alice')
+    const testAccount = await keyring.addFromUri('//Bob')
+
+    return { api, account, testAccount }
+  }
 
   beforeEach(async () => {
     invariant = await deployInvariant(api, account, { v: 10000000000n })

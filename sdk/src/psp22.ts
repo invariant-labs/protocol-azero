@@ -36,7 +36,7 @@ export class PSP22 {
     account: IKeyringPair,
     abi: any,
     wasm: Buffer,
-    supply: number,
+    supply: bigint,
     name: Option<Codec>,
     symbol: Option<Codec>,
     decimals: number
