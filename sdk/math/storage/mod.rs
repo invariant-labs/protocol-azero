@@ -1,4 +1,5 @@
 pub mod errors;
+pub mod events;
 pub mod fee_tier;
 pub mod invariant_config;
 pub mod pool;
@@ -7,6 +8,7 @@ pub mod position;
 pub mod tick;
 
 pub use errors::*;
+pub use events::*;
 pub use fee_tier::*;
 pub use invariant_config::*;
 pub use pool::*;
