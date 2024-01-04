@@ -42,3 +42,7 @@ export enum WrappedAZEROTx {
   Deposit = 'wrappedAZERO::deposit',
   Withdraw = 'wrappedAZERO::withdraw'
 }
+
+export type Tx = InvariantTx | PSP22Tx | WrappedAZEROTx
+
+export type Query = InvariantQuery | PSP22Query

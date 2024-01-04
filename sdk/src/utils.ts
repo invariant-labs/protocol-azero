@@ -5,10 +5,11 @@ import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { getSubstrateChain } from '@scio-labs/use-inkathon/chains'
 import { getBalance, initPolkadotJs as initApi } from '@scio-labs/use-inkathon/helpers'
 import { readFile } from 'fs/promises'
-import { Percentage } from 'math'
+import { InvariantError, Percentage } from 'math'
 import { Invariant } from './invariant.js'
 import { Network } from './network.js'
-import { InvariantQuery, InvariantTx, PSP22Query, PSP22Tx, WrappedAZEROTx } from './schema.js'
+import { PSP22 } from './psp22.js'
+import { Query, Tx } from './schema.js'
 
 export const DEFAULT_REF_TIME = 100000000000
 export const DEFAULT_PROOF_SIZE = 100000000000
@@ -85,7 +86,7 @@ export async function sendQuery(
   gasLimit: WeightV2,
   storageDepositLimit: number | null,
   signer: IKeyringPair,
-  message: InvariantQuery | PSP22Query,
+  message: Query | Tx,
   data: any[]
 ): Promise<unknown> {
   if (!contract) {
@@ -114,7 +115,7 @@ export async function sendTx(
   storageDepositLimit: number | null,
   value: number,
   signer: IKeyringPair,
-  message: InvariantTx | PSP22Tx | WrappedAZEROTx,
+  message: Tx,
   data: any[],
   waitForFinalization: boolean = true,
   block: boolean = true
@@ -167,4 +168,95 @@ export const deployInvariant = async (
   await invariant.load(invariantDeploy.address, invariantData.abi)
 
   return invariant
+}
+
+export const deployPSP22 = async (
+  api: ApiPromise,
+  account: IKeyringPair,
+  supply: bigint,
+  name: string,
+  symbol: string,
+  decimals: bigint
+) => {
+  const tokenData = await getDeploymentData('psp22')
+  const token = new PSP22(api, Network.Local)
+
+  const tokenDeploy = await token.deploy(
+    account,
+    tokenData.abi,
+    tokenData.wasm,
+    supply,
+    name,
+    symbol,
+    decimals
+  )
+  await token.load(tokenDeploy.address, tokenData.abi)
+
+  return token
+}
+
+export const convertObj = <T>(obj: T): T => {
+  const newObj: { [key: string]: any } = {}
+
+  Object.entries(obj as { [key: string]: any }).forEach(([key, value]) => {
+    newObj[key] = value
+
+    if (typeof value === 'number' || (typeof value === 'string' && value.startsWith('0x'))) {
+      newObj[key] = BigInt(value)
+    }
+
+    if (typeof value.v === 'number' || (typeof value.v === 'string' && value.v.startsWith('0x'))) {
+      newObj[key] = { v: BigInt(value.v) }
+    }
+
+    if (typeof value === 'object' && value.v === undefined) {
+      newObj[key] = convertObj(value)
+    }
+
+    if (value.constructor === Array) {
+      newObj[key] = convertArr(value)
+    }
+  })
+
+  return newObj as T
+}
+
+export const convertArr = (arr: any[]): any[] => {
+  return arr.map(value => {
+    if (typeof value === 'number' || (typeof value === 'string' && value.startsWith('0x'))) {
+      return BigInt(value)
+    }
+
+    if (typeof value.v === 'number' || (typeof value.v === 'string' && value.v.startsWith('0x'))) {
+      return { v: BigInt(value.v) }
+    }
+
+    if (typeof value === 'object' && value.v === undefined) {
+      return convertObj(value)
+    }
+
+    if (value.constructor === Array) {
+      return convertArr(value)
+    }
+
+    return value
+  })
+}
+
+export const assertError = async <T>(fn: Promise<T>, invariantError: InvariantError) => {
+  let exceptionThrown = false
+
+  try {
+    await fn
+  } catch (error: any) {
+    exceptionThrown = true
+
+    if (error.message != invariantError) {
+      throw new Error('error does not match')
+    }
+  }
+
+  if (!exceptionThrown) {
+    throw new Error('error wasn not thrown')
+  }
 }
