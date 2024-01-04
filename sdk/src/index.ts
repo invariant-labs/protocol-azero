@@ -81,13 +81,16 @@ const main = async () => {
   const tokenData = await getDeploymentData('psp22')
   const token = new PSP22(api, network)
 
+  const name = 'Coin'
+  const symbol = 'COIN'
+
   const tokenDeploy = await token.deploy(
     account,
     tokenData.abi,
     tokenData.wasm,
     1000n,
-    'Coin',
-    'COIN',
+    name,
+    symbol,
     0n
   )
   await token.load(tokenDeploy.address, tokenData.abi)
