@@ -139,9 +139,7 @@ export async function sendTx(
         resolve(result.txHash.toHex())
       }
       if (result.isError || result.dispatchError) {
-        console.log('ERROR BRACKETS')
-        const err = new Error(`Tx: ${message} reverted`)
-        return reject(err)
+        reject(new Error(`Tx: ${message} reverted`))
       }
       if (result.isCompleted && !waitForFinalization) {
         resolve(result.txHash.toHex())

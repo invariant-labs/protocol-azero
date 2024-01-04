@@ -239,7 +239,6 @@ export class Invariant {
         this.waitForFinalization,
         block
       )
-      // return txHash
     } catch (err) {
       throw err
     }
