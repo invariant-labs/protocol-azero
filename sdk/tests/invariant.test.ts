@@ -211,7 +211,7 @@ describe('invariant', async () => {
           initSqrtPrice,
           initTick
         ),
-        'Tx: invariantTrait::createPool reverted'
+        'Error: invariantTrait::createPool reverted'
       )
     }
     const pools = await invariant.getPools(account)

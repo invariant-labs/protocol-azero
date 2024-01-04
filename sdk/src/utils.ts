@@ -139,7 +139,7 @@ export async function sendTx(
         resolve(result.txHash.toHex())
       }
       if (result.isError || result.dispatchError) {
-        reject(new Error(`Tx: ${message} reverted`))
+        reject(new Error(`Error: ${message} reverted`))
       }
       if (result.isCompleted && !waitForFinalization) {
         resolve(result.txHash.toHex())

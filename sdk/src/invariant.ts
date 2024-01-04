@@ -364,7 +364,7 @@ export class Invariant {
     initTick: bigint,
     block: boolean = true
   ): Promise<string> {
-    return await sendTx(
+    return sendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
