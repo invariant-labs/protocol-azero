@@ -202,6 +202,7 @@ pub trait InvariantTrait {
     /// Retrieves information about a single position.
     ///
     /// # Parameters
+    /// - `owner_id`: An `AccountId` identifying the user who owns the position.
     /// - `index`: The index of the user position.
     ///
     /// # Errors
@@ -211,6 +212,9 @@ pub trait InvariantTrait {
         -> Result<Position, InvariantError>;
 
     /// Retrieves a vector containing all positions held by the user.
+    ///
+    /// # Parameters
+    /// - `owner_id`: An `AccountId` identifying the user who owns the positions.
     #[ink(message)]
     fn get_all_positions(&mut self, owner_id: AccountId) -> Vec<Position>;
 
