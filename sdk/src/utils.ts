@@ -201,20 +201,26 @@ export const convertObj = <T>(obj: T): T => {
   Object.entries(obj as { [key: string]: any }).forEach(([key, value]) => {
     newObj[key] = value
 
-    if (typeof value === 'number' || (typeof value === 'string' && value.startsWith('0x'))) {
+    if (
+      typeof value === 'number' ||
+      (typeof value === 'string' && (value.startsWith('0x') || /^[0-9]+$/.test(value)))
+    ) {
       newObj[key] = BigInt(value)
     }
 
-    if (typeof value.v === 'number' || (typeof value.v === 'string' && value.v.startsWith('0x'))) {
+    if (
+      typeof value.v === 'number' ||
+      (typeof value.v === 'string' && (value.v.startsWith('0x') || /^[0-9]+$/.test(value.v)))
+    ) {
       newObj[key] = { v: BigInt(value.v) }
-    }
-
-    if (typeof value === 'object' && value.v === undefined) {
-      newObj[key] = convertObj(value)
     }
 
     if (value.constructor === Array) {
       newObj[key] = convertArr(value)
+    }
+
+    if (typeof value === 'object' && value.v === undefined) {
+      newObj[key] = convertObj(value)
     }
   })
 
@@ -223,20 +229,26 @@ export const convertObj = <T>(obj: T): T => {
 
 export const convertArr = (arr: any[]): any[] => {
   return arr.map(value => {
-    if (typeof value === 'number' || (typeof value === 'string' && value.startsWith('0x'))) {
+    if (
+      typeof value === 'number' ||
+      (typeof value === 'string' && (value.startsWith('0x') || /^[0-9]+$/.test(value)))
+    ) {
       return BigInt(value)
     }
 
-    if (typeof value.v === 'number' || (typeof value.v === 'string' && value.v.startsWith('0x'))) {
+    if (
+      typeof value.v === 'number' ||
+      (typeof value.v === 'string' && (value.v.startsWith('0x') || /^[0-9]+$/.test(value.v)))
+    ) {
       return { v: BigInt(value.v) }
-    }
-
-    if (typeof value === 'object' && value.v === undefined) {
-      return convertObj(value)
     }
 
     if (value.constructor === Array) {
       return convertArr(value)
+    }
+
+    if (typeof value === 'object' && value.v === undefined) {
+      return convertObj(value)
     }
 
     return value

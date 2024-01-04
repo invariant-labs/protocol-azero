@@ -1,5 +1,8 @@
+/* eslint camelcase: off */
+
 import { ApiPromise } from '@polkadot/api'
-import { ContractPromise } from '@polkadot/api-contract'
+import { Abi, ContractPromise } from '@polkadot/api-contract'
+import { Bytes } from '@polkadot/types'
 import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { DeployedContract } from '@scio-labs/use-inkathon'
@@ -32,6 +35,8 @@ export class Invariant {
   gasLimit: WeightV2
   storageDepositLimit: number | null
   waitForFinalization: boolean
+  abi: Abi | null = null
+  eventListeners: { identifier: string; listener: (event: any) => void }[] = []
 
   constructor(
     api: ApiPromise,
@@ -60,6 +65,45 @@ export class Invariant {
 
   async load(deploymentAddress: string, abi: any): Promise<void> {
     this.contract = new ContractPromise(this.api, abi, deploymentAddress)
+    this.abi = new Abi(abi)
+
+    this.api.query.system.events((events: any) => {
+      events.forEach((record: any) => {
+        const { event } = record
+
+        if (!this.api.events.contracts.ContractEmitted.is(event)) {
+          return
+        }
+
+        const [account_id, contract_evt] = event.data
+
+        if (account_id.toString() !== this.contract?.address.toString()) {
+          return
+        }
+
+        const decoded = this.abi?.decodeEvent(contract_evt as Bytes)
+
+        if (!decoded) {
+          return
+        }
+
+        const eventObj: { [key: string]: any } = {}
+
+        for (let i = 0; i < decoded.args.length; i++) {
+          eventObj[decoded.event.args[i].name] = decoded.args[i].toPrimitive()
+        }
+
+        this.eventListeners.map(eventListener => {
+          if (eventListener.identifier === decoded.event.identifier) {
+            eventListener.listener(convertObj(eventObj))
+          }
+        })
+      })
+    })
+  }
+
+  addEventListener(identifier: string, listener: (event: any) => void): void {
+    this.eventListeners.push({ identifier, listener })
   }
 
   async getProtocolFee(account: IKeyringPair): Promise<Percentage> {
