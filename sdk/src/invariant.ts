@@ -227,20 +227,16 @@ export class Invariant {
     initTick: bigint,
     block: boolean = true
   ): Promise<string> {
-    try {
-      return await sendTx(
-        this.contract,
-        this.gasLimit,
-        this.storageDepositLimit,
-        0,
-        account,
-        InvariantTx.CreatePool,
-        [token0, token1, feeTier, initSqrtPrice, initTick],
-        this.waitForFinalization,
-        block
-      )
-    } catch (err) {
-      throw err
-    }
+    return await sendTx(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      0,
+      account,
+      InvariantTx.CreatePool,
+      [token0, token1, feeTier, initSqrtPrice, initTick],
+      this.waitForFinalization,
+      block
+    )
   }
 }
