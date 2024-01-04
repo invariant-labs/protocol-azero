@@ -26,17 +26,14 @@ describe('psp22', function () {
     const tokenData = await getDeploymentData('psp22')
     const token = new PSP22(api, Network.Local)
 
-    const name = 'Coin'
-    const symbol = 'COIN'
-
     const tokenDeploy = await token.deploy(
       account,
       tokenData.abi,
       tokenData.wasm,
       1000n,
-      name,
-      symbol,
-      12
+      'Coin',
+      'COIN',
+      12n
     )
     await token.load(tokenDeploy.address, tokenData.abi)
   })
@@ -47,17 +44,14 @@ describe('psp22', function () {
     const tokenData = await getDeploymentData('psp22')
     const token = new PSP22(api, Network.Local)
 
-    const name = 'Coin'
-    const symbol = 'COIN'
-
     const tokenDeploy = await token.deploy(
       account,
       tokenData.abi,
       tokenData.wasm,
       500n,
-      name,
-      symbol,
-      12
+      'Coin',
+      'COIN',
+      12n
     )
     await token.load(tokenDeploy.address, tokenData.abi)
 
@@ -72,17 +66,14 @@ describe('psp22', function () {
     const tokenData = await getDeploymentData('psp22')
     const token = new PSP22(api, Network.Local)
 
-    const name = 'Coin'
-    const symbol = 'COIN'
-
     const tokenDeploy = await token.deploy(
       account,
       tokenData.abi,
       tokenData.wasm,
       500n,
-      name,
-      symbol,
-      12
+      'Coin',
+      'COIN',
+      12n
     )
     await token.load(tokenDeploy.address, tokenData.abi)
 
@@ -96,17 +87,14 @@ describe('psp22', function () {
     const tokenData = await getDeploymentData('psp22')
     const token = new PSP22(api, Network.Local)
 
-    const name = 'Coin'
-    const symbol = 'COIN'
-
     const tokenDeploy = await token.deploy(
       account,
       tokenData.abi,
       tokenData.wasm,
       500n,
-      name,
-      symbol,
-      12
+      'Coin',
+      'COIN',
+      12n
     )
     await token.load(tokenDeploy.address, tokenData.abi)
 
@@ -122,21 +110,18 @@ describe('psp22', function () {
     const tokenData = await getDeploymentData('psp22')
     const token = new PSP22(api, Network.Local)
 
-    const name = 'Coin'
-    const symbol = 'COIN'
-
     const tokenDeploy = await token.deploy(
       account,
       tokenData.abi,
       tokenData.wasm,
       500n,
-      name,
-      symbol,
-      12
+      'Coin',
+      'COIN',
+      12n
     )
     await token.load(tokenDeploy.address, tokenData.abi)
 
-    await token.approve(account, testAccount.address, 250)
+    await token.approve(account, testAccount.address, 250n)
     expect(await token.allowance(account, account.address, testAccount.address)).to.equal(250)
   })
 })

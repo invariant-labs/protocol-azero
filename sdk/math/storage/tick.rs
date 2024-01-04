@@ -8,6 +8,7 @@ use wasm_bindgen::prelude::*;
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
+#[serde(rename_all = "camelCase")]
 pub struct Tick {
     #[tsify(type = "bigint")]
     pub index: i32,

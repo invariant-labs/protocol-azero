@@ -32,10 +32,10 @@ const main = async () => {
     }
     const sqrtPriceB: SqrtPrice = { v: 87854456421658000000000000n }
     const liquidity: Liquidity = { v: 983983249092n }
-    const delta_y_up = getDeltaY(sqrtPriceA, sqrtPriceB, liquidity, true)
-    const delta_y_down = getDeltaY(sqrtPriceA, sqrtPriceB, liquidity, false)
-    console.log(delta_y_up)
-    console.log(delta_y_down)
+    const deltaYUp = getDeltaY(sqrtPriceA, sqrtPriceB, liquidity, true)
+    const deltaYDown = getDeltaY(sqrtPriceA, sqrtPriceB, liquidity, false)
+    console.log(deltaYUp)
+    console.log(deltaYDown)
   }
   {
     const scales = getDecimalScales()
@@ -91,7 +91,7 @@ const main = async () => {
     1000n,
     name,
     symbol,
-    0
+    0n
   )
   await token.load(tokenDeploy.address, tokenData.abi)
 

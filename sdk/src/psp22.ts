@@ -42,7 +42,7 @@ export class PSP22 {
     supply: bigint,
     name: string,
     symbol: string,
-    decimals: number
+    decimals: bigint
   ): Promise<DeployedContract> {
     return deployContract(this.api, account, abi, wasm, 'new', [supply, name, symbol, decimals])
   }
@@ -88,7 +88,7 @@ export class PSP22 {
   async approve(
     account: IKeyringPair,
     spender: string,
-    value: number,
+    value: bigint,
     block: boolean = true
   ): Promise<string> {
     return sendTx(
