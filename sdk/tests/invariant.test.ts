@@ -1,8 +1,14 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import { InvariantError, newFeeTier, newPoolKey } from 'math/math.js'
+import { InvariantError, SqrtPrice, newFeeTier, newPoolKey } from 'math/math.js'
 import { Network } from '../src/network'
-import { assertError, deployInvariant, deployPSP22, initPolkadotApi } from '../src/utils'
+import {
+  assertError,
+  assertThrowsAsync,
+  deployInvariant,
+  deployPSP22,
+  initPolkadotApi
+} from '../src/utils'
 
 describe('invariant', async () => {
   const api = await initPolkadotApi(Network.Local)
@@ -145,5 +151,70 @@ describe('invariant', async () => {
     assert.deepEqual(isInitTickInitialized, false)
     const isUpperTickInitialized = await invariant.isTickInitialized(account, poolKey, 10n)
     assert.deepEqual(isUpperTickInitialized, true)
+  })
+  it('create pool', async () => {
+    if (!token0.contract?.address || !token1.contract?.address || !invariant.contract?.address) {
+      throw new Error()
+    }
+
+    const feeTier = newFeeTier({ v: 10000000000n }, 1)
+    await invariant.addFeeTier(account, feeTier)
+    const addedFeeTierExists = await invariant.feeTierExist(account, feeTier)
+    assert.deepEqual(addedFeeTierExists, true)
+
+    const initSqrtPrice: SqrtPrice = { v: 1000000000000000000000000n }
+    const initTick = 0n
+
+    await invariant.createPool(
+      account,
+      token0.contract.address.toString(),
+      token1.contract.address.toString(),
+      feeTier,
+      initSqrtPrice,
+      initTick
+    )
+    const pools = await invariant.getPools(account)
+    assert.deepEqual(pools.length, 1)
+  })
+  it('create pool x/y and y/x', async () => {
+    if (!token0.contract?.address || !token1.contract?.address || !invariant.contract?.address) {
+      throw new Error()
+    }
+    const feeTier = newFeeTier({ v: 10000000000n }, 1)
+    await invariant.addFeeTier(account, feeTier)
+    const addedFeeTierExists = await invariant.feeTierExist(account, feeTier)
+    assert.deepEqual(addedFeeTierExists, true)
+
+    const initSqrtPrice: SqrtPrice = { v: 1000000000000000000000000n }
+    const initTick = 0n
+
+    {
+      await invariant.createPool(
+        account,
+        token0.contract.address.toString(),
+        token1.contract.address.toString(),
+        feeTier,
+        initSqrtPrice,
+        initTick
+      )
+
+      const pools = await invariant.getPools(account)
+      assert.deepEqual(pools.length, 1)
+    }
+    {
+      await assertThrowsAsync(
+        invariant.createPool(
+          account,
+          token1.contract.address.toString(),
+          token0.contract.address.toString(),
+          feeTier,
+          initSqrtPrice,
+          initTick
+        ),
+        'Tx: invariantTrait::createPool reverted'
+      )
+    }
+    const pools = await invariant.getPools(account)
+    assert.deepEqual(pools.length, 1)
   })
 })

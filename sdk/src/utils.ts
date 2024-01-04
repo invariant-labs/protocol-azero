@@ -174,9 +174,9 @@ export const deployPSP22 = async (
   api: ApiPromise,
   account: IKeyringPair,
   supply: bigint,
-  name: string = 'Coin',
-  symbol: string = 'COIN',
-  decimals: bigint = 12n
+  name: string,
+  symbol: string,
+  decimals: bigint
 ) => {
   const tokenData = await getDeploymentData('psp22')
   const token = new PSP22(api, Network.Local)
