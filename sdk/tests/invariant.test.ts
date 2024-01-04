@@ -309,51 +309,21 @@ describe('invariant', async () => {
       { v: 100000000000000000000000000n }
     )
     {
-      // TODO add get position assertions
-      const receiver = await keyring.addFromUri('//Bob')
-      await invariant.transferPosition(account, 0n, receiver.address)
+      const position_owner = keyring.addFromUri('//Alice')
+      const receiver = keyring.addFromUri('//Bob')
+      await invariant.transferPosition(position_owner, 0n, receiver.address)
+      // assertThrowsAsync(
+      //   invariant.getPosition(position_owner, 0n),
+      //   InvariantError.PositionNotFound
+      // )
+      const position = await invariant.getPosition(receiver, 0n)
+      assert.deepEqual(position.liquidity, { v: 1000000n })
+      assert.deepEqual(position.lowerTickIndex, lowerTickIndex)
+      assert.deepEqual(position.upperTickIndex, upperTickIndex)
+      assert.deepEqual(position.feeGrowthInsideX, { v: 0n })
+      assert.deepEqual(position.feeGrowthInsideY, { v: 0n })
+      assert.deepEqual(position.tokensOwedX, 0n)
+      assert.deepEqual(position.tokensOwedY, 0n)
     }
   })
-
-  // //TODO: needs PR with FeeTiers
-  // it('create pool', async () => {
-  //   const { api, account } = await init()
-
-  //   const invariantData = await getDeploymentData('invariant')
-  //   const invariant = new Invariant(api, Network.Local)
-
-  //   const initFee = { v: 10 }
-  //   const invariantDeploy = await invariant.deploy(
-  //     account,
-  //     invariantData.abi,
-  //     invariantData.wasm,
-  //     initFee
-  //   )
-  //   await invariant.load(invariantDeploy.address, invariantData.abi)
-
-  //   const token0: string = '5H79vf7qQKdpefChp4sGh8j4BNq8JoL5x8nez8RsEebPJu9D'
-  //   const token1: string = '5DxazQgoKEPMLqyUBRpqgAV7JnGv3w6i4EACTU8RDJxPHisH'
-  //   const fee: Percentage = { v: 100n }
-  //   const feeTier: FeeTier = newFeeTier(fee, 1)
-  //   const initSqrtPrice: SqrtPrice = { v: 1000000000000000000n }
-  //   const initTick = 1n
-
-  //   const createPoolResult = await invariant.createPool(
-  //     account,
-  //     token0,
-  //     token1,
-  //     feeTier,
-  //     initSqrtPrice,
-  //     initTick
-  //   )
-  //   await sleep(1000)
-
-  //   console.log(createPoolResult)
-
-  //   const result = await invariant.getPool(account, token0, token1, feeTier)
-  //   console.log(result)
-
-  //   const pools = await invariant.getPools(account)
-  //   console.log(pools)
-  // })
 })
