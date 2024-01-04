@@ -2,13 +2,7 @@ import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
 import { InvariantError, SqrtPrice, newFeeTier, newPoolKey } from 'math/math.js'
 import { Network } from '../src/network'
-import {
-  assertError,
-  assertThrowsAsync,
-  deployInvariant,
-  deployPSP22,
-  initPolkadotApi
-} from '../src/utils'
+import { assertThrowsAsync, deployInvariant, deployPSP22, initPolkadotApi } from '../src/utils'
 
 describe('invariant', async () => {
   const api = await initPolkadotApi(Network.Local)
@@ -132,7 +126,7 @@ describe('invariant', async () => {
       feeGrowthOutsideY: { v: 0n },
       secondsOutside: lowerTick.secondsOutside
     })
-    await assertError(invariant.getTick(account, poolKey, 0n), InvariantError.TickNotFound)
+    await assertThrowsAsync(invariant.getTick(account, poolKey, 0n), InvariantError.TickNotFound)
     const upperTick = await invariant.getTick(account, poolKey, 10n)
     assert.deepEqual(upperTick, {
       index: 10n,

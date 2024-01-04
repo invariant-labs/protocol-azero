@@ -243,30 +243,12 @@ export const convertArr = (arr: any[]): any[] => {
   })
 }
 
-export const assertError = async <T>(fn: Promise<T>, invariantError: InvariantError) => {
-  let exceptionThrown = false
-
-  try {
-    await fn
-  } catch (error: any) {
-    exceptionThrown = true
-
-    if (error.message != invariantError) {
-      throw new Error('error does not match')
-    }
-  }
-
-  if (!exceptionThrown) {
-    throw new Error('error wasn not thrown')
-  }
-}
-
-export const assertThrowsAsync = async (fn: Promise<any>, word?: string) => {
+export const assertThrowsAsync = async (fn: Promise<any>, word?: InvariantError | string) => {
   try {
     await fn
   } catch (e: any) {
-    const err = e.toString()
     if (word) {
+      const err = e.toString()
       const regex = new RegExp(`${word}$`)
       if (!regex.test(err)) {
         console.log(err)
