@@ -2,7 +2,7 @@ import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
 import { SqrtPrice, newFeeTier } from 'math/math.js'
 import { Network } from '../src/network'
-import { deployInvariant, deployPSP22, initPolkadotApi } from '../src/utils'
+import { assertThrowsAsync, deployInvariant, deployPSP22, initPolkadotApi } from '../src/utils'
 
 describe('invariant', async () => {
   const api = await initPolkadotApi(Network.Local)
@@ -37,11 +37,12 @@ describe('invariant', async () => {
       initSqrtPrice,
       initTick
     )
-
+    const pool = await invariant.getPool(account, token0.address, token1.address, feeTier)
+    console.log(pool)
     const pools = await invariant.getPools(account)
     assert.deepEqual(pools.length, 1)
   })
-  it.only('create pool x/y and y/x', async () => {
+  it('create pool x/y and y/x', async () => {
     const feeTier = newFeeTier({ v: 10000000000n }, 1)
     await invariant.addFeeTier(account, feeTier)
     const addedFeeTierExists = await invariant.feeTierExist(account, feeTier)
@@ -64,32 +65,19 @@ describe('invariant', async () => {
       assert.deepEqual(pools.length, 1)
     }
     {
-      const result = await invariant.createPool(
-        account,
-        token1.address,
-        token0.address,
-        feeTier,
-        initSqrtPrice,
-        initTick
-      )
-
-      try {
-        const r = await invariant.createPool(
+      await assertThrowsAsync(
+        invariant.createPool(
           account,
           token1.address,
           token0.address,
           feeTier,
           initSqrtPrice,
           initTick
-        )
-        console.log('RESULT:', r)
-      } catch (err) {
-        console.log('FINAL:', err)
-        // assert.equal(err.message, 'Tx: invariantTrait::createPool reverted')
-      }
-      assert.equal(result, 'PoolAlreadyExist')
-      const pools = await invariant.getPools(account)
-      assert.deepEqual(pools.length, 1)
+        ),
+        'Tx: invariantTrait::createPool reverted'
+      )
     }
+    const pools = await invariant.getPools(account)
+    assert.deepEqual(pools.length, 1)
   })
 })
