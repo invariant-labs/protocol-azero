@@ -78,6 +78,7 @@ pub mod e2e_tests {
     async fn test_remove_position(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
         let alice = ink_e2e::alice();
+        let alice_address = address_of!(Alice);
         let bob = ink_e2e::bob();
         let init_tick = 0;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
@@ -154,7 +155,8 @@ pub mod e2e_tests {
             )
             .unwrap();
 
-            let position_state = get_position!(client, InvariantRef, dex, 1, alice).unwrap();
+            let position_state =
+                get_position!(client, InvariantRef, dex, alice_address, 1, alice).unwrap();
             // Check position
             assert!(position_state.lower_tick_index == incorrect_lower_tick_index);
             assert!(position_state.upper_tick_index == incorrect_upper_tick_index);
@@ -254,6 +256,7 @@ pub mod e2e_tests {
         let max_tick_test = 177_450; // for tickSpacing 4
         let min_tick_test = -max_tick_test;
         let alice = ink_e2e::alice();
+        let alice_address = address_of!(Alice);
         let init_tick = -23028;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
 
@@ -305,7 +308,8 @@ pub mod e2e_tests {
         .unwrap();
 
         // Load states
-        let position_state = get_position!(client, InvariantRef, dex, 0, alice).unwrap();
+        let position_state =
+            get_position!(client, InvariantRef, dex, alice_address, 0, alice).unwrap();
         let pool_state = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
         let lower_tick = get_tick!(client, InvariantRef, dex, pool_key, lower_tick_index).unwrap();
         let upper_tick = get_tick!(client, InvariantRef, dex, pool_key, upper_tick_index).unwrap();
@@ -352,6 +356,7 @@ pub mod e2e_tests {
     #[ink_e2e::test]
     async fn test_position_below_current_tick(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let alice = ink_e2e::alice();
+        let alice_address = address_of!(Alice);
         let init_tick = -23028;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
         let dex = create_dex!(client, InvariantRef, Percentage::new(0));
@@ -403,7 +408,8 @@ pub mod e2e_tests {
         .unwrap();
 
         // Load states
-        let position_state = get_position!(client, InvariantRef, dex, 0, alice).unwrap();
+        let position_state =
+            get_position!(client, InvariantRef, dex, alice_address, 0, alice).unwrap();
         let pool_state = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
         let lower_tick = get_tick!(client, InvariantRef, dex, pool_key, lower_tick_index).unwrap();
         let upper_tick = get_tick!(client, InvariantRef, dex, pool_key, upper_tick_index).unwrap();
@@ -451,6 +457,7 @@ pub mod e2e_tests {
     #[ink_e2e::test]
     async fn test_position_above_current_tick(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let alice = ink_e2e::alice();
+        let alice_address = address_of!(Alice);
         let init_tick = -23028;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
 
@@ -501,7 +508,8 @@ pub mod e2e_tests {
         .unwrap();
 
         // Load states
-        let position_state = get_position!(client, InvariantRef, dex, 0, alice).unwrap();
+        let position_state =
+            get_position!(client, InvariantRef, dex, alice_address, 0, alice).unwrap();
         let pool_state = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
         let lower_tick = get_tick!(client, InvariantRef, dex, pool_key, lower_tick_index).unwrap();
         let upper_tick = get_tick!(client, InvariantRef, dex, pool_key, upper_tick_index).unwrap();

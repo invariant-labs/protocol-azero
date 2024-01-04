@@ -43,7 +43,8 @@ pub mod e2e_tests {
 
         let user_amount_after_claim = balance_of!(client, TokenRef, token_x, address_of!(Alice));
         let dex_amount_after_claim = balance_of!(client, TokenRef, token_x, dex);
-        let position = get_position!(client, InvariantRef, dex, 0, alice).unwrap();
+        let position =
+            get_position!(client, InvariantRef, dex, address_of!(Alice), 0, alice).unwrap();
         let expected_tokens_claimed = 5;
 
         assert_eq!(

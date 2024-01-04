@@ -243,9 +243,9 @@ macro_rules! transfer_position {
 
 #[macro_export]
 macro_rules! get_position {
-    ($client:ident, $dex:ty, $dex_address:expr, $index:expr, $caller:ident) => {{
+    ($client:ident, $dex:ty, $dex_address:expr, $owner:expr, $index:expr, $caller:ident) => {{
         let message = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.get_position($index));
+            .call(|contract| contract.get_position($owner, $index));
         $client
             .call_dry_run(&$caller, &message, 0, None)
             .await
@@ -255,9 +255,9 @@ macro_rules! get_position {
 
 #[macro_export]
 macro_rules! get_all_positions {
-    ($client:ident, $dex:ty, $dex_address:expr, $caller:ident) => {{
+    ($client:ident, $dex:ty, $dex_address:expr, $owner:expr, $caller:ident) => {{
         let message = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.get_all_positions());
+            .call(|contract| contract.get_all_positions($owner));
         $client
             .call_dry_run(&$caller, &message, 0, None)
             .await

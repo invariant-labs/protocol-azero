@@ -110,13 +110,23 @@ pub mod e2e_tests {
             init_basic_position!(client, InvariantRef, TokenRef, dex, token_x, token_y);
             let transferred_index = 0;
             let position_owner = deployer;
+            let owner_id = address_of!(Alice);
+            let recipient_id = address_of!(Bob);
             let recipient = ink_e2e::bob();
             let recipient_address = address_of!(Bob);
-            let owner_list_before = get_all_positions!(client, InvariantRef, dex, position_owner);
-            let recipient_list_before = get_all_positions!(client, InvariantRef, dex, recipient);
-            let removed_position =
-                get_position!(client, InvariantRef, dex, transferred_index, position_owner)
-                    .unwrap();
+            let owner_list_before =
+                get_all_positions!(client, InvariantRef, dex, owner_id, position_owner);
+            let recipient_list_before =
+                get_all_positions!(client, InvariantRef, dex, recipient_id, recipient);
+            let removed_position = get_position!(
+                client,
+                InvariantRef,
+                dex,
+                owner_id,
+                transferred_index,
+                position_owner
+            )
+            .unwrap();
 
             transfer_position!(
                 client,
@@ -128,10 +138,19 @@ pub mod e2e_tests {
             )
             .unwrap();
 
-            let recipient_position =
-                get_position!(client, InvariantRef, dex, transferred_index, recipient).unwrap();
-            let owner_list_after = get_all_positions!(client, InvariantRef, dex, position_owner);
-            let recipient_list_after = get_all_positions!(client, InvariantRef, dex, recipient);
+            let recipient_position = get_position!(
+                client,
+                InvariantRef,
+                dex,
+                recipient_id,
+                transferred_index,
+                recipient
+            )
+            .unwrap();
+            let owner_list_after =
+                get_all_positions!(client, InvariantRef, dex, owner_id, position_owner);
+            let recipient_list_after =
+                get_all_positions!(client, InvariantRef, dex, recipient_id, recipient);
 
             assert_eq!(recipient_list_after.len(), recipient_list_before.len() + 1);
             assert_eq!(owner_list_before.len() - 1, owner_list_after.len());
