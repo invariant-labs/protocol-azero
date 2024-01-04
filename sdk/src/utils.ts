@@ -9,7 +9,7 @@ import { InvariantError, Percentage } from 'math'
 import { Invariant } from './invariant.js'
 import { Network } from './network.js'
 import { PSP22 } from './psp22.js'
-import { Query, Tx } from './schema.js'
+import { InvariantTx, Query, Tx } from './schema.js'
 
 export const DEFAULT_REF_TIME = 100000000000
 export const DEFAULT_PROOF_SIZE = 100000000000
@@ -138,8 +138,8 @@ export async function sendTx(
       if (!block) {
         resolve(result.txHash.toHex())
       }
-      if (result.isError) {
-        reject(result.toHuman())
+      if (result.isError || result.dispatchError) {
+        reject(new Error(message))
       }
       if (result.isCompleted && !waitForFinalization) {
         resolve(result.txHash.toHex())
@@ -243,20 +243,20 @@ export const convertArr = (arr: any[]): any[] => {
   })
 }
 
-export const assertError = async <T>(fn: Promise<T>, invariantError: InvariantError) => {
-  let exceptionThrown = false
-
+export const assertThrowsAsync = async (fn: Promise<any>, word?: InvariantError | InvariantTx) => {
   try {
     await fn
-  } catch (error: any) {
-    exceptionThrown = true
-
-    if (error.message != invariantError) {
-      throw new Error('error does not match')
+  } catch (e: any) {
+    if (word) {
+      const err = e.toString()
+      console.log(err)
+      const regex = new RegExp(`${word}$`)
+      if (!regex.test(err)) {
+        console.log(err)
+        throw new Error('Invalid Error message')
+      }
     }
+    return
   }
-
-  if (!exceptionThrown) {
-    throw new Error('error wasn not thrown')
-  }
+  throw new Error('Function did not throw error')
 }
