@@ -9,6 +9,7 @@ use wasm_bindgen::prelude::*;
 
 #[derive(Default, Debug, Copy, Clone, PartialEq, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
+#[serde(rename_all = "camelCase")]
 pub struct FeeTier {
     pub fee: Percentage,
     #[tsify(type = "bigint")]

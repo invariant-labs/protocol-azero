@@ -1,4 +1,3 @@
-use crate::alloc::string::ToString;
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;
