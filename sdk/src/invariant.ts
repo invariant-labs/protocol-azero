@@ -19,7 +19,7 @@ import {
   Tick
 } from 'math/math.js'
 import { Network } from './network.js'
-import { InvariantQuery, InvariantTx } from './schema.js'
+import { Event, InvariantQuery, InvariantTx } from './schema.js'
 import {
   DEFAULT_PROOF_SIZE,
   DEFAULT_REF_TIME,
@@ -36,7 +36,7 @@ export class Invariant {
   storageDepositLimit: number | null
   waitForFinalization: boolean
   abi: Abi | null = null
-  eventListeners: { identifier: string; listener: (event: any) => void }[] = []
+  eventListeners: { identifier: Event; listener: (event: any) => void }[] = []
 
   constructor(
     api: ApiPromise,
@@ -102,7 +102,7 @@ export class Invariant {
     })
   }
 
-  addEventListener(identifier: string, listener: (event: any) => void): void {
+  addEventListener(identifier: Event, listener: (event: any) => void): void {
     this.eventListeners.push({ identifier, listener })
   }
 

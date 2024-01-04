@@ -1,7 +1,8 @@
 import { Keyring } from '@polkadot/api'
 import dotenv from 'dotenv'
-import { newFeeTier, newPoolKey } from 'math/math.js'
+import { CreatePositionEvent, newFeeTier, newPoolKey } from 'math/math.js'
 import { Network } from './network.js'
+import { Event } from './schema.js'
 import {
   deployInvariant,
   deployPSP22,
@@ -55,7 +56,7 @@ const main = async () => {
   const token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n)
   const token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n)
 
-  invariant.addEventListener('CreatePositionEvent', event => {
+  invariant.addEventListener(Event.CreatePosition, (event: CreatePositionEvent) => {
     console.log(event)
   })
 

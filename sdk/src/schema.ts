@@ -46,3 +46,10 @@ export enum WrappedAZEROTx {
 export type Tx = InvariantTx | PSP22Tx | WrappedAZEROTx
 
 export type Query = InvariantQuery | PSP22Query
+
+export enum Event {
+  CreatePosition = 'CreatePosition',
+  CrossTick = 'CrossTick',
+  RemovePosition = 'RemovePosition',
+  Swap = 'Swap'
+}
