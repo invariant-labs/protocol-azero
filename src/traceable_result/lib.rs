@@ -10,6 +10,12 @@ use core::any;
 
 pub type TrackableResult<T> = Result<T, TrackableError>;
 
+// Only needed for testing serde_remote
+#[derive(Debug, Copy, Clone, Default, PartialEq)]
+pub struct NotOwnedType {
+    pub name: [u8; 32],
+}
+
 #[derive(Debug)]
 pub struct TrackableError {
     pub cause: String,
