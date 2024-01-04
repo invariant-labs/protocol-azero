@@ -188,14 +188,14 @@ export class Invariant {
     )
   }
 
-  async getPosition(account: IKeyringPair, index: bigint): Promise<Position> {
+  async getPosition(account: IKeyringPair, owner: string, index: bigint): Promise<Position> {
     const result = (await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       account,
       InvariantQuery.GetPosition,
-      [index]
+      [owner, index]
     )) as any
 
     if (result.ok) {
@@ -205,14 +205,14 @@ export class Invariant {
     }
   }
 
-  async getPositions(account: IKeyringPair): Promise<Position[]> {
+  async getPositions(account: IKeyringPair, owner: string): Promise<Position[]> {
     const result = (await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       account,
       InvariantQuery.GetAllPositions,
-      []
+      [owner]
     )) as any
 
     return convertArr(result)

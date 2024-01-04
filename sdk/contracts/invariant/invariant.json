@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x98e7efb22b5d372cec67aec670db8a5f298f1405829f3b779dcb911140c6bfee",
+    "hash": "0x93c035fd43a14c807c7400260ba024d4f27f49e3f245dbeaeae50db37980d84a",
     "language": "ink! 4.3.0",
     "compiler": "rustc 1.72.1",
     "build_info": {
@@ -843,6 +843,15 @@
       {
         "args": [
           {
+            "label": "owner_id",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 1
+            }
+          },
+          {
             "label": "index",
             "type": {
               "displayName": [
@@ -867,7 +876,17 @@
         "selector": "0xccb84930"
       },
       {
-        "args": [],
+        "args": [
+          {
+            "label": "owner_id",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 1
+            }
+          }
+        ],
         "default": false,
         "docs": [],
         "label": "InvariantTrait::get_all_positions",
