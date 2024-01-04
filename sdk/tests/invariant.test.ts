@@ -286,6 +286,18 @@ describe('invariant', async () => {
       { v: 0n },
       { v: 100000000000000000000000000n }
     )
+    const position = await invariant.getPosition(account, 0n)
+    assert.deepEqual(position, {
+      poolKey: position.poolKey,
+      liquidity: { v: 1000000n },
+      lowerTickIndex: lowerTickIndex,
+      upperTickIndex: upperTickIndex,
+      feeGrowthInsideX: { v: 0n },
+      feeGrowthInsideY: { v: 0n },
+      lastBlockNumber: position.lastBlockNumber,
+      tokensOwedX: 0n,
+      tokensOwedY: 0n
+    })
   })
   it('remove position', async () => {
     if (!token0.contract?.address || !token1.contract?.address || !invariant.contract?.address) {
@@ -327,14 +339,17 @@ describe('invariant', async () => {
         { v: 100000000000000000000000000n }
       )
       const position = await invariant.getPosition(account, 0n)
-
-      assert.deepEqual(position.liquidity, { v: 1000000n })
-      assert.deepEqual(position.lowerTickIndex, lowerTickIndex)
-      assert.deepEqual(position.upperTickIndex, upperTickIndex)
-      assert.deepEqual(position.feeGrowthInsideX, { v: 0n })
-      assert.deepEqual(position.feeGrowthInsideY, { v: 0n })
-      assert.deepEqual(position.tokensOwedX, 0n)
-      assert.deepEqual(position.tokensOwedY, 0n)
+      assert.deepEqual(position, {
+        poolKey: position.poolKey,
+        liquidity: { v: 1000000n },
+        lowerTickIndex: lowerTickIndex,
+        upperTickIndex: upperTickIndex,
+        feeGrowthInsideX: { v: 0n },
+        feeGrowthInsideY: { v: 0n },
+        lastBlockNumber: position.lastBlockNumber,
+        tokensOwedX: 0n,
+        tokensOwedY: 0n
+      })
     }
     {
       await invariant.removePosition(account, 0n)
@@ -408,21 +423,23 @@ describe('invariant', async () => {
       { v: 100000000000000000000000000n }
     )
     {
-      const position_owner = keyring.addFromUri('//Alice')
+      const positionOwner = keyring.addFromUri('//Alice')
       const receiver = keyring.addFromUri('//Bob')
-      await invariant.transferPosition(position_owner, 0n, receiver.address)
-      // assertThrowsAsync(
-      //   invariant.getPosition(position_owner, 0n),
-      //   InvariantError.PositionNotFound
-      // )
+      await invariant.transferPosition(positionOwner, 0n, receiver.address)
+
+      assertThrowsAsync(invariant.getPosition(positionOwner, 0n), InvariantError.PositionNotFound)
       const position = await invariant.getPosition(receiver, 0n)
-      assert.deepEqual(position.liquidity, { v: 1000000n })
-      assert.deepEqual(position.lowerTickIndex, lowerTickIndex)
-      assert.deepEqual(position.upperTickIndex, upperTickIndex)
-      assert.deepEqual(position.feeGrowthInsideX, { v: 0n })
-      assert.deepEqual(position.feeGrowthInsideY, { v: 0n })
-      assert.deepEqual(position.tokensOwedX, 0n)
-      assert.deepEqual(position.tokensOwedY, 0n)
+      assert.deepEqual(position, {
+        poolKey: position.poolKey,
+        liquidity: { v: 1000000n },
+        lowerTickIndex: lowerTickIndex,
+        upperTickIndex: upperTickIndex,
+        feeGrowthInsideX: { v: 0n },
+        feeGrowthInsideY: { v: 0n },
+        lastBlockNumber: position.lastBlockNumber,
+        tokensOwedX: 0n,
+        tokensOwedY: 0n
+      })
     }
   })
 })
