@@ -14,10 +14,17 @@ import {
   Position,
   SqrtPrice,
   Tick
-} from 'math'
+} from 'math/math.js'
 import { Network } from './network.js'
 import { InvariantQuery, InvariantTx } from './schema.js'
-import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME, convertObj, sendQuery, sendTx } from './utils.js'
+import {
+  DEFAULT_PROOF_SIZE,
+  DEFAULT_REF_TIME,
+  convertArr,
+  convertObj,
+  sendQuery,
+  sendTx
+} from './utils.js'
 
 export class Invariant {
   contract: ContractPromise | null = null
@@ -121,14 +128,16 @@ export class Invariant {
   }
 
   async getFeeTiers(account: IKeyringPair): Promise<FeeTier[]> {
-    return sendQuery(
+    const result = (await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       account,
       InvariantQuery.GetFeeTiers,
       []
-    ) as Promise<FeeTier[]>
+    )) as any
+
+    return convertArr(result)
   }
 
   async feeTierExist(account: IKeyringPair, feeTier: FeeTier): Promise<boolean> {
@@ -180,25 +189,33 @@ export class Invariant {
   }
 
   async getPosition(account: IKeyringPair, index: bigint): Promise<Position> {
-    return sendQuery(
+    const result = (await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       account,
       InvariantQuery.GetPosition,
       [index]
-    ) as Promise<Position>
+    )) as any
+
+    if (result.ok) {
+      return convertObj(result.ok)
+    } else {
+      throw new Error(InvariantError[result.err])
+    }
   }
 
   async getPositions(account: IKeyringPair): Promise<Position[]> {
-    return sendQuery(
+    const result = (await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       account,
       InvariantQuery.GetAllPositions,
       []
-    ) as Promise<Position[]>
+    )) as any
+
+    return convertArr(result)
   }
 
   async createPosition(
@@ -288,19 +305,19 @@ export class Invariant {
     if (result.ok) {
       return convertObj(result.ok)
     } else {
-      throw new Error(result.err as InvariantError)
+      throw new Error(InvariantError[result.err])
     }
   }
 
   async isTickInitialized(account: IKeyringPair, key: PoolKey, index: bigint): Promise<boolean> {
-    return sendQuery(
+    return (await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       account,
       InvariantQuery.IsTickInitialized,
       [key, index]
-    ) as Promise<boolean>
+    )) as Promise<boolean>
   }
 
   async getPool(
@@ -309,25 +326,33 @@ export class Invariant {
     token1: string,
     feeTier: FeeTier
   ): Promise<Pool> {
-    return sendQuery(
+    const result = (await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       account,
       InvariantQuery.GetPool,
       [token0, token1, feeTier]
-    ) as Promise<Pool>
+    )) as any
+
+    if (result.ok) {
+      return convertObj(result.ok)
+    } else {
+      throw new Error(InvariantError[result.err])
+    }
   }
 
   async getPools(account: IKeyringPair): Promise<Pool[]> {
-    return sendQuery(
+    const result = (await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       account,
       InvariantQuery.GetPools,
       []
-    ) as Promise<Pool[]>
+    )) as any
+
+    return convertArr(result)
   }
 
   async createPool(

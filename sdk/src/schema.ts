@@ -43,7 +43,6 @@ export enum WrappedAZEROTx {
   Withdraw = 'wrappedAZERO::withdraw'
 }
 
-export type Result<T, E> = {
-  ok?: T
-  err?: E
-}
+export type Tx = InvariantTx | PSP22Tx | WrappedAZEROTx
+
+export type Query = InvariantQuery | PSP22Query

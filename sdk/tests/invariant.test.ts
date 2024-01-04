@@ -1,8 +1,8 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import { newFeeTier, newPoolKey } from 'math/math.js'
+import { InvariantError, newFeeTier, newPoolKey } from 'math/math.js'
 import { Network } from '../src/network'
-import { catchError, deployInvariant, deployPSP22, initPolkadotApi } from '../src/utils'
+import { assertError, deployInvariant, deployPSP22, initPolkadotApi } from '../src/utils'
 
 describe('invariant', async () => {
   const api = await initPolkadotApi(Network.Local)
@@ -11,9 +11,13 @@ describe('invariant', async () => {
   const account = await keyring.addFromUri('//Alice')
 
   let invariant = await deployInvariant(api, account, { v: 10000000000n })
+  let token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n)
+  let token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n)
 
   beforeEach(async () => {
     invariant = await deployInvariant(api, account, { v: 10000000000n })
+    token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n)
+    token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n)
   })
 
   it('should change protocol fee', async () => {
@@ -75,9 +79,6 @@ describe('invariant', async () => {
   })
 
   it('should get tick and check if it is initialized', async () => {
-    const token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n)
-    const token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n)
-
     if (!token0.contract?.address || !token1.contract?.address || !invariant.contract?.address) {
       throw new Error()
     }
@@ -115,10 +116,28 @@ describe('invariant', async () => {
     )
 
     const lowerTick = await invariant.getTick(account, poolKey, -10n)
-    assert.deepEqual(lowerTick.index, -10n)
-    await catchError(invariant.getTick(account, poolKey, 0n), 'TickNotFound')
+    assert.deepEqual(lowerTick, {
+      index: -10n,
+      sign: true,
+      liquidityChange: { v: 1000000n },
+      liquidityGross: { v: 1000000n },
+      sqrtPrice: { v: 999500149965000000000000n },
+      feeGrowthOutsideX: { v: 0n },
+      feeGrowthOutsideY: { v: 0n },
+      secondsOutside: lowerTick.secondsOutside
+    })
+    await assertError(invariant.getTick(account, poolKey, 0n), InvariantError.TickNotFound)
     const upperTick = await invariant.getTick(account, poolKey, 10n)
-    assert.deepEqual(upperTick.index, 10n)
+    assert.deepEqual(upperTick, {
+      index: 10n,
+      sign: false,
+      liquidityChange: { v: 1000000n },
+      liquidityGross: { v: 1000000n },
+      sqrtPrice: { v: 1000500100010000000000000n },
+      feeGrowthOutsideX: { v: 0n },
+      feeGrowthOutsideY: { v: 0n },
+      secondsOutside: upperTick.secondsOutside
+    })
 
     const isLowerTickInitialized = await invariant.isTickInitialized(account, poolKey, -10n)
     assert.deepEqual(isLowerTickInitialized, true)

@@ -9,7 +9,7 @@ import { InvariantError, Percentage } from 'math'
 import { Invariant } from './invariant.js'
 import { Network } from './network.js'
 import { PSP22 } from './psp22.js'
-import { InvariantQuery, InvariantTx, PSP22Query, PSP22Tx, WrappedAZEROTx } from './schema.js'
+import { Query, Tx } from './schema.js'
 
 export const DEFAULT_REF_TIME = 100000000000
 export const DEFAULT_PROOF_SIZE = 100000000000
@@ -86,7 +86,7 @@ export async function sendQuery(
   gasLimit: WeightV2,
   storageDepositLimit: number | null,
   signer: IKeyringPair,
-  message: InvariantQuery | PSP22Query | InvariantTx | PSP22Tx | WrappedAZEROTx,
+  message: Query | Tx,
   data: any[]
 ): Promise<unknown> {
   if (!contract) {
@@ -115,7 +115,7 @@ export async function sendTx(
   storageDepositLimit: number | null,
   value: number,
   signer: IKeyringPair,
-  message: InvariantTx | PSP22Tx | WrappedAZEROTx,
+  message: Tx,
   data: any[],
   waitForFinalization: boolean = true,
   block: boolean = true
@@ -212,12 +212,38 @@ export const convertObj = <T>(obj: T): T => {
     if (typeof value === 'object' && value.v === undefined) {
       newObj[key] = convertObj(value)
     }
+
+    if (value.constructor === Array) {
+      newObj[key] = convertArr(value)
+    }
   })
 
   return newObj as T
 }
 
-export const catchError = async <T>(fn: Promise<T>, invariant_error: InvariantError) => {
+export const convertArr = (arr: any[]): any[] => {
+  return arr.map(value => {
+    if (typeof value === 'number' || (typeof value === 'string' && value.startsWith('0x'))) {
+      return BigInt(value)
+    }
+
+    if (typeof value.v === 'number' || (typeof value.v === 'string' && value.v.startsWith('0x'))) {
+      return { v: BigInt(value.v) }
+    }
+
+    if (typeof value === 'object' && value.v === undefined) {
+      return convertObj(value)
+    }
+
+    if (value.constructor === Array) {
+      return convertArr(value)
+    }
+
+    return value
+  })
+}
+
+export const assertError = async <T>(fn: Promise<T>, invariantError: InvariantError) => {
   let exceptionThrown = false
 
   try {
@@ -225,12 +251,12 @@ export const catchError = async <T>(fn: Promise<T>, invariant_error: InvariantEr
   } catch (error: any) {
     exceptionThrown = true
 
-    if (error.message !== invariant_error) {
-      throw new Error("error doesn't match")
+    if (error.message != invariantError) {
+      throw new Error('error does not match')
     }
   }
 
   if (!exceptionThrown) {
-    throw new Error("error wasn't thrown")
+    throw new Error('error wasn not thrown')
   }
 }
