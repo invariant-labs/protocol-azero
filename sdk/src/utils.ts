@@ -139,7 +139,7 @@ export async function sendTx(
         resolve(result.txHash.toHex())
       }
       if (result.isError || result.dispatchError) {
-        reject(new Error(`Error: ${message} reverted`))
+        reject(new Error(message))
       }
       if (result.isCompleted && !waitForFinalization) {
         resolve(result.txHash.toHex())
@@ -249,6 +249,7 @@ export const assertThrowsAsync = async (fn: Promise<any>, word?: InvariantError 
   } catch (e: any) {
     if (word) {
       const err = e.toString()
+      console.log(err)
       const regex = new RegExp(`${word}$`)
       if (!regex.test(err)) {
         console.log(err)

@@ -2,6 +2,7 @@ import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
 import { InvariantError, SqrtPrice, newFeeTier, newPoolKey } from 'math/math.js'
 import { Network } from '../src/network'
+import { InvariantTx } from '../src/schema'
 import { assertThrowsAsync, deployInvariant, deployPSP22, initPolkadotApi } from '../src/utils'
 
 describe('invariant', async () => {
@@ -205,7 +206,7 @@ describe('invariant', async () => {
           initSqrtPrice,
           initTick
         ),
-        'Error: invariantTrait::createPool reverted'
+        InvariantTx.CreatePool
       )
     }
     const pools = await invariant.getPools(account)
