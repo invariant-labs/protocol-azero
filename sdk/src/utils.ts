@@ -9,7 +9,7 @@ import { InvariantError, Percentage } from 'math'
 import { Invariant } from './invariant.js'
 import { Network } from './network.js'
 import { PSP22 } from './psp22.js'
-import { Query, Tx } from './schema.js'
+import { InvariantTx, Query, Tx } from './schema.js'
 
 export const DEFAULT_REF_TIME = 100000000000
 export const DEFAULT_PROOF_SIZE = 100000000000
@@ -243,7 +243,7 @@ export const convertArr = (arr: any[]): any[] => {
   })
 }
 
-export const assertThrowsAsync = async (fn: Promise<any>, word?: InvariantError | string) => {
+export const assertThrowsAsync = async (fn: Promise<any>, word?: InvariantError | InvariantTx) => {
   try {
     await fn
   } catch (e: any) {

@@ -170,6 +170,24 @@ describe('invariant', async () => {
     )
     const pools = await invariant.getPools(account)
     assert.deepEqual(pools.length, 1)
+    const pool = await invariant.getPool(
+      account,
+      token0.contract.address.toString(),
+      token1.contract.address.toString(),
+      feeTier
+    )
+    assert.deepEqual(pool, {
+      liquidity: { v: 0n },
+      sqrtPrice: { v: 1000000000000000000000000n },
+      currentTickIndex: 0n,
+      feeGrowthGlobalX: { v: 0n },
+      feeGrowthGlobalY: { v: 0n },
+      feeProtocolTokenX: 0n,
+      feeProtocolTokenY: 0n,
+      startTimestamp: pool.startTimestamp,
+      lastTimestamp: pool.lastTimestamp,
+      feeReceiver: pool.feeReceiver
+    })
   })
   it('create pool x/y and y/x', async () => {
     if (!token0.contract?.address || !token1.contract?.address || !invariant.contract?.address) {
@@ -195,6 +213,24 @@ describe('invariant', async () => {
 
       const pools = await invariant.getPools(account)
       assert.deepEqual(pools.length, 1)
+      const pool = await invariant.getPool(
+        account,
+        token0.contract.address.toString(),
+        token1.contract.address.toString(),
+        feeTier
+      )
+      assert.deepEqual(pool, {
+        liquidity: { v: 0n },
+        sqrtPrice: { v: 1000000000000000000000000n },
+        currentTickIndex: 0n,
+        feeGrowthGlobalX: { v: 0n },
+        feeGrowthGlobalY: { v: 0n },
+        feeProtocolTokenX: 0n,
+        feeProtocolTokenY: 0n,
+        startTimestamp: pool.startTimestamp,
+        lastTimestamp: pool.lastTimestamp,
+        feeReceiver: pool.feeReceiver
+      })
     }
     {
       await assertThrowsAsync(
