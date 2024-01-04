@@ -146,6 +146,174 @@ describe('invariant', async () => {
     const isUpperTickInitialized = await invariant.isTickInitialized(account, poolKey, 10n)
     assert.deepEqual(isUpperTickInitialized, true)
   })
+  it('create position', async () => {
+    if (!token0.contract?.address || !token1.contract?.address || !invariant.contract?.address) {
+      throw new Error()
+    }
+
+    const feeTier = newFeeTier({ v: 10000000000n }, 1)
+    await invariant.addFeeTier(account, feeTier)
+
+    await invariant.createPool(
+      account,
+      token0.contract.address.toString(),
+      token1.contract.address.toString(),
+      feeTier,
+      { v: 1000000000000000000000000n },
+      0n
+    )
+
+    await token0.approve(account, invariant.contract.address.toString(), 1000000000n)
+    await token1.approve(account, invariant.contract.address.toString(), 1000000000n)
+
+    const poolKey = newPoolKey(
+      token0.contract.address.toString(),
+      token1.contract.address.toString(),
+      feeTier
+    )
+
+    const lowerTickIndex = -10n
+    const upperTickIndex = 10n
+
+    await invariant.createPosition(
+      account,
+      poolKey,
+      lowerTickIndex,
+      upperTickIndex,
+      { v: 1000000n },
+      { v: 0n },
+      { v: 100000000000000000000000000n }
+    )
+  })
+  it('remove position', async () => {
+    if (!token0.contract?.address || !token1.contract?.address || !invariant.contract?.address) {
+      throw new Error()
+    }
+
+    const feeTier = newFeeTier({ v: 10000000000n }, 1)
+    await invariant.addFeeTier(account, feeTier)
+
+    await invariant.createPool(
+      account,
+      token0.contract.address.toString(),
+      token1.contract.address.toString(),
+      feeTier,
+      { v: 1000000000000000000000000n },
+      0n
+    )
+
+    await token0.approve(account, invariant.contract.address.toString(), 1000000000n)
+    await token1.approve(account, invariant.contract.address.toString(), 1000000000n)
+
+    const poolKey = newPoolKey(
+      token0.contract.address.toString(),
+      token1.contract.address.toString(),
+      feeTier
+    )
+
+    const lowerTickIndex = -10n
+    const upperTickIndex = 10n
+
+    {
+      await invariant.createPosition(
+        account,
+        poolKey,
+        lowerTickIndex,
+        upperTickIndex,
+        { v: 1000000n },
+        { v: 0n },
+        { v: 100000000000000000000000000n }
+      )
+      const position = await invariant.getPosition(account, 0n)
+
+      assert.deepEqual(position.liquidity, { v: 1000000n })
+      assert.deepEqual(position.lowerTickIndex, lowerTickIndex)
+      assert.deepEqual(position.upperTickIndex, upperTickIndex)
+      assert.deepEqual(position.feeGrowthInsideX, { v: 0n })
+      assert.deepEqual(position.feeGrowthInsideY, { v: 0n })
+      assert.deepEqual(position.tokensOwedX, 0n)
+      assert.deepEqual(position.tokensOwedY, 0n)
+    }
+    {
+      await invariant.removePosition(account, 0n)
+      // assertThrowsAsync(
+      //   invariant.getPosition(account, 0n),
+      //   InvariantError.PositionNotFound
+      // )
+      const positions = await invariant.getPositions(account)
+      assert.deepEqual(positions.length, 0)
+    }
+    {
+      // assertThrowsAsync(
+      //   invariant.getTick(account, poolKey, lowerTickIndex),
+      //   InvariantError.TickNotFound
+      // )
+
+      // assertThrowsAsync(
+      //   invariant.getTick(account, poolKey, upperTickIndex),
+      //   InvariantError.TickNotFound
+      // )
+
+      const isLowerTickInitialized = await invariant.isTickInitialized(
+        account,
+        poolKey,
+        lowerTickIndex
+      )
+      assert.exists(!isLowerTickInitialized)
+
+      const isUpperTickInitialized = await invariant.isTickInitialized(
+        account,
+        poolKey,
+        upperTickIndex
+      )
+
+      assert.exists(!isUpperTickInitialized)
+    }
+  })
+  it('transfer position', async () => {
+    if (!token0.contract?.address || !token1.contract?.address || !invariant.contract?.address) {
+      throw new Error()
+    }
+
+    const feeTier = newFeeTier({ v: 10000000000n }, 1)
+    await invariant.addFeeTier(account, feeTier)
+
+    await invariant.createPool(
+      account,
+      token0.contract.address.toString(),
+      token1.contract.address.toString(),
+      feeTier,
+      { v: 1000000000000000000000000n },
+      0n
+    )
+
+    await token0.approve(account, invariant.contract.address.toString(), 1000000000n)
+    await token1.approve(account, invariant.contract.address.toString(), 1000000000n)
+
+    const poolKey = newPoolKey(
+      token0.contract.address.toString(),
+      token1.contract.address.toString(),
+      feeTier
+    )
+
+    const lowerTickIndex = -10n
+    const upperTickIndex = 10n
+
+    await invariant.createPosition(
+      account,
+      poolKey,
+      lowerTickIndex,
+      upperTickIndex,
+      { v: 1000000n },
+      { v: 0n },
+      { v: 100000000000000000000000000n }
+    )
+    {
+      // TODO add get position assertions
+      const receiver = await keyring.addFromUri('//Bob')
+      await invariant.transferPosition(account, 0n, receiver.address)
+    }
+  })
 
   // //TODO: needs PR with FeeTiers
   // it('create pool', async () => {
