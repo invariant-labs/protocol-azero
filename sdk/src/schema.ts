@@ -43,7 +43,7 @@ export enum WrappedAZEROTx {
   Withdraw = 'wrappedAZERO::withdraw'
 }
 
-export type Result<T> = {
+export type Result<T, E> = {
   ok?: T
-  err?: any
+  err?: E
 }

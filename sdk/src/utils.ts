@@ -5,7 +5,7 @@ import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { getSubstrateChain } from '@scio-labs/use-inkathon/chains'
 import { getBalance, initPolkadotJs as initApi } from '@scio-labs/use-inkathon/helpers'
 import { readFile } from 'fs/promises'
-import { Percentage } from 'math'
+import { InvariantError, Percentage } from 'math'
 import { Invariant } from './invariant.js'
 import { Network } from './network.js'
 import { PSP22 } from './psp22.js'
@@ -215,4 +215,22 @@ export const convertObj = <T>(obj: T): T => {
   })
 
   return newObj as T
+}
+
+export const catchError = async <T>(fn: Promise<T>, invariant_error: InvariantError) => {
+  let exceptionThrown = false
+
+  try {
+    await fn
+  } catch (error: any) {
+    exceptionThrown = true
+
+    if (error.message !== invariant_error) {
+      throw new Error("error doesn't match")
+    }
+  }
+
+  if (!exceptionThrown) {
+    throw new Error("error wasn't thrown")
+  }
 }

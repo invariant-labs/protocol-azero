@@ -2,7 +2,7 @@ import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
 import { newFeeTier, newPoolKey } from 'math/math.js'
 import { Network } from '../src/network'
-import { deployInvariant, deployPSP22, initPolkadotApi } from '../src/utils'
+import { catchError, deployInvariant, deployPSP22, initPolkadotApi } from '../src/utils'
 
 describe('invariant', async () => {
   const api = await initPolkadotApi(Network.Local)
@@ -115,11 +115,10 @@ describe('invariant', async () => {
     )
 
     const lowerTick = await invariant.getTick(account, poolKey, -10n)
-    assert.deepEqual(lowerTick.ok?.index, -10n)
-    const initTick = await invariant.getTick(account, poolKey, 0n)
-    assert.deepEqual(initTick.err, 'TickNotFound')
+    assert.deepEqual(lowerTick.index, -10n)
+    await catchError(invariant.getTick(account, poolKey, 0n), 'TickNotFound')
     const upperTick = await invariant.getTick(account, poolKey, 10n)
-    assert.deepEqual(upperTick.ok?.index, 10n)
+    assert.deepEqual(upperTick.index, 10n)
 
     const isLowerTickInitialized = await invariant.isTickInitialized(account, poolKey, -10n)
     assert.deepEqual(isLowerTickInitialized, true)
