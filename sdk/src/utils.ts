@@ -86,7 +86,7 @@ export async function sendQuery(
   gasLimit: WeightV2,
   storageDepositLimit: number | null,
   signer: IKeyringPair,
-  message: InvariantQuery | PSP22Query | InvariantTx | PSP22Tx | WrappedAZEROTx,
+  message: InvariantQuery | PSP22Query,
   data: any[]
 ): Promise<unknown> {
   if (!contract) {
@@ -133,7 +133,7 @@ export async function sendTx(
     ...data
   )
 
-  return await new Promise<string>(async (resolve, reject) => {
+  return new Promise<string>(async (resolve, reject) => {
     await call.signAndSend(signer, result => {
       if (!block) {
         resolve(result.txHash.toHex())

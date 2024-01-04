@@ -228,7 +228,7 @@ export class Invariant {
     block: boolean = true
   ): Promise<string> {
     try {
-      const txHash = await sendTx(
+      return await sendTx(
         this.contract,
         this.gasLimit,
         this.storageDepositLimit,
@@ -239,7 +239,7 @@ export class Invariant {
         this.waitForFinalization,
         block
       )
-      return txHash
+      // return txHash
     } catch (err) {
       throw err
     }
