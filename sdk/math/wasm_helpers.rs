@@ -3,6 +3,9 @@ use crate::types::{
     seconds_per_liquidity::SecondsPerLiquidity, sqrt_price::SqrtPrice, token_amount::TokenAmount,
 };
 
+use crate::storage::pool::Pool;
+use crate::storage::pool_key::PoolKey;
+use crate::storage::tick::Tick;
 use decimal::*;
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
@@ -13,6 +16,24 @@ pub struct AmountDeltaResult {
     pub x: TokenAmount,
     pub y: TokenAmount,
     pub update_liquidity: bool,
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+#[serde(rename_all = "camelCase")]
+pub struct SwapHop {
+    pub pool_key: PoolKey,
+    pub x_to_y: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+#[serde(rename_all = "camelCase")]
+pub struct QuoteResult {
+    pub amount_in: TokenAmount,
+    pub amount_out: TokenAmount,
+    pub target_sqrt_price: SqrtPrice,
+    pub ticks: Vec<Tick>,
 }
 
 #[derive(PartialEq, Eq, Debug, Copy, Clone, Serialize, Deserialize, Tsify)]
