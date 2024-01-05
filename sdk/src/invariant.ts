@@ -12,8 +12,11 @@ import {
   Pool,
   PoolKey,
   Position,
+  QuoteResult,
   SqrtPrice,
-  Tick
+  SwapHop,
+  Tick,
+  TokenAmount
 } from 'math/math.js'
 import { Network } from './network.js'
 import { InvariantQuery, InvariantTx } from './schema.js'
@@ -372,6 +375,86 @@ export class Invariant {
       account,
       InvariantTx.CreatePool,
       [token0, token1, feeTier, initSqrtPrice, initTick],
+      this.waitForFinalization,
+      block
+    )
+  }
+
+  async quote(
+    account: IKeyringPair,
+    poolKey: PoolKey,
+    xToY: boolean,
+    amount: TokenAmount,
+    byAmountIn: boolean,
+    sqrtPriceLimit: SqrtPrice
+  ): Promise<QuoteResult> {
+    const result = (await sendQuery(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      account,
+      InvariantQuery.Quote,
+      [poolKey, xToY, amount, byAmountIn, sqrtPriceLimit]
+    )) as any
+
+    return convertObj(result)
+  }
+
+  async quoteRoute(
+    account: IKeyringPair,
+    amountIn: TokenAmount,
+    swaps: SwapHop[]
+  ): Promise<TokenAmount> {
+    const result = (await sendQuery(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      account,
+      InvariantQuery.QuoteRoute,
+      [amountIn, swaps]
+    )) as any
+
+    return convertObj(result)
+  }
+
+  async swap(
+    account: IKeyringPair,
+    poolKey: PoolKey,
+    xToY: boolean,
+    amount: TokenAmount,
+    byAmountIn: boolean,
+    sqrtPriceLimit: SqrtPrice,
+    block: boolean = true
+  ): Promise<string> {
+    return sendTx(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      0,
+      account,
+      InvariantTx.Swap,
+      [poolKey, xToY, amount, byAmountIn, sqrtPriceLimit],
+      this.waitForFinalization,
+      block
+    )
+  }
+
+  async swapRoute(
+    account: IKeyringPair,
+    amountIn: TokenAmount,
+    expectedAmountOut: TokenAmount,
+    slippage: Percentage,
+    swaps: SwapHop[],
+    block: boolean = true
+  ): Promise<string> {
+    return sendTx(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      0,
+      account,
+      InvariantTx.SwapRoute,
+      [amountIn, expectedAmountOut, slippage, swaps],
       this.waitForFinalization,
       block
     )
