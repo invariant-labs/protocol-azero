@@ -12,6 +12,7 @@ pub mod e2e_tests {
         InvariantError,
     };
     use decimal::*;
+    use ink::primitives::AccountId;
     use ink_e2e::build_message;
     use test_helpers::{
         add_fee_tier, address_of, approve, create_dex, create_pool, create_position, create_tokens,
@@ -59,7 +60,6 @@ pub mod e2e_tests {
     #[ink_e2e::test]
     async fn test_add_multiple_positions(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let alice = ink_e2e::alice();
-        let alice_address = address_of!(Alice);
         let init_tick = -23028;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
         let dex = create_dex!(client, InvariantRef, Percentage::new(0));
@@ -154,14 +154,12 @@ pub mod e2e_tests {
         // Remove middle position
         {
             let position_index_to_remove = 2;
-            let positions_list_before =
-                get_all_positions!(client, InvariantRef, dex, alice_address, alice);
+            let positions_list_before = get_all_positions!(client, InvariantRef, dex, alice);
             let last_position = positions_list_before[positions_list_before.len() - 1];
 
             remove_position!(client, InvariantRef, dex, position_index_to_remove, alice).unwrap();
 
-            let positions_list_after =
-                get_all_positions!(client, InvariantRef, dex, alice_address, alice);
+            let positions_list_after = get_all_positions!(client, InvariantRef, dex, alice);
             let tested_position = positions_list_after[position_index_to_remove as usize];
 
             // Last position should be at removed index
@@ -188,8 +186,7 @@ pub mod e2e_tests {
         }
         // Add position in place of the removed one
         {
-            let positions_list_before =
-                get_all_positions!(client, InvariantRef, dex, alice_address, alice);
+            let positions_list_before = get_all_positions!(client, InvariantRef, dex, alice);
 
             create_position!(
                 client,
@@ -205,14 +202,13 @@ pub mod e2e_tests {
             )
             .unwrap();
 
-            let positions_list_after =
-                get_all_positions!(client, InvariantRef, dex, alice_address, alice);
+            let positions_list_after = get_all_positions!(client, InvariantRef, dex, alice);
             assert_eq!(positions_list_before.len() + 1, positions_list_after.len());
         }
         // Remove last position
         {
             let last_position_index_before =
-                get_all_positions!(client, InvariantRef, dex, alice_address, alice).len() - 1;
+                get_all_positions!(client, InvariantRef, dex, alice).len() - 1;
 
             remove_position!(
                 client,
@@ -224,27 +220,24 @@ pub mod e2e_tests {
             .unwrap();
 
             let last_position_index_after =
-                get_all_positions!(client, InvariantRef, dex, alice_address, alice).len() - 1;
+                get_all_positions!(client, InvariantRef, dex, alice).len() - 1;
 
             assert_eq!(last_position_index_before - 1, last_position_index_after)
         }
         // Remove all positions
         {
-            let last_position_index =
-                get_all_positions!(client, InvariantRef, dex, alice_address, alice).len();
+            let last_position_index = get_all_positions!(client, InvariantRef, dex, alice).len();
 
             for i in (0..last_position_index).rev() {
                 remove_position!(client, InvariantRef, dex, i as u32, alice).unwrap();
             }
 
-            let list_length =
-                get_all_positions!(client, InvariantRef, dex, alice_address, alice).len();
+            let list_length = get_all_positions!(client, InvariantRef, dex, alice).len();
             assert_eq!(list_length, 0);
         }
         // Add position to cleared list
         {
-            let list_length_before =
-                get_all_positions!(client, InvariantRef, dex, alice_address, alice).len();
+            let list_length_before = get_all_positions!(client, InvariantRef, dex, alice).len();
 
             create_position!(
                 client,
@@ -259,8 +252,7 @@ pub mod e2e_tests {
                 alice
             )
             .unwrap();
-            let list_length_after =
-                get_all_positions!(client, InvariantRef, dex, alice_address, alice).len();
+            let list_length_after = get_all_positions!(client, InvariantRef, dex, alice).len();
             assert_eq!(list_length_after, list_length_before + 1);
         }
         Ok(())
@@ -271,7 +263,6 @@ pub mod e2e_tests {
         mut client: ink_e2e::Client<C, E>,
     ) -> E2EResult<()> {
         let alice = ink_e2e::alice();
-        let alice_address = address_of!(Alice);
         let init_tick = -23028;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
 
@@ -367,14 +358,12 @@ pub mod e2e_tests {
         // Remove middle position
         {
             let position_index_to_remove = 2;
-            let positions_list_before =
-                get_all_positions!(client, InvariantRef, dex, alice_address, alice);
+            let positions_list_before = get_all_positions!(client, InvariantRef, dex, alice);
             let last_position = positions_list_before[positions_list_before.len() - 1];
 
             remove_position!(client, InvariantRef, dex, position_index_to_remove, alice).unwrap();
 
-            let positions_list_after =
-                get_all_positions!(client, InvariantRef, dex, alice_address, alice);
+            let positions_list_after = get_all_positions!(client, InvariantRef, dex, alice);
             let tested_position = positions_list_after[position_index_to_remove as usize];
 
             // Last position should be at removed index
@@ -401,8 +390,7 @@ pub mod e2e_tests {
         }
         // Add position in place of the removed one
         {
-            let positions_list_before =
-                get_all_positions!(client, InvariantRef, dex, alice_address, alice);
+            let positions_list_before = get_all_positions!(client, InvariantRef, dex, alice);
 
             create_position!(
                 client,
@@ -418,14 +406,13 @@ pub mod e2e_tests {
             )
             .unwrap();
 
-            let positions_list_after =
-                get_all_positions!(client, InvariantRef, dex, alice_address, alice);
+            let positions_list_after = get_all_positions!(client, InvariantRef, dex, alice);
             assert_eq!(positions_list_before.len() + 1, positions_list_after.len());
         }
         // Remove last position
         {
             let last_position_index_before =
-                get_all_positions!(client, InvariantRef, dex, alice_address, alice).len() - 1;
+                get_all_positions!(client, InvariantRef, dex, alice).len() - 1;
 
             let unauthorized_user = ink_e2e::bob();
             let result = remove_position!(
@@ -443,7 +430,6 @@ pub mod e2e_tests {
     #[ink_e2e::test]
     async fn test_transfer_position_ownership(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let alice = ink_e2e::alice();
-        let alice_address = address_of!(Alice);
         let init_tick = -23028;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
 
@@ -490,8 +476,7 @@ pub mod e2e_tests {
                 alice
             )
             .unwrap();
-            let list_length =
-                get_all_positions!(client, InvariantRef, dex, alice_address, alice).len();
+            let list_length = get_all_positions!(client, InvariantRef, dex, alice).len();
 
             assert_eq!(list_length, 1)
         }
@@ -543,19 +528,10 @@ pub mod e2e_tests {
         // Transfer first position
         {
             let transferred_index = 0;
-            let owner_list_before =
-                get_all_positions!(client, InvariantRef, dex, alice_address, alice);
-            let recipient_list_before =
-                get_all_positions!(client, InvariantRef, dex, address_of!(Bob), bob);
-            let removed_position = get_position!(
-                client,
-                InvariantRef,
-                dex,
-                alice_address,
-                transferred_index,
-                alice
-            )
-            .unwrap();
+            let owner_list_before = get_all_positions!(client, InvariantRef, dex, alice);
+            let recipient_list_before = get_all_positions!(client, InvariantRef, dex, bob);
+            let removed_position =
+                get_position!(client, InvariantRef, dex, transferred_index, alice).unwrap();
             let last_position_before = owner_list_before[owner_list_before.len() - 1];
 
             transfer_position!(
@@ -568,28 +544,12 @@ pub mod e2e_tests {
             )
             .unwrap();
 
-            let recipient_position = get_position!(
-                client,
-                InvariantRef,
-                dex,
-                bob_address,
-                transferred_index,
-                bob
-            )
-            .unwrap();
-            let owner_list_after =
-                get_all_positions!(client, InvariantRef, dex, alice_address, alice);
-            let recipient_list_after =
-                get_all_positions!(client, InvariantRef, dex, address_of!(Bob), bob);
-            let owner_first_position_after = get_position!(
-                client,
-                InvariantRef,
-                dex,
-                alice_address,
-                transferred_index,
-                alice
-            )
-            .unwrap();
+            let recipient_position =
+                get_position!(client, InvariantRef, dex, transferred_index, bob).unwrap();
+            let owner_list_after = get_all_positions!(client, InvariantRef, dex, alice);
+            let recipient_list_after = get_all_positions!(client, InvariantRef, dex, bob);
+            let owner_first_position_after =
+                get_position!(client, InvariantRef, dex, transferred_index, alice).unwrap();
 
             assert_eq!(recipient_list_after.len(), recipient_list_before.len() + 1);
             assert_eq!(owner_list_before.len() - 1, owner_list_after.len());
@@ -604,10 +564,8 @@ pub mod e2e_tests {
         // Transfer middle position
         {
             let transferred_index = 1;
-            let owner_list_before =
-                get_all_positions!(client, InvariantRef, dex, alice_address, alice);
-            let recipient_list_before =
-                get_all_positions!(client, InvariantRef, dex, address_of!(Bob), bob);
+            let owner_list_before = get_all_positions!(client, InvariantRef, dex, alice);
+            let recipient_list_before = get_all_positions!(client, InvariantRef, dex, bob);
             let last_position_before = owner_list_before[owner_list_before.len() - 1];
 
             transfer_position!(
@@ -620,19 +578,10 @@ pub mod e2e_tests {
             )
             .unwrap();
 
-            let owner_list_after =
-                get_all_positions!(client, InvariantRef, dex, alice_address, alice);
-            let recipient_list_after =
-                get_all_positions!(client, InvariantRef, dex, address_of!(Bob), bob);
-            let owner_first_position_after = get_position!(
-                client,
-                InvariantRef,
-                dex,
-                alice_address,
-                transferred_index,
-                alice
-            )
-            .unwrap();
+            let owner_list_after = get_all_positions!(client, InvariantRef, dex, alice);
+            let recipient_list_after = get_all_positions!(client, InvariantRef, dex, bob);
+            let owner_first_position_after =
+                get_position!(client, InvariantRef, dex, transferred_index, alice).unwrap();
 
             assert_eq!(recipient_list_after.len(), recipient_list_before.len() + 1);
             assert_eq!(owner_list_before.len() - 1, owner_list_after.len());
@@ -642,18 +591,10 @@ pub mod e2e_tests {
         }
         // Transfer last position
         {
-            let owner_list_before =
-                get_all_positions!(client, InvariantRef, dex, alice_address, alice);
+            let owner_list_before = get_all_positions!(client, InvariantRef, dex, alice);
             let transferred_index = (owner_list_before.len() - 1) as u32;
-            let removed_position = get_position!(
-                client,
-                InvariantRef,
-                dex,
-                alice_address,
-                transferred_index,
-                alice
-            )
-            .unwrap();
+            let removed_position =
+                get_position!(client, InvariantRef, dex, transferred_index, alice).unwrap();
 
             transfer_position!(
                 client,
@@ -665,18 +606,10 @@ pub mod e2e_tests {
             )
             .unwrap();
 
-            let recipient_list_after =
-                get_all_positions!(client, InvariantRef, dex, address_of!(Bob), bob);
+            let recipient_list_after = get_all_positions!(client, InvariantRef, dex, bob);
             let recipient_position_index = (recipient_list_after.len() - 1) as u32;
-            let recipient_position = get_position!(
-                client,
-                InvariantRef,
-                dex,
-                bob_address,
-                recipient_position_index,
-                bob
-            )
-            .unwrap();
+            let recipient_position =
+                get_position!(client, InvariantRef, dex, recipient_position_index, bob).unwrap();
 
             positions_equals!(removed_position, recipient_position);
         }
@@ -684,17 +617,9 @@ pub mod e2e_tests {
         // Clear position
         {
             let transferred_index = 0;
-            let recipient_list_before =
-                get_all_positions!(client, InvariantRef, dex, address_of!(Bob), bob);
-            let removed_position = get_position!(
-                client,
-                InvariantRef,
-                dex,
-                alice_address,
-                transferred_index,
-                alice
-            )
-            .unwrap();
+            let recipient_list_before = get_all_positions!(client, InvariantRef, dex, bob);
+            let removed_position =
+                get_position!(client, InvariantRef, dex, transferred_index, alice).unwrap();
 
             transfer_position!(
                 client,
@@ -706,20 +631,11 @@ pub mod e2e_tests {
             )
             .unwrap();
 
-            let recipient_list_after =
-                get_all_positions!(client, InvariantRef, dex, address_of!(Bob), bob);
+            let recipient_list_after = get_all_positions!(client, InvariantRef, dex, bob);
             let recipient_position_index = (recipient_list_after.len() - 1) as u32;
-            let recipient_position = get_position!(
-                client,
-                InvariantRef,
-                dex,
-                bob_address,
-                recipient_position_index,
-                bob
-            )
-            .unwrap();
-            let owner_list_after =
-                get_all_positions!(client, InvariantRef, dex, alice_address, alice);
+            let recipient_position =
+                get_position!(client, InvariantRef, dex, recipient_position_index, bob).unwrap();
+            let owner_list_after = get_all_positions!(client, InvariantRef, dex, alice);
 
             assert_eq!(recipient_list_after.len(), recipient_list_before.len() + 1);
             assert_eq!(0, owner_list_after.len());
@@ -731,19 +647,10 @@ pub mod e2e_tests {
         // Get back position
         {
             let transferred_index = 0;
-            let owner_list_before =
-                get_all_positions!(client, InvariantRef, dex, alice_address, alice);
-            let recipient_list_before =
-                get_all_positions!(client, InvariantRef, dex, address_of!(Bob), bob);
-            let removed_position = get_position!(
-                client,
-                InvariantRef,
-                dex,
-                bob_address,
-                transferred_index,
-                bob
-            )
-            .unwrap();
+            let owner_list_before = get_all_positions!(client, InvariantRef, dex, alice);
+            let recipient_list_before = get_all_positions!(client, InvariantRef, dex, bob);
+            let removed_position =
+                get_position!(client, InvariantRef, dex, transferred_index, bob).unwrap();
             let last_position_before = recipient_list_before[recipient_list_before.len() - 1];
 
             transfer_position!(
@@ -756,29 +663,13 @@ pub mod e2e_tests {
             )
             .unwrap();
 
-            let owner_list_after =
-                get_all_positions!(client, InvariantRef, dex, alice_address, alice);
-            let recipient_list_after =
-                get_all_positions!(client, InvariantRef, dex, address_of!(Bob), bob);
-            let recipient_first_position_after = get_position!(
-                client,
-                InvariantRef,
-                dex,
-                bob_address,
-                transferred_index,
-                bob
-            )
-            .unwrap();
+            let owner_list_after = get_all_positions!(client, InvariantRef, dex, alice);
+            let recipient_list_after = get_all_positions!(client, InvariantRef, dex, bob);
+            let recipient_first_position_after =
+                get_position!(client, InvariantRef, dex, transferred_index, bob).unwrap();
 
-            let owner_new_position = get_position!(
-                client,
-                InvariantRef,
-                dex,
-                alice_address,
-                transferred_index,
-                alice
-            )
-            .unwrap();
+            let owner_new_position =
+                get_position!(client, InvariantRef, dex, transferred_index, alice).unwrap();
 
             assert_eq!(recipient_list_after.len(), recipient_list_before.len() - 1);
             assert_eq!(owner_list_before.len() + 1, owner_list_after.len());
@@ -798,7 +689,6 @@ pub mod e2e_tests {
         mut client: ink_e2e::Client<C, E>,
     ) -> E2EResult<()> {
         let alice = ink_e2e::alice();
-        let alice_address = address_of!(Alice);
         let init_tick = -23028;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
 
@@ -845,8 +735,7 @@ pub mod e2e_tests {
                 alice
             )
             .unwrap();
-            let list_length =
-                get_all_positions!(client, InvariantRef, dex, alice_address, alice).len();
+            let list_length = get_all_positions!(client, InvariantRef, dex, alice).len();
 
             assert_eq!(list_length, 1)
         }
@@ -916,7 +805,6 @@ pub mod e2e_tests {
         mut client: ink_e2e::Client<C, E>,
     ) -> E2EResult<()> {
         let alice = ink_e2e::alice();
-        let alice_address = address_of!(Alice);
         let init_tick = 0;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
         let dex = create_dex!(client, InvariantRef, Percentage::new(0));
@@ -969,8 +857,7 @@ pub mod e2e_tests {
             )
             .unwrap();
 
-            let first_position =
-                get_position!(client, InvariantRef, dex, alice_address, 0, alice).unwrap();
+            let first_position = get_position!(client, InvariantRef, dex, 0, alice).unwrap();
 
             create_position!(
                 client,
@@ -986,8 +873,7 @@ pub mod e2e_tests {
             )
             .unwrap();
 
-            let second_position =
-                get_position!(client, InvariantRef, dex, alice_address, 1, alice).unwrap();
+            let second_position = get_position!(client, InvariantRef, dex, 1, alice).unwrap();
 
             create_position!(
                 client,
@@ -1003,8 +889,7 @@ pub mod e2e_tests {
             )
             .unwrap();
 
-            let third_position =
-                get_position!(client, InvariantRef, dex, alice_address, 2, alice).unwrap();
+            let third_position = get_position!(client, InvariantRef, dex, 2, alice).unwrap();
 
             assert!(first_position.lower_tick_index == second_position.lower_tick_index);
             assert!(first_position.upper_tick_index == second_position.upper_tick_index);
@@ -1083,8 +968,7 @@ pub mod e2e_tests {
             )
             .unwrap();
 
-            let first_position =
-                get_position!(client, InvariantRef, dex, alice_address, 3, alice).unwrap();
+            let first_position = get_position!(client, InvariantRef, dex, 3, alice).unwrap();
 
             // Check first position
             assert!(first_position.pool_key == pool_key);
@@ -1111,8 +995,7 @@ pub mod e2e_tests {
             )
             .unwrap();
 
-            let second_position =
-                get_position!(client, InvariantRef, dex, alice_address, 4, alice).unwrap();
+            let second_position = get_position!(client, InvariantRef, dex, 4, alice).unwrap();
 
             // Check second position
             assert!(second_position.pool_key == pool_key);
@@ -1138,8 +1021,7 @@ pub mod e2e_tests {
             )
             .unwrap();
 
-            let third_position =
-                get_position!(client, InvariantRef, dex, alice_address, 5, alice).unwrap();
+            let third_position = get_position!(client, InvariantRef, dex, 5, alice).unwrap();
 
             // Check third position
             assert!(third_position.pool_key == pool_key);
