@@ -16,6 +16,7 @@ pub mod e2e_tests {
         InvariantError,
     };
     use decimal::*;
+    use ink::primitives::AccountId;
     use ink_e2e::build_message;
     use test_helpers::{
         add_fee_tier, address_of, approve, balance_of, change_fee_receiver, claim_fee, create_dex,
