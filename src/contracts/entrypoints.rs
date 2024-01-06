@@ -202,16 +202,21 @@ pub trait InvariantTrait {
     /// Retrieves information about a single position.
     ///
     /// # Parameters
+    /// - `owner_id`: An `AccountId` identifying the user who owns the position.
     /// - `index`: The index of the user position.
     ///
     /// # Errors
     /// - Fails if position cannot be found
     #[ink(message)]
-    fn get_position(&mut self, index: u32) -> Result<Position, InvariantError>;
+    fn get_position(&mut self, owner_id: AccountId, index: u32)
+        -> Result<Position, InvariantError>;
 
     /// Retrieves a vector containing all positions held by the user.
+    ///
+    /// # Parameters
+    /// - `owner_id`: An `AccountId` identifying the user who owns the positions.
     #[ink(message)]
-    fn get_all_positions(&mut self) -> Vec<Position>;
+    fn get_all_positions(&mut self, owner_id: AccountId) -> Vec<Position>;
 
     /// Allows an authorized user (owner of the position) to claim collected fees.
     ///
