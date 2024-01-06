@@ -305,7 +305,7 @@ describe('invariant', async () => {
         pool.sqrtPrice,
         pool.sqrtPrice
       )
-      const position = await invariant.getPosition(account, 0n)
+      const position = await invariant.getPosition(account, account.address, 0n)
       const expectedPosition: Position = {
         poolKey: poolKey,
         liquidity: { v: 1000000n },
@@ -331,8 +331,11 @@ describe('invariant', async () => {
 
       {
         await invariant.removePosition(account, 0n)
-        assertThrowsAsync(invariant.getPosition(account, 0n), InvariantError.PositionNotFound)
-        const positions = await invariant.getPositions(account)
+        assertThrowsAsync(
+          invariant.getPosition(account, account.address, 0n),
+          InvariantError.PositionNotFound
+        )
+        const positions = await invariant.getPositions(account, account.address)
         assert.deepEqual(positions.length, 0)
       }
       {
@@ -379,8 +382,11 @@ describe('invariant', async () => {
         const receiver = keyring.addFromUri('//Bob')
         await invariant.transferPosition(positionOwner, 0n, receiver.address)
 
-        assertThrowsAsync(invariant.getPosition(positionOwner, 0n), InvariantError.PositionNotFound)
-        const position = await invariant.getPosition(receiver, 0n)
+        assertThrowsAsync(
+          invariant.getPosition(positionOwner, positionOwner.address, 0n),
+          InvariantError.PositionNotFound
+        )
+        const position = await invariant.getPosition(receiver, receiver.address, 0n)
         const expectedPosition: Position = {
           poolKey: poolKey,
           liquidity: { v: 1000000n },
