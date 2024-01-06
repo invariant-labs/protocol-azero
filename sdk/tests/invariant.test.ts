@@ -1,6 +1,13 @@
 import { Keyring } from '@polkadot/api'
-import { assert } from 'chai'
-import { InvariantError, Position, SqrtPrice, newFeeTier, newPoolKey } from 'math/math.js'
+import { assert, expect } from 'chai'
+import {
+  InvariantError,
+  Position,
+  SqrtPrice,
+  TokenAmount,
+  newFeeTier,
+  newPoolKey
+} from 'math/math.js'
 import { Network } from '../src/network'
 import { InvariantTx } from '../src/schema'
 import {
@@ -263,7 +270,7 @@ describe('invariant', async () => {
     assert.deepEqual(pools.length, 1)
   })
   describe('positions', async () => {
-    const lowerTickIndex = -10n
+    const lowerTickIndex = -20n
     const upperTickIndex = 10n
 
     beforeEach(async () => {
@@ -271,7 +278,9 @@ describe('invariant', async () => {
         throw new Error()
       }
 
-      const feeTier = newFeeTier({ v: 10000000000n }, 1)
+      // 6 * 10^(-3) = 0.006 * 10^12 = 6000 * 10^6 = 6000000000
+
+      const feeTier = newFeeTier({ v: 6000000000n }, 10)
       await invariant.addFeeTier(account, feeTier)
 
       await invariant.createPool(
@@ -283,8 +292,8 @@ describe('invariant', async () => {
         0n
       )
 
-      await token0.approve(account, invariant.contract.address.toString(), 1000000000n)
-      await token1.approve(account, invariant.contract.address.toString(), 1000000000n)
+      await token0.approve(account, invariant.contract.address.toString(), 10000000000n)
+      await token1.approve(account, invariant.contract.address.toString(), 10000000000n)
 
       const poolKey = convertObj(
         newPoolKey(token0.contract.address.toString(), token1.contract.address.toString(), feeTier)
@@ -296,19 +305,20 @@ describe('invariant', async () => {
         token1.contract.address.toString(),
         feeTier
       )
+
       await invariant.createPosition(
         account,
         poolKey,
         lowerTickIndex,
         upperTickIndex,
-        { v: 1000000n },
+        { v: 1000000000000n },
         pool.sqrtPrice,
         pool.sqrtPrice
       )
       const position = await invariant.getPosition(account, account.address, 0n)
       const expectedPosition: Position = {
         poolKey: poolKey,
-        liquidity: { v: 1000000n },
+        liquidity: { v: 1000000000000n },
         lowerTickIndex: lowerTickIndex,
         upperTickIndex: upperTickIndex,
         feeGrowthInsideX: { v: 0n },
@@ -324,7 +334,7 @@ describe('invariant', async () => {
         throw new Error()
       }
 
-      const feeTier = newFeeTier({ v: 10000000000n }, 1)
+      const feeTier = newFeeTier({ v: 6000000000n }, 10)
       const poolKey = convertObj(
         newPoolKey(token0.contract.address.toString(), token1.contract.address.toString(), feeTier)
       )
@@ -371,7 +381,7 @@ describe('invariant', async () => {
         throw new Error()
       }
 
-      const feeTier = newFeeTier({ v: 10000000000n }, 1)
+      const feeTier = newFeeTier({ v: 6000000000n }, 10)
 
       const poolKey = convertObj(
         newPoolKey(token0.contract.address.toString(), token1.contract.address.toString(), feeTier)
@@ -389,7 +399,7 @@ describe('invariant', async () => {
         const position = await invariant.getPosition(receiver, receiver.address, 0n)
         const expectedPosition: Position = {
           poolKey: poolKey,
-          liquidity: { v: 1000000n },
+          liquidity: { v: 1000000000000n },
           lowerTickIndex: lowerTickIndex,
           upperTickIndex: upperTickIndex,
           feeGrowthInsideX: { v: 0n },
@@ -399,6 +409,107 @@ describe('invariant', async () => {
           tokensOwedY: 0n
         }
         await positionEquals(position, expectedPosition)
+      }
+    })
+    it('claim fee', async () => {
+      if (!token0.contract?.address || !token1.contract?.address || !invariant.contract?.address) {
+        throw new Error()
+      }
+      let tokenX
+      let tokenY
+      if (token0.contract.address.toString() < token1.contract.address.toString()) {
+        tokenX = token0
+        tokenY = token1
+      } else {
+        tokenX = token1
+        tokenY = token0
+      }
+
+      const feeTier = newFeeTier({ v: 6000000000n }, 10)
+
+      const poolKey = newPoolKey(
+        token0.contract.address.toString(),
+        token1.contract.address.toString(),
+        feeTier
+      )
+
+      {
+        const amount: TokenAmount = 1000n
+        const swapper = keyring.addFromUri('//Bob')
+
+        await tokenX.mint(swapper, amount)
+        await tokenX.approve(swapper, invariant.contract.address.toString(), amount)
+
+        const poolBefore = await invariant.getPool(
+          account,
+          token0.contract.address.toString(),
+          token1.contract.address.toString(),
+          feeTier
+        )
+
+        const slippage: SqrtPrice = { v: 15258932000000000000n }
+        const quoteResult = await invariant.quote(swapper, poolKey, true, amount, true, slippage)
+
+        const targetSqrtPrice: SqrtPrice = { v: 15258932000000000000n }
+        await invariant.swap(swapper, poolKey, true, amount, true, targetSqrtPrice)
+
+        const poolAfter = await invariant.getPool(
+          account,
+          token0.contract.address.toString(),
+          token1.contract.address.toString(),
+          feeTier
+        )
+        const swapperX = await tokenX.balanceOf(swapper, swapper.address)
+        const swapperY = await tokenY.balanceOf(swapper, swapper.address)
+
+        assert.equal(swapperX, 0)
+        assert.equal(swapperY, 993)
+
+        const invariantX = await tokenX.balanceOf(account, invariant.contract.address.toString())
+        const invariantY = await tokenY.balanceOf(account, invariant.contract.address.toString())
+
+        assert.equal(invariantX, 1500)
+        assert.equal(invariantY, 7)
+
+        assert.deepEqual(poolAfter.liquidity, poolBefore.liquidity)
+        assert.notDeepEqual(poolAfter.sqrtPrice, poolBefore.sqrtPrice)
+        assert.deepEqual(poolAfter.currentTickIndex, lowerTickIndex)
+        assert.deepEqual(poolAfter.feeGrowthGlobalX, { v: 50000000000000000000000n })
+        assert.deepEqual(poolAfter.feeGrowthGlobalY, { v: 0n })
+        assert.deepEqual(poolAfter.feeProtocolTokenX, 1n)
+        assert.deepEqual(poolAfter.feeProtocolTokenY, 0n)
+      }
+      {
+        const positionOwnerBeforeX = BigInt(
+          (await tokenX.balanceOf(account, account.address)) as number
+        )
+        const invariantBeforeX = BigInt(
+          (await tokenX.balanceOf(account, invariant.contract.address.toString())) as number
+        )
+
+        await invariant.claimFee(account, 0n)
+
+        const positionOwnerAfterX = BigInt(
+          (await tokenX.balanceOf(account, account.address)) as number
+        )
+        const invariantAfterX = BigInt(
+          (await tokenX.balanceOf(account, invariant.contract.address.toString())) as number
+        )
+
+        const position = await invariant.getPosition(account, account.address, 0n)
+        const pool = await invariant.getPool(
+          account,
+          token0.contract.address.toString(),
+          token1.contract.address.toString(),
+          feeTier
+        )
+        const expectedTokensClaimed = 5n
+
+        expect(positionOwnerAfterX - expectedTokensClaimed).to.equal(positionOwnerBeforeX)
+        expect(invariantAfterX + expectedTokensClaimed).to.equal(invariantBeforeX)
+
+        assert.deepEqual(position.feeGrowthInsideX, pool.feeGrowthGlobalX)
+        assert.deepEqual(position.tokensOwedX, 0n)
       }
     })
   })
