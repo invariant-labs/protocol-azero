@@ -278,8 +278,6 @@ describe('invariant', async () => {
         throw new Error()
       }
 
-      // 6 * 10^(-3) = 0.006 * 10^12 = 6000 * 10^6 = 6000000000
-
       const feeTier = newFeeTier({ v: 6000000000n }, 10)
       await invariant.addFeeTier(account, feeTier)
 
@@ -446,9 +444,6 @@ describe('invariant', async () => {
           token1.contract.address.toString(),
           feeTier
         )
-
-        const slippage: SqrtPrice = { v: 15258932000000000000n }
-        const quoteResult = await invariant.quote(swapper, poolKey, true, amount, true, slippage)
 
         const targetSqrtPrice: SqrtPrice = { v: 15258932000000000000n }
         await invariant.swap(swapper, poolKey, true, amount, true, targetSqrtPrice)
