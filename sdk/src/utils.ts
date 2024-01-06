@@ -4,8 +4,9 @@ import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { getSubstrateChain } from '@scio-labs/use-inkathon/chains'
 import { getBalance, initPolkadotJs as initApi } from '@scio-labs/use-inkathon/helpers'
+import { assert } from 'chai'
 import { readFile } from 'fs/promises'
-import { InvariantError, Percentage } from 'math'
+import { InvariantError, Percentage, Position } from 'math'
 import { Invariant } from './invariant.js'
 import { Network } from './network.js'
 import { PSP22 } from './psp22.js'
@@ -259,4 +260,15 @@ export const assertThrowsAsync = async (fn: Promise<any>, word?: InvariantError 
     return
   }
   throw new Error('Function did not throw error')
+}
+
+export const positionEquals = async (recievedPosition: Position, expectedPosition: Position) => {
+  assert.deepEqual(recievedPosition.poolKey, expectedPosition.poolKey)
+  assert.deepEqual(recievedPosition.liquidity.v, expectedPosition.liquidity.v)
+  assert.deepEqual(recievedPosition.lowerTickIndex, expectedPosition.lowerTickIndex)
+  assert.deepEqual(recievedPosition.upperTickIndex, expectedPosition.upperTickIndex)
+  assert.deepEqual(recievedPosition.feeGrowthInsideX.v, expectedPosition.feeGrowthInsideX.v)
+  assert.deepEqual(recievedPosition.feeGrowthInsideY.v, expectedPosition.feeGrowthInsideY.v)
+  assert.deepEqual(recievedPosition.tokensOwedX, expectedPosition.tokensOwedX)
+  assert.deepEqual(recievedPosition.tokensOwedY, expectedPosition.tokensOwedY)
 }
