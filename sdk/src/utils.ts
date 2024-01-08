@@ -156,12 +156,7 @@ export const deployInvariant = async (
   account: IKeyringPair,
   initFee: Percentage
 ): Promise<Invariant> => {
-  return Invariant.create(
-    api,
-
-    account,
-    initFee
-  )
+  return Invariant.create(api, account, initFee)
 }
 
 export const deployPSP22 = async (
@@ -174,9 +169,9 @@ export const deployPSP22 = async (
 ): Promise<PSP22> => {
   return PSP22.create(
     api,
-    1000000000,
-    100000000000,
-    100000000000,
+    null,
+    DEFAULT_REF_TIME,
+    DEFAULT_PROOF_SIZE,
     account,
     supply,
     name,

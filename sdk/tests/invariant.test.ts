@@ -1,6 +1,6 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import { SqrtPrice, newFeeTier } from 'math/math.js'
+import { InvariantError, SqrtPrice, newFeeTier, newPoolKey } from 'math/math.js'
 import { Network } from '../src/network'
 import { InvariantTx } from '../src/schema'
 import { assertThrowsAsync, deployInvariant, deployPSP22, initPolkadotApi } from '../src/utils'
@@ -93,94 +93,93 @@ describe('invariant', async () => {
       0n
     )
 
-    // await token0.approve(account, account.address, 10n)
-    await token0.approve(account, invariant.contract.address.toString(), 10n)
+    await token0.approve(account, invariant.contract.address.toString(), 1000000000n)
     await token1.approve(account, invariant.contract.address.toString(), 1000000000n)
 
-    //   const poolKey = newPoolKey(
-    //     token0.contract.address.toString(),
-    //     token1.contract.address.toString(),
-    //     feeTier
-    //   )
+    const poolKey = newPoolKey(
+      token0.contract.address.toString(),
+      token1.contract.address.toString(),
+      feeTier
+    )
 
-    //   await invariant.createPosition(
-    //     account,
-    //     poolKey,
-    //     -10n,
-    //     10n,
-    //     { v: 1000000n },
-    //     { v: 0n },
-    //     { v: 100000000000000000000000000n }
-    //   )
+    await invariant.createPosition(
+      account,
+      poolKey,
+      -10n,
+      10n,
+      { v: 1000000n },
+      { v: 0n },
+      { v: 100000000000000000000000000n }
+    )
 
-    //   const lowerTick = await invariant.getTick(account, poolKey, -10n)
-    //   assert.deepEqual(lowerTick, {
-    //     index: -10n,
-    //     sign: true,
-    //     liquidityChange: { v: 1000000n },
-    //     liquidityGross: { v: 1000000n },
-    //     sqrtPrice: { v: 999500149965000000000000n },
-    //     feeGrowthOutsideX: { v: 0n },
-    //     feeGrowthOutsideY: { v: 0n },
-    //     secondsOutside: lowerTick.secondsOutside
-    //   })
-    //   await assertThrowsAsync(invariant.getTick(account, poolKey, 0n), InvariantError.TickNotFound)
-    //   const upperTick = await invariant.getTick(account, poolKey, 10n)
-    //   assert.deepEqual(upperTick, {
-    //     index: 10n,
-    //     sign: false,
-    //     liquidityChange: { v: 1000000n },
-    //     liquidityGross: { v: 1000000n },
-    //     sqrtPrice: { v: 1000500100010000000000000n },
-    //     feeGrowthOutsideX: { v: 0n },
-    //     feeGrowthOutsideY: { v: 0n },
-    //     secondsOutside: upperTick.secondsOutside
-    //   })
+    const lowerTick = await invariant.getTick(account, poolKey, -10n)
+    assert.deepEqual(lowerTick, {
+      index: -10n,
+      sign: true,
+      liquidityChange: { v: 1000000n },
+      liquidityGross: { v: 1000000n },
+      sqrtPrice: { v: 999500149965000000000000n },
+      feeGrowthOutsideX: { v: 0n },
+      feeGrowthOutsideY: { v: 0n },
+      secondsOutside: lowerTick.secondsOutside
+    })
+    await assertThrowsAsync(invariant.getTick(account, poolKey, 0n), InvariantError.TickNotFound)
+    const upperTick = await invariant.getTick(account, poolKey, 10n)
+    assert.deepEqual(upperTick, {
+      index: 10n,
+      sign: false,
+      liquidityChange: { v: 1000000n },
+      liquidityGross: { v: 1000000n },
+      sqrtPrice: { v: 1000500100010000000000000n },
+      feeGrowthOutsideX: { v: 0n },
+      feeGrowthOutsideY: { v: 0n },
+      secondsOutside: upperTick.secondsOutside
+    })
 
-    //   const isLowerTickInitialized = await invariant.isTickInitialized(account, poolKey, -10n)
-    //   assert.deepEqual(isLowerTickInitialized, true)
-    //   const isInitTickInitialized = await invariant.isTickInitialized(account, poolKey, 0n)
-    //   assert.deepEqual(isInitTickInitialized, false)
-    //   const isUpperTickInitialized = await invariant.isTickInitialized(account, poolKey, 10n)
-    //   assert.deepEqual(isUpperTickInitialized, true)
-    // })
-    // it('create pool', async () => {
-    //   const feeTier = newFeeTier({ v: 10000000000n }, 1)
-    //   await invariant.addFeeTier(account, feeTier)
-    //   const addedFeeTierExists = await invariant.feeTierExist(account, feeTier)
-    //   assert.deepEqual(addedFeeTierExists, true)
+    const isLowerTickInitialized = await invariant.isTickInitialized(account, poolKey, -10n)
+    assert.deepEqual(isLowerTickInitialized, true)
+    const isInitTickInitialized = await invariant.isTickInitialized(account, poolKey, 0n)
+    assert.deepEqual(isInitTickInitialized, false)
+    const isUpperTickInitialized = await invariant.isTickInitialized(account, poolKey, 10n)
+    assert.deepEqual(isUpperTickInitialized, true)
+  })
+  it('create pool', async () => {
+    const feeTier = newFeeTier({ v: 10000000000n }, 1)
+    await invariant.addFeeTier(account, feeTier)
+    const addedFeeTierExists = await invariant.feeTierExist(account, feeTier)
+    assert.deepEqual(addedFeeTierExists, true)
 
-    //   const initSqrtPrice: SqrtPrice = { v: 1000000000000000000000000n }
-    //   const initTick = 0n
+    const initSqrtPrice: SqrtPrice = { v: 1000000000000000000000000n }
+    const initTick = 0n
 
-    //   await invariant.createPool(
-    //     account,
-    //     token0.contract.address.toString(),
-    //     token1.contract.address.toString(),
-    //     feeTier,
-    //     initSqrtPrice,
-    //     initTick
-    //   )
-    //   const pools = await invariant.getPools(account)
-    //   assert.deepEqual(pools.length, 1)
-    //   const pool = await invariant.getPool(
-    //     account,
-    //     token0.contract.address.toString(),
-    //     token1.contract.address.toString(),
-    //     feeTier
-    //   )
-    //   assert.deepEqual(pool, {
-    //     liquidity: { v: 0n },
-    //     sqrtPrice: { v: 1000000000000000000000000n },
-    //     currentTickIndex: 0n,
-    //     feeGrowthGlobalX: { v: 0n },
-    //     feeGrowthGlobalY: { v: 0n },
-    //     feeProtocolTokenX: 0n,
-    //     feeProtocolTokenY: 0n,
-    //     startTimestamp: pool.startTimestamp,
-    //     lastTimestamp: pool.lastTimestamp,
-    //     feeReceiver: pool.feeReceiver
-    //   })
+    await invariant.createPool(
+      account,
+      token0.contract.address.toString(),
+      token1.contract.address.toString(),
+      feeTier,
+      initSqrtPrice,
+      initTick
+    )
+    const pools = await invariant.getPools(account)
+    assert.deepEqual(pools.length, 1)
+    const pool = await invariant.getPool(
+      account,
+      token0.contract.address.toString(),
+      token1.contract.address.toString(),
+      feeTier
+    )
+    assert.deepEqual(pool, {
+      liquidity: { v: 0n },
+      sqrtPrice: { v: 1000000000000000000000000n },
+      currentTickIndex: 0n,
+      feeGrowthGlobalX: { v: 0n },
+      feeGrowthGlobalY: { v: 0n },
+      feeProtocolTokenX: 0n,
+      feeProtocolTokenY: 0n,
+      startTimestamp: pool.startTimestamp,
+      lastTimestamp: pool.lastTimestamp,
+      feeReceiver: pool.feeReceiver
+    })
   })
   it('create pool x/y and y/x', async () => {
     const feeTier = newFeeTier({ v: 10000000000n }, 1)
