@@ -177,22 +177,18 @@ export const deployPSP22 = async (
   name: string,
   symbol: string,
   decimals: bigint
-) => {
-  const tokenData = await getDeploymentData('psp22')
-  const token = new PSP22(api, Network.Local)
-
-  const tokenDeploy = await token.deploy(
+): Promise<PSP22> => {
+  return PSP22.create(
+    api,
+    1000000000,
+    100000000000,
+    100000000000,
     account,
-    tokenData.abi,
-    tokenData.wasm,
     supply,
     name,
     symbol,
     decimals
   )
-  await token.load(tokenDeploy.address, tokenData.abi)
-
-  return token
 }
 
 export const convertObj = <T>(obj: T): T => {
