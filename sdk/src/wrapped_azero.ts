@@ -40,14 +40,13 @@ export class WrappedAZERO {
     this.contract = new ContractPromise(this.api, abi, deploymentAddress)
   }
 
-  static async create(api: ApiPromise, account: IKeyringPair) {
+  static async create(api: ApiPromise, account: IKeyringPair, network: Network) {
     const tokenData = await getDeploymentData('wrapped_azero')
-
     const tokenDeploy = await deployContract(api, account, tokenData.abi, tokenData.wasm, 'new', [])
 
     return new WrappedAZERO(
       api,
-      Network.Local,
+      network,
       null,
       DEFAULT_REF_TIME,
       DEFAULT_PROOF_SIZE,

@@ -183,9 +183,10 @@ export const deployPSP22 = async (
 
 export const deployWrappedAZERO = async (
   api: ApiPromise,
-  account: IKeyringPair
+  account: IKeyringPair,
+  network: Network
 ): Promise<WrappedAZERO> => {
-  return WrappedAZERO.create(api, account)
+  return WrappedAZERO.create(api, account, network)
 }
 
 export const convertObj = <T>(obj: T): T => {

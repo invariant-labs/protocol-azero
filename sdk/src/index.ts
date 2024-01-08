@@ -1,16 +1,15 @@
 import { Keyring } from '@polkadot/api'
 import dotenv from 'dotenv'
-import { Invariant } from './invariant.js'
 import { Network } from './network.js'
-import { PSP22 } from './psp22.js'
 import {
+  deployInvariant,
+  deployPSP22,
   getDeploymentData,
   getEnvAccount,
   getEnvTestAccount,
   initPolkadotApi,
   printBalance
 } from './utils.js'
-import { WrappedAZERO } from './wrapped_azero.js'
 dotenv.config()
 
 import { getBalance, transferBalance } from '@scio-labs/use-inkathon'
@@ -24,6 +23,7 @@ import {
   newFeeTier,
   newPoolKey
 } from 'math/math.js'
+import { WrappedAZERO } from './wrapped_azero.js'
 
 const main = async () => {
   {
@@ -65,39 +65,16 @@ const main = async () => {
   await printBalance(api, testAccount)
 
   // deploy invariant
-  const invariantData = await getDeploymentData('invariant')
-  const invariant = new Invariant(api, network)
 
   const initFee = { v: 10n }
-  const invariantDeploy = await invariant.deploy(
-    account,
-    invariantData.abi,
-    invariantData.wasm,
-    initFee
-  )
-  await invariant.load(invariantDeploy.address, invariantData.abi)
+  const invariant = await deployInvariant(api, account, initFee)
 
   // deploy token
-  const tokenData = await getDeploymentData('psp22')
-  const token = new PSP22(api, network)
-
-  const name = 'Coin'
-  const symbol = 'COIN'
-
-  const tokenDeploy = await token.deploy(
-    account,
-    tokenData.abi,
-    tokenData.wasm,
-    1000n,
-    name,
-    symbol,
-    0n
-  )
-  await token.load(tokenDeploy.address, tokenData.abi)
+  const token = await deployPSP22(api, account, 1000n, 'Coin', 'COIN', 12n)
 
   // deploy wrapped azero
   const wazeroData = await getDeploymentData('wrapped_azero')
-  const wazero = new WrappedAZERO(api, network)
+  const wazero = await WrappedAZERO.create(api, account, network)
 
   if (process.env.WAZERO_ADDRESS && network !== Network.Local) {
     await wazero.load(process.env.WAZERO_ADDRESS, wazeroData.abi)
@@ -139,12 +116,12 @@ const main = async () => {
     (await getBalance(api, testAccount.address)).balanceFormatted
   )
 
-  // wrap and unwrap azero
-  console.log('balance before deposit: ', await wazero.balanceOf(account, account.address))
-  await wazero.deposit(account, 1000000000000)
-  console.log('balance after deposit: ', await wazero.balanceOf(account, account.address))
-  await wazero.withdraw(account, 1000000000000)
-  console.log('balance after withdraw: ', await wazero.balanceOf(account, account.address))
+  // // wrap and unwrap azero
+  // console.log('balance before deposit: ', await wazero.balanceOf(account, account.address))
+  // await wazero.deposit(account, 1000000000000)
+  // console.log('balance after deposit: ', await wazero.balanceOf(account, account.address))
+  // await wazero.withdraw(account, 1000000000000)
+  // console.log('balance after withdraw: ', await wazero.balanceOf(account, account.address))
 
   process.exit(0)
 }

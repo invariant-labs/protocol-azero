@@ -79,7 +79,7 @@ describe('invariant', async () => {
     assert.deepEqual(feeTiers.length, 0)
   })
 
-  it.only('should get tick and check if it is initialized', async () => {
+  it('should get tick and check if it is initialized', async () => {
     const feeTier = newFeeTier({ v: 10000000000n }, 1)
 
     await invariant.addFeeTier(account, feeTier)

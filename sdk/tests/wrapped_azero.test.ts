@@ -17,13 +17,13 @@ describe('wrapped_azero', function () {
 
   it('deploys', async () => {
     const { api, account } = await init()
-    await WrappedAZERO.create(api, account)
+    await WrappedAZERO.create(api, account, Network.Local)
   })
 
   it('wraps and unwraps azero', async () => {
     const { api, account } = await init()
 
-    const wazero = await deployWrappedAZERO(api, account)
+    const wazero = await deployWrappedAZERO(api, account, Network.Local)
 
     await wazero.deposit(account, 1000000000000)
     expect(await wazero.balanceOf(account, account.address)).to.equal(1000000000000)
