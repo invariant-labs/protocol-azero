@@ -1,5 +1,6 @@
 import { ApiPromise, Keyring } from '@polkadot/api'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
+import { expect } from 'chai'
 import { Network } from '../src/network'
 import { deployWrappedAZERO } from '../src/testUtils'
 import { initPolkadotApi } from '../src/utils'
@@ -19,15 +20,15 @@ describe('wrapped_azero', function () {
     await deployWrappedAZERO(api, account, Network.Local)
   })
 
-  // it('wraps and unwraps azero', async () => {
-  //   const { api, account } = await init()
+  it('wraps and unwraps azero', async () => {
+    const { api, account } = await init()
 
-  //   const wazero = await deployWrappedAZERO(api, account, Network.Local)
+    const wazero = await deployWrappedAZERO(api, account, Network.Local)
 
-  //   await wazero.deposit(account, 1000000000000)
-  //   expect(await wazero.balanceOf(account, account.address)).to.equal(1000000000000)
+    await wazero.deposit(account, 1000000000000)
+    expect(await wazero.balanceOf(account, account.address)).to.equal(1000000000000)
 
-  //   await wazero.withdraw(account, 1000000000000)
-  //   expect(await wazero.balanceOf(account, account.address)).to.equal(0)
-  // })
+    await wazero.withdraw(account, 1000000000000)
+    expect(await wazero.balanceOf(account, account.address)).to.equal(0)
+  })
 })
