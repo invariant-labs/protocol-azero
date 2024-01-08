@@ -25,23 +25,26 @@ import {
   DEFAULT_REF_TIME,
   convertArr,
   convertObj,
+  getDeploymentData,
   sendQuery,
   sendTx
 } from './utils.js'
 
 export class Invariant {
-  contract: ContractPromise | null = null
+  contract: ContractPromise
   api: ApiPromise
   gasLimit: WeightV2
   storageDepositLimit: number | null
   waitForFinalization: boolean
 
-  constructor(
+  private constructor(
     api: ApiPromise,
     network: Network,
     storageDepositLimit: number | null = null,
     refTime: number = DEFAULT_REF_TIME,
-    proofSize: number = DEFAULT_PROOF_SIZE
+    proofSize: number = DEFAULT_PROOF_SIZE,
+    abi: any,
+    deploymentAddress: string
   ) {
     this.api = api
     this.gasLimit = api.registry.createType('WeightV2', {
@@ -50,6 +53,36 @@ export class Invariant {
     }) as WeightV2
     this.storageDepositLimit = storageDepositLimit
     this.waitForFinalization = network != Network.Local
+    this.contract = new ContractPromise(this.api, abi, deploymentAddress)
+  }
+
+  static async create(
+    api: ApiPromise,
+    account: IKeyringPair,
+    initFee: Percentage
+  ): Promise<Invariant> {
+    const invariantData = await getDeploymentData('invariant')
+
+    const invariantDeploy = await deployContract(
+      api,
+      account,
+      invariantData.abi,
+      invariantData.wasm,
+      'new',
+      [initFee]
+    )
+
+    const invariant = new Invariant(
+      api,
+      Network.Local,
+      null,
+      DEFAULT_REF_TIME,
+      DEFAULT_PROOF_SIZE,
+      invariantData.abi,
+      invariantDeploy.address
+    )
+
+    return invariant
   }
 
   async deploy(

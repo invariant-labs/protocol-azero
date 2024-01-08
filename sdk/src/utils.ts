@@ -156,18 +156,12 @@ export const deployInvariant = async (
   account: IKeyringPair,
   initFee: Percentage
 ): Promise<Invariant> => {
-  const invariantData = await getDeploymentData('invariant')
-  const invariant = new Invariant(api, Network.Local)
+  return Invariant.create(
+    api,
 
-  const invariantDeploy = await invariant.deploy(
     account,
-    invariantData.abi,
-    invariantData.wasm,
     initFee
   )
-  await invariant.load(invariantDeploy.address, invariantData.abi)
-
-  return invariant
 }
 
 export const deployPSP22 = async (

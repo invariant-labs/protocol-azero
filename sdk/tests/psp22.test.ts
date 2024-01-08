@@ -109,7 +109,7 @@ describe('psp22', function () {
       12n
     )
 
-    await token.approve(account, testAccount.address, 250)
+    await token.approve(account, testAccount.address, 250n)
     expect(await token.allowance(account, account.address, testAccount.address)).to.equal(250)
   })
 })

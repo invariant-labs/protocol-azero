@@ -126,7 +126,7 @@ export class PSP22 {
   async approve(
     account: IKeyringPair,
     spender: string,
-    value: bigint | number,
+    value: bigint,
     block: boolean = true
   ): Promise<string> {
     if (!this.contract) {
