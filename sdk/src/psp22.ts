@@ -134,7 +134,7 @@ export class PSP22 {
     )
   }
 
-  async balanceOf(account: IKeyringPair, owner: string): Promise<unknown> {
+  async balanceOf(account: IKeyringPair, owner: string): Promise<number> {
     return sendQuery(
       this.contract,
       this.gasLimit,
@@ -142,7 +142,7 @@ export class PSP22 {
       account,
       PSP22Query.BalanceOf,
       [owner]
-    )
+    ) as Promise<number>
   }
 
   async totalSupply(account: IKeyringPair): Promise<unknown> {
