@@ -7,7 +7,9 @@ export enum InvariantQuery {
   GetTick = 'invariantTrait::getTick',
   IsTickInitialized = 'invariantTrait::isTickInitialized',
   GetPosition = 'invariantTrait::getPosition',
-  GetAllPositions = 'invariantTrait::getAllPositions'
+  GetAllPositions = 'invariantTrait::getAllPositions',
+  Quote = 'invariantTrait::quote',
+  QuoteRoute = 'invariantTrait::quoteRoute'
 }
 
 export enum InvariantTx {
@@ -20,7 +22,9 @@ export enum InvariantTx {
   AddFeeTier = 'invariantTrait::addFeeTier',
   RemoveFeeTier = 'invariantTrait::removeFeeTier',
   ChangeFeeReceiver = 'invariantTrait::changeFeeReceiver',
-  WithdrawProtocolFee = 'invariantTrait::withdrawProtocolFee'
+  WithdrawProtocolFee = 'invariantTrait::withdrawProtocolFee',
+  Swap = 'invariantTrait::swap',
+  SwapRoute = 'invariantTrait::swapRoute'
 }
 
 export enum PSP22Query {

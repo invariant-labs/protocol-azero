@@ -705,17 +705,17 @@ pub mod invariant {
         }
 
         #[ink(message)]
-        fn get_position(&mut self, index: u32) -> Result<Position, InvariantError> {
-            let caller = self.env().caller();
-
-            self.positions.get(caller, index)
+        fn get_position(
+            &mut self,
+            owner_id: AccountId,
+            index: u32,
+        ) -> Result<Position, InvariantError> {
+            self.positions.get(owner_id, index)
         }
 
         #[ink(message)]
-        fn get_all_positions(&mut self) -> Vec<Position> {
-            let caller = self.env().caller();
-
-            self.positions.get_all(caller)
+        fn get_all_positions(&mut self, owner_id: AccountId) -> Vec<Position> {
+            self.positions.get_all(owner_id)
         }
 
         #[ink(message)]

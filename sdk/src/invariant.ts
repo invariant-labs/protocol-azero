@@ -15,8 +15,11 @@ import {
   Pool,
   PoolKey,
   Position,
+  QuoteResult,
   SqrtPrice,
-  Tick
+  SwapHop,
+  Tick,
+  TokenAmount
 } from 'math/math.js'
 import { Network } from './network.js'
 import { Event, InvariantQuery, InvariantTx, TxResult } from './schema.js'
@@ -236,14 +239,14 @@ export class Invariant {
     )
   }
 
-  async getPosition(account: IKeyringPair, index: bigint): Promise<Position> {
+  async getPosition(account: IKeyringPair, owner: string, index: bigint): Promise<Position> {
     const result = (await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       account,
       InvariantQuery.GetPosition,
-      [index]
+      [owner, index]
     )) as any
 
     if (result.ok) {
@@ -253,14 +256,14 @@ export class Invariant {
     }
   }
 
-  async getPositions(account: IKeyringPair): Promise<Position[]> {
+  async getPositions(account: IKeyringPair, owner: string): Promise<Position[]> {
     const result = (await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       account,
       InvariantQuery.GetAllPositions,
-      []
+      [owner]
     )) as any
 
     return convertArr(result)
@@ -420,6 +423,86 @@ export class Invariant {
       account,
       InvariantTx.CreatePool,
       [token0, token1, feeTier, initSqrtPrice, initTick],
+      this.waitForFinalization,
+      block
+    )
+  }
+
+  async quote(
+    account: IKeyringPair,
+    poolKey: PoolKey,
+    xToY: boolean,
+    amount: TokenAmount,
+    byAmountIn: boolean,
+    sqrtPriceLimit: SqrtPrice
+  ): Promise<QuoteResult> {
+    const result = (await sendQuery(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      account,
+      InvariantQuery.Quote,
+      [poolKey, xToY, amount, byAmountIn, sqrtPriceLimit]
+    )) as any
+
+    return convertObj(result)
+  }
+
+  async quoteRoute(
+    account: IKeyringPair,
+    amountIn: TokenAmount,
+    swaps: SwapHop[]
+  ): Promise<TokenAmount> {
+    const result = (await sendQuery(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      account,
+      InvariantQuery.QuoteRoute,
+      [amountIn, swaps]
+    )) as any
+
+    return convertObj(result)
+  }
+
+  async swap(
+    account: IKeyringPair,
+    poolKey: PoolKey,
+    xToY: boolean,
+    amount: TokenAmount,
+    byAmountIn: boolean,
+    sqrtPriceLimit: SqrtPrice,
+    block: boolean = true
+  ): Promise<TxResult> {
+    return sendTx(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      0,
+      account,
+      InvariantTx.Swap,
+      [poolKey, xToY, amount, byAmountIn, sqrtPriceLimit],
+      this.waitForFinalization,
+      block
+    )
+  }
+
+  async swapRoute(
+    account: IKeyringPair,
+    amountIn: TokenAmount,
+    expectedAmountOut: TokenAmount,
+    slippage: Percentage,
+    swaps: SwapHop[],
+    block: boolean = true
+  ): Promise<TxResult> {
+    return sendTx(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      0,
+      account,
+      InvariantTx.SwapRoute,
+      [amountIn, expectedAmountOut, slippage, swaps],
       this.waitForFinalization,
       block
     )
