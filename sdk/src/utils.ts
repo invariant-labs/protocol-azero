@@ -158,7 +158,15 @@ export const deployInvariant = async (
   initFee: Percentage,
   network: Network
 ): Promise<Invariant> => {
-  return Invariant.getContract(api, account, initFee, network)
+  return Invariant.getContract(
+    api,
+    account,
+    null,
+    DEFAULT_REF_TIME,
+    DEFAULT_PROOF_SIZE,
+    initFee,
+    network
+  )
 }
 
 export const deployPSP22 = async (
@@ -167,10 +175,12 @@ export const deployPSP22 = async (
   supply: bigint,
   name: string,
   symbol: string,
-  decimals: bigint
+  decimals: bigint,
+  network: Network
 ): Promise<PSP22> => {
-  return PSP22.create(
+  return PSP22.getContract(
     api,
+    network,
     null,
     DEFAULT_REF_TIME,
     DEFAULT_PROOF_SIZE,
@@ -187,7 +197,7 @@ export const deployWrappedAZERO = async (
   account: IKeyringPair,
   network: Network
 ): Promise<WrappedAZERO> => {
-  return WrappedAZERO.create(api, account, network)
+  return WrappedAZERO.getContract(api, account, null, DEFAULT_REF_TIME, DEFAULT_PROOF_SIZE, network)
 }
 
 export const convertObj = <T>(obj: T): T => {

@@ -41,8 +41,9 @@ export class PSP22 {
     this.contract = new ContractPromise(this.api, abi, deploymentAddress)
   }
 
-  static async create(
+  static async getContract(
     api: ApiPromise,
+    network: Network,
     storageDepositLimit: number | null = null,
     refTime: number = DEFAULT_REF_TIME,
     proofSize: number = DEFAULT_PROOF_SIZE,
@@ -50,30 +51,46 @@ export class PSP22 {
     supply: bigint,
     name: string,
     symbol: string,
-    decimals: bigint
+    decimals: bigint,
+    address?: string
   ): Promise<PSP22> {
     const tokenData = await getDeploymentData('psp22')
+    if (address && network != Network.Local) {
+      return new PSP22(
+        api,
+        network,
+        storageDepositLimit,
+        refTime,
+        proofSize,
+        tokenData.abi,
+        address
+      )
+    } else {
+      const tokenDeploy = await PSP22.deploy(
+        api,
+        account,
+        tokenData.abi,
+        tokenData.wasm,
+        supply,
+        name,
+        symbol,
+        decimals
+      )
 
-    const tokenDeploy = await deployContract(api, account, tokenData.abi, tokenData.wasm, 'new', [
-      supply,
-      name,
-      symbol,
-      decimals
-    ])
-
-    const token = new PSP22(
-      api,
-      Network.Local,
-      storageDepositLimit,
-      refTime,
-      proofSize,
-      tokenData.abi,
-      tokenDeploy.address
-    )
-    return token
+      return new PSP22(
+        api,
+        Network.Local,
+        storageDepositLimit,
+        refTime,
+        proofSize,
+        tokenData.abi,
+        tokenDeploy.address
+      )
+    }
   }
 
-  async deploy(
+  static async deploy(
+    api: ApiPromise,
     account: IKeyringPair,
     abi: any,
     wasm: Buffer,
@@ -82,11 +99,7 @@ export class PSP22 {
     symbol: string,
     decimals: bigint
   ): Promise<DeployedContract> {
-    return deployContract(this.api, account, abi, wasm, 'new', [supply, name, symbol, decimals])
-  }
-
-  async load(deploymentAddress: string, abi: any): Promise<void> {
-    this.contract = new ContractPromise(this.api, abi, deploymentAddress)
+    return deployContract(api, account, abi, wasm, 'new', [supply, name, symbol, decimals])
   }
 
   async mint(account: IKeyringPair, value: number, block: boolean = true): Promise<string> {

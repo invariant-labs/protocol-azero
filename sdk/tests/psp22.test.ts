@@ -2,8 +2,7 @@ import { ApiPromise, Keyring } from '@polkadot/api'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { expect } from 'chai'
 import { Network } from '../src/network'
-import { PSP22 } from '../src/psp22'
-import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME, initPolkadotApi } from '../src/utils'
+import { deployPSP22, initPolkadotApi } from '../src/utils'
 
 describe('psp22', function () {
   const init = async (): Promise<{
@@ -22,34 +21,13 @@ describe('psp22', function () {
 
   it('deploys', async () => {
     const { api, account } = await init()
-
-    await PSP22.create(
-      api,
-      null,
-      DEFAULT_REF_TIME,
-      DEFAULT_PROOF_SIZE,
-      account,
-      1000n,
-      'Coin',
-      'COIN',
-      12n
-    )
+    await deployPSP22(api, account, 1000n, 'Coin', 'COIN', 12n, Network.Local)
   })
 
   it('should set metadata', async () => {
     const { api, account } = await init()
 
-    const token = await PSP22.create(
-      api,
-      null,
-      DEFAULT_REF_TIME,
-      DEFAULT_PROOF_SIZE,
-      account,
-      1000n,
-      'Coin',
-      'COIN',
-      12n
-    )
+    const token = await deployPSP22(api, account, 1000n, 'Coin', 'COIN', 12n, Network.Local)
 
     expect(await token.tokenName(account)).to.equal('Coin')
     expect(await token.tokenSymbol(account)).to.equal('COIN')
@@ -58,17 +36,7 @@ describe('psp22', function () {
 
   it('should mint tokens', async () => {
     const { api, account } = await init()
-    const token = await PSP22.create(
-      api,
-      null,
-      DEFAULT_REF_TIME,
-      DEFAULT_PROOF_SIZE,
-      account,
-      500n,
-      'Coin',
-      'COIN',
-      12n
-    )
+    const token = await deployPSP22(api, account, 500n, 'Coin', 'COIN', 12n, Network.Local)
 
     await token.mint(account, 500)
     expect(await token.balanceOf(account, account.address)).to.equal(1000)
@@ -77,17 +45,7 @@ describe('psp22', function () {
   it('should transfer tokens', async () => {
     const { api, account, testAccount } = await init()
 
-    const token = await PSP22.create(
-      api,
-      null,
-      DEFAULT_REF_TIME,
-      DEFAULT_PROOF_SIZE,
-      account,
-      500n,
-      'Coin',
-      'COIN',
-      12n
-    )
+    const token = await deployPSP22(api, account, 500n, 'Coin', 'COIN', 12n, Network.Local)
 
     const data = api.createType('Vec<u8>', [])
     await token.transfer(account, testAccount.address, 250, data)
@@ -97,17 +55,7 @@ describe('psp22', function () {
 
   it('should approve tokens', async () => {
     const { api, account, testAccount } = await init()
-    const token = await PSP22.create(
-      api,
-      null,
-      DEFAULT_REF_TIME,
-      DEFAULT_PROOF_SIZE,
-      account,
-      500n,
-      'Coin',
-      'COIN',
-      12n
-    )
+    const token = await deployPSP22(api, account, 500n, 'Coin', 'COIN', 12n, Network.Local)
 
     await token.approve(account, testAccount.address, 250n)
     expect(await token.allowance(account, account.address, testAccount.address)).to.equal(250)

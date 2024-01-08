@@ -12,13 +12,13 @@ describe('invariant', async () => {
   const account = await keyring.addFromUri('//Alice')
 
   let invariant = await deployInvariant(api, account, { v: 10000000000n }, Network.Local)
-  let token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n)
-  let token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n)
+  let token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
+  let token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
 
   beforeEach(async () => {
     invariant = await deployInvariant(api, account, { v: 10000000000n }, Network.Local)
-    token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n)
-    token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n)
+    token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
+    token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
   })
 
   it('should change protocol fee', async () => {

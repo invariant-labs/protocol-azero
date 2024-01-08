@@ -3,7 +3,6 @@ import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { expect } from 'chai'
 import { Network } from '../src/network'
 import { deployWrappedAZERO, initPolkadotApi } from '../src/utils'
-import { WrappedAZERO } from '../src/wrapped_azero'
 
 describe('wrapped_azero', function () {
   const init = async (): Promise<{ api: ApiPromise; account: IKeyringPair }> => {
@@ -17,7 +16,7 @@ describe('wrapped_azero', function () {
 
   it('deploys', async () => {
     const { api, account } = await init()
-    await WrappedAZERO.create(api, account, Network.Local)
+    await deployWrappedAZERO(api, account, Network.Local)
   })
 
   it('wraps and unwraps azero', async () => {

@@ -40,27 +40,47 @@ export class WrappedAZERO {
     this.contract = new ContractPromise(this.api, abi, deploymentAddress)
   }
 
-  static async create(api: ApiPromise, account: IKeyringPair, network: Network) {
-    const tokenData = await getDeploymentData('wrapped_azero')
-    const tokenDeploy = await deployContract(api, account, tokenData.abi, tokenData.wasm, 'new', [])
+  static async getContract(
+    api: ApiPromise,
+    account: IKeyringPair,
+    storageDepositLimit: number | null = null,
+    refTime: number = DEFAULT_REF_TIME,
+    proofSize: number = DEFAULT_PROOF_SIZE,
+    network: Network
+  ): Promise<WrappedAZERO> {
+    const wazeroData = await getDeploymentData('wrapped_azero')
 
-    return new WrappedAZERO(
-      api,
-      network,
-      null,
-      DEFAULT_REF_TIME,
-      DEFAULT_PROOF_SIZE,
-      tokenData.abi,
-      tokenDeploy.address
-    )
+    if (process.env.WAZERO_ADDRESS && network !== Network.Local) {
+      return new WrappedAZERO(
+        api,
+        network,
+        storageDepositLimit,
+        refTime,
+        proofSize,
+        wazeroData.abi,
+        process.env.WAZERO_ADDRESS
+      )
+    } else {
+      const wazeroDeploy = await WrappedAZERO.deploy(api, account, wazeroData.abi, wazeroData.wasm)
+      return new WrappedAZERO(
+        api,
+        network,
+        storageDepositLimit,
+        refTime,
+        proofSize,
+        wazeroData.abi,
+        wazeroDeploy.address
+      )
+    }
   }
 
-  async deploy(account: IKeyringPair, abi: any, wasm: Buffer): Promise<DeployedContract> {
-    return deployContract(this.api, account, abi, wasm, 'new', [])
-  }
-
-  async load(deploymentAddress: string, abi: any): Promise<void> {
-    this.contract = new ContractPromise(this.api, abi, deploymentAddress)
+  static async deploy(
+    api: ApiPromise,
+    account: IKeyringPair,
+    abi: any,
+    wasm: Buffer
+  ): Promise<DeployedContract> {
+    return deployContract(api, account, abi, wasm, 'new', [])
   }
 
   async deposit(account: IKeyringPair, value: number, block: boolean = true): Promise<string> {

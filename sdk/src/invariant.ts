@@ -59,22 +59,23 @@ export class Invariant {
   static async getContract(
     api: ApiPromise,
     account: IKeyringPair,
+    storageDepositLimit: number | null = null,
+    refTime: number = DEFAULT_REF_TIME,
+    proofSize: number = DEFAULT_PROOF_SIZE,
     initFee: Percentage,
     network: Network
   ): Promise<Invariant> {
     const invariantData = await getDeploymentData('invariant')
     if (process.env.INVARIANT_ADDRESS && network != Network.Local) {
-      await Invariant.load(api, process.env.INVARIANT_ADDRESS, invariantData.abi)
-      const invariant = new Invariant(
+      return new Invariant(
         api,
         network,
-        null,
-        DEFAULT_REF_TIME,
-        DEFAULT_PROOF_SIZE,
+        storageDepositLimit,
+        refTime,
+        proofSize,
         invariantData.abi,
         process.env.INVARIANT_ADDRESS
       )
-      return invariant
     } else {
       const invariantDeploy = await Invariant.deploy(
         api,
@@ -86,9 +87,9 @@ export class Invariant {
       const invariant = new Invariant(
         api,
         Network.Local,
-        null,
-        DEFAULT_REF_TIME,
-        DEFAULT_PROOF_SIZE,
+        storageDepositLimit,
+        refTime,
+        proofSize,
         invariantData.abi,
         invariantDeploy.address
       )
@@ -104,10 +105,6 @@ export class Invariant {
     fee: Percentage
   ): Promise<DeployedContract> {
     return deployContract(api, account, abi, wasm, 'new', [fee])
-  }
-
-  static async load(api: ApiPromise, deploymentAddress: string, abi: any): Promise<void> {
-    new ContractPromise(api, abi, deploymentAddress)
   }
 
   async getProtocolFee(account: IKeyringPair): Promise<Percentage> {

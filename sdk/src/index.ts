@@ -2,6 +2,8 @@ import { Keyring } from '@polkadot/api'
 import dotenv from 'dotenv'
 import { Network } from './network.js'
 import {
+  DEFAULT_PROOF_SIZE,
+  DEFAULT_REF_TIME,
   deployInvariant,
   deployPSP22,
   getEnvAccount,
@@ -22,6 +24,7 @@ import {
   newFeeTier,
   newPoolKey
 } from 'math/math.js'
+import { WrappedAZERO } from './wrapped_azero.js'
 
 const main = async () => {
   {
@@ -65,23 +68,20 @@ const main = async () => {
   // deploy invariant
 
   const initFee = { v: 10n }
-  const invariant = await deployInvariant(api, account, initFee, Network.Local)
+  const invariant = await deployInvariant(api, account, initFee, network)
 
   // deploy token
-  const token = await deployPSP22(api, account, 1000n, 'Coin', 'COIN', 12n)
+  const token = await deployPSP22(api, account, 1000n, 'Coin', 'COIN', 12n, network)
 
-  // // deploy wrapped azero
-  // const wazeroData = await getDeploymentData('wrapped_azero')
-  // const wazero = await WrappedAZERO.create(api, account, network)
-
-  // if (process.env.WAZERO_ADDRESS && network !== Network.Local) {
-  //   await wazero.load(process.env.WAZERO_ADDRESS, wazeroData.abi)
-  //   console.log('loaded wazero')
-  // } else {
-  //   const wazeroDeploy = await wazero.deploy(account, wazeroData.abi, wazeroData.wasm)
-  //   await wazero.load(wazeroDeploy.address, wazeroData.abi)
-  //   console.log('deployed and loaded wazero')
-  // }
+  // deploy wrapped azero
+  const wazero = await WrappedAZERO.getContract(
+    api,
+    account,
+    null,
+    DEFAULT_REF_TIME,
+    DEFAULT_PROOF_SIZE,
+    network
+  )
 
   // change protocol fee
   const initialFee = await invariant.getProtocolFee(account)
@@ -114,12 +114,12 @@ const main = async () => {
     (await getBalance(api, testAccount.address)).balanceFormatted
   )
 
-  // // wrap and unwrap azero
-  // console.log('balance before deposit: ', await wazero.balanceOf(account, account.address))
-  // await wazero.deposit(account, 1000000000000)
-  // console.log('balance after deposit: ', await wazero.balanceOf(account, account.address))
-  // await wazero.withdraw(account, 1000000000000)
-  // console.log('balance after withdraw: ', await wazero.balanceOf(account, account.address))
+  // wrap and unwrap azero
+  console.log('balance before deposit: ', await wazero.balanceOf(account, account.address))
+  await wazero.deposit(account, 1000000000000)
+  console.log('balance after deposit: ', await wazero.balanceOf(account, account.address))
+  await wazero.withdraw(account, 1000000000000)
+  console.log('balance after withdraw: ', await wazero.balanceOf(account, account.address))
 
   process.exit(0)
 }
