@@ -257,7 +257,7 @@ describe('invariant', async () => {
     const pools = await invariant.getPools(account)
     assert.deepEqual(pools.length, 1)
   })
-  describe.only('positions', async () => {
+  describe('positions', async () => {
     const lowerTickIndex = -20n
     const upperTickIndex = 10n
     const feeTier = newFeeTier({ v: 6000000000n }, 10)
