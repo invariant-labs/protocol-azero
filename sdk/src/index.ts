@@ -19,13 +19,22 @@ import {
   Liquidity,
   PoolKey,
   SqrtPrice,
-  getDecimalScales,
   getDeltaY,
+  getLiquidityScale,
+  getPercentageScale,
+  getSqrtPriceScale,
+  getTokenAmountScale,
   newFeeTier,
   newPoolKey
 } from 'math/math.js'
 
 const main = async () => {
+  {
+    console.log(getSqrtPriceScale())
+    console.log(getTokenAmountScale())
+    console.log(getPercentageScale())
+    console.log(getLiquidityScale())
+  }
   {
     const sqrtPriceA: SqrtPrice = {
       v: 234878324943782000000000000n
@@ -37,10 +46,7 @@ const main = async () => {
     console.log(deltaYUp)
     console.log(deltaYDown)
   }
-  {
-    const scales = getDecimalScales()
-    console.log(scales)
-  }
+
   {
     const feeTier: FeeTier = newFeeTier({ v: 10n }, 55)
     console.log(feeTier)

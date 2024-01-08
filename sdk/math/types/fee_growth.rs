@@ -5,6 +5,7 @@ use core::convert::{TryFrom, TryInto};
 use decimal::*;
 use traceable_result::*;
 
+use crate::scale;
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;
@@ -16,6 +17,8 @@ pub struct FeeGrowth {
     #[tsify(type = "BigInt")]
     pub v: u128,
 }
+
+scale!(FeeGrowth);
 
 impl FeeGrowth {
     pub fn unchecked_add(self, other: FeeGrowth) -> FeeGrowth {
