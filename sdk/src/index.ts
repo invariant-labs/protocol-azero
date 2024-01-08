@@ -146,6 +146,14 @@ const main = async () => {
   await wazero.withdraw(account, 1000000000000)
   console.log('balance after withdraw: ', await wazero.balanceOf(account, account.address))
 
+  const results = await Promise.all([
+    invariant.getFeeTiers(account),
+    token.totalSupply(account),
+    wazero.balanceOf(account, account.address)
+  ])
+
+  console.log(results)
+
   process.exit(0)
 }
 
