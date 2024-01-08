@@ -1,5 +1,5 @@
 import { Keyring } from '@polkadot/api'
-import { assert, expect } from 'chai'
+import { assert } from 'chai'
 import {
   InvariantError,
   Position,
@@ -457,14 +457,14 @@ describe('invariant', async () => {
         const swapperX = await tokenX.balanceOf(swapper, swapper.address)
         const swapperY = await tokenY.balanceOf(swapper, swapper.address)
 
-        assert.equal(swapperX, 0)
-        assert.equal(swapperY, 993)
+        assert.equal(swapperX, 0n)
+        assert.equal(swapperY, 993n)
 
         const invariantX = await tokenX.balanceOf(account, invariant.contract.address.toString())
         const invariantY = await tokenY.balanceOf(account, invariant.contract.address.toString())
 
-        assert.equal(invariantX, 1500)
-        assert.equal(invariantY, 7)
+        assert.equal(invariantX, 1500n)
+        assert.equal(invariantY, 7n)
 
         assert.deepEqual(poolAfter.liquidity, poolBefore.liquidity)
         assert.notDeepEqual(poolAfter.sqrtPrice, poolBefore.sqrtPrice)
@@ -475,20 +475,17 @@ describe('invariant', async () => {
         assert.deepEqual(poolAfter.feeProtocolTokenY, 0n)
       }
       {
-        const positionOwnerBeforeX = BigInt(
-          (await tokenX.balanceOf(account, account.address)) as number
-        )
+        const positionOwnerBeforeX = BigInt(await tokenX.balanceOf(account, account.address))
         const invariantBeforeX = BigInt(
-          (await tokenX.balanceOf(account, invariant.contract.address.toString())) as number
+          await tokenX.balanceOf(account, invariant.contract.address.toString())
         )
 
         await invariant.claimFee(account, 0n)
 
-        const positionOwnerAfterX = BigInt(
-          (await tokenX.balanceOf(account, account.address)) as number
-        )
+        const positionOwnerAfterX = BigInt(await tokenX.balanceOf(account, account.address))
+
         const invariantAfterX = BigInt(
-          (await tokenX.balanceOf(account, invariant.contract.address.toString())) as number
+          await tokenX.balanceOf(account, invariant.contract.address.toString())
         )
 
         const position = await invariant.getPosition(account, account.address, 0n)
@@ -498,10 +495,10 @@ describe('invariant', async () => {
           token1.contract.address.toString(),
           feeTier
         )
-        const expectedTokensClaimed = 5n
+        const expectedTokensClaimed = BigInt(5)
 
-        expect(positionOwnerAfterX - expectedTokensClaimed).to.equal(positionOwnerBeforeX)
-        expect(invariantAfterX + expectedTokensClaimed).to.equal(invariantBeforeX)
+        assert.deepEqual(positionOwnerAfterX - expectedTokensClaimed, positionOwnerBeforeX)
+        assert.deepEqual(invariantAfterX + expectedTokensClaimed, invariantBeforeX)
 
         assert.deepEqual(position.feeGrowthInsideX, pool.feeGrowthGlobalX)
         assert.deepEqual(position.tokensOwedX, 0n)
