@@ -5,7 +5,7 @@ import { IKeyringPair } from '@polkadot/types/types'
 import { DeployedContract } from '@scio-labs/use-inkathon'
 import { deployContract } from '@scio-labs/use-inkathon/helpers'
 import { Network } from './network.js'
-import { PSP22Query, PSP22Tx, WrappedAZEROTx } from './schema.js'
+import { PSP22Query, PSP22Tx, TxResult, WrappedAZEROTx } from './schema.js'
 import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME, sendQuery, sendTx } from './utils.js'
 
 export class WrappedAZERO {
@@ -39,7 +39,7 @@ export class WrappedAZERO {
     this.contract = new ContractPromise(this.api, abi, deploymentAddress)
   }
 
-  async deposit(account: IKeyringPair, value: number, block: boolean = true): Promise<string> {
+  async deposit(account: IKeyringPair, value: number, block: boolean = true): Promise<TxResult> {
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -53,7 +53,7 @@ export class WrappedAZERO {
     )
   }
 
-  async withdraw(account: IKeyringPair, value: number, block: boolean = true): Promise<string> {
+  async withdraw(account: IKeyringPair, value: number, block: boolean = true): Promise<TxResult> {
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -72,7 +72,7 @@ export class WrappedAZERO {
     spender: string,
     value: number,
     block: boolean = true
-  ): Promise<string> {
+  ): Promise<TxResult> {
     return sendTx(
       this.contract,
       this.gasLimit,

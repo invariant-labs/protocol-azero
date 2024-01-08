@@ -9,7 +9,7 @@ import { InvariantError, Percentage } from 'math'
 import { Invariant } from './invariant.js'
 import { Network } from './network.js'
 import { PSP22 } from './psp22.js'
-import { Query, Tx } from './schema.js'
+import { Query, Tx, TxResult } from './schema.js'
 
 export const DEFAULT_REF_TIME = 100000000000
 export const DEFAULT_PROOF_SIZE = 100000000000
@@ -119,7 +119,7 @@ export async function sendTx(
   data: any[],
   waitForFinalization: boolean = true,
   block: boolean = true
-): Promise<string> {
+): Promise<TxResult> {
   if (!contract) {
     throw new Error('contract not loaded')
   }
@@ -133,19 +133,31 @@ export async function sendTx(
     ...data
   )
 
-  return new Promise<string>(async (resolve, reject) => {
+  return new Promise<TxResult>(async (resolve, reject) => {
     await call.signAndSend(signer, result => {
       if (!block) {
-        resolve(result.txHash.toHex())
+        resolve({
+          hash: result.txHash.toHex(),
+          events: parseEvents((result as any).contractEvents || [])
+        })
       }
+
       if (result.isError) {
         reject(result.toHuman())
       }
+
       if (result.isCompleted && !waitForFinalization) {
-        resolve(result.txHash.toHex())
+        resolve({
+          hash: result.txHash.toHex(),
+          events: parseEvents((result as any).contractEvents || [])
+        })
       }
+
       if (result.isFinalized) {
-        resolve(result.txHash.toHex())
+        resolve({
+          hash: result.txHash.toHex(),
+          events: parseEvents((result as any).contractEvents || [])
+        })
       }
     })
   })
@@ -271,4 +283,18 @@ export const assertError = async <T>(fn: Promise<T>, invariantError: InvariantEr
   if (!exceptionThrown) {
     throw new Error('error wasn not thrown')
   }
+}
+
+export const parseEvent = (event: { [key: string]: any }) => {
+  const eventObj: { [key: string]: any } = {}
+
+  for (let i = 0; i < event.args.length; i++) {
+    eventObj[event.event.args[i].name] = event.args[i].toPrimitive()
+  }
+
+  return convertObj(eventObj)
+}
+
+export const parseEvents = (events: { [key: string]: any }[]) => {
+  return events.map(event => parseEvent(event))
 }

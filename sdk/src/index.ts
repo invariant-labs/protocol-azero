@@ -86,7 +86,7 @@ const main = async () => {
     feeTier
   )
 
-  await invariant.createPosition(
+  const { hash, events } = await invariant.createPosition(
     account,
     poolKey,
     -10n,
@@ -95,6 +95,8 @@ const main = async () => {
     { v: 0n },
     { v: 100000000000000000000000000n }
   )
+
+  console.log(hash, events)
 
   // // deploy invariant
   // const invariantData = await getDeploymentData('invariant')

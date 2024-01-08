@@ -53,3 +53,8 @@ export enum Event {
   RemovePositionEvent = 'RemovePositionEvent',
   SwapEvent = 'SwapEvent'
 }
+
+export interface TxResult {
+  hash: string
+  events: object[]
+}

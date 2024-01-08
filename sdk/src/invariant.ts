@@ -19,12 +19,13 @@ import {
   Tick
 } from 'math/math.js'
 import { Network } from './network.js'
-import { Event, InvariantQuery, InvariantTx } from './schema.js'
+import { Event, InvariantQuery, InvariantTx, TxResult } from './schema.js'
 import {
   DEFAULT_PROOF_SIZE,
   DEFAULT_REF_TIME,
   convertArr,
   convertObj,
+  parseEvent,
   sendQuery,
   sendTx
 } from './utils.js'
@@ -87,15 +88,11 @@ export class Invariant {
           return
         }
 
-        const eventObj: { [key: string]: any } = {}
-
-        for (let i = 0; i < decoded.args.length; i++) {
-          eventObj[decoded.event.args[i].name] = decoded.args[i].toPrimitive()
-        }
+        const eventObj = parseEvent(decoded)
 
         this.eventListeners.map(eventListener => {
           if (eventListener.identifier === decoded.event.identifier) {
-            eventListener.listener(convertObj(eventObj))
+            eventListener.listener(eventObj)
           }
         })
       })
@@ -128,7 +125,7 @@ export class Invariant {
     account: IKeyringPair,
     fee: Percentage,
     block: boolean = true
-  ): Promise<string> {
+  ): Promise<TxResult> {
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -146,7 +143,7 @@ export class Invariant {
     account: IKeyringPair,
     feeTier: FeeTier,
     block: boolean = true
-  ): Promise<string> {
+  ): Promise<TxResult> {
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -164,7 +161,7 @@ export class Invariant {
     account: IKeyringPair,
     feeTier: FeeTier,
     block: boolean = true
-  ): Promise<string> {
+  ): Promise<TxResult> {
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -207,7 +204,7 @@ export class Invariant {
     poolKey: PoolKey,
     feeReceiver: string,
     block: boolean = true
-  ): Promise<string> {
+  ): Promise<TxResult> {
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -225,7 +222,7 @@ export class Invariant {
     account: IKeyringPair,
     poolKey: PoolKey,
     block: boolean = true
-  ): Promise<string> {
+  ): Promise<TxResult> {
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -278,7 +275,7 @@ export class Invariant {
     slippageLimitLower: SqrtPrice,
     slippageLimitUpper: SqrtPrice,
     block: boolean = true
-  ): Promise<string> {
+  ): Promise<TxResult> {
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -297,7 +294,7 @@ export class Invariant {
     index: bigint,
     receiver: string,
     block: boolean = true
-  ): Promise<string> {
+  ): Promise<TxResult> {
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -315,7 +312,7 @@ export class Invariant {
     account: IKeyringPair,
     index: bigint,
     block: boolean = true
-  ): Promise<string> {
+  ): Promise<TxResult> {
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -329,7 +326,7 @@ export class Invariant {
     )
   }
 
-  async claimFee(account: IKeyringPair, index: bigint, block: boolean = true): Promise<string> {
+  async claimFee(account: IKeyringPair, index: bigint, block: boolean = true): Promise<TxResult> {
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -414,7 +411,7 @@ export class Invariant {
     initSqrtPrice: SqrtPrice,
     initTick: bigint,
     block: boolean = true
-  ): Promise<string> {
+  ): Promise<TxResult> {
     return sendTx(
       this.contract,
       this.gasLimit,
