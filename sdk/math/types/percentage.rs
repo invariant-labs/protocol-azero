@@ -1,7 +1,9 @@
 use core::convert::{TryFrom, TryInto};
 use decimal::*;
 
+use crate::scale;
 use serde::{Deserialize, Serialize};
+
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;
 
@@ -12,3 +14,4 @@ pub struct Percentage {
     #[tsify(type = "BigInt")]
     pub v: u64,
 }
+scale!(Percentage);

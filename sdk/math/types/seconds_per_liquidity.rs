@@ -1,4 +1,5 @@
 use crate::liquidity::Liquidity;
+use crate::scale;
 use core::convert::{TryFrom, TryInto};
 use decimal::*;
 use traceable_result::*;
@@ -14,6 +15,8 @@ pub struct SecondsPerLiquidity {
     #[tsify(type = "BigInt")]
     pub v: u128,
 }
+
+scale!(SecondsPerLiquidity);
 
 impl SecondsPerLiquidity {
     pub fn unchecked_add(self, other: SecondsPerLiquidity) -> SecondsPerLiquidity {
