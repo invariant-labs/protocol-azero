@@ -10,6 +10,7 @@ import { Invariant } from './invariant.js'
 import { Network } from './network.js'
 import { PSP22 } from './psp22.js'
 import { InvariantTx, Query, Tx } from './schema.js'
+import { WrappedAZERO } from './wrapped_azero.js'
 
 export const DEFAULT_REF_TIME = 100000000000
 export const DEFAULT_PROOF_SIZE = 100000000000
@@ -178,6 +179,13 @@ export const deployPSP22 = async (
     symbol,
     decimals
   )
+}
+
+export const deployWrappedAZERO = async (
+  api: ApiPromise,
+  account: IKeyringPair
+): Promise<WrappedAZERO> => {
+  return WrappedAZERO.create(api, account)
 }
 
 export const convertObj = <T>(obj: T): T => {
