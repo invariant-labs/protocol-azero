@@ -2,7 +2,8 @@ import { ApiPromise, Keyring } from '@polkadot/api'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { expect } from 'chai'
 import { Network } from '../src/network'
-import { getDeploymentData, initPolkadotApi } from '../src/utils'
+import { getDeploymentData } from '../src/testUtils'
+import { initPolkadotApi } from '../src/utils'
 import { WrappedAZERO } from '../src/wrapped_azero'
 
 describe('wrapped_azero', function () {

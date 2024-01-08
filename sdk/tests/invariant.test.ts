@@ -1,23 +1,11 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import {
-  InvariantError,
-  Position,
-  SqrtPrice,
-  TokenAmount,
-  newFeeTier,
-  newPoolKey
-} from 'math/math.js'
+import { InvariantError, Position, SqrtPrice, TokenAmount, newFeeTier } from 'math/math.js'
 import { Network } from '../src/network'
 import { InvariantTx } from '../src/schema'
-import {
-  assertThrowsAsync,
-  convertObj,
-  deployInvariant,
-  deployPSP22,
-  initPolkadotApi,
-  positionEquals
-} from '../src/utils'
+import { assertThrowsAsync, deployInvariant, deployPSP22, positionEquals } from '../src/testUtils'
+
+import { convertedPoolKey, initPolkadotApi } from '../src/utils'
 
 describe('invariant', async () => {
   const api = await initPolkadotApi(Network.Local)
@@ -114,7 +102,7 @@ describe('invariant', async () => {
     await token0.approve(account, invariant.contract.address.toString(), 1000000000n)
     await token1.approve(account, invariant.contract.address.toString(), 1000000000n)
 
-    const poolKey = newPoolKey(
+    const poolKey = await convertedPoolKey(
       token0.contract.address.toString(),
       token1.contract.address.toString(),
       feeTier
@@ -269,16 +257,22 @@ describe('invariant', async () => {
     const pools = await invariant.getPools(account)
     assert.deepEqual(pools.length, 1)
   })
-  describe('positions', async () => {
+  describe.only('positions', async () => {
     const lowerTickIndex = -20n
     const upperTickIndex = 10n
+    const feeTier = newFeeTier({ v: 6000000000n }, 10)
 
     beforeEach(async () => {
       if (!token0.contract?.address || !token1.contract?.address || !invariant.contract?.address) {
         throw new Error()
       }
 
-      const feeTier = newFeeTier({ v: 6000000000n }, 10)
+      const poolKey = await convertedPoolKey(
+        token0.contract.address.toString(),
+        token1.contract.address.toString(),
+        feeTier
+      )
+
       await invariant.addFeeTier(account, feeTier)
 
       await invariant.createPool(
@@ -292,10 +286,6 @@ describe('invariant', async () => {
 
       await token0.approve(account, invariant.contract.address.toString(), 10000000000n)
       await token1.approve(account, invariant.contract.address.toString(), 10000000000n)
-
-      const poolKey = convertObj(
-        newPoolKey(token0.contract.address.toString(), token1.contract.address.toString(), feeTier)
-      )
 
       const pool = await invariant.getPool(
         account,
@@ -313,6 +303,18 @@ describe('invariant', async () => {
         pool.sqrtPrice,
         pool.sqrtPrice
       )
+    })
+    it('create position', async () => {
+      if (!token0.contract?.address || !token1.contract?.address || !invariant.contract?.address) {
+        throw new Error()
+      }
+
+      const poolKey = await convertedPoolKey(
+        token0.contract.address.toString(),
+        token1.contract.address.toString(),
+        feeTier
+      )
+
       const position = await invariant.getPosition(account, account.address, 0n)
       const expectedPosition: Position = {
         poolKey: poolKey,
@@ -332,9 +334,10 @@ describe('invariant', async () => {
         throw new Error()
       }
 
-      const feeTier = newFeeTier({ v: 6000000000n }, 10)
-      const poolKey = convertObj(
-        newPoolKey(token0.contract.address.toString(), token1.contract.address.toString(), feeTier)
+      const poolKey = await convertedPoolKey(
+        token0.contract.address.toString(),
+        token1.contract.address.toString(),
+        feeTier
       )
 
       {
@@ -379,10 +382,10 @@ describe('invariant', async () => {
         throw new Error()
       }
 
-      const feeTier = newFeeTier({ v: 6000000000n }, 10)
-
-      const poolKey = convertObj(
-        newPoolKey(token0.contract.address.toString(), token1.contract.address.toString(), feeTier)
+      const poolKey = await convertedPoolKey(
+        token0.contract.address.toString(),
+        token1.contract.address.toString(),
+        feeTier
       )
 
       {
@@ -423,9 +426,7 @@ describe('invariant', async () => {
         tokenY = token0
       }
 
-      const feeTier = newFeeTier({ v: 6000000000n }, 10)
-
-      const poolKey = newPoolKey(
+      const poolKey = await convertedPoolKey(
         token0.contract.address.toString(),
         token1.contract.address.toString(),
         feeTier
@@ -495,7 +496,7 @@ describe('invariant', async () => {
           token1.contract.address.toString(),
           feeTier
         )
-        const expectedTokensClaimed = BigInt(5)
+        const expectedTokensClaimed = 5n
 
         assert.deepEqual(positionOwnerAfterX - expectedTokensClaimed, positionOwnerBeforeX)
         assert.deepEqual(invariantAfterX + expectedTokensClaimed, invariantBeforeX)

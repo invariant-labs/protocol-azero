@@ -3,13 +3,8 @@ import dotenv from 'dotenv'
 import { Invariant } from './invariant.js'
 import { Network } from './network.js'
 import { PSP22 } from './psp22.js'
-import {
-  getDeploymentData,
-  getEnvAccount,
-  getEnvTestAccount,
-  initPolkadotApi,
-  printBalance
-} from './utils.js'
+import { getDeploymentData, getEnvTestAccount } from './testUtils.js'
+import { getEnvAccount, initPolkadotApi, printBalance } from './utils.js'
 import { WrappedAZERO } from './wrapped_azero.js'
 dotenv.config()
 
