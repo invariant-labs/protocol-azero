@@ -129,9 +129,6 @@ export class PSP22 {
     value: bigint,
     block: boolean = true
   ): Promise<string> {
-    if (!this.contract) {
-      console.log('contract not loaded')
-    }
     return sendTx(
       this.contract,
       this.gasLimit,
