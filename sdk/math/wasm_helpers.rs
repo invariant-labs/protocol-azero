@@ -1,11 +1,9 @@
+use crate::storage::pool_key::PoolKey;
+use crate::storage::tick::Tick;
 use crate::types::{
     fee_growth::FeeGrowth, fixed_point::FixedPoint, liquidity::Liquidity, percentage::Percentage,
     seconds_per_liquidity::SecondsPerLiquidity, sqrt_price::SqrtPrice, token_amount::TokenAmount,
 };
-
-use crate::storage::pool::Pool;
-use crate::storage::pool_key::PoolKey;
-use crate::storage::tick::Tick;
 use decimal::*;
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
