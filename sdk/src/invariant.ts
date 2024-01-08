@@ -102,8 +102,15 @@ export class Invariant {
     })
   }
 
-  addEventListener(identifier: Event, listener: (event: any) => void): void {
+  on(identifier: Event, listener: (event: any) => void): void {
     this.eventListeners.push({ identifier, listener })
+  }
+
+  off(identifier: Event, listener: (event: any) => void): void {
+    this.eventListeners = this.eventListeners.filter(
+      eventListener =>
+        eventListener.identifier !== identifier || eventListener.listener !== listener
+    )
   }
 
   async getProtocolFee(account: IKeyringPair): Promise<Percentage> {
