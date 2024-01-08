@@ -3,7 +3,8 @@ import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { expect } from 'chai'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
-import { getDeploymentData, initPolkadotApi } from '../src/utils'
+import { getDeploymentData } from '../src/testUtils'
+import { initPolkadotApi } from '../src/utils'
 
 describe('psp22', function () {
   const init = async (): Promise<{
