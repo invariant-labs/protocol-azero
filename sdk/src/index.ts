@@ -52,6 +52,16 @@ const main = async () => {
   await printBalance(api, account)
   await printBalance(api, testAccount)
 
+  // // get events from past 100 blocks
+  // const blockNumber = await api.query.system.number()
+  // for (let i = 0; i < 100; i++) {
+  //   const previousBlockNumber = (blockNumber as unknown as number) - 1 - i
+  //   const previousBlockHash = await api.query.system.blockHash(previousBlockNumber)
+  //   const apiAt = await api.at(previousBlockHash.toString())
+  //   const events = await apiAt.query.system.events()
+  //   console.log((events as any).length)
+  // }
+
   const invariant = await deployInvariant(api, account, { v: 10000000000n })
   const token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n)
   const token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n)
