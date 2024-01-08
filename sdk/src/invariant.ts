@@ -56,46 +56,58 @@ export class Invariant {
     this.contract = new ContractPromise(this.api, abi, deploymentAddress)
   }
 
-  static async create(
+  static async getContract(
     api: ApiPromise,
     account: IKeyringPair,
-    initFee: Percentage
+    initFee: Percentage,
+    network: Network
   ): Promise<Invariant> {
     const invariantData = await getDeploymentData('invariant')
-
-    const invariantDeploy = await deployContract(
-      api,
-      account,
-      invariantData.abi,
-      invariantData.wasm,
-      'new',
-      [initFee]
-    )
-
-    const invariant = new Invariant(
-      api,
-      Network.Local,
-      null,
-      DEFAULT_REF_TIME,
-      DEFAULT_PROOF_SIZE,
-      invariantData.abi,
-      invariantDeploy.address
-    )
-
-    return invariant
+    if (process.env.INVARIANT_ADDRESS && network != Network.Local) {
+      await Invariant.load(api, process.env.INVARIANT_ADDRESS, invariantData.abi)
+      const invariant = new Invariant(
+        api,
+        network,
+        null,
+        DEFAULT_REF_TIME,
+        DEFAULT_PROOF_SIZE,
+        invariantData.abi,
+        process.env.INVARIANT_ADDRESS
+      )
+      return invariant
+    } else {
+      const invariantDeploy = await Invariant.deploy(
+        api,
+        account,
+        invariantData.abi,
+        invariantData.wasm,
+        initFee
+      )
+      const invariant = new Invariant(
+        api,
+        Network.Local,
+        null,
+        DEFAULT_REF_TIME,
+        DEFAULT_PROOF_SIZE,
+        invariantData.abi,
+        invariantDeploy.address
+      )
+      return invariant
+    }
   }
 
-  async deploy(
+  static async deploy(
+    api: ApiPromise,
     account: IKeyringPair,
     abi: any,
     wasm: Buffer,
     fee: Percentage
   ): Promise<DeployedContract> {
-    return deployContract(this.api, account, abi, wasm, 'new', [fee])
+    return deployContract(api, account, abi, wasm, 'new', [fee])
   }
 
-  async load(deploymentAddress: string, abi: any): Promise<void> {
-    this.contract = new ContractPromise(this.api, abi, deploymentAddress)
+  static async load(api: ApiPromise, deploymentAddress: string, abi: any): Promise<void> {
+    new ContractPromise(api, abi, deploymentAddress)
   }
 
   async getProtocolFee(account: IKeyringPair): Promise<Percentage> {

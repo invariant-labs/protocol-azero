@@ -155,9 +155,10 @@ export async function sendTx(
 export const deployInvariant = async (
   api: ApiPromise,
   account: IKeyringPair,
-  initFee: Percentage
+  initFee: Percentage,
+  network: Network
 ): Promise<Invariant> => {
-  return Invariant.create(api, account, initFee)
+  return Invariant.getContract(api, account, initFee, network)
 }
 
 export const deployPSP22 = async (

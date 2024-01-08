@@ -4,7 +4,6 @@ import { Network } from './network.js'
 import {
   deployInvariant,
   deployPSP22,
-  getDeploymentData,
   getEnvAccount,
   getEnvTestAccount,
   initPolkadotApi,
@@ -23,7 +22,6 @@ import {
   newFeeTier,
   newPoolKey
 } from 'math/math.js'
-import { WrappedAZERO } from './wrapped_azero.js'
 
 const main = async () => {
   {
@@ -67,23 +65,23 @@ const main = async () => {
   // deploy invariant
 
   const initFee = { v: 10n }
-  const invariant = await deployInvariant(api, account, initFee)
+  const invariant = await deployInvariant(api, account, initFee, Network.Local)
 
   // deploy token
   const token = await deployPSP22(api, account, 1000n, 'Coin', 'COIN', 12n)
 
-  // deploy wrapped azero
-  const wazeroData = await getDeploymentData('wrapped_azero')
-  const wazero = await WrappedAZERO.create(api, account, network)
+  // // deploy wrapped azero
+  // const wazeroData = await getDeploymentData('wrapped_azero')
+  // const wazero = await WrappedAZERO.create(api, account, network)
 
-  if (process.env.WAZERO_ADDRESS && network !== Network.Local) {
-    await wazero.load(process.env.WAZERO_ADDRESS, wazeroData.abi)
-    console.log('loaded wazero')
-  } else {
-    const wazeroDeploy = await wazero.deploy(account, wazeroData.abi, wazeroData.wasm)
-    await wazero.load(wazeroDeploy.address, wazeroData.abi)
-    console.log('deployed and loaded wazero')
-  }
+  // if (process.env.WAZERO_ADDRESS && network !== Network.Local) {
+  //   await wazero.load(process.env.WAZERO_ADDRESS, wazeroData.abi)
+  //   console.log('loaded wazero')
+  // } else {
+  //   const wazeroDeploy = await wazero.deploy(account, wazeroData.abi, wazeroData.wasm)
+  //   await wazero.load(wazeroDeploy.address, wazeroData.abi)
+  //   console.log('deployed and loaded wazero')
+  // }
 
   // change protocol fee
   const initialFee = await invariant.getProtocolFee(account)
