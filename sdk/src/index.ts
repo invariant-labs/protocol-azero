@@ -56,7 +56,7 @@ const main = async () => {
   const token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n)
   const token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n)
 
-  invariant.addEventListener(Event.CreatePosition, (event: CreatePositionEvent) => {
+  invariant.on(Event.CreatePositionEvent, (event: CreatePositionEvent) => {
     console.log(event)
   })
 
