@@ -2,11 +2,11 @@ use crate::consts::*;
 use crate::types::{liquidity::*, percentage::*, sqrt_price::*, token_amount::*};
 use core::convert::TryInto;
 use decimal::*;
-use traceable_result::*;
-
 use serde::{Deserialize, Serialize};
+use traceable_result::*;
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;
+use wasm_wrapper::*;
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
@@ -134,6 +134,7 @@ pub fn compute_swap_step(
     })
 }
 
+#[wasm_wrapper]
 pub fn get_delta_x(
     sqrt_price_a: SqrtPrice,
     sqrt_price_b: SqrtPrice,

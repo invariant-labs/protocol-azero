@@ -16,3 +16,4 @@ tsify = "0.4.5"
 
 decimal = { path= "../../src/decimal" }
 traceable_result = { path = "../../src/traceable_result" }
+wasm_wrapper = { path = "./wasm_wrapper"}
