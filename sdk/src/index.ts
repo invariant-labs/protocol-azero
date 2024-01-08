@@ -4,13 +4,11 @@ import { Network } from './network.js'
 import {
   DEFAULT_PROOF_SIZE,
   DEFAULT_REF_TIME,
-  deployInvariant,
-  deployPSP22,
   getEnvAccount,
-  getEnvTestAccount,
   initPolkadotApi,
   printBalance
 } from './utils.js'
+import { WrappedAZERO } from './wrapped_azero.js'
 dotenv.config()
 
 import { getBalance, transferBalance } from '@scio-labs/use-inkathon'
@@ -19,14 +17,23 @@ import {
   Liquidity,
   PoolKey,
   SqrtPrice,
-  getDecimalScales,
   getDeltaY,
+  getLiquidityScale,
+  getPercentageScale,
+  getSqrtPriceScale,
+  getTokenAmountScale,
   newFeeTier,
   newPoolKey
 } from 'math/math.js'
-import { WrappedAZERO } from './wrapped_azero.js'
+import { deployInvariant, deployPSP22, getEnvTestAccount } from './testUtils.js'
 
 const main = async () => {
+  {
+    console.log(getSqrtPriceScale())
+    console.log(getTokenAmountScale())
+    console.log(getPercentageScale())
+    console.log(getLiquidityScale())
+  }
   {
     const sqrtPriceA: SqrtPrice = {
       v: 234878324943782000000000000n
@@ -38,10 +45,7 @@ const main = async () => {
     console.log(deltaYUp)
     console.log(deltaYDown)
   }
-  {
-    const scales = getDecimalScales()
-    console.log(scales)
-  }
+
   {
     const feeTier: FeeTier = newFeeTier({ v: 10n }, 55)
     console.log(feeTier)
@@ -120,6 +124,14 @@ const main = async () => {
   console.log('balance after deposit: ', await wazero.balanceOf(account, account.address))
   await wazero.withdraw(account, 1000000000000)
   console.log('balance after withdraw: ', await wazero.balanceOf(account, account.address))
+
+  const results = await Promise.all([
+    invariant.getFeeTiers(account),
+    token.totalSupply(account),
+    wazero.balanceOf(account, account.address)
+  ])
+
+  console.log(results)
 
   process.exit(0)
 }

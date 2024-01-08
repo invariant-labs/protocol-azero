@@ -102,7 +102,11 @@ export class PSP22 {
     return deployContract(api, account, abi, wasm, 'new', [supply, name, symbol, decimals])
   }
 
-  async mint(account: IKeyringPair, value: number, block: boolean = true): Promise<string> {
+  async mint(
+    account: IKeyringPair,
+    value: number | bigint,
+    block: boolean = true
+  ): Promise<string> {
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -188,7 +192,7 @@ export class PSP22 {
     )
   }
 
-  async balanceOf(account: IKeyringPair, owner: string): Promise<unknown> {
+  async balanceOf(account: IKeyringPair, owner: string): Promise<bigint> {
     return sendQuery(
       this.contract,
       this.gasLimit,
@@ -196,7 +200,7 @@ export class PSP22 {
       account,
       PSP22Query.BalanceOf,
       [owner]
-    )
+    ) as Promise<bigint>
   }
 
   async totalSupply(account: IKeyringPair): Promise<unknown> {

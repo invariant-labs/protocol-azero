@@ -1,4 +1,5 @@
 use crate::consts::*;
+use crate::scale;
 use crate::types::{fixed_point::FixedPoint, token_amount::TokenAmount};
 use core::convert::{TryFrom, TryInto};
 use decimal::*;
@@ -15,6 +16,8 @@ pub struct SqrtPrice {
     #[tsify(type = "BigInt")]
     pub v: u128,
 }
+
+scale!(SqrtPrice);
 
 impl SqrtPrice {
     pub fn from_tick(i: i32) -> TrackableResult<Self> {

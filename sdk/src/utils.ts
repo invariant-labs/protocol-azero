@@ -4,13 +4,9 @@ import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { getSubstrateChain } from '@scio-labs/use-inkathon/chains'
 import { getBalance, initPolkadotJs as initApi } from '@scio-labs/use-inkathon/helpers'
-import { readFile } from 'fs/promises'
-import { InvariantError, Percentage } from 'math'
-import { Invariant } from './invariant.js'
+import { FeeTier, PoolKey, newPoolKey } from 'math/math.js'
 import { Network } from './network.js'
-import { PSP22 } from './psp22.js'
-import { InvariantTx, Query, Tx } from './schema.js'
-import { WrappedAZERO } from './wrapped_azero.js'
+import { Query, Tx } from './schema.js'
 
 export const DEFAULT_REF_TIME = 100000000000
 export const DEFAULT_PROOF_SIZE = 100000000000
@@ -32,54 +28,6 @@ export const initPolkadotApi = async (network: Network): Promise<ApiPromise> => 
   } else {
     throw new Error('Invalid network')
   }
-}
-
-export const getEnvAccount = async (keyring: Keyring): Promise<IKeyringPair> => {
-  const accountUri = process.env.ACCOUNT_URI
-
-  if (!accountUri) {
-    throw new Error('invalid account uri')
-  }
-
-  return keyring.addFromUri(accountUri)
-}
-
-export const getEnvTestAccount = async (keyring: Keyring): Promise<IKeyringPair> => {
-  const accountUri = process.env.TEST_ACCOUNT_URI
-
-  if (!accountUri) {
-    throw new Error('invalid account uri')
-  }
-
-  return keyring.addFromUri(accountUri)
-}
-
-export const printBalance = async (api: ApiPromise, account: IKeyringPair) => {
-  const network = (await api.rpc.system.chain())?.toString() || ''
-  const version = (await api.rpc.system.version())?.toString() || ''
-  const balance = await getBalance(api, account.address)
-
-  console.log(`network: ${network} (${version})`)
-  console.log(`account: ${account.address} (${balance.balanceFormatted})\n`)
-}
-
-export const getDeploymentData = async (
-  contractName: string
-): Promise<{ abi: any; wasm: Buffer }> => {
-  try {
-    const abi = JSON.parse(
-      await readFile(`./contracts/${contractName}/${contractName}.json`, 'utf-8')
-    )
-    const wasm = await readFile(`./contracts/${contractName}/${contractName}.wasm`)
-
-    return { abi, wasm }
-  } catch (error) {
-    throw new Error(`${contractName}.json or ${contractName}.wasm not found`)
-  }
-}
-
-export const sleep = async (ms: number) => {
-  return await new Promise(resolve => setTimeout(resolve, ms))
 }
 
 export async function sendQuery(
@@ -144,54 +92,6 @@ export async function sendTx(
   })
 }
 
-export const deployInvariant = async (
-  api: ApiPromise,
-  account: IKeyringPair,
-  initFee: Percentage,
-  network: Network
-): Promise<Invariant> => {
-  return Invariant.getContract(
-    api,
-    account,
-    null,
-    DEFAULT_REF_TIME,
-    DEFAULT_PROOF_SIZE,
-    initFee,
-    network
-  )
-}
-
-export const deployPSP22 = async (
-  api: ApiPromise,
-  account: IKeyringPair,
-  supply: bigint,
-  name: string,
-  symbol: string,
-  decimals: bigint,
-  network: Network
-): Promise<PSP22> => {
-  return PSP22.getContract(
-    api,
-    network,
-    null,
-    DEFAULT_REF_TIME,
-    DEFAULT_PROOF_SIZE,
-    account,
-    supply,
-    name,
-    symbol,
-    decimals
-  )
-}
-
-export const deployWrappedAZERO = async (
-  api: ApiPromise,
-  account: IKeyringPair,
-  network: Network
-): Promise<WrappedAZERO> => {
-  return WrappedAZERO.getContract(api, account, null, DEFAULT_REF_TIME, DEFAULT_PROOF_SIZE, network)
-}
-
 export const convertObj = <T>(obj: T): T => {
   const newObj: { [key: string]: any } = {}
 
@@ -240,20 +140,29 @@ export const convertArr = (arr: any[]): any[] => {
   })
 }
 
-export const assertThrowsAsync = async (fn: Promise<any>, word?: InvariantError | InvariantTx) => {
-  try {
-    await fn
-  } catch (e: any) {
-    if (word) {
-      const err = e.toString()
-      console.log(err)
-      const regex = new RegExp(`${word}$`)
-      if (!regex.test(err)) {
-        console.log(err)
-        throw new Error('Invalid Error message')
-      }
-    }
-    return
+export const printBalance = async (api: ApiPromise, account: IKeyringPair) => {
+  const network = (await api.rpc.system.chain())?.toString() || ''
+  const version = (await api.rpc.system.version())?.toString() || ''
+  const balance = await getBalance(api, account.address)
+
+  console.log(`network: ${network} (${version})`)
+  console.log(`account: ${account.address} (${balance.balanceFormatted})\n`)
+}
+
+export const convertedPoolKey = async (
+  token0: string,
+  token1: string,
+  feeTier: FeeTier
+): Promise<PoolKey> => {
+  return convertObj(newPoolKey(token0, token1, feeTier))
+}
+
+export const getEnvAccount = async (keyring: Keyring): Promise<IKeyringPair> => {
+  const accountUri = process.env.ACCOUNT_URI
+
+  if (!accountUri) {
+    throw new Error('invalid account uri')
   }
-  throw new Error('Function did not throw error')
+
+  return keyring.addFromUri(accountUri)
 }
