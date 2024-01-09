@@ -4,9 +4,13 @@ import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { getSubstrateChain } from '@scio-labs/use-inkathon/chains'
 import { getBalance, initPolkadotJs as initApi } from '@scio-labs/use-inkathon/helpers'
-import { FeeTier, PoolKey, newPoolKey } from 'math/math.js'
+import { readFile } from 'fs/promises'
+import { FeeTier, Percentage, PoolKey, newPoolKey } from 'math/math.js'
+import { Invariant } from './invariant.js'
 import { Network } from './network.js'
+import { PSP22 } from './psp22.js'
 import { Query, Tx, TxResult } from './schema.js'
+import { WrappedAZERO } from './wrapped_azero.js'
 
 export const DEFAULT_REF_TIME = 100000000000
 export const DEFAULT_PROOF_SIZE = 100000000000
@@ -177,11 +181,7 @@ export const printBalance = async (api: ApiPromise, account: IKeyringPair) => {
   console.log(`account: ${account.address} (${balance.balanceFormatted})\n`)
 }
 
-export const convertedPoolKey = async (
-  token0: string,
-  token1: string,
-  feeTier: FeeTier
-): Promise<PoolKey> => {
+export const _newPoolKey = (token0: string, token1: string, feeTier: FeeTier): PoolKey => {
   return convertObj(newPoolKey(token0, token1, feeTier))
 }
 
@@ -207,4 +207,67 @@ export const parseEvent = (event: { [key: string]: any }) => {
 
 export const parseEvents = (events: { [key: string]: any }[]) => {
   return events.map(event => parseEvent(event))
+}
+
+export const deployInvariant = async (
+  api: ApiPromise,
+  account: IKeyringPair,
+  initFee: Percentage,
+  network: Network
+): Promise<Invariant> => {
+  return Invariant.getContract(
+    api,
+    account,
+    null,
+    DEFAULT_REF_TIME,
+    DEFAULT_PROOF_SIZE,
+    initFee,
+    network
+  )
+}
+
+export const deployPSP22 = async (
+  api: ApiPromise,
+  account: IKeyringPair,
+  supply: bigint,
+  name: string,
+  symbol: string,
+  decimals: bigint,
+  network: Network
+): Promise<PSP22> => {
+  return PSP22.getContract(
+    api,
+    network,
+    null,
+    DEFAULT_REF_TIME,
+    DEFAULT_PROOF_SIZE,
+    account,
+    supply,
+    name,
+    symbol,
+    decimals
+  )
+}
+
+export const deployWrappedAZERO = async (
+  api: ApiPromise,
+  account: IKeyringPair,
+  network: Network
+): Promise<WrappedAZERO> => {
+  return WrappedAZERO.getContract(api, account, null, DEFAULT_REF_TIME, DEFAULT_PROOF_SIZE, network)
+}
+
+export const getDeploymentData = async (
+  contractName: string
+): Promise<{ abi: any; wasm: Buffer }> => {
+  try {
+    const abi = JSON.parse(
+      await readFile(`./contracts/${contractName}/${contractName}.json`, 'utf-8')
+    )
+    const wasm = await readFile(`./contracts/${contractName}/${contractName}.wasm`)
+
+    return { abi, wasm }
+  } catch (error) {
+    throw new Error(`${contractName}.json or ${contractName}.wasm not found`)
+  }
 }

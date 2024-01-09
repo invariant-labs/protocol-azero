@@ -3,8 +3,8 @@ import { assert } from 'chai'
 import { InvariantError, Position, SqrtPrice, TokenAmount, newFeeTier } from 'math/math.js'
 import { Network } from '../src/network'
 import { InvariantTx } from '../src/schema'
-import { assertThrowsAsync, deployInvariant, deployPSP22, positionEquals } from '../src/testUtils'
-import { convertedPoolKey, initPolkadotApi } from '../src/utils'
+import { assertThrowsAsync, positionEquals } from '../src/testUtils'
+import { _newPoolKey, deployInvariant, deployPSP22, initPolkadotApi } from '../src/utils'
 
 describe('invariant', async () => {
   const api = await initPolkadotApi(Network.Local)
@@ -97,7 +97,7 @@ describe('invariant', async () => {
     await token0.approve(account, invariant.contract.address.toString(), 1000000000n)
     await token1.approve(account, invariant.contract.address.toString(), 1000000000n)
 
-    const poolKey = await convertedPoolKey(
+    const poolKey = _newPoolKey(
       token0.contract.address.toString(),
       token1.contract.address.toString(),
       feeTier
@@ -249,9 +249,14 @@ describe('invariant', async () => {
     const lowerTickIndex = -20n
     const upperTickIndex = 10n
     const feeTier = newFeeTier({ v: 6000000000n }, 10)
+    let poolKey = _newPoolKey(
+      token0.contract.address.toString(),
+      token1.contract.address.toString(),
+      feeTier
+    )
 
     beforeEach(async () => {
-      const poolKey = await convertedPoolKey(
+      poolKey = _newPoolKey(
         token0.contract.address.toString(),
         token1.contract.address.toString(),
         feeTier
@@ -289,12 +294,6 @@ describe('invariant', async () => {
       )
     })
     it('create position', async () => {
-      const poolKey = await convertedPoolKey(
-        token0.contract.address.toString(),
-        token1.contract.address.toString(),
-        feeTier
-      )
-
       const position = await invariant.getPosition(account, account.address, 0n)
       const expectedPosition: Position = {
         poolKey: poolKey,
@@ -310,12 +309,6 @@ describe('invariant', async () => {
       await positionEquals(position, expectedPosition)
     })
     it('remove position', async () => {
-      const poolKey = await convertedPoolKey(
-        token0.contract.address.toString(),
-        token1.contract.address.toString(),
-        feeTier
-      )
-
       {
         await invariant.removePosition(account, 0n)
         assertThrowsAsync(
@@ -354,12 +347,6 @@ describe('invariant', async () => {
     })
 
     it('transfer position', async () => {
-      const poolKey = await convertedPoolKey(
-        token0.contract.address.toString(),
-        token1.contract.address.toString(),
-        feeTier
-      )
-
       {
         const positionOwner = keyring.addFromUri('//Alice')
         const receiver = keyring.addFromUri('//Bob')
@@ -394,12 +381,6 @@ describe('invariant', async () => {
         tokenX = token1
         tokenY = token0
       }
-
-      const poolKey = await convertedPoolKey(
-        token0.contract.address.toString(),
-        token1.contract.address.toString(),
-        feeTier
-      )
 
       {
         const amount: TokenAmount = 1000n
@@ -445,17 +426,19 @@ describe('invariant', async () => {
         assert.deepEqual(poolAfter.feeProtocolTokenY, 0n)
       }
       {
-        const positionOwnerBeforeX = BigInt(await tokenX.balanceOf(account, account.address))
-        const invariantBeforeX = BigInt(
-          await tokenX.balanceOf(account, invariant.contract.address.toString())
+        const positionOwnerBeforeX = await tokenX.balanceOf(account, account.address)
+        const invariantBeforeX = await tokenX.balanceOf(
+          account,
+          invariant.contract.address.toString()
         )
 
         await invariant.claimFee(account, 0n)
 
-        const positionOwnerAfterX = BigInt(await tokenX.balanceOf(account, account.address))
+        const positionOwnerAfterX = await tokenX.balanceOf(account, account.address)
 
-        const invariantAfterX = BigInt(
-          await tokenX.balanceOf(account, invariant.contract.address.toString())
+        const invariantAfterX = await tokenX.balanceOf(
+          account,
+          invariant.contract.address.toString()
         )
 
         const position = await invariant.getPosition(account, account.address, 0n)

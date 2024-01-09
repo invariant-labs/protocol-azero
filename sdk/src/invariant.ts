@@ -23,12 +23,12 @@ import {
 } from 'math/math.js'
 import { Network } from './network.js'
 import { InvariantEvent, InvariantQuery, InvariantTx, TxResult } from './schema.js'
-import { getDeploymentData } from './testUtils.js'
 import {
   DEFAULT_PROOF_SIZE,
   DEFAULT_REF_TIME,
   convertArr,
   convertObj,
+  getDeploymentData,
   sendQuery,
   sendTx
 } from './utils.js'
