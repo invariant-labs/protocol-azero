@@ -24,6 +24,8 @@ let token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Ne
 let token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
 
 describe('invariant', async () => {
+  const feeTier = newFeeTier({ v: 10000000000n }, 1)
+
   beforeEach(async () => {
     invariant = await deployInvariant(api, account, { v: 10000000000n }, Network.Local)
     token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
@@ -89,8 +91,6 @@ describe('invariant', async () => {
   })
 
   it('should get tick and check if it is initialized', async () => {
-    const feeTier = newFeeTier({ v: 10000000000n }, 1)
-
     await invariant.addFeeTier(account, feeTier)
 
     await invariant.createPool(
@@ -160,7 +160,6 @@ describe('invariant', async () => {
   })
 
   it('create pool', async () => {
-    const feeTier = newFeeTier({ v: 10000000000n }, 1)
     await invariant.addFeeTier(account, feeTier)
     const addedFeeTierExists = await invariant.feeTierExist(account, feeTier)
     assert.deepEqual(addedFeeTierExists, true)
@@ -197,8 +196,8 @@ describe('invariant', async () => {
       feeReceiver: pool.feeReceiver
     })
   })
+
   it('create pool x/y and y/x', async () => {
-    const feeTier = newFeeTier({ v: 10000000000n }, 1)
     await invariant.addFeeTier(account, feeTier)
     const addedFeeTierExists = await invariant.feeTierExist(account, feeTier)
     assert.deepEqual(addedFeeTierExists, true)
@@ -256,8 +255,6 @@ describe('invariant', async () => {
 
   describe('positions', async () => {
     beforeEach(async () => {
-      const feeTier = newFeeTier({ v: 10000000000n }, 1)
-
       await invariant.addFeeTier(account, feeTier)
 
       await invariant.createPool(
@@ -331,11 +328,11 @@ describe('invariant', async () => {
       const token0After = await token0.balanceOf(account, account.address.toString())
       const token1After = await token1.balanceOf(account, account.address.toString())
       if (poolKey.tokenX === token0.contract.address.toString()) {
-        assert.deepEqual(token0Before + 1, token0After)
+        assert.deepEqual(token0Before + 1n, token0After)
         assert.deepEqual(token1Before, token1After)
       } else {
         assert.deepEqual(token0Before, token0After)
-        assert.deepEqual(token1Before + 1, token1After)
+        assert.deepEqual(token1Before + 1n, token1After)
       }
     })
 
@@ -363,6 +360,10 @@ describe('invariant', async () => {
       assert.deepEqual(poolBefore.feeProtocolTokenY, 0n)
 
       await invariant.withdrawProtocolFee(testAccount, poolKey)
+      assertThrowsAsync(
+        invariant.withdrawProtocolFee(account, poolKey),
+        InvariantError.NotFeeReceiver
+      )
 
       const poolAfter = await invariant.getPool(
         account,
@@ -376,11 +377,11 @@ describe('invariant', async () => {
       const token0After = await token0.balanceOf(account, testAccount.address.toString())
       const token1After = await token1.balanceOf(account, testAccount.address.toString())
       if (poolKey.tokenX === token0.contract.address.toString()) {
-        assert.deepEqual(token0Before + 1, token0After)
+        assert.deepEqual(token0Before + 1n, token0After)
         assert.deepEqual(token1Before, token1After)
       } else {
         assert.deepEqual(token0Before, token0After)
-        assert.deepEqual(token1Before + 1, token1After)
+        assert.deepEqual(token1Before + 1n, token1After)
       }
     })
   })
@@ -548,14 +549,14 @@ describe('invariant', async () => {
         const swapperX = await tokenX.balanceOf(swapper, swapper.address)
         const swapperY = await tokenY.balanceOf(swapper, swapper.address)
 
-        assert.equal(swapperX, 0)
-        assert.equal(swapperY, 993)
+        assert.equal(swapperX, 0n)
+        assert.equal(swapperY, 993n)
 
         const invariantX = await tokenX.balanceOf(account, invariant.contract.address.toString())
         const invariantY = await tokenY.balanceOf(account, invariant.contract.address.toString())
 
-        assert.equal(invariantX, 1500)
-        assert.equal(invariantY, 7)
+        assert.equal(invariantX, 1500n)
+        assert.equal(invariantY, 7n)
 
         assert.deepEqual(poolAfter.liquidity, poolBefore.liquidity)
         assert.notDeepEqual(poolAfter.sqrtPrice, poolBefore.sqrtPrice)
