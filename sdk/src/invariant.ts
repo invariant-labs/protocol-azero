@@ -2,6 +2,7 @@
 
 import { ApiPromise } from '@polkadot/api'
 import { Abi, ContractPromise } from '@polkadot/api-contract'
+import { Bytes } from '@polkadot/types'
 import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { DeployedContract } from '@scio-labs/use-inkathon'
@@ -21,7 +22,7 @@ import {
   TokenAmount
 } from 'math/math.js'
 import { Network } from './network.js'
-import { Event, InvariantQuery, InvariantTx, TxResult } from './schema.js'
+import { InvariantEvent, InvariantQuery, InvariantTx, TxResult } from './schema.js'
 import { getDeploymentData } from './testUtils.js'
 import {
   DEFAULT_PROOF_SIZE,
@@ -39,7 +40,7 @@ export class Invariant {
   storageDepositLimit: number | null
   waitForFinalization: boolean
   abi: Abi | null = null
-  eventListeners: { identifier: Event; listener: (event: any) => void }[] = []
+  eventListeners: { identifier: InvariantEvent; listener: (event: any) => void }[] = []
 
   private constructor(
     api: ApiPromise,
@@ -58,6 +59,7 @@ export class Invariant {
     this.storageDepositLimit = storageDepositLimit
     this.waitForFinalization = network != Network.Local
     this.contract = new ContractPromise(this.api, abi, deploymentAddress)
+    this.abi = new Abi(abi)
   }
 
   static async getContract(
@@ -109,6 +111,56 @@ export class Invariant {
     fee: Percentage
   ): Promise<DeployedContract> {
     return deployContract(api, account, abi, wasm, 'new', [fee])
+  }
+
+  on(identifier: InvariantEvent, listener: (event: any) => void): void {
+    if (this.eventListeners.length === 0) {
+      this.api.query.system.events((events: any) => {
+        events.forEach((record: any) => {
+          const { event } = record
+
+          if (!this.api.events.contracts.ContractEmitted.is(event)) {
+            return
+          }
+
+          const [account_id, contract_evt] = event.data
+
+          if (account_id.toString() !== this.contract?.address.toString()) {
+            return
+          }
+
+          const decoded = this.abi?.decodeEvent(contract_evt as Bytes)
+
+          if (!decoded) {
+            return
+          }
+
+          const eventObj: { [key: string]: any } = {}
+
+          for (let i = 0; i < decoded.args.length; i++) {
+            eventObj[decoded.event.args[i].name] = decoded.args[i].toPrimitive()
+          }
+
+          this.eventListeners.map(eventListener => {
+            if (eventListener.identifier === decoded.event.identifier) {
+              eventListener.listener(convertObj(eventObj))
+            }
+          })
+        })
+      })
+    }
+
+    this.eventListeners.push({ identifier, listener })
+  }
+
+  off(identifier: InvariantEvent, listener?: (event: any) => void): void {
+    this.eventListeners = this.eventListeners.filter(eventListener => {
+      if (listener) {
+        return !(identifier === eventListener.identifier && listener === eventListener.listener)
+      } else {
+        return !(identifier === eventListener.identifier)
+      }
+    })
   }
 
   async getProtocolFee(account: IKeyringPair): Promise<Percentage> {

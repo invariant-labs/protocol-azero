@@ -122,17 +122,17 @@ export const convertObj = <T>(obj: T): T => {
     }
 
     if (
-      typeof value.v === 'number' ||
-      (typeof value.v === 'string' && (value.v.startsWith('0x') || /^[0-9]+$/.test(value.v)))
+      typeof value?.v === 'number' ||
+      (typeof value?.v === 'string' && (value?.v.startsWith('0x') || /^[0-9]+$/.test(value?.v)))
     ) {
-      newObj[key] = { v: BigInt(value.v) }
+      newObj[key] = { v: BigInt(value?.v) }
     }
 
-    if (value.constructor === Array) {
+    if (value?.constructor === Array) {
       newObj[key] = convertArr(value)
     }
 
-    if (typeof value === 'object' && value.v === undefined) {
+    if (typeof value === 'object' && value?.v === undefined && value !== null) {
       newObj[key] = convertObj(value)
     }
   })
@@ -150,17 +150,17 @@ export const convertArr = (arr: any[]): any[] => {
     }
 
     if (
-      typeof value.v === 'number' ||
-      (typeof value.v === 'string' && (value.v.startsWith('0x') || /^[0-9]+$/.test(value.v)))
+      typeof value?.v === 'number' ||
+      (typeof value?.v === 'string' && (value?.v.startsWith('0x') || /^[0-9]+$/.test(value?.v)))
     ) {
-      return { v: BigInt(value.v) }
+      return { v: BigInt(value?.v) }
     }
 
-    if (value.constructor === Array) {
+    if (value?.constructor === Array) {
       return convertArr(value)
     }
 
-    if (typeof value === 'object' && value.v === undefined) {
+    if (typeof value === 'object' && value.v === undefined && value !== null) {
       return convertObj(value)
     }
 
