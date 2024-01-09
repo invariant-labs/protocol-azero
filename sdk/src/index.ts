@@ -4,7 +4,9 @@ import { Network } from './network.js'
 import {
   DEFAULT_PROOF_SIZE,
   DEFAULT_REF_TIME,
-  convertedPoolKey,
+  _newPoolKey,
+  deployInvariant,
+  deployPSP22,
   getEnvAccount,
   initPolkadotApi,
   printBalance
@@ -28,7 +30,7 @@ import {
   newPoolKey
 } from 'math/math.js'
 import { InvariantEvent } from './schema.js'
-import { deployInvariant, deployPSP22, getEnvTestAccount } from './testUtils.js'
+import { getEnvTestAccount } from './testUtils.js'
 
 const main = async () => {
   {
@@ -86,7 +88,7 @@ const main = async () => {
 
   const feeTier = newFeeTier({ v: 6000000000n }, 10)
 
-  const poolKey = await convertedPoolKey(
+  const poolKey = await _newPoolKey(
     token0.contract.address.toString(),
     token1.contract.address.toString(),
     feeTier
