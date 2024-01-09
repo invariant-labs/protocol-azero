@@ -6,9 +6,14 @@ import { IKeyringPair } from '@polkadot/types/types'
 import { DeployedContract } from '@scio-labs/use-inkathon'
 import { deployContract } from '@scio-labs/use-inkathon/helpers'
 import { Network } from './network.js'
-import { PSP22Query, PSP22Tx } from './schema.js'
-import { getDeploymentData } from './testUtils.js'
-import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME, sendQuery, sendTx } from './utils.js'
+import { PSP22Query, PSP22Tx, TxResult } from './schema.js'
+import {
+  DEFAULT_PROOF_SIZE,
+  DEFAULT_REF_TIME,
+  getDeploymentData,
+  sendQuery,
+  sendTx
+} from './utils.js'
 
 export class PSP22 {
   contract: ContractPromise
@@ -97,11 +102,7 @@ export class PSP22 {
     return deployContract(api, account, abi, wasm, 'new', [supply, name, symbol, decimals])
   }
 
-  async mint(
-    account: IKeyringPair,
-    value: number | bigint,
-    block: boolean = true
-  ): Promise<string> {
+  async mint(account: IKeyringPair, value: bigint, block: boolean = true): Promise<TxResult> {
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -121,7 +122,7 @@ export class PSP22 {
     value: number,
     data: Bytes,
     block: boolean = true
-  ): Promise<string> {
+  ): Promise<TxResult> {
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -140,7 +141,7 @@ export class PSP22 {
     spender: string,
     value: bigint,
     block: boolean = true
-  ): Promise<string> {
+  ): Promise<TxResult> {
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -187,15 +188,17 @@ export class PSP22 {
     )
   }
 
-  async balanceOf(account: IKeyringPair, owner: string): Promise<number> {
-    return sendQuery(
+  async balanceOf(account: IKeyringPair, owner: string): Promise<bigint> {
+    const result = (await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       account,
       PSP22Query.BalanceOf,
       [owner]
-    ) as Promise<number>
+    )) as number
+
+    return BigInt(result)
   }
 
   async totalSupply(account: IKeyringPair): Promise<unknown> {
