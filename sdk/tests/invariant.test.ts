@@ -269,13 +269,13 @@ describe('invariant', async () => {
       await token0.approve(account, invariant.contract.address.toString(), 10000000000000n)
       await token1.approve(account, invariant.contract.address.toString(), 10000000000000n)
 
-      const poolKey = newPoolKey(
+      const poolKey = _newPoolKey(
         token0.contract.address.toString(),
         token1.contract.address.toString(),
         feeTier
       )
 
-      await invariant.createPosition(
+      const result = await invariant.createPosition(
         account,
         poolKey,
         -10n,
@@ -284,6 +284,16 @@ describe('invariant', async () => {
         { v: 1000000000000000000000000n },
         { v: 1000000000000000000000000n }
       )
+
+      assert.deepEqual((result.events[0] as any).address, account.address.toString())
+      assert.deepEqual((result.events[0] as any).currentSqrtPrice, {
+        v: 1000000000000000000000000n
+      })
+      assert.deepEqual((result.events[0] as any).liquidity, { v: 10000000000000n })
+      assert.deepEqual((result.events[0] as any).lowerTick, -10n)
+      assert.deepEqual((result.events[0] as any).pool.tokenX, poolKey.tokenX)
+      assert.deepEqual((result.events[0] as any).pool.tokenY, poolKey.tokenY)
+      assert.deepEqual((result.events[0] as any).upperTick, 10n)
 
       await token0.approve(account, invariant.contract.address.toString(), 1000000000n)
       await token1.approve(account, invariant.contract.address.toString(), 1000000000n)
@@ -451,7 +461,20 @@ describe('invariant', async () => {
     })
     it('remove position', async () => {
       {
-        await invariant.removePosition(account, 0n)
+        const result = await invariant.removePosition(account, 0n)
+
+        console.log(result)
+
+        assert.deepEqual((result.events[0] as any).address, account.address.toString())
+        assert.deepEqual((result.events[0] as any).currentSqrtPrice, {
+          v: 1000000000000000000000000n
+        })
+        assert.deepEqual((result.events[0] as any).liquidity, { v: 1000000000000n })
+        assert.deepEqual((result.events[0] as any).lowerTick, -20n)
+        assert.deepEqual((result.events[0] as any).pool.tokenX, poolKey.tokenX)
+        assert.deepEqual((result.events[0] as any).pool.tokenY, poolKey.tokenY)
+        assert.deepEqual((result.events[0] as any).upperTick, 10n)
+
         assertThrowsAsync(
           invariant.getPosition(account, account.address, 0n),
           InvariantError.PositionNotFound
