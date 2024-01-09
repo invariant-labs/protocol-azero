@@ -6,21 +6,24 @@ import { DeployedContract } from '@scio-labs/use-inkathon'
 import { deployContract } from '@scio-labs/use-inkathon/helpers'
 import { Network } from './network.js'
 import { PSP22Query, PSP22Tx, WrappedAZEROTx } from './schema.js'
+import { getDeploymentData } from './testUtils.js'
 import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME, sendQuery, sendTx } from './utils.js'
 
 export class WrappedAZERO {
-  contract: ContractPromise | null = null
+  contract: ContractPromise
   api: ApiPromise
   gasLimit: WeightV2
   storageDepositLimit: number | null
   waitForFinalization: boolean
 
-  constructor(
+  private constructor(
     api: ApiPromise,
     network: Network,
     storageDepositLimit: number | null = null,
     refTime: number = DEFAULT_REF_TIME,
-    proofSize: number = DEFAULT_PROOF_SIZE
+    proofSize: number = DEFAULT_PROOF_SIZE,
+    abi: any,
+    deploymentAddress: string
   ) {
     this.api = api
     this.gasLimit = api.registry.createType('WeightV2', {
@@ -29,14 +32,50 @@ export class WrappedAZERO {
     }) as WeightV2
     this.storageDepositLimit = storageDepositLimit
     this.waitForFinalization = network != Network.Local
-  }
-
-  async deploy(account: IKeyringPair, abi: any, wasm: Buffer): Promise<DeployedContract> {
-    return deployContract(this.api, account, abi, wasm, 'new', [])
-  }
-
-  async load(deploymentAddress: string, abi: any): Promise<void> {
     this.contract = new ContractPromise(this.api, abi, deploymentAddress)
+  }
+
+  static async getContract(
+    api: ApiPromise,
+    account: IKeyringPair,
+    storageDepositLimit: number | null = null,
+    refTime: number = DEFAULT_REF_TIME,
+    proofSize: number = DEFAULT_PROOF_SIZE,
+    network: Network
+  ): Promise<WrappedAZERO> {
+    const wazeroData = await getDeploymentData('wrapped_azero')
+
+    if (process.env.WAZERO_ADDRESS && network !== Network.Local) {
+      return new WrappedAZERO(
+        api,
+        network,
+        storageDepositLimit,
+        refTime,
+        proofSize,
+        wazeroData.abi,
+        process.env.WAZERO_ADDRESS
+      )
+    } else {
+      const wazeroDeploy = await WrappedAZERO.deploy(api, account, wazeroData.abi, wazeroData.wasm)
+      return new WrappedAZERO(
+        api,
+        network,
+        storageDepositLimit,
+        refTime,
+        proofSize,
+        wazeroData.abi,
+        wazeroDeploy.address
+      )
+    }
+  }
+
+  static async deploy(
+    api: ApiPromise,
+    account: IKeyringPair,
+    abi: any,
+    wasm: Buffer
+  ): Promise<DeployedContract> {
+    return deployContract(api, account, abi, wasm, 'new', [])
   }
 
   async deposit(account: IKeyringPair, value: number, block: boolean = true): Promise<string> {

@@ -1,10 +1,13 @@
 import { Keyring } from '@polkadot/api'
 import dotenv from 'dotenv'
-import { Invariant } from './invariant.js'
 import { Network } from './network.js'
-import { PSP22 } from './psp22.js'
-import { getDeploymentData, getEnvTestAccount } from './testUtils.js'
-import { getEnvAccount, initPolkadotApi, printBalance } from './utils.js'
+import {
+  DEFAULT_PROOF_SIZE,
+  DEFAULT_REF_TIME,
+  getEnvAccount,
+  initPolkadotApi,
+  printBalance
+} from './utils.js'
 import { WrappedAZERO } from './wrapped_azero.js'
 dotenv.config()
 
@@ -22,6 +25,7 @@ import {
   newFeeTier,
   newPoolKey
 } from 'math/math.js'
+import { deployInvariant, deployPSP22, getEnvTestAccount } from './testUtils.js'
 
 const main = async () => {
   {
@@ -66,48 +70,22 @@ const main = async () => {
   await printBalance(api, testAccount)
 
   // deploy invariant
-  const invariantData = await getDeploymentData('invariant')
-  const invariant = new Invariant(api, network)
 
   const initFee = { v: 10n }
-  const invariantDeploy = await invariant.deploy(
-    account,
-    invariantData.abi,
-    invariantData.wasm,
-    initFee
-  )
-  await invariant.load(invariantDeploy.address, invariantData.abi)
+  const invariant = await deployInvariant(api, account, initFee, network)
 
   // deploy token
-  const tokenData = await getDeploymentData('psp22')
-  const token = new PSP22(api, network)
-
-  const name = 'Coin'
-  const symbol = 'COIN'
-
-  const tokenDeploy = await token.deploy(
-    account,
-    tokenData.abi,
-    tokenData.wasm,
-    1000n,
-    name,
-    symbol,
-    0n
-  )
-  await token.load(tokenDeploy.address, tokenData.abi)
+  const token = await deployPSP22(api, account, 1000n, 'Coin', 'COIN', 12n, network)
 
   // deploy wrapped azero
-  const wazeroData = await getDeploymentData('wrapped_azero')
-  const wazero = new WrappedAZERO(api, network)
-
-  if (process.env.WAZERO_ADDRESS && network !== Network.Local) {
-    await wazero.load(process.env.WAZERO_ADDRESS, wazeroData.abi)
-    console.log('loaded wazero')
-  } else {
-    const wazeroDeploy = await wazero.deploy(account, wazeroData.abi, wazeroData.wasm)
-    await wazero.load(wazeroDeploy.address, wazeroData.abi)
-    console.log('deployed and loaded wazero')
-  }
+  const wazero = await WrappedAZERO.getContract(
+    api,
+    account,
+    null,
+    DEFAULT_REF_TIME,
+    DEFAULT_PROOF_SIZE,
+    network
+  )
 
   // change protocol fee
   const initialFee = await invariant.getProtocolFee(account)

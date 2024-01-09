@@ -31,17 +31,13 @@ export const initPolkadotApi = async (network: Network): Promise<ApiPromise> => 
 }
 
 export async function sendQuery(
-  contract: ContractPromise | null,
+  contract: ContractPromise,
   gasLimit: WeightV2,
   storageDepositLimit: number | null,
   signer: IKeyringPair,
   message: Query | Tx,
   data: any[]
 ): Promise<unknown> {
-  if (!contract) {
-    throw new Error('contract not loaded')
-  }
-
   const { result, output } = await contract.query[message](
     signer.address,
     {
@@ -59,7 +55,7 @@ export async function sendQuery(
 }
 
 export async function sendTx(
-  contract: ContractPromise | null,
+  contract: ContractPromise,
   gasLimit: WeightV2,
   storageDepositLimit: number | null,
   value: number,
@@ -69,10 +65,6 @@ export async function sendTx(
   waitForFinalization: boolean = true,
   block: boolean = true
 ): Promise<string> {
-  if (!contract) {
-    throw new Error('contract not loaded')
-  }
-
   const call = contract.tx[message](
     {
       gasLimit,

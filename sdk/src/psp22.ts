@@ -7,21 +7,24 @@ import { DeployedContract } from '@scio-labs/use-inkathon'
 import { deployContract } from '@scio-labs/use-inkathon/helpers'
 import { Network } from './network.js'
 import { PSP22Query, PSP22Tx } from './schema.js'
+import { getDeploymentData } from './testUtils.js'
 import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME, sendQuery, sendTx } from './utils.js'
 
 export class PSP22 {
-  contract: ContractPromise | null = null
+  contract: ContractPromise
   api: ApiPromise
   gasLimit: WeightV2
-  storageDepositLimit: number | null
+  storageDepositLimit: number | null = null
   waitForFinalization: boolean
 
-  constructor(
+  private constructor(
     api: ApiPromise,
     network: Network,
     storageDepositLimit: number | null = null,
     refTime: number = DEFAULT_REF_TIME,
-    proofSize: number = DEFAULT_PROOF_SIZE
+    proofSize: number = DEFAULT_PROOF_SIZE,
+    abi: any,
+    deploymentAddress: string
   ) {
     this.api = api
     this.gasLimit = api.registry.createType('WeightV2', {
@@ -29,10 +32,60 @@ export class PSP22 {
       proofSize
     }) as WeightV2
     this.storageDepositLimit = storageDepositLimit
-    this.waitForFinalization = network != Network.Local
+    this.waitForFinalization = network !== Network.Local
+    this.contract = new ContractPromise(this.api, abi, deploymentAddress)
   }
 
-  async deploy(
+  static async getContract(
+    api: ApiPromise,
+    network: Network,
+    storageDepositLimit: number | null = null,
+    refTime: number = DEFAULT_REF_TIME,
+    proofSize: number = DEFAULT_PROOF_SIZE,
+    account: IKeyringPair,
+    supply: bigint,
+    name: string,
+    symbol: string,
+    decimals: bigint,
+    address?: string
+  ): Promise<PSP22> {
+    const tokenData = await getDeploymentData('psp22')
+    if (address && network != Network.Local) {
+      return new PSP22(
+        api,
+        network,
+        storageDepositLimit,
+        refTime,
+        proofSize,
+        tokenData.abi,
+        address
+      )
+    } else {
+      const tokenDeploy = await PSP22.deploy(
+        api,
+        account,
+        tokenData.abi,
+        tokenData.wasm,
+        supply,
+        name,
+        symbol,
+        decimals
+      )
+
+      return new PSP22(
+        api,
+        Network.Local,
+        storageDepositLimit,
+        refTime,
+        proofSize,
+        tokenData.abi,
+        tokenDeploy.address
+      )
+    }
+  }
+
+  static async deploy(
+    api: ApiPromise,
     account: IKeyringPair,
     abi: any,
     wasm: Buffer,
@@ -41,11 +94,7 @@ export class PSP22 {
     symbol: string,
     decimals: bigint
   ): Promise<DeployedContract> {
-    return deployContract(this.api, account, abi, wasm, 'new', [supply, name, symbol, decimals])
-  }
-
-  async load(deploymentAddress: string, abi: any): Promise<void> {
-    this.contract = new ContractPromise(this.api, abi, deploymentAddress)
+    return deployContract(api, account, abi, wasm, 'new', [supply, name, symbol, decimals])
   }
 
   async mint(

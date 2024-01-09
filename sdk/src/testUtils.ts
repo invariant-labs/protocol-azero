@@ -7,6 +7,8 @@ import { Invariant } from './invariant.js'
 import { Network } from './network.js'
 import { PSP22 } from './psp22.js'
 import { InvariantTx } from './schema.js'
+import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME } from './utils.js'
+import { WrappedAZERO } from './wrapped_azero.js'
 
 export const positionEquals = async (recievedPosition: Position, expectedPosition: Position) => {
   assert.deepEqual(recievedPosition.poolKey, expectedPosition.poolKey)
@@ -40,20 +42,18 @@ export const assertThrowsAsync = async (fn: Promise<any>, word?: InvariantError 
 export const deployInvariant = async (
   api: ApiPromise,
   account: IKeyringPair,
-  initFee: Percentage
+  initFee: Percentage,
+  network: Network
 ): Promise<Invariant> => {
-  const invariantData = await getDeploymentData('invariant')
-  const invariant = new Invariant(api, Network.Local)
-
-  const invariantDeploy = await invariant.deploy(
+  return Invariant.getContract(
+    api,
     account,
-    invariantData.abi,
-    invariantData.wasm,
-    initFee
+    null,
+    DEFAULT_REF_TIME,
+    DEFAULT_PROOF_SIZE,
+    initFee,
+    network
   )
-  await invariant.load(invariantDeploy.address, invariantData.abi)
-
-  return invariant
 }
 
 export const deployPSP22 = async (
@@ -62,23 +62,29 @@ export const deployPSP22 = async (
   supply: bigint,
   name: string,
   symbol: string,
-  decimals: bigint
-) => {
-  const tokenData = await getDeploymentData('psp22')
-  const token = new PSP22(api, Network.Local)
-
-  const tokenDeploy = await token.deploy(
+  decimals: bigint,
+  network: Network
+): Promise<PSP22> => {
+  return PSP22.getContract(
+    api,
+    network,
+    null,
+    DEFAULT_REF_TIME,
+    DEFAULT_PROOF_SIZE,
     account,
-    tokenData.abi,
-    tokenData.wasm,
     supply,
     name,
     symbol,
     decimals
   )
-  await token.load(tokenDeploy.address, tokenData.abi)
+}
 
-  return token
+export const deployWrappedAZERO = async (
+  api: ApiPromise,
+  account: IKeyringPair,
+  network: Network
+): Promise<WrappedAZERO> => {
+  return WrappedAZERO.getContract(api, account, null, DEFAULT_REF_TIME, DEFAULT_PROOF_SIZE, network)
 }
 
 export const getDeploymentData = async (

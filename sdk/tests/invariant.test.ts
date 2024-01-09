@@ -4,7 +4,6 @@ import { InvariantError, Position, SqrtPrice, TokenAmount, newFeeTier } from 'ma
 import { Network } from '../src/network'
 import { InvariantTx } from '../src/schema'
 import { assertThrowsAsync, deployInvariant, deployPSP22, positionEquals } from '../src/testUtils'
-
 import { convertedPoolKey, initPolkadotApi } from '../src/utils'
 
 describe('invariant', async () => {
@@ -13,14 +12,14 @@ describe('invariant', async () => {
   const keyring = new Keyring({ type: 'sr25519' })
   const account = await keyring.addFromUri('//Alice')
 
-  let invariant = await deployInvariant(api, account, { v: 10000000000n })
-  let token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n)
-  let token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n)
+  let invariant = await deployInvariant(api, account, { v: 10000000000n }, Network.Local)
+  let token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
+  let token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
 
   beforeEach(async () => {
-    invariant = await deployInvariant(api, account, { v: 10000000000n })
-    token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n)
-    token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n)
+    invariant = await deployInvariant(api, account, { v: 10000000000n }, Network.Local)
+    token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
+    token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
   })
 
   it('should change protocol fee', async () => {
@@ -82,10 +81,6 @@ describe('invariant', async () => {
   })
 
   it('should get tick and check if it is initialized', async () => {
-    if (!token0.contract?.address || !token1.contract?.address || !invariant.contract?.address) {
-      throw new Error()
-    }
-
     const feeTier = newFeeTier({ v: 10000000000n }, 1)
 
     await invariant.addFeeTier(account, feeTier)
@@ -157,10 +152,6 @@ describe('invariant', async () => {
   })
 
   it('create pool', async () => {
-    if (!token0.contract?.address || !token1.contract?.address || !invariant.contract?.address) {
-      throw new Error()
-    }
-
     const feeTier = newFeeTier({ v: 10000000000n }, 1)
     await invariant.addFeeTier(account, feeTier)
     const addedFeeTierExists = await invariant.feeTierExist(account, feeTier)
@@ -199,9 +190,6 @@ describe('invariant', async () => {
     })
   })
   it('create pool x/y and y/x', async () => {
-    if (!token0.contract?.address || !token1.contract?.address || !invariant.contract?.address) {
-      throw new Error()
-    }
     const feeTier = newFeeTier({ v: 10000000000n }, 1)
     await invariant.addFeeTier(account, feeTier)
     const addedFeeTierExists = await invariant.feeTierExist(account, feeTier)
@@ -263,10 +251,6 @@ describe('invariant', async () => {
     const feeTier = newFeeTier({ v: 6000000000n }, 10)
 
     beforeEach(async () => {
-      if (!token0.contract?.address || !token1.contract?.address || !invariant.contract?.address) {
-        throw new Error()
-      }
-
       const poolKey = await convertedPoolKey(
         token0.contract.address.toString(),
         token1.contract.address.toString(),
@@ -305,10 +289,6 @@ describe('invariant', async () => {
       )
     })
     it('create position', async () => {
-      if (!token0.contract?.address || !token1.contract?.address || !invariant.contract?.address) {
-        throw new Error()
-      }
-
       const poolKey = await convertedPoolKey(
         token0.contract.address.toString(),
         token1.contract.address.toString(),
@@ -330,10 +310,6 @@ describe('invariant', async () => {
       await positionEquals(position, expectedPosition)
     })
     it('remove position', async () => {
-      if (!token0.contract?.address || !token1.contract?.address || !invariant.contract?.address) {
-        throw new Error()
-      }
-
       const poolKey = await convertedPoolKey(
         token0.contract.address.toString(),
         token1.contract.address.toString(),
@@ -378,10 +354,6 @@ describe('invariant', async () => {
     })
 
     it('transfer position', async () => {
-      if (!token0.contract?.address || !token1.contract?.address || !invariant.contract?.address) {
-        throw new Error()
-      }
-
       const poolKey = await convertedPoolKey(
         token0.contract.address.toString(),
         token1.contract.address.toString(),
@@ -413,9 +385,6 @@ describe('invariant', async () => {
       }
     })
     it('claim fee', async () => {
-      if (!token0.contract?.address || !token1.contract?.address || !invariant.contract?.address) {
-        throw new Error()
-      }
       let tokenX
       let tokenY
       if (token0.contract.address.toString() < token1.contract.address.toString()) {
