@@ -389,6 +389,10 @@ describe('positions', async () => {
   const feeTier = newFeeTier({ v: 6000000000n }, 10)
 
   beforeEach(async () => {
+    invariant = await deployInvariant(api, account, { v: 10000000000n }, Network.Local)
+    token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
+    token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
+
     const poolKey = await convertedPoolKey(
       token0.contract.address.toString(),
       token1.contract.address.toString(),
