@@ -6,7 +6,7 @@ import { IKeyringPair } from '@polkadot/types/types'
 import { DeployedContract } from '@scio-labs/use-inkathon'
 import { deployContract } from '@scio-labs/use-inkathon/helpers'
 import { Network } from './network.js'
-import { PSP22Query, PSP22Tx } from './schema.js'
+import { PSP22Query, PSP22Tx, TxResult } from './schema.js'
 import { getDeploymentData } from './testUtils.js'
 import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME, sendQuery, sendTx } from './utils.js'
 
@@ -101,7 +101,7 @@ export class PSP22 {
     account: IKeyringPair,
     value: number | bigint,
     block: boolean = true
-  ): Promise<string> {
+  ): Promise<TxResult> {
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -121,7 +121,7 @@ export class PSP22 {
     value: number,
     data: Bytes,
     block: boolean = true
-  ): Promise<string> {
+  ): Promise<TxResult> {
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -140,7 +140,7 @@ export class PSP22 {
     spender: string,
     value: bigint,
     block: boolean = true
-  ): Promise<string> {
+  ): Promise<TxResult> {
     return sendTx(
       this.contract,
       this.gasLimit,
