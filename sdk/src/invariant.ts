@@ -20,6 +20,7 @@ import {
 } from 'math/math.js'
 import { Network } from './network.js'
 import { InvariantQuery, InvariantTx } from './schema.js'
+import { getDeploymentData } from './testUtils.js'
 import {
   DEFAULT_PROOF_SIZE,
   DEFAULT_REF_TIME,
@@ -30,18 +31,20 @@ import {
 } from './utils.js'
 
 export class Invariant {
-  contract: ContractPromise | null = null
+  contract: ContractPromise
   api: ApiPromise
   gasLimit: WeightV2
   storageDepositLimit: number | null
   waitForFinalization: boolean
 
-  constructor(
+  private constructor(
     api: ApiPromise,
     network: Network,
     storageDepositLimit: number | null = null,
     refTime: number = DEFAULT_REF_TIME,
-    proofSize: number = DEFAULT_PROOF_SIZE
+    proofSize: number = DEFAULT_PROOF_SIZE,
+    abi: any,
+    deploymentAddress: string
   ) {
     this.api = api
     this.gasLimit = api.registry.createType('WeightV2', {
@@ -50,19 +53,58 @@ export class Invariant {
     }) as WeightV2
     this.storageDepositLimit = storageDepositLimit
     this.waitForFinalization = network != Network.Local
+    this.contract = new ContractPromise(this.api, abi, deploymentAddress)
   }
 
-  async deploy(
+  static async getContract(
+    api: ApiPromise,
+    account: IKeyringPair,
+    storageDepositLimit: number | null = null,
+    refTime: number = DEFAULT_REF_TIME,
+    proofSize: number = DEFAULT_PROOF_SIZE,
+    initFee: Percentage,
+    network: Network
+  ): Promise<Invariant> {
+    const invariantData = await getDeploymentData('invariant')
+    if (process.env.INVARIANT_ADDRESS && network != Network.Local) {
+      return new Invariant(
+        api,
+        network,
+        storageDepositLimit,
+        refTime,
+        proofSize,
+        invariantData.abi,
+        process.env.INVARIANT_ADDRESS
+      )
+    } else {
+      const invariantDeploy = await Invariant.deploy(
+        api,
+        account,
+        invariantData.abi,
+        invariantData.wasm,
+        initFee
+      )
+      const invariant = new Invariant(
+        api,
+        Network.Local,
+        storageDepositLimit,
+        refTime,
+        proofSize,
+        invariantData.abi,
+        invariantDeploy.address
+      )
+      return invariant
+    }
+  }
+
+  static async deploy(
+    api: ApiPromise,
     account: IKeyringPair,
     abi: any,
     wasm: Buffer,
     fee: Percentage
   ): Promise<DeployedContract> {
-    return deployContract(this.api, account, abi, wasm, 'new', [fee])
-  }
-
-  async load(deploymentAddress: string, abi: any): Promise<void> {
-    this.contract = new ContractPromise(this.api, abi, deploymentAddress)
+    return deployContract(api, account, abi, wasm, 'new', [fee])
   }
 
   async getProtocolFee(account: IKeyringPair): Promise<Percentage> {

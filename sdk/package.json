@@ -12,7 +12,7 @@
     "lint": "eslint . --ext .ts",
     "test": "ts-mocha",
     "wasm:build": "cd math && wasm-pack build && npm run wasm:package",
-    "wasm:package": "jq '. + {\"type\": \"module\"}' math/pkg/package.json > temp && mv temp math/pkg/package.json",
+    "wasm:package": "cd math/pkg && npm pkg set type='module'",
     "node:start": "substrate-contracts-node purge-chain -y && substrate-contracts-node --rpc-port 9944 --dev",
     "node:stop": "ps aux | grep substrate-contracts-node | tr -s ' ' | cut -d ' ' -f 2 | head -n 1 | xargs -r kill -9",
     "contract:build": "cd .. && cargo contract build --release && cd sdk"
