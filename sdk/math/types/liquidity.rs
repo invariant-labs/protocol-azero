@@ -1,3 +1,4 @@
+use crate::scale;
 use core::convert::{TryFrom, TryInto};
 use decimal::*;
 use serde::{Deserialize, Serialize};
@@ -11,3 +12,4 @@ pub struct Liquidity {
     #[tsify(type = "BigInt")]
     pub v: u128,
 }
+scale!(Liquidity);

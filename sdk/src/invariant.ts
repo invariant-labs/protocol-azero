@@ -2,7 +2,6 @@
 
 import { ApiPromise } from '@polkadot/api'
 import { Abi, ContractPromise } from '@polkadot/api-contract'
-import { Bytes } from '@polkadot/types'
 import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { DeployedContract } from '@scio-labs/use-inkathon'
@@ -23,18 +22,18 @@ import {
 } from 'math/math.js'
 import { Network } from './network.js'
 import { Event, InvariantQuery, InvariantTx, TxResult } from './schema.js'
+import { getDeploymentData } from './testUtils.js'
 import {
   DEFAULT_PROOF_SIZE,
   DEFAULT_REF_TIME,
   convertArr,
   convertObj,
-  parseEvent,
   sendQuery,
   sendTx
 } from './utils.js'
 
 export class Invariant {
-  contract: ContractPromise | null = null
+  contract: ContractPromise
   api: ApiPromise
   gasLimit: WeightV2
   storageDepositLimit: number | null
@@ -42,12 +41,14 @@ export class Invariant {
   abi: Abi | null = null
   eventListeners: { identifier: Event; listener: (event: any) => void }[] = []
 
-  constructor(
+  private constructor(
     api: ApiPromise,
     network: Network,
     storageDepositLimit: number | null = null,
     refTime: number = DEFAULT_REF_TIME,
-    proofSize: number = DEFAULT_PROOF_SIZE
+    proofSize: number = DEFAULT_PROOF_SIZE,
+    abi: any,
+    deploymentAddress: string
   ) {
     this.api = api
     this.gasLimit = api.registry.createType('WeightV2', {
@@ -56,68 +57,58 @@ export class Invariant {
     }) as WeightV2
     this.storageDepositLimit = storageDepositLimit
     this.waitForFinalization = network != Network.Local
+    this.contract = new ContractPromise(this.api, abi, deploymentAddress)
   }
 
-  async deploy(
+  static async getContract(
+    api: ApiPromise,
+    account: IKeyringPair,
+    storageDepositLimit: number | null = null,
+    refTime: number = DEFAULT_REF_TIME,
+    proofSize: number = DEFAULT_PROOF_SIZE,
+    initFee: Percentage,
+    network: Network
+  ): Promise<Invariant> {
+    const invariantData = await getDeploymentData('invariant')
+    if (process.env.INVARIANT_ADDRESS && network != Network.Local) {
+      return new Invariant(
+        api,
+        network,
+        storageDepositLimit,
+        refTime,
+        proofSize,
+        invariantData.abi,
+        process.env.INVARIANT_ADDRESS
+      )
+    } else {
+      const invariantDeploy = await Invariant.deploy(
+        api,
+        account,
+        invariantData.abi,
+        invariantData.wasm,
+        initFee
+      )
+      const invariant = new Invariant(
+        api,
+        Network.Local,
+        storageDepositLimit,
+        refTime,
+        proofSize,
+        invariantData.abi,
+        invariantDeploy.address
+      )
+      return invariant
+    }
+  }
+
+  static async deploy(
+    api: ApiPromise,
     account: IKeyringPair,
     abi: any,
     wasm: Buffer,
     fee: Percentage
   ): Promise<DeployedContract> {
-    return deployContract(this.api, account, abi, wasm, 'new', [fee])
-  }
-
-  async load(deploymentAddress: string, abi: any): Promise<void> {
-    this.contract = new ContractPromise(this.api, abi, deploymentAddress)
-    this.abi = new Abi(abi)
-
-    this.api.query.system.events((events: any) => {
-      events.forEach((record: any) => {
-        const { event } = record
-
-        if (!this.api.events.contracts.ContractEmitted.is(event)) {
-          return
-        }
-
-        const [account_id, contract_evt] = event.data
-
-        if (account_id.toString() !== this.contract?.address.toString()) {
-          return
-        }
-
-        const decoded = this.abi?.decodeEvent(contract_evt as Bytes)
-
-        if (!decoded) {
-          return
-        }
-
-        const eventObj = parseEvent(decoded)
-
-        this.eventListeners.map(eventListener => {
-          if (eventListener.identifier === decoded.event.identifier) {
-            eventListener.listener(eventObj)
-          }
-        })
-      })
-    })
-  }
-
-  on(identifier: Event, listener: (event: any) => void): void {
-    this.eventListeners.push({ identifier, listener })
-  }
-
-  off(identifier: Event, listener?: (event: any) => void): void {
-    this.eventListeners = this.eventListeners.filter(eventListener => {
-      if (eventListener.identifier === identifier) {
-        if (listener) {
-          return eventListener.listener !== listener
-        } else {
-          return false
-        }
-      } else {
-        return true
-      }
-    })
+    return deployContract(api, account, abi, wasm, 'new', [fee])
   }
 
   async getProtocolFee(account: IKeyringPair): Promise<Percentage> {

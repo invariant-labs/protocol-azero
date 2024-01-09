@@ -2,8 +2,8 @@ import { ApiPromise, Keyring } from '@polkadot/api'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { expect } from 'chai'
 import { Network } from '../src/network'
-import { getDeploymentData, initPolkadotApi } from '../src/utils'
-import { WrappedAZERO } from '../src/wrapped_azero'
+import { deployWrappedAZERO } from '../src/testUtils'
+import { initPolkadotApi } from '../src/utils'
 
 describe('wrapped_azero', function () {
   const init = async (): Promise<{ api: ApiPromise; account: IKeyringPair }> => {
@@ -17,22 +17,13 @@ describe('wrapped_azero', function () {
 
   it('deploys', async () => {
     const { api, account } = await init()
-
-    const wazeroData = await getDeploymentData('wrapped_azero')
-    const wazero = new WrappedAZERO(api, Network.Local)
-
-    const wazeroDeploy = await wazero.deploy(account, wazeroData.abi, wazeroData.wasm)
-    await wazero.load(wazeroDeploy.address, wazeroData.abi)
+    await deployWrappedAZERO(api, account, Network.Local)
   })
 
   it('wraps and unwraps azero', async () => {
     const { api, account } = await init()
 
-    const wazeroData = await getDeploymentData('wrapped_azero')
-    const wazero = new WrappedAZERO(api, Network.Local)
-
-    const wazeroDeploy = await wazero.deploy(account, wazeroData.abi, wazeroData.wasm)
-    await wazero.load(wazeroDeploy.address, wazeroData.abi)
+    const wazero = await deployWrappedAZERO(api, account, Network.Local)
 
     await wazero.deposit(account, 1000000000000)
     expect(await wazero.balanceOf(account, account.address)).to.equal(1000000000000)

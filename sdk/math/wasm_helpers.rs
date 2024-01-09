@@ -1,12 +1,12 @@
+use crate::storage::pool_key::PoolKey;
+use crate::storage::tick::Tick;
 use crate::types::{
     fee_growth::FeeGrowth, fixed_point::FixedPoint, liquidity::Liquidity, percentage::Percentage,
     seconds_per_liquidity::SecondsPerLiquidity, sqrt_price::SqrtPrice, token_amount::TokenAmount,
 };
-
-use crate::storage::pool::Pool;
-use crate::storage::pool_key::PoolKey;
-use crate::storage::tick::Tick;
 use decimal::*;
+// use paste::paste;
+extern crate paste;
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;
@@ -36,17 +36,17 @@ pub struct QuoteResult {
     pub ticks: Vec<Tick>,
 }
 
-#[derive(PartialEq, Eq, Debug, Copy, Clone, Serialize, Deserialize, Tsify)]
-#[tsify(into_wasm_abi, from_wasm_abi)]
-#[serde(rename_all = "camelCase")]
-pub struct DecimalScales {
-    sqrt_price: u8,
-    token: u8,
-    liquidity: u8,
-    fixed_point: u8,
-    fee_growth: u8,
-    percentage: u8,
-    seconds_per_liquidity: u8,
+#[macro_export]
+macro_rules! scale {
+    ($decimal:ident) => {
+        ::paste::paste! {
+            #[wasm_bindgen]
+            #[allow(non_snake_case)]
+            pub fn [<get $decimal Scale >] () -> u8 {
+                $decimal::scale()
+            }
+        }
+    };
 }
 
 #[macro_export]
@@ -64,17 +64,4 @@ macro_rules! resolve {
             Err(error) => Err(JsValue::from_str(&error.to_string())),
         }
     }};
-}
-
-#[wasm_bindgen(js_name = "getDecimalScales")]
-pub fn get_decimal_scales() -> DecimalScales {
-    DecimalScales {
-        sqrt_price: SqrtPrice::scale(),
-        token: TokenAmount::scale(),
-        liquidity: Liquidity::scale(),
-        fixed_point: FixedPoint::scale(),
-        fee_growth: FeeGrowth::scale(),
-        percentage: Percentage::scale(),
-        seconds_per_liquidity: SecondsPerLiquidity::scale(),
-    }
 }
