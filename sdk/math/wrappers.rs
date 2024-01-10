@@ -4,6 +4,9 @@ use crate::clamm::{
     get_next_sqrt_price_from_output, get_next_sqrt_price_x_up, get_next_sqrt_price_y_down,
     is_enough_amount_to_change_price, SwapResult,
 };
+use crate::math::{
+    get_liquidity, get_liquidity_by_x, get_liquidity_by_y, LiquidityResult, SingleTokenLiquidity,
+};
 use crate::types::{
     liquidity::Liquidity, percentage::Percentage, sqrt_price::SqrtPrice, token_amount::TokenAmount,
 };
@@ -244,22 +247,71 @@ pub fn wrapped_compute_swap_step(
     ))
 }
 
-#[wasm_bindgen]
+#[wasm_bindgen(js_name = "getLiquidity")]
+pub fn wrapped_get_liquidity(
+    js_x: JsValue,
+    js_y: JsValue,
+    js_lower_tick: JsValue,
+    js_upper_tick: JsValue,
+    js_current_sqrt_price: JsValue,
+    js_rounding_up: JsValue,
+) -> Result<LiquidityResult, JsValue> {
+    let x: TokenAmount = convert!(js_x)?;
+    let y: TokenAmount = convert!(js_y)?;
+    let lower_tick: i32 = convert!(js_lower_tick)?;
+    let upper_tick: i32 = convert!(js_upper_tick)?;
+    let current_sqrt_price: SqrtPrice = convert!(js_current_sqrt_price)?;
+    let rounding_up: bool = convert!(js_rounding_up)?;
+    resolve!(get_liquidity(
+        x,
+        y,
+        lower_tick,
+        upper_tick,
+        current_sqrt_price,
+        rounding_up
+    ))
+}
+
+#[wasm_bindgen(js_name = "getLiquidityByX")]
 pub fn wrapped_get_liquidity_by_x(
     js_x: JsValue,
     js_lower_tick: JsValue,
     js_upper_tick: JsValue,
     js_current_sqrt_price: JsValue,
     js_rounding_up: JsValue,
-) {
+) -> Result<SingleTokenLiquidity, JsValue> {
+    let x: TokenAmount = convert!(js_x)?;
+    let lower_tick: i32 = convert!(js_lower_tick)?;
+    let upper_tick: i32 = convert!(js_upper_tick)?;
+    let current_sqrt_price: SqrtPrice = convert!(js_current_sqrt_price)?;
+    let rounding_up: bool = convert!(js_rounding_up)?;
+    resolve!(get_liquidity_by_x(
+        x,
+        lower_tick,
+        upper_tick,
+        current_sqrt_price,
+        rounding_up
+    ))
 }
 
-#[wasm_bindgen]
+#[wasm_bindgen(js_name = "getLiquidityByY")]
 pub fn wrapped_get_liquidity_by_y(
     js_y: JsValue,
     js_lower_tick: JsValue,
     js_upper_tick: JsValue,
     js_current_sqrt_price: JsValue,
     js_rounding_up: JsValue,
-) {
+) -> Result<SingleTokenLiquidity, JsValue> {
+    let y: TokenAmount = convert!(js_y)?;
+    let lower_tick: i32 = convert!(js_lower_tick)?;
+    let upper_tick: i32 = convert!(js_upper_tick)?;
+    let current_sqrt_price: SqrtPrice = convert!(js_current_sqrt_price)?;
+    let rounding_up: bool = convert!(js_rounding_up)?;
+    resolve!(get_liquidity_by_y(
+        y,
+        lower_tick,
+        upper_tick,
+        current_sqrt_price,
+        rounding_up
+    ))
 }
