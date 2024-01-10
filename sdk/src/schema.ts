@@ -1,3 +1,5 @@
+import { CreatePositionEvent, CrossTickEvent, RemovePositionEvent, SwapEvent } from 'math'
+
 export enum InvariantQuery {
   ProtocolFee = 'invariantTrait::getProtocolFee',
   GetFeeTiers = 'invariantTrait::getFeeTiers',
@@ -58,7 +60,13 @@ export enum InvariantEvent {
   SwapEvent = 'SwapEvent'
 }
 
+export type InvariantEventType =
+  | CreatePositionEvent
+  | CrossTickEvent
+  | RemovePositionEvent
+  | SwapEvent
+
 export interface TxResult {
   hash: string
-  events: object[]
+  events: InvariantEventType[]
 }
