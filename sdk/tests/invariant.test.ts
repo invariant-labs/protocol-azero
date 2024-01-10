@@ -1,10 +1,10 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import { InvariantError, Position, SqrtPrice, TokenAmount, newFeeTier } from 'math/math.js'
+import { InvariantError, Position, SqrtPrice, TokenAmount } from 'math/math.js'
 import { Network } from '../src/network'
 import { InvariantTx } from '../src/schema'
 import { assertThrowsAsync, positionEquals } from '../src/testUtils'
-import { deployInvariant, deployPSP22, initPolkadotApi, newPoolKey } from '../src/utils'
+import { deployInvariant, deployPSP22, initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
 
 const api = await initPolkadotApi(Network.Local)
 
@@ -17,7 +17,7 @@ let token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Ne
 let token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
 
 describe('invariant', async () => {
-  const feeTier = newFeeTier({ v: 10000000000n }, 1)
+  const feeTier = newFeeTier({ v: 10000000000n }, 1n)
 
   beforeEach(async () => {
     invariant = await deployInvariant(api, account, { v: 10000000000n }, Network.Local)
@@ -35,8 +35,8 @@ describe('invariant', async () => {
   })
 
   it('should add fee tier', async () => {
-    const feeTier = newFeeTier({ v: 10000000000n }, 5)
-    const anotherFeeTier = newFeeTier({ v: 20000000000n }, 10)
+    const feeTier = newFeeTier({ v: 10000000000n }, 5n)
+    const anotherFeeTier = newFeeTier({ v: 20000000000n }, 10n)
 
     await invariant.addFeeTier(account, feeTier)
     let addedFeeTierExists = await invariant.feeTierExist(account, feeTier)
@@ -58,8 +58,8 @@ describe('invariant', async () => {
   })
 
   it('should remove fee tier', async () => {
-    const feeTier = newFeeTier({ v: 10000000000n }, 5)
-    const anotherFeeTier = newFeeTier({ v: 20000000000n }, 10)
+    const feeTier = newFeeTier({ v: 10000000000n }, 5n)
+    const anotherFeeTier = newFeeTier({ v: 20000000000n }, 10n)
 
     await invariant.addFeeTier(account, feeTier)
     await invariant.addFeeTier(account, anotherFeeTier)
@@ -287,7 +287,7 @@ describe('invariant', async () => {
     })
 
     it('should withdraw protocol fee', async () => {
-      const feeTier = newFeeTier({ v: 10000000000n }, 1)
+      const feeTier = newFeeTier({ v: 10000000000n }, 1n)
 
       const poolKey = newPoolKey(
         token0.contract.address.toString(),
@@ -330,7 +330,7 @@ describe('invariant', async () => {
     })
 
     it('should change fee receiver', async () => {
-      const feeTier = newFeeTier({ v: 10000000000n }, 1)
+      const feeTier = newFeeTier({ v: 10000000000n }, 1n)
 
       const poolKey = newPoolKey(
         token0.contract.address.toString(),
@@ -382,7 +382,7 @@ describe('invariant', async () => {
   describe('positions', async () => {
     const lowerTickIndex = -20n
     const upperTickIndex = 10n
-    const feeTier = newFeeTier({ v: 6000000000n }, 10)
+    const feeTier = newFeeTier({ v: 6000000000n }, 10n)
     let poolKey = newPoolKey(
       token0.contract.address.toString(),
       token1.contract.address.toString(),

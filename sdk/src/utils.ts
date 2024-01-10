@@ -5,7 +5,7 @@ import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { getSubstrateChain } from '@scio-labs/use-inkathon/chains'
 import { getBalance, initPolkadotJs as initApi } from '@scio-labs/use-inkathon/helpers'
 import { readFile } from 'fs/promises'
-import { FeeTier, Percentage, PoolKey, _newPoolKey } from 'math/math.js'
+import { FeeTier, Percentage, PoolKey, _newFeeTier, _newPoolKey } from 'math/math.js'
 import { Invariant } from './invariant.js'
 import { Network } from './network.js'
 import { PSP22 } from './psp22.js'
@@ -122,7 +122,11 @@ export const printBalance = async (api: ApiPromise, account: IKeyringPair) => {
 }
 
 export const newPoolKey = (token0: string, token1: string, feeTier: FeeTier): PoolKey => {
-  return parse(_newPoolKey(token0, token1, feeTier))
+  return parse(_newPoolKey(token0, token1, _newFeeTier(feeTier.fee, Number(feeTier.tickSpacing))))
+}
+
+export const newFeeTier = (fee: Percentage, tickSpacing: bigint): FeeTier => {
+  return parse(_newFeeTier(fee, Number(tickSpacing)))
 }
 
 export const getEnvAccount = async (keyring: Keyring): Promise<IKeyringPair> => {
