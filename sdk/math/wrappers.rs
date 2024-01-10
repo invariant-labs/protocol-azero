@@ -6,13 +6,10 @@ use crate::clamm::{
 };
 use crate::math::{get_liquidity_by_x, get_liquidity_by_y, SingleTokenLiquidity};
 use crate::types::{
-    liquidity::Liquidity,
-    percentage::Percentage,
-    sqrt_price::{calculate_sqrt_price, SqrtPrice},
-    token_amount::TokenAmount,
+    liquidity::Liquidity, percentage::Percentage, sqrt_price::SqrtPrice, token_amount::TokenAmount,
 };
 
-use crate::{convert, log, resolve, wasm_helpers::AmountDeltaResult};
+use crate::{convert, resolve, wasm_helpers::AmountDeltaResult};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(js_name = "getDeltaY")]
@@ -265,7 +262,6 @@ pub fn wrapped_get_liquidity_by_x(
     let upper_tick: i64 = convert!(js_upper_tick)?;
     let current_sqrt_price: SqrtPrice = convert!(js_current_sqrt_price)?;
     let rounding_up: bool = convert!(js_rounding_up)?;
-    log(calculate_sqrt_price(-20000).unwrap().to_string().as_str());
     resolve!(get_liquidity_by_x(
         x,
         lower_tick as i32,
