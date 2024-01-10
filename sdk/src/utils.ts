@@ -41,7 +41,7 @@ export async function sendQuery(
   signer: IKeyringPair,
   message: Query | Tx,
   data: any[]
-): Promise<unknown> {
+): Promise<any> {
   const { result, output } = await contract.query[message](
     signer.address,
     {
@@ -52,7 +52,7 @@ export async function sendQuery(
   )
 
   if (result.isOk && output) {
-    return JSON.parse(output.toString()).ok
+    return parse(JSON.parse(output.toString()).ok)
   } else {
     throw new Error(result.asErr.toHuman()?.toString())
   }
@@ -112,66 +112,6 @@ export async function sendTx(
   })
 }
 
-export const convertObj = <T>(obj: T): T => {
-  const newObj: { [key: string]: any } = {}
-
-  Object.entries(obj as { [key: string]: any }).forEach(([key, value]) => {
-    newObj[key] = value
-
-    if (
-      typeof value === 'number' ||
-      (typeof value === 'string' && (value.startsWith('0x') || /^[0-9]+$/.test(value)))
-    ) {
-      newObj[key] = BigInt(value)
-    }
-
-    if (
-      typeof value?.v === 'number' ||
-      (typeof value?.v === 'string' && (value?.v.startsWith('0x') || /^[0-9]+$/.test(value?.v)))
-    ) {
-      newObj[key] = { v: BigInt(value?.v) }
-    }
-
-    if (value?.constructor === Array) {
-      newObj[key] = convertArr(value)
-    }
-
-    if (typeof value === 'object' && value?.v === undefined && value !== null) {
-      newObj[key] = convertObj(value)
-    }
-  })
-
-  return newObj as T
-}
-
-export const convertArr = (arr: any[]): any[] => {
-  return arr.map(value => {
-    if (
-      typeof value === 'number' ||
-      (typeof value === 'string' && (value.startsWith('0x') || /^[0-9]+$/.test(value)))
-    ) {
-      return BigInt(value)
-    }
-
-    if (
-      typeof value?.v === 'number' ||
-      (typeof value?.v === 'string' && (value?.v.startsWith('0x') || /^[0-9]+$/.test(value?.v)))
-    ) {
-      return { v: BigInt(value?.v) }
-    }
-
-    if (value?.constructor === Array) {
-      return convertArr(value)
-    }
-
-    if (typeof value === 'object' && value.v === undefined && value !== null) {
-      return convertObj(value)
-    }
-
-    return value
-  })
-}
-
 export const printBalance = async (api: ApiPromise, account: IKeyringPair) => {
   const network = (await api.rpc.system.chain())?.toString() || ''
   const version = (await api.rpc.system.version())?.toString() || ''
@@ -182,7 +122,7 @@ export const printBalance = async (api: ApiPromise, account: IKeyringPair) => {
 }
 
 export const _newPoolKey = (token0: string, token1: string, feeTier: FeeTier): PoolKey => {
-  return convertObj(newPoolKey(token0, token1, feeTier))
+  return parse(newPoolKey(token0, token1, feeTier))
 }
 
 export const getEnvAccount = async (keyring: Keyring): Promise<IKeyringPair> => {
@@ -202,7 +142,7 @@ export const parseEvent = (event: { [key: string]: any }) => {
     eventObj[event.event.args[i].name] = event.args[i].toPrimitive()
   }
 
-  return convertObj(eventObj)
+  return parse(eventObj)
 }
 
 export const parseEvents = (events: { [key: string]: any }[]) => {
@@ -270,4 +210,42 @@ export const getDeploymentData = async (
   } catch (error) {
     throw new Error(`${contractName}.json or ${contractName}.wasm not found`)
   }
+}
+
+export const parse = (value: any) => {
+  if (isArray(value)) {
+    return value.map((element: any) => parse(element))
+  }
+
+  if (isObject(value)) {
+    const newValue: { [key: string]: any } = {}
+
+    Object.entries(value as { [key: string]: any }).forEach(([key, value]) => {
+      newValue[key] = parse(value)
+    })
+
+    return newValue
+  }
+
+  if (isBoolean(value)) {
+    return value
+  }
+
+  try {
+    return BigInt(value)
+  } catch (e) {
+    return value
+  }
+}
+
+const isBoolean = (value: any): boolean => {
+  return typeof value === 'boolean'
+}
+
+const isArray = (value: any): boolean => {
+  return Array.isArray(value)
+}
+
+const isObject = (value: any): boolean => {
+  return typeof value === 'object' && value !== null
 }
