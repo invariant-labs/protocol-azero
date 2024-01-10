@@ -122,11 +122,11 @@ export const printBalance = async (api: ApiPromise, account: IKeyringPair) => {
 }
 
 export const newPoolKey = (token0: string, token1: string, feeTier: FeeTier): PoolKey => {
-  return parse(_newPoolKey(token0, token1, feeTier))
+  return parse(_newPoolKey(token0, token1, _newFeeTier(feeTier.fee, Number(feeTier.tickSpacing))))
 }
 
 export const newFeeTier = (fee: Percentage, tickSpacing: bigint): FeeTier => {
-  return parse(_newFeeTier(fee, tickSpacing))
+  return parse(_newFeeTier(fee, Number(tickSpacing)))
 }
 
 export const getEnvAccount = async (keyring: Keyring): Promise<IKeyringPair> => {
