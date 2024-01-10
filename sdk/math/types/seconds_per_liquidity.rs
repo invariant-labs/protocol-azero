@@ -2,9 +2,9 @@ use crate::liquidity::Liquidity;
 use crate::scale;
 use core::convert::{TryFrom, TryInto};
 use decimal::*;
-use traceable_result::*;
-
+use js_sys::BigInt;
 use serde::{Deserialize, Serialize};
+use traceable_result::*;
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;
 
