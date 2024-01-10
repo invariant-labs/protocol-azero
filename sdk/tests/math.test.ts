@@ -22,8 +22,6 @@ let token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Ne
 let token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
 
 describe('invariant', async () => {
-  const feeTier = newFeeTier({ v: 10000000000n }, 1)
-
   beforeEach(async () => {
     invariant = await deployInvariant(api, account, { v: 10000000000n }, Network.Local)
     token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
