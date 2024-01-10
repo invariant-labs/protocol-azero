@@ -12,91 +12,9 @@ use tsify::Tsify;
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
-pub struct LiquidityResult {
-    pub x: TokenAmount,
-    pub y: TokenAmount,
-    pub l: Liquidity,
-}
-
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Tsify)]
-#[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct SingleTokenLiquidity {
     pub l: Liquidity,
     pub amount: TokenAmount,
-}
-
-#[allow(dead_code)]
-pub fn get_liquidity(
-    x: TokenAmount,
-    y: TokenAmount,
-    lower_tick: i32,
-    upper_tick: i32,
-    current_sqrt_price: SqrtPrice,
-    rounding_up: bool,
-) -> TrackableResult<LiquidityResult> {
-    if lower_tick < -MAX_TICK || upper_tick > MAX_TICK {
-        return Err(err!("Invalid Ticks"));
-    }
-
-    let lower_sqrt_price = ok_or_mark_trace!(calculate_sqrt_price(lower_tick))?;
-    let upper_sqrt_price = ok_or_mark_trace!(calculate_sqrt_price(upper_tick))?;
-
-    if upper_sqrt_price < current_sqrt_price {
-        // single token y
-        let result_by_y = ok_or_mark_trace!(get_liquidity_by_y_sqrt_price(
-            y,
-            lower_sqrt_price,
-            upper_sqrt_price,
-            current_sqrt_price,
-            rounding_up,
-        ))?;
-        return Ok(LiquidityResult {
-            x: result_by_y.amount,
-            y,
-            l: result_by_y.l,
-        });
-    } else if current_sqrt_price < lower_sqrt_price {
-        // single token x
-        let result_by_x = ok_or_mark_trace!(get_liquidity_by_x_sqrt_price(
-            x,
-            lower_sqrt_price,
-            upper_sqrt_price,
-            current_sqrt_price,
-            rounding_up,
-        ))?;
-        return Ok(LiquidityResult {
-            x,
-            y: result_by_x.amount,
-            l: result_by_x.l,
-        });
-    }
-    let result_by_y = ok_or_mark_trace!(get_liquidity_by_y_sqrt_price(
-        y,
-        lower_sqrt_price,
-        upper_sqrt_price,
-        current_sqrt_price,
-        rounding_up,
-    ))?;
-    let result_by_x = ok_or_mark_trace!(get_liquidity_by_x_sqrt_price(
-        x,
-        lower_sqrt_price,
-        upper_sqrt_price,
-        current_sqrt_price,
-        rounding_up,
-    ))?;
-    Ok(if result_by_y.l < result_by_x.l {
-        LiquidityResult {
-            x: result_by_y.amount,
-            y: result_by_x.amount,
-            l: result_by_y.l,
-        }
-    } else {
-        LiquidityResult {
-            x: result_by_y.amount,
-            y: result_by_x.amount,
-            l: result_by_x.l,
-        }
-    })
 }
 
 #[allow(dead_code)]

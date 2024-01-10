@@ -11,7 +11,13 @@ import {
 import { Network } from '../src/network'
 import { InvariantTx } from '../src/schema'
 import { assertThrowsAsync, positionEquals } from '../src/testUtils'
-import { _newPoolKey, deployInvariant, deployPSP22, initPolkadotApi } from '../src/utils'
+import {
+  _newPoolKey,
+  deployInvariant,
+  deployPSP22,
+  getLiquidityByX,
+  initPolkadotApi
+} from '../src/utils'
 
 const api = await initPolkadotApi(Network.Local)
 
@@ -597,6 +603,99 @@ describe('invariant', async () => {
         assert.deepEqual(position.feeGrowthInsideX, pool.feeGrowthGlobalX)
         assert.deepEqual(position.tokensOwedX, 0n)
       }
+    })
+  })
+
+  describe.only('check get liquidity by x/y', async () => {
+    const providedAmount = 430000n
+    const feeTier = newFeeTier({ v: 6000000000n }, 10)
+
+    let poolKey = _newPoolKey(
+      token0.contract.address.toString(),
+      token1.contract.address.toString(),
+      feeTier
+    )
+    let tokenX = token0
+    let tokenY = token1
+
+    beforeEach(async () => {
+      poolKey = _newPoolKey(
+        token0.contract.address.toString(),
+        token1.contract.address.toString(),
+        feeTier
+      )
+
+      if (token0.contract.address.toString() < token1.contract.address.toString()) {
+        tokenX = token0
+        tokenY = token1
+      } else {
+        tokenX = token1
+        tokenY = token0
+      }
+
+      await invariant.addFeeTier(account, feeTier)
+
+      const initSqrtPrice: SqrtPrice = { v: 1005012269622000000000000n }
+      await invariant.createPool(
+        account,
+        token0.contract.address.toString(),
+        token1.contract.address.toString(),
+        feeTier,
+        initSqrtPrice,
+        100n
+      )
+
+      await token0.approve(account, invariant.contract.address.toString(), 10000000000n)
+      await token1.approve(account, invariant.contract.address.toString(), 10000000000n)
+    })
+    it('create position with only x', async () => {
+      const lowerTickIndex = 80n
+      const upperTickIndex = 120n
+
+      const pool = await invariant.getPool(
+        account,
+        token0.contract.address.toString(),
+        token1.contract.address.toString(),
+        feeTier
+      )
+
+      const { l, amount } = getLiquidityByX(
+        providedAmount,
+        lowerTickIndex,
+        upperTickIndex,
+        pool.sqrtPrice,
+        true
+      )
+
+      const positionOwner = keyring.addFromUri('//Bob')
+      await tokenX.mint(positionOwner, providedAmount)
+      await tokenX.approve(positionOwner, invariant.contract.address.toString(), providedAmount)
+      await tokenY.mint(positionOwner, amount)
+      await tokenY.approve(positionOwner, invariant.contract.address.toString(), amount)
+
+      await invariant.createPosition(
+        positionOwner,
+        poolKey,
+        lowerTickIndex,
+        upperTickIndex,
+        l,
+        pool.sqrtPrice,
+        pool.sqrtPrice
+      )
+
+      const position = await invariant.getPosition(positionOwner, positionOwner.address, 0n)
+      const expectedPosition: Position = {
+        poolKey: poolKey,
+        liquidity: l,
+        lowerTickIndex: lowerTickIndex,
+        upperTickIndex: upperTickIndex,
+        feeGrowthInsideX: { v: 0n },
+        feeGrowthInsideY: { v: 0n },
+        lastBlockNumber: 0n,
+        tokensOwedX: 0n,
+        tokensOwedY: 0n
+      }
+      await positionEquals(position, expectedPosition)
     })
   })
 })

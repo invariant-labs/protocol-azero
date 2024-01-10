@@ -12,7 +12,7 @@ use wasm_bindgen::prelude::*;
 #[decimal(0)]
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
-pub struct TokenAmount(#[tsify(type = "u128")] pub u128);
+pub struct TokenAmount(#[tsify(type = "bigint")] pub u128);
 
 scale!(TokenAmount);
 
