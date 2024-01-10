@@ -243,3 +243,23 @@ pub fn wrapped_compute_swap_step(
         fee
     ))
 }
+
+#[wasm_bindgen]
+pub fn wrapped_get_liquidity_by_x(
+    js_x: JsValue,
+    js_lower_tick: JsValue,
+    js_upper_tick: JsValue,
+    js_current_sqrt_price: JsValue,
+    js_rounding_up: JsValue,
+) {
+}
+
+#[wasm_bindgen]
+pub fn wrapped_get_liquidity_by_y(
+    js_y: JsValue,
+    js_lower_tick: JsValue,
+    js_upper_tick: JsValue,
+    js_current_sqrt_price: JsValue,
+    js_rounding_up: JsValue,
+) {
+}
