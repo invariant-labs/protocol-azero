@@ -70,3 +70,23 @@ export interface TxResult {
   hash: string
   events: InvariantEventType[]
 }
+
+export type CreatePositionTxResult = {
+  hash: string
+  events: [CreatePositionEvent]
+}
+
+export type RemovePositionTxResult = {
+  hash: string
+  events: [RemovePositionEvent]
+}
+
+export type SwapTxResult = {
+  hash: string
+  events: [CrossTickEvent, SwapEvent]
+}
+
+export type SwapRouteTxResult = {
+  hash: string
+  events: (CrossTickEvent | SwapEvent)[]
+}

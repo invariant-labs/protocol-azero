@@ -22,7 +22,16 @@ import {
   TokenAmount
 } from 'math/math.js'
 import { Network } from './network.js'
-import { InvariantEvent, InvariantQuery, InvariantTx, TxResult } from './schema.js'
+import {
+  CreatePositionTxResult,
+  InvariantEvent,
+  InvariantQuery,
+  InvariantTx,
+  RemovePositionTxResult,
+  SwapRouteTxResult,
+  SwapTxResult,
+  TxResult
+} from './schema.js'
 import {
   DEFAULT_PROOF_SIZE,
   DEFAULT_REF_TIME,
@@ -323,7 +332,7 @@ export class Invariant {
     slippageLimitLower: SqrtPrice,
     slippageLimitUpper: SqrtPrice,
     block: boolean = true
-  ): Promise<TxResult> {
+  ): Promise<CreatePositionTxResult> {
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -334,7 +343,7 @@ export class Invariant {
       [poolKey, lowerTick, upperTick, liquidityDelta, slippageLimitLower, slippageLimitUpper],
       this.waitForFinalization,
       block
-    )
+    ) as Promise<CreatePositionTxResult>
   }
 
   async transferPosition(
@@ -360,7 +369,7 @@ export class Invariant {
     account: IKeyringPair,
     index: bigint,
     block: boolean = true
-  ): Promise<TxResult> {
+  ): Promise<RemovePositionTxResult> {
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -371,7 +380,7 @@ export class Invariant {
       [index],
       this.waitForFinalization,
       block
-    )
+    ) as Promise<RemovePositionTxResult>
   }
 
   async claimFee(account: IKeyringPair, index: bigint, block: boolean = true): Promise<TxResult> {
@@ -512,7 +521,7 @@ export class Invariant {
     byAmountIn: boolean,
     sqrtPriceLimit: SqrtPrice,
     block: boolean = true
-  ): Promise<TxResult> {
+  ): Promise<SwapTxResult> {
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -523,7 +532,7 @@ export class Invariant {
       [poolKey, xToY, amount, byAmountIn, sqrtPriceLimit],
       this.waitForFinalization,
       block
-    )
+    ) as Promise<SwapTxResult>
   }
 
   async swapRoute(
@@ -533,7 +542,7 @@ export class Invariant {
     slippage: Percentage,
     swaps: SwapHop[],
     block: boolean = true
-  ): Promise<TxResult> {
+  ): Promise<SwapRouteTxResult> {
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -544,6 +553,6 @@ export class Invariant {
       [amountIn, expectedAmountOut, slippage, swaps],
       this.waitForFinalization,
       block
-    )
+    ) as Promise<SwapRouteTxResult>
   }
 }
