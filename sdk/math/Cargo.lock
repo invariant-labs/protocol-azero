@@ -106,6 +106,7 @@ name = "math"
 version = "0.1.0"
 dependencies = [
  "decimal",
+ "js-sys",
  "paste",
  "serde",
  "serde-wasm-bindgen",

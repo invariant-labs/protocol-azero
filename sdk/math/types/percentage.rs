@@ -1,7 +1,7 @@
+use crate::scale;
 use core::convert::{TryFrom, TryInto};
 use decimal::*;
-
-use crate::scale;
+use js_sys::BigInt;
 use serde::{Deserialize, Serialize};
 
 use tsify::Tsify;

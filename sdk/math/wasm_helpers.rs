@@ -7,6 +7,7 @@ use crate::types::{
 use decimal::*;
 // use paste::paste;
 extern crate paste;
+use js_sys::BigInt;
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;
@@ -42,8 +43,8 @@ macro_rules! scale {
         ::paste::paste! {
             #[wasm_bindgen]
             #[allow(non_snake_case)]
-            pub fn [<get $decimal Scale >] () -> u8 {
-                $decimal::scale()
+            pub fn [<get $decimal Scale >] () -> BigInt {
+                BigInt::from($decimal::scale())
             }
         }
     };

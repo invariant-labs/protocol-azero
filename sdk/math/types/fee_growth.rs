@@ -1,12 +1,12 @@
 use crate::liquidity::*;
 
+use crate::scale;
 use crate::token_amount::TokenAmount;
 use core::convert::{TryFrom, TryInto};
 use decimal::*;
-use traceable_result::*;
-
-use crate::scale;
+use js_sys::BigInt;
 use serde::{Deserialize, Serialize};
+use traceable_result::*;
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;
 
