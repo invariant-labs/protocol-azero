@@ -6,10 +6,13 @@ use crate::clamm::{
 };
 use crate::math::{get_liquidity_by_x, get_liquidity_by_y, SingleTokenLiquidity};
 use crate::types::{
-    liquidity::Liquidity, percentage::Percentage, sqrt_price::SqrtPrice, token_amount::TokenAmount,
+    liquidity::Liquidity,
+    percentage::Percentage,
+    sqrt_price::{calculate_sqrt_price, SqrtPrice},
+    token_amount::TokenAmount,
 };
 
-use crate::{convert, resolve, wasm_helpers::AmountDeltaResult};
+use crate::{convert, log, resolve, wasm_helpers::AmountDeltaResult};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(js_name = "getDeltaY")]
@@ -135,19 +138,19 @@ pub fn wrapped_calculate_amount_delta(
     js_upper_tick: JsValue,
     js_lower_tick: JsValue,
 ) -> Result<AmountDeltaResult, JsValue> {
-    let current_tick_index: i32 = convert!(js_current_tick_index)?;
+    let current_tick_index: i64 = convert!(js_current_tick_index)?;
     let current_sqrt_price: SqrtPrice = convert!(js_current_sqrt_price)?;
     let liquidity_delta: Liquidity = convert!(js_liquidity_delta)?;
     let liquidity_sign: bool = convert!(js_liquidity_sign)?;
-    let upper_tick: i32 = convert!(js_upper_tick)?;
-    let lower_tick: i32 = convert!(js_lower_tick)?;
+    let upper_tick: i64 = convert!(js_upper_tick)?;
+    let lower_tick: i64 = convert!(js_lower_tick)?;
     match calculate_amount_delta(
-        current_tick_index,
+        current_tick_index as i32,
         current_sqrt_price,
         liquidity_delta,
         liquidity_sign,
-        upper_tick,
-        lower_tick,
+        upper_tick as i32,
+        lower_tick as i32,
     ) {
         Ok(result) => Ok(AmountDeltaResult {
             x: result.0,
@@ -197,17 +200,21 @@ pub fn wrapped_check_ticks(
     js_tick_upper: JsValue,
     js_tick_spacing: JsValue,
 ) -> Result<(), JsValue> {
-    let tick_lower: i32 = convert!(js_tick_lower)?;
-    let tick_upper: i32 = convert!(js_tick_upper)?;
-    let tick_spacing: u16 = convert!(js_tick_spacing)?;
-    resolve!(check_ticks(tick_lower, tick_upper, tick_spacing))
+    let tick_lower: i64 = convert!(js_tick_lower)?;
+    let tick_upper: i64 = convert!(js_tick_upper)?;
+    let tick_spacing: u64 = convert!(js_tick_spacing)?;
+    resolve!(check_ticks(
+        tick_lower as i32,
+        tick_upper as i32,
+        tick_spacing as u16
+    ))
 }
 
 #[wasm_bindgen(js_name = "checkTick")]
 pub fn wrapped_check_tick(js_tick_index: JsValue, js_tick_spacing: JsValue) -> Result<(), JsValue> {
-    let tick_index: i32 = convert!(js_tick_index)?;
-    let tick_spacing: u16 = convert!(js_tick_spacing)?;
-    resolve!(check_tick(tick_index, tick_spacing))
+    let tick_index: i64 = convert!(js_tick_index)?;
+    let tick_spacing: u64 = convert!(js_tick_spacing)?;
+    resolve!(check_tick(tick_index as i32, tick_spacing as u16))
 }
 
 #[wasm_bindgen(js_name = "calculateMinAmountOut")]
@@ -258,6 +265,7 @@ pub fn wrapped_get_liquidity_by_x(
     let upper_tick: i64 = convert!(js_upper_tick)?;
     let current_sqrt_price: SqrtPrice = convert!(js_current_sqrt_price)?;
     let rounding_up: bool = convert!(js_rounding_up)?;
+    log(calculate_sqrt_price(-20000).unwrap().to_string().as_str());
     resolve!(get_liquidity_by_x(
         x,
         lower_tick as i32,
@@ -276,14 +284,14 @@ pub fn wrapped_get_liquidity_by_y(
     js_rounding_up: JsValue,
 ) -> Result<SingleTokenLiquidity, JsValue> {
     let y: TokenAmount = convert!(js_y)?;
-    let lower_tick: i32 = convert!(js_lower_tick)?;
-    let upper_tick: i32 = convert!(js_upper_tick)?;
+    let lower_tick: i64 = convert!(js_lower_tick)?;
+    let upper_tick: i64 = convert!(js_upper_tick)?;
     let current_sqrt_price: SqrtPrice = convert!(js_current_sqrt_price)?;
     let rounding_up: bool = convert!(js_rounding_up)?;
     resolve!(get_liquidity_by_y(
         y,
-        lower_tick,
-        upper_tick,
+        lower_tick as i32,
+        upper_tick as i32,
         current_sqrt_price,
         rounding_up
     ))

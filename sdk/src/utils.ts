@@ -12,6 +12,7 @@ import {
   SqrtPrice,
   TokenAmount,
   _getLiquidityByX,
+  _getLiquidityByY,
   newPoolKey
 } from 'math/math.js'
 import { Invariant } from './invariant.js'
@@ -289,5 +290,16 @@ export const getLiquidityByX = (
 ) => {
   return convertObj(
     _getLiquidityByX(x, lowerTickIndex, upperTickIndex, currentSqrtPrice, roundingUp)
+  )
+}
+export const getLiquidityByY = (
+  y: TokenAmount,
+  lowerTickIndex: bigint,
+  upperTickIndex: bigint,
+  currentSqrtPrice: SqrtPrice,
+  roundingUp: boolean
+) => {
+  return convertObj(
+    _getLiquidityByY(y, lowerTickIndex, upperTickIndex, currentSqrtPrice, roundingUp)
   )
 }
