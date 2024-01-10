@@ -1,17 +1,10 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import {
-  InvariantError,
-  Position,
-  SqrtPrice,
-  TokenAmount,
-  newFeeTier,
-  newPoolKey
-} from 'math/math.js'
+import { InvariantError, Position, SqrtPrice, TokenAmount, newFeeTier } from 'math/math.js'
 import { Network } from '../src/network'
 import { InvariantTx } from '../src/schema'
 import { assertThrowsAsync, positionEquals } from '../src/testUtils'
-import { _newPoolKey, deployInvariant, deployPSP22, initPolkadotApi } from '../src/utils'
+import { deployInvariant, deployPSP22, initPolkadotApi, newPoolKey } from '../src/utils'
 
 const api = await initPolkadotApi(Network.Local)
 
@@ -105,7 +98,7 @@ describe('invariant', async () => {
     await token0.approve(account, invariant.contract.address.toString(), 1000000000n)
     await token1.approve(account, invariant.contract.address.toString(), 1000000000n)
 
-    const poolKey = _newPoolKey(
+    const poolKey = newPoolKey(
       token0.contract.address.toString(),
       token1.contract.address.toString(),
       feeTier
@@ -390,14 +383,14 @@ describe('invariant', async () => {
     const lowerTickIndex = -20n
     const upperTickIndex = 10n
     const feeTier = newFeeTier({ v: 6000000000n }, 10)
-    let poolKey = _newPoolKey(
+    let poolKey = newPoolKey(
       token0.contract.address.toString(),
       token1.contract.address.toString(),
       feeTier
     )
 
     beforeEach(async () => {
-      poolKey = _newPoolKey(
+      poolKey = newPoolKey(
         token0.contract.address.toString(),
         token1.contract.address.toString(),
         feeTier

@@ -43,7 +43,7 @@ impl PoolKey {
     }
 }
 
-#[wasm_bindgen(js_name = "newPoolKey")]
+#[wasm_bindgen(js_name = "_newPoolKey")]
 pub fn new_pool_key(
     token_0: JsValue,
     token_1: JsValue,
