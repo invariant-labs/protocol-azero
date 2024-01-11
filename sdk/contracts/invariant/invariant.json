@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x93c035fd43a14c807c7400260ba024d4f27f49e3f245dbeaeae50db37980d84a",
+    "hash": "0xce4da0dc609b332c5dd9c422bd8570dfcc7d5d3856a7c44fb6f4bb8e20da0102",
     "language": "ink! 4.3.0",
     "compiler": "rustc 1.72.1",
     "build_info": {
@@ -72,13 +72,13 @@
         "displayName": [
           "ChainExtension"
         ],
-        "type": 55
+        "type": 57
       },
       "hash": {
         "displayName": [
           "Hash"
         ],
-        "type": 54
+        "type": 56
       },
       "maxEventTopics": 4,
       "timestamp": {
@@ -215,7 +215,7 @@
               "displayName": [
                 "Vec"
               ],
-              "type": 53
+              "type": 55
             }
           }
         ],
@@ -1238,6 +1238,32 @@
           "type": 52
         },
         "selector": "0xd05b6003"
+      },
+      {
+        "args": [
+          {
+            "label": "pool_key",
+            "type": {
+              "displayName": [
+                "PoolKey"
+              ],
+              "type": 13
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "InvariantTrait::get_all_ticks",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 53
+        },
+        "selector": "0x2beeb34f"
       }
     ]
   },
@@ -3602,6 +3628,90 @@
       "id": 53,
       "type": {
         "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 54
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 16
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 54
+          },
+          {
+            "name": "E",
+            "type": 16
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 54,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 32
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 20
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 32
+          },
+          {
+            "name": "E",
+            "type": 20
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 55,
+      "type": {
+        "def": {
           "sequence": {
             "type": 7
           }
@@ -3609,7 +3719,7 @@
       }
     },
     {
-      "id": 54,
+      "id": 56,
       "type": {
         "def": {
           "composite": {
@@ -3629,7 +3739,7 @@
       }
     },
     {
-      "id": 55,
+      "id": 57,
       "type": {
         "def": {
           "variant": {}

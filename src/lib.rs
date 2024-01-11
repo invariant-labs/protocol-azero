@@ -37,6 +37,7 @@ pub enum InvariantError {
 }
 #[ink::contract]
 pub mod invariant {
+    use crate::contracts::MAX_CHUNKS;
     use crate::contracts::{
         FeeTier, FeeTiers, InvariantConfig, InvariantTrait, Pool, PoolKey, PoolKeys, Pools,
         Position, Positions, Tick, Tickmap, Ticks,
@@ -48,9 +49,9 @@ pub mod invariant {
     use crate::math::sqrt_price::SqrtPrice;
     use crate::math::token_amount::TokenAmount;
     use crate::math::types::liquidity::Liquidity;
-    use crate::InvariantError; //
-
+    use crate::math::MAX_TICK;
     use crate::math::{compute_swap_step, MAX_SQRT_PRICE, MIN_SQRT_PRICE};
+    use crate::InvariantError; //
     use decimal::*;
     use ink::contract_ref;
     use ink::prelude::vec;
@@ -940,6 +941,34 @@ pub mod invariant {
         #[ink(message)]
         fn get_fee_tiers(&self) -> Vec<FeeTier> {
             self.fee_tiers.get_all()
+        }
+
+        #[ink(message)]
+        fn get_all_ticks(&self, pool_key: PoolKey) -> Result<Vec<Tick>, InvariantError> {
+            let mut ticks = vec![];
+            let tick_spacing = pool_key.fee_tier.tick_spacing;
+            let tick_range_limit = MAX_TICK - MAX_TICK % tick_spacing as i32;
+
+            for i in 0..=(MAX_CHUNKS / tick_spacing) {
+                let chunk = self.tickmap.bitmap.get((i, pool_key)).unwrap_or(0);
+
+                if chunk != 0 {
+                    for j in 0..=63 {
+                        if (chunk >> j) & 1 == 1 {
+                            self.ticks
+                                .get(
+                                    pool_key,
+                                    (i as i32 * 64 * tick_spacing as i32 + j * tick_spacing as i32)
+                                        - tick_range_limit,
+                                )
+                                .map(|tick| ticks.push(tick))
+                                .ok();
+                        }
+                    }
+                }
+            }
+
+            Ok(ticks)
         }
     }
 
