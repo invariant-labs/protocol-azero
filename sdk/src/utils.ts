@@ -5,16 +5,7 @@ import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { getSubstrateChain } from '@scio-labs/use-inkathon/chains'
 import { getBalance, initPolkadotJs as initApi } from '@scio-labs/use-inkathon/helpers'
 import { readFile } from 'fs/promises'
-import {
-  FeeTier,
-  Percentage,
-  PoolKey,
-  SqrtPrice,
-  TokenAmount,
-  _getLiquidityByX,
-  _getLiquidityByY,
-  newPoolKey
-} from 'math/math.js'
+import { FeeTier, Percentage, PoolKey, newPoolKey } from 'math/math.js'
 import { Invariant } from './invariant.js'
 import { Network } from './network.js'
 import { PSP22 } from './psp22.js'
@@ -279,27 +270,4 @@ export const getDeploymentData = async (
   } catch (error) {
     throw new Error(`${contractName}.json or ${contractName}.wasm not found`)
   }
-}
-
-export const getLiquidityByX = (
-  x: TokenAmount,
-  lowerTickIndex: bigint,
-  upperTickIndex: bigint,
-  currentSqrtPrice: SqrtPrice,
-  roundingUp: boolean
-) => {
-  return convertObj(
-    _getLiquidityByX(x, lowerTickIndex, upperTickIndex, currentSqrtPrice, roundingUp)
-  )
-}
-export const getLiquidityByY = (
-  y: TokenAmount,
-  lowerTickIndex: bigint,
-  upperTickIndex: bigint,
-  currentSqrtPrice: SqrtPrice,
-  roundingUp: boolean
-) => {
-  return convertObj(
-    _getLiquidityByY(y, lowerTickIndex, upperTickIndex, currentSqrtPrice, roundingUp)
-  )
 }

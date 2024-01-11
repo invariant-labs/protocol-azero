@@ -1,16 +1,9 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import { Position, SqrtPrice, newFeeTier } from 'math/math.js'
+import { Position, SqrtPrice, getLiquidityByX, getLiquidityByY, newFeeTier } from 'math/math.js'
 import { Network } from '../src/network'
 import { assertThrowsAsync, positionEquals } from '../src/testUtils'
-import {
-  _newPoolKey,
-  deployInvariant,
-  deployPSP22,
-  getLiquidityByX,
-  getLiquidityByY,
-  initPolkadotApi
-} from '../src/utils'
+import { _newPoolKey, deployInvariant, deployPSP22, initPolkadotApi } from '../src/utils'
 
 const api = await initPolkadotApi(Network.Local)
 
@@ -30,6 +23,7 @@ describe('invariant', async () => {
 
   describe('check get liquidity by x', async () => {
     const providedAmount = 430000n
+
     const feeTier = newFeeTier({ v: 6000000000n }, 10)
     const positionOwner = keyring.addFromUri('//Bob')
 
