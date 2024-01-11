@@ -54,6 +54,22 @@ pub mod e2e_tests {
 
         let liquidity_delta = Liquidity::new(1000);
 
+        for i in 0..255 {
+            create_position!(
+                client,
+                InvariantRef,
+                dex,
+                pool_key,
+                i,
+                i + 1,
+                liquidity_delta,
+                pool.sqrt_price,
+                SqrtPrice::max_instance(),
+                alice
+            )
+            .unwrap();
+        }
+
         create_position!(
             client,
             InvariantRef,
@@ -115,6 +131,7 @@ pub mod e2e_tests {
         to_binary(tickmap.0[0]);
         to_binary(tickmap.0[1]);
         to_binary(tickmap.0[2]);
+        to_binary(tickmap.0[3]);
 
         Ok(())
     }
