@@ -352,5 +352,5 @@ pub trait InvariantTrait {
 
     /// Retrieves tickmap
     #[ink(message)]
-    fn get_tickmap(&self, pool_key: PoolKey) -> Vec<u64>;
+    fn get_tickmap(&self, pool_key: PoolKey) -> (Vec<u64>, Vec<u64>);
 }

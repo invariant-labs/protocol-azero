@@ -6,7 +6,6 @@ pub mod e2e_tests {
         math::types::liquidity::Liquidity,
         math::types::percentage::Percentage,
         math::types::sqrt_price::{calculate_sqrt_price, SqrtPrice},
-        InvariantError,
     };
     use decimal::*;
     use ink_e2e::build_message;
@@ -53,10 +52,21 @@ pub mod e2e_tests {
 
         let pool = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
 
-        let tickmap = get_tickmap!(client, InvariantRef, dex, pool_key, alice);
-        println!("Tickmap = {:?}", tickmap);
-
         let liquidity_delta = Liquidity::new(1000);
+
+        create_position!(
+            client,
+            InvariantRef,
+            dex,
+            pool_key,
+            0,
+            1,
+            liquidity_delta,
+            pool.sqrt_price,
+            SqrtPrice::max_instance(),
+            alice
+        )
+        .unwrap();
 
         create_position!(
             client,
@@ -77,8 +87,22 @@ pub mod e2e_tests {
             InvariantRef,
             dex,
             pool_key,
-            5,
-            6,
+            127,
+            128,
+            liquidity_delta,
+            pool.sqrt_price,
+            SqrtPrice::max_instance(),
+            alice
+        )
+        .unwrap();
+
+        create_position!(
+            client,
+            InvariantRef,
+            dex,
+            pool_key,
+            129,
+            130,
             liquidity_delta,
             pool.sqrt_price,
             SqrtPrice::max_instance(),
@@ -87,8 +111,10 @@ pub mod e2e_tests {
         .unwrap();
 
         let tickmap = get_tickmap!(client, InvariantRef, dex, pool_key, alice);
-        // println!("Tickmap = {:?}", tickmap);
-        to_binary(tickmap[0]);
+
+        to_binary(tickmap.0[0]);
+        to_binary(tickmap.0[1]);
+        to_binary(tickmap.0[2]);
 
         Ok(())
     }

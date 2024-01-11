@@ -38,17 +38,17 @@ pub enum InvariantError {
 #[ink::contract]
 pub mod invariant {
     use crate::contracts::{
-        get_search_limit, FeeTier, FeeTiers, InvariantConfig, InvariantTrait, Pool, PoolKey,
-        PoolKeys, Pools, Position, Positions, Tick, Tickmap, Ticks,
+        FeeTier, FeeTiers, InvariantConfig, InvariantTrait, Pool, PoolKey, PoolKeys, Pools,
+        Position, Positions, Tick, Tickmap, Ticks,
     };
     use crate::math::calculate_min_amount_out;
     use crate::math::check_tick;
     use crate::math::log::get_tick_at_sqrt_price;
     use crate::math::percentage::Percentage;
-    use crate::math::sqrt_price::{get_max_tick, get_min_tick, SqrtPrice};
+    use crate::math::sqrt_price::SqrtPrice;
     use crate::math::token_amount::TokenAmount;
     use crate::math::types::liquidity::Liquidity;
-    use crate::math::MAX_TICK;
+
     use crate::InvariantError; //
 
     use crate::math::{compute_swap_step, MAX_SQRT_PRICE, MIN_SQRT_PRICE};
@@ -944,22 +944,40 @@ pub mod invariant {
         }
 
         #[ink(message)]
-        fn get_tickmap(&self, pool_key: PoolKey) -> Vec<u64> {
-            let mut tickmap = vec![0u64; 1733];
+        fn get_tickmap(&self, pool_key: PoolKey) -> (Vec<u64>, Vec<u64>) {
+            // (221818 + 1) / 64 = 3466
+            // Max size per query is 312 in single direction
+            // let max_chunk = 312u32;
+            // Max size per query is 155 while checking positive and negative ticks
+            let max_chunk = 155u32;
 
-            let current_chunk = 0u32;
-            for i in (0..=(current_chunk + (64 * pool_key.fee_tier.tick_spacing) as u32))
-                .step_by(pool_key.fee_tier.tick_spacing as usize)
-            {
-                if self
-                    .tickmap
-                    .get(i as i32, pool_key.fee_tier.tick_spacing, pool_key)
+            let mut positive_tickmap_slice = vec![0u64; max_chunk as usize];
+            let mut negative_tickmap_slice = vec![0u64; max_chunk as usize];
+
+            let mut current_chunk = 0u32;
+            while current_chunk <= max_chunk {
+                let starting_index = current_chunk * (64 * pool_key.fee_tier.tick_spacing) as u32;
+                for i in (starting_index
+                    ..(starting_index + (64 * pool_key.fee_tier.tick_spacing) as u32))
+                    .step_by(pool_key.fee_tier.tick_spacing as usize)
                 {
-                    tickmap[current_chunk as usize] |= 1 << (i % 64);
+                    if self
+                        .tickmap
+                        .get(i as i32, pool_key.fee_tier.tick_spacing, pool_key)
+                    {
+                        positive_tickmap_slice[current_chunk as usize] |= 1 << (i % 64);
+                    }
+                    if self
+                        .tickmap
+                        .get((i as i32) * (-1), pool_key.fee_tier.tick_spacing, pool_key)
+                    {
+                        negative_tickmap_slice[current_chunk as usize] |= 1 << (i % 64);
+                    }
                 }
+                current_chunk += 1;
             }
 
-            tickmap
+            (positive_tickmap_slice, negative_tickmap_slice)
         }
     }
 
