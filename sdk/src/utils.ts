@@ -215,15 +215,7 @@ export const deployInvariant = async (
   initFee: Percentage,
   network: Network
 ): Promise<Invariant> => {
-  return Invariant.getContract(
-    api,
-    account,
-    null,
-    DEFAULT_REF_TIME,
-    DEFAULT_PROOF_SIZE,
-    initFee,
-    network
-  )
+  return Invariant.getContract(api, account, null, 1000000000000, 1000000000000, initFee, network)
 }
 
 export const deployPSP22 = async (

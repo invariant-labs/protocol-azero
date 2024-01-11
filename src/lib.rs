@@ -944,7 +944,7 @@ pub mod invariant {
         }
 
         #[ink(message)]
-        fn get_all_ticks(&self, pool_key: PoolKey) -> Result<Vec<Tick>, InvariantError> {
+        fn get_all_ticks(&self, pool_key: PoolKey) -> Vec<Tick> {
             let mut ticks = vec![];
             let tick_spacing = pool_key.fee_tier.tick_spacing;
             let tick_range_limit = MAX_TICK - MAX_TICK % tick_spacing as i32;
@@ -968,7 +968,7 @@ pub mod invariant {
                 }
             }
 
-            Ok(ticks)
+            ticks
         }
     }
 
