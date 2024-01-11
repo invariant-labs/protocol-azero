@@ -38,16 +38,17 @@ pub enum InvariantError {
 #[ink::contract]
 pub mod invariant {
     use crate::contracts::{
-        FeeTier, FeeTiers, InvariantConfig, InvariantTrait, Pool, PoolKey, PoolKeys, Pools,
-        Position, Positions, Tick, Tickmap, Ticks,
+        get_search_limit, FeeTier, FeeTiers, InvariantConfig, InvariantTrait, Pool, PoolKey,
+        PoolKeys, Pools, Position, Positions, Tick, Tickmap, Ticks,
     };
     use crate::math::calculate_min_amount_out;
     use crate::math::check_tick;
     use crate::math::log::get_tick_at_sqrt_price;
     use crate::math::percentage::Percentage;
-    use crate::math::sqrt_price::SqrtPrice;
+    use crate::math::sqrt_price::{get_max_tick, get_min_tick, SqrtPrice};
     use crate::math::token_amount::TokenAmount;
     use crate::math::types::liquidity::Liquidity;
+    use crate::math::MAX_TICK;
     use crate::InvariantError; //
 
     use crate::math::{compute_swap_step, MAX_SQRT_PRICE, MIN_SQRT_PRICE};
@@ -940,6 +941,25 @@ pub mod invariant {
         #[ink(message)]
         fn get_fee_tiers(&self) -> Vec<FeeTier> {
             self.fee_tiers.get_all()
+        }
+
+        #[ink(message)]
+        fn get_tickmap(&self, pool_key: PoolKey) -> Vec<u64> {
+            let mut tickmap = vec![0u64; 1733];
+
+            let current_chunk = 0u32;
+            for i in (0..=(current_chunk + (64 * pool_key.fee_tier.tick_spacing) as u32))
+                .step_by(pool_key.fee_tier.tick_spacing as usize)
+            {
+                if self
+                    .tickmap
+                    .get(i as i32, pool_key.fee_tier.tick_spacing, pool_key)
+                {
+                    tickmap[current_chunk as usize] |= 1 << (i % 64);
+                }
+            }
+
+            tickmap
         }
     }
 
