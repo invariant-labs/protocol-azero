@@ -20,7 +20,7 @@ pub struct SingleTokenLiquidity {
     pub amount: TokenAmount,
 }
 
-#[wasm_wrapper]
+// #[wasm_wrapper]
 pub fn get_liquidity_by_x(
     x: TokenAmount,
     lower_tick: i32,
@@ -94,7 +94,7 @@ pub fn get_liquidity_by_x_sqrt_price(
     })
 }
 
-#[wasm_wrapper]
+// #[wasm_wrapper]
 pub fn get_liquidity_by_y(
     y: TokenAmount,
     lower_tick: i32,
