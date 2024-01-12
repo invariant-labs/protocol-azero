@@ -944,33 +944,26 @@ pub mod invariant {
         }
 
         #[ink(message)]
-        fn get_tickmap(&self, pool_key: PoolKey) -> (Vec<u64>, Vec<u64>) {
-            let max_chunk = 158u32;
-            let tick_spacing = pool_key.fee_tier.tick_spacing as usize;
-            let chunk_size = 64 * tick_spacing;
+        fn get_tickmap(&self, pool_key: PoolKey) -> Vec<(u16, u64)> {
+            let max_chunks = 6932u16;
+            let tick_spacing = pool_key.fee_tier.tick_spacing;
+            let max_chunk = max_chunks / tick_spacing;
 
-            let mut positive_tickmap_slice = vec![0u64; max_chunk as usize];
-            let mut negative_tickmap_slice = vec![0u64; max_chunk as usize];
+            let mut tickmap = vec![];
 
-            for current_chunk in 0..=max_chunk {
-                let starting_index = current_chunk * chunk_size as u32;
-                for i in
-                    (starting_index..(starting_index + chunk_size as u32)).step_by(tick_spacing)
-                {
-                    let i_as_i32 = i as i32;
-                    if self.tickmap.get(i_as_i32, tick_spacing as u16, pool_key) {
-                        positive_tickmap_slice[current_chunk as usize] |= 1 << (i % 64);
-                    }
-                    if self
-                        .tickmap
-                        .get(i_as_i32 * -1, tick_spacing as u16, pool_key)
-                    {
-                        negative_tickmap_slice[current_chunk as usize] |= 1 << (i % 64);
-                    }
+            for current_chunk_index in 0..=max_chunk {
+                let chunk = self
+                    .tickmap
+                    .bitmap
+                    .get((current_chunk_index, pool_key))
+                    .unwrap_or(0);
+
+                if chunk != 0 {
+                    tickmap.push((current_chunk_index, chunk));
                 }
             }
 
-            (positive_tickmap_slice, negative_tickmap_slice)
+            tickmap
         }
     }
 

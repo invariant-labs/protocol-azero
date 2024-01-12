@@ -350,7 +350,7 @@ pub trait InvariantTrait {
     #[ink(message)]
     fn get_fee_tiers(&self) -> Vec<FeeTier>;
 
-    /// Retrieves tickmap
+    /// Retrieves tickmap chunks
     #[ink(message)]
-    fn get_tickmap(&self, pool_key: PoolKey) -> (Vec<u64>, Vec<u64>);
+    fn get_tickmap(&self, pool_key: PoolKey) -> Vec<(u16, u64)>;
 }
