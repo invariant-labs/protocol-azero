@@ -3,9 +3,9 @@ use crate::scale;
 use crate::types::{fixed_point::FixedPoint, token_amount::TokenAmount};
 use core::convert::{TryFrom, TryInto};
 use decimal::*;
-use traceable_result::*;
-
+use js_sys::BigInt;
 use serde::{Deserialize, Serialize};
+use traceable_result::*;
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;
 
@@ -13,7 +13,7 @@ use wasm_bindgen::prelude::*;
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct SqrtPrice {
-    #[tsify(type = "BigInt")]
+    #[tsify(type = "bigint")]
     pub v: u128,
 }
 

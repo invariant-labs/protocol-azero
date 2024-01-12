@@ -22,7 +22,10 @@ import {
   Liquidity,
   PoolKey,
   SqrtPrice,
+  TokenAmount,
   getDeltaY,
+  getLiquidityByX,
+  getLiquidityByY,
   getLiquidityScale,
   getPercentageScale,
   getSqrtPriceScale,
@@ -48,6 +51,39 @@ const main = async () => {
     const deltaYDown = getDeltaY(sqrtPriceA, sqrtPriceB, liquidity, false)
     console.log(deltaYUp)
     console.log(deltaYDown)
+  }
+
+  {
+    const providedAmount: TokenAmount = 47600000000n
+    const poolSqrtPrice: SqrtPrice = { v: 1000000000000000000000000000n }
+    const lowerTickIndex = -22000n
+    const upperTickIndex = -21000n
+
+    const { l, amount } = getLiquidityByY(
+      providedAmount,
+      lowerTickIndex,
+      upperTickIndex,
+      poolSqrtPrice,
+      true
+    )
+    console.log('Liquidity = ', l)
+    console.log('Amount = ', amount)
+  }
+  {
+    const providedAmount = 430000n
+    const initSqrtPrice: SqrtPrice = { v: 1005012269622000000000000n }
+    const lowerTickIndex = 80n
+    const upperTickIndex = 120n
+
+    const { l, amount } = getLiquidityByX(
+      providedAmount,
+      lowerTickIndex,
+      upperTickIndex,
+      initSqrtPrice,
+      true
+    )
+    console.log('Liquidity = ', l)
+    console.log('Amount = ', amount)
   }
 
   {

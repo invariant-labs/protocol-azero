@@ -48,7 +48,7 @@ pub fn new_pool_key(
     token_0: JsValue,
     token_1: JsValue,
     fee_tier: JsValue,
-) -> Result<PoolKey, JsValue> {
+) -> Result<JsValue, JsValue> {
     let token_0: String = convert!(token_0)?;
     let token_1: String = convert!(token_1)?;
     let fee_tier: FeeTier = convert!(fee_tier)?;

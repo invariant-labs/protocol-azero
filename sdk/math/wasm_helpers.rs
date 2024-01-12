@@ -1,12 +1,9 @@
 use crate::storage::pool_key::PoolKey;
 use crate::storage::tick::Tick;
-use crate::types::{
-    fee_growth::FeeGrowth, fixed_point::FixedPoint, liquidity::Liquidity, percentage::Percentage,
-    seconds_per_liquidity::SecondsPerLiquidity, sqrt_price::SqrtPrice, token_amount::TokenAmount,
-};
-use decimal::*;
-// use paste::paste;
+use crate::types::{sqrt_price::SqrtPrice, token_amount::TokenAmount};
+
 extern crate paste;
+use js_sys::BigInt;
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;
@@ -36,14 +33,33 @@ pub struct QuoteResult {
     pub ticks: Vec<Tick>,
 }
 
+// Logging to typescript
+#[wasm_bindgen]
+extern "C" {
+    // Use `js_namespace` here to bind `console.log(..)` instead of just
+    // `log(..)`
+    #[wasm_bindgen(js_namespace = console)]
+    pub fn log(s: &str);
+
+    // The `console.log` is quite polymorphic, so we can bind it with multiple
+    // signatures. Note that we need to use `js_name` to ensure we always call
+    // `log` in JS.
+    #[wasm_bindgen(js_namespace = console, js_name = log)]
+    pub fn log_u32(a: u32);
+
+    // Multiple arguments too!
+    #[wasm_bindgen(js_namespace = console, js_name = log)]
+    pub fn log_many(a: &str, b: &str);
+}
+
 #[macro_export]
 macro_rules! scale {
     ($decimal:ident) => {
         ::paste::paste! {
             #[wasm_bindgen]
             #[allow(non_snake_case)]
-            pub fn [<get $decimal Scale >] () -> u8 {
-                $decimal::scale()
+            pub fn [<get $decimal Scale >] () -> BigInt {
+                BigInt::from($decimal::scale())
             }
         }
     };
@@ -60,7 +76,7 @@ macro_rules! convert {
 macro_rules! resolve {
     ($result:expr) => {{
         match $result {
-            Ok(value) => Ok(value),
+            Ok(value) => Ok(serde_wasm_bindgen::to_value(&value)?),
             Err(error) => Err(JsValue::from_str(&error.to_string())),
         }
     }};
