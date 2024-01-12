@@ -77,11 +77,7 @@ describe('position', async () => {
       currentSqrtPrice: { v: 1000000000000000000000000n },
       liquidity: { v: 1000000000000n },
       lowerTick: -20n,
-      pool: {
-        tokenX: token0.contract.address.toString(),
-        tokenY: token1.contract.address.toString(),
-        feeTier: feeTier
-      },
+      pool: poolKey,
       upperTick: 10n,
       timestamp: 0n
     }
@@ -114,11 +110,7 @@ describe('position', async () => {
         currentSqrtPrice: { v: 1000000000000000000000000n },
         liquidity: { v: 1000000000000n },
         lowerTick: -20n,
-        pool: {
-          tokenX: token0.contract.address.toString(),
-          tokenY: token1.contract.address.toString(),
-          feeTier: feeTier
-        },
+        pool: poolKey,
         upperTick: 10n,
         timestamp: 0n
       }
