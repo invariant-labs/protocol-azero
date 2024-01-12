@@ -21,13 +21,15 @@ import {
   Liquidity,
   PoolKey,
   SqrtPrice,
+  TokenAmount,
   getDeltaY,
+  getLiquidityByX,
+  getLiquidityByY,
   getLiquidityScale,
   getPercentageScale,
   getSqrtPriceScale,
   getTokenAmountScale,
-  newFeeTier,
-  newPoolKey
+  newFeeTier
 } from 'math/math.js'
 import { InvariantEvent } from './schema.js'
 import { getEnvTestAccount } from './testUtils.js'
@@ -52,9 +54,42 @@ const main = async () => {
   }
 
   {
+    const providedAmount: TokenAmount = 47600000000n
+    const poolSqrtPrice: SqrtPrice = { v: 1000000000000000000000000000n }
+    const lowerTickIndex = -22000n
+    const upperTickIndex = -21000n
+
+    const { l, amount } = getLiquidityByY(
+      providedAmount,
+      lowerTickIndex,
+      upperTickIndex,
+      poolSqrtPrice,
+      true
+    )
+    console.log('Liquidity = ', l)
+    console.log('Amount = ', amount)
+  }
+  {
+    const providedAmount = 430000n
+    const initSqrtPrice: SqrtPrice = { v: 1005012269622000000000000n }
+    const lowerTickIndex = 80n
+    const upperTickIndex = 120n
+
+    const { l, amount } = getLiquidityByX(
+      providedAmount,
+      lowerTickIndex,
+      upperTickIndex,
+      initSqrtPrice,
+      true
+    )
+    console.log('Liquidity = ', l)
+    console.log('Amount = ', amount)
+  }
+
+  {
     const feeTier: FeeTier = newFeeTier({ v: 10n }, 55)
     console.log(feeTier)
-    const poolKey: PoolKey = newPoolKey(
+    const poolKey: PoolKey = _newPoolKey(
       '5H79vf7qQKdpefChp4sGh8j4BNq8JoL5x8nez8RsEebPJu9D',
       '5DxazQgoKEPMLqyUBRpqgAV7JnGv3w6i4EACTU8RDJxPHisH',
       feeTier

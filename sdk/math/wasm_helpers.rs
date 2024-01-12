@@ -1,9 +1,7 @@
 use crate::clamm::calculate_amount_delta;
-use crate::storage::pool::Pool;
 use crate::storage::pool_key::PoolKey;
-use crate::storage::position::Position;
 use crate::storage::tick::Tick;
-use crate::types::{sqrt_price::SqrtPrice, token_amount::TokenAmount};
+use crate::types::{liquidity::Liquidity, sqrt_price::SqrtPrice, token_amount::TokenAmount};
 
 extern crate paste;
 
@@ -44,6 +42,25 @@ pub struct CalculateTokenAmounts {
     pub y: TokenAmount,
 }
 
+// Logging to typescript
+#[wasm_bindgen]
+extern "C" {
+    // Use `js_namespace` here to bind `console.log(..)` instead of just
+    // `log(..)`
+    #[wasm_bindgen(js_namespace = console)]
+    pub fn log(s: &str);
+
+    // The `console.log` is quite polymorphic, so we can bind it with multiple
+    // signatures. Note that we need to use `js_name` to ensure we always call
+    // `log` in JS.
+    #[wasm_bindgen(js_namespace = console, js_name = log)]
+    pub fn log_u32(a: u32);
+
+    // Multiple arguments too!
+    #[wasm_bindgen(js_namespace = console, js_name = log)]
+    pub fn log_many(a: &str, b: &str);
+}
+
 #[macro_export]
 macro_rules! scale {
     ($decimal:ident) => {
@@ -68,7 +85,7 @@ macro_rules! convert {
 macro_rules! resolve {
     ($result:expr) => {{
         match $result {
-            Ok(value) => Ok(value),
+            Ok(value) => Ok(serde_wasm_bindgen::to_value(&value)?),
             Err(error) => Err(JsValue::from_str(&error.to_string())),
         }
     }};
@@ -76,26 +93,36 @@ macro_rules! resolve {
 
 #[wasm_bindgen(js_name = "calculateTokenAmountsFromPosition")]
 pub fn calculate_token_amounts_from_position_liquidity(
-    js_pool: JsValue,
-    js_position: JsValue,
-) -> Result<CalculateTokenAmounts, JsValue> {
-    let pool: Pool = convert!(js_pool)?;
-    let position: Position = convert!(js_position)?;
+    js_current_tick_index: JsValue,
+    js_current_sqrt_price: JsValue,
+    js_liquidity: JsValue,
+    js_upper_tick_index: JsValue,
+    js_lower_tick_index: JsValue,
+    js_tokens_owed_x: JsValue,
+    js_tokens_owed_y: JsValue,
+) -> Result<JsValue, JsValue> {
+    let current_tick_index: i64 = convert!(js_current_tick_index)?;
+    let current_sqrt_price: SqrtPrice = convert!(js_current_sqrt_price)?;
+    let liquidity: Liquidity = convert!(js_liquidity)?;
+    let upper_tick_index: i64 = convert!(js_upper_tick_index)?;
+    let lower_tick_index: i64 = convert!(js_lower_tick_index)?;
+    let tokens_owed_x: TokenAmount = convert!(js_tokens_owed_x)?;
+    let tokens_owed_y: TokenAmount = convert!(js_tokens_owed_y)?;
 
     let (x, y, _) = calculate_amount_delta(
-        pool.current_tick_index as i32,
-        pool.sqrt_price,
-        position.liquidity,
+        current_tick_index as i32,
+        current_sqrt_price,
+        liquidity,
         false,
-        position.upper_tick_index as i32,
-        position.lower_tick_index as i32,
+        upper_tick_index as i32,
+        lower_tick_index as i32,
     )
     .map_err(|e| JsValue::from_str(&e.to_string()))?;
 
-    let total_x = x + position.tokens_owed_x;
-    let total_y = y + position.tokens_owed_y;
-    Ok(CalculateTokenAmounts {
+    let total_x = x + tokens_owed_x;
+    let total_y = y + tokens_owed_y;
+    Ok(serde_wasm_bindgen::to_value(&CalculateTokenAmounts {
         x: total_x,
         y: total_y,
-    })
+    })?)
 }

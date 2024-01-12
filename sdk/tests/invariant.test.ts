@@ -6,6 +6,7 @@ import {
   SqrtPrice,
   TokenAmount,
   calculateTokenAmountsFromPosition,
+  getLiquidityByX,
   newFeeTier,
   newPoolKey
 } from 'math/math.js'
@@ -450,7 +451,7 @@ describe('invariant', async () => {
       }
       await positionEquals(position, expectedPosition)
     })
-    it.only('calculate token amounts from position liquidity', async () => {
+    it('calculate token amounts from position liquidity', async () => {
       const position = await invariant.getPosition(account, account.address, 0n)
       const pool = await invariant.getPool(
         account,
@@ -459,26 +460,26 @@ describe('invariant', async () => {
         feeTier
       )
 
-      const tmpPool = {
-        ...pool,
-        currentTickIndex: Number(pool.currentTickIndex)
-      }
+      let providedAmount = 500n
+      const expectedYAmount = getLiquidityByX(
+        500n,
+        lowerTickIndex,
+        upperTickIndex,
+        pool.sqrtPrice,
+        false
+      ).amount
 
-      const tmpPosition = {
-        ...position,
-        poolKey: {
-          ...position.poolKey,
-          feeTier: {
-            fee: position.poolKey.feeTier.fee,
-            tickSpacing: Number(position.poolKey.feeTier.tickSpacing)
-          }
-        },
-        lowerTickIndex: Number(position.lowerTickIndex),
-        upperTickIndex: Number(position.upperTickIndex)
-      }
-      const { x, y } = calculateTokenAmountsFromPosition(tmpPool, tmpPosition)
-      assert.deepEqual(x, 499)
-      assert.deepEqual(y, 999)
+      const { x, y } = calculateTokenAmountsFromPosition(
+        pool.currentTickIndex,
+        pool.sqrtPrice,
+        position.liquidity,
+        position.upperTickIndex,
+        position.lowerTickIndex,
+        position.tokensOwedX,
+        position.tokensOwedY
+      )
+      assert.deepEqual(x, providedAmount - 1n)
+      assert.deepEqual(y, expectedYAmount)
     })
     it('remove position', async () => {
       {
