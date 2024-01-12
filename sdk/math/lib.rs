@@ -6,7 +6,6 @@ pub mod log;
 pub mod storage;
 pub mod types;
 pub mod wasm_helpers;
-pub mod wrappers;
 
 pub use clamm::*;
 pub use consts::*;

@@ -4,7 +4,6 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::spanned::Spanned;
 use syn::{parse_macro_input, FnArg, ItemFn};
-use wasm_bindgen::prelude::*;
 
 #[proc_macro_attribute]
 pub fn wasm_wrapper(_attr: TokenStream, input: TokenStream) -> TokenStream {

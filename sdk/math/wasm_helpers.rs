@@ -9,13 +9,6 @@ use decimal::*;
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;
-#[derive(PartialEq, Eq, Debug, Copy, Clone, Serialize, Deserialize, Tsify)]
-#[tsify(into_wasm_abi, from_wasm_abi)]
-pub struct AmountDeltaResult {
-    pub x: TokenAmount,
-    pub y: TokenAmount,
-    pub update_liquidity: bool,
-}
 
 #[derive(PartialEq, Debug, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
