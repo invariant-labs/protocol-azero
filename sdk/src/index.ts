@@ -1,13 +1,15 @@
 import { Keyring } from '@polkadot/api'
 import dotenv from 'dotenv'
-import { Invariant } from './invariant.js'
 import { Network } from './network.js'
-import { PSP22 } from './psp22.js'
 import {
-  getDeploymentData,
+  DEFAULT_PROOF_SIZE,
+  DEFAULT_REF_TIME,
+  deployInvariant,
+  deployPSP22,
   getEnvAccount,
-  getEnvTestAccount,
   initPolkadotApi,
+  newFeeTier,
+  newPoolKey,
   printBalance
 } from './utils.js'
 import { WrappedAZERO } from './wrapped_azero.js'
@@ -15,17 +17,30 @@ dotenv.config()
 
 import { getBalance, transferBalance } from '@scio-labs/use-inkathon'
 import {
+  CreatePositionEvent,
   FeeTier,
   Liquidity,
   PoolKey,
   SqrtPrice,
-  getDecimalScales,
+  TokenAmount,
   getDeltaY,
-  newFeeTier,
-  newPoolKey
+  getLiquidityByX,
+  getLiquidityByY,
+  getLiquidityScale,
+  getPercentageScale,
+  getSqrtPriceScale,
+  getTokenAmountScale
 } from 'math/math.js'
+import { InvariantEvent } from './schema.js'
+import { getEnvTestAccount } from './testUtils.js'
 
 const main = async () => {
+  {
+    console.log(getSqrtPriceScale())
+    console.log(getTokenAmountScale())
+    console.log(getPercentageScale())
+    console.log(getLiquidityScale())
+  }
   {
     const sqrtPriceA: SqrtPrice = {
       v: 234878324943782000000000000n
@@ -40,11 +55,40 @@ const main = async () => {
   }
 
   {
-    const scales = getDecimalScales()
-    console.log(scales)
+    const providedAmount: TokenAmount = 47600000000n
+    const poolSqrtPrice: SqrtPrice = { v: 1000000000000000000000000000n }
+    const lowerTickIndex = -22000n
+    const upperTickIndex = -21000n
+
+    const { l, amount } = getLiquidityByY(
+      providedAmount,
+      lowerTickIndex,
+      upperTickIndex,
+      poolSqrtPrice,
+      true
+    )
+    console.log('Liquidity = ', l)
+    console.log('Amount = ', amount)
   }
   {
-    const feeTier: FeeTier = newFeeTier({ v: 10n }, 55)
+    const providedAmount = 430000n
+    const initSqrtPrice: SqrtPrice = { v: 1005012269622000000000000n }
+    const lowerTickIndex = 80n
+    const upperTickIndex = 120n
+
+    const { l, amount } = getLiquidityByX(
+      providedAmount,
+      lowerTickIndex,
+      upperTickIndex,
+      initSqrtPrice,
+      true
+    )
+    console.log('Liquidity = ', l)
+    console.log('Amount = ', amount)
+  }
+
+  {
+    const feeTier: FeeTier = newFeeTier({ v: 10n }, 55n)
     console.log(feeTier)
     const poolKey: PoolKey = newPoolKey(
       '5H79vf7qQKdpefChp4sGh8j4BNq8JoL5x8nez8RsEebPJu9D',
@@ -67,72 +111,65 @@ const main = async () => {
   await printBalance(api, testAccount)
 
   // deploy invariant
-  const invariantData = await getDeploymentData('invariant')
-  const invariant = new Invariant(api, network)
-
   const initFee = { v: 10n }
-  const invariantDeploy = await invariant.deploy(
-    account,
-    invariantData.abi,
-    invariantData.wasm,
-    initFee
-  )
-  await invariant.load(invariantDeploy.address, invariantData.abi)
+  const invariant = await deployInvariant(api, account, initFee, network)
+
+  invariant.on(InvariantEvent.CreatePositionEvent, (event: CreatePositionEvent) => {
+    console.log(event)
+  })
 
   // deploy token
-  const tokenData = await getDeploymentData('psp22')
-  const token = new PSP22(api, network)
+  const token0 = await deployPSP22(api, account, 1000n, 'Coin', 'COIN', 12n, network)
+  const token1 = await deployPSP22(api, account, 1000n, 'Coin', 'COIN', 12n, network)
 
-  const name = 'Coin'
-  const symbol = 'COIN'
+  const feeTier = newFeeTier({ v: 6000000000n }, 10n)
 
-  const tokenDeploy = await token.deploy(
+  const poolKey = await newPoolKey(
+    token0.contract.address.toString(),
+    token1.contract.address.toString(),
+    feeTier
+  )
+
+  await invariant.addFeeTier(account, feeTier)
+
+  await invariant.createPool(
     account,
-    tokenData.abi,
-    tokenData.wasm,
-    1000n,
-    name,
-    symbol,
+    token0.contract.address.toString(),
+    token1.contract.address.toString(),
+    feeTier,
+    { v: 1000000000000000000000000n },
     0n
   )
-  await token.load(tokenDeploy.address, tokenData.abi)
 
-  // deploy wrapped azero
-  const wazeroData = await getDeploymentData('wrapped_azero')
-  const wazero = new WrappedAZERO(api, network)
+  await token0.approve(account, invariant.contract.address.toString(), 10000000000n)
+  await token1.approve(account, invariant.contract.address.toString(), 10000000000n)
 
-  if (process.env.WAZERO_ADDRESS && network !== Network.Local) {
-    await wazero.load(process.env.WAZERO_ADDRESS, wazeroData.abi)
-    console.log('loaded wazero')
-  } else {
-    const wazeroDeploy = await wazero.deploy(account, wazeroData.abi, wazeroData.wasm)
-    await wazero.load(wazeroDeploy.address, wazeroData.abi)
-    console.log('deployed and loaded wazero')
-  }
-
-  // change protocol fee
-  const initialFee = await invariant.getProtocolFee(account)
-  const newFeeStruct = {
-    v: 18446744073709551615n
-  }
-  await invariant.changeProtocolFee(account, newFeeStruct)
-  const newFee = await invariant.getProtocolFee(account)
-  console.log('old fee: ', initialFee, ', new fee: ', newFee)
-
-  // perform token operations
-  await token.mint(account, 500)
-
-  console.log(
-    'token name: ',
-    await token.tokenName(account),
-    ', token symbol: ',
-    await token.tokenSymbol(account),
-    ', token decimals: ',
-    await token.tokenDecimals(account)
+  const pool = await invariant.getPool(
+    account,
+    token0.contract.address.toString(),
+    token1.contract.address.toString(),
+    feeTier
   )
 
-  const data = api.createType('Vec<u8>', [])
-  await token.transfer(account, account.address, 250, data)
+  await invariant.createPosition(
+    account,
+    poolKey,
+    -10n,
+    10n,
+    { v: 1000000000000n },
+    pool.sqrtPrice,
+    pool.sqrtPrice
+  )
+
+  // deploy wrapped azero
+  const wazero = await WrappedAZERO.getContract(
+    api,
+    account,
+    null,
+    DEFAULT_REF_TIME,
+    DEFAULT_PROOF_SIZE,
+    network
+  )
 
   await transferBalance(api, account, testAccount.address, 1000000000000)
   console.log('account balance: ', (await getBalance(api, account.address)).balanceFormatted)
@@ -141,20 +178,23 @@ const main = async () => {
     (await getBalance(api, testAccount.address)).balanceFormatted
   )
 
-  // wrap and unwrap azero
-  console.log('balance before deposit: ', await wazero.balanceOf(account, account.address))
-  await wazero.deposit(account, 1000000000000)
-  console.log('balance after deposit: ', await wazero.balanceOf(account, account.address))
-  await wazero.withdraw(account, 1000000000000)
-  console.log('balance after withdraw: ', await wazero.balanceOf(account, account.address))
-
   const results = await Promise.all([
     invariant.getFeeTiers(account),
-    token.totalSupply(account),
+    token0.totalSupply(account),
     wazero.balanceOf(account, account.address)
   ])
 
   console.log(results)
+
+  // get events from past 3 blocks
+  const blockNumber = await api.query.system.number()
+  for (let i = 0; i < 3; i++) {
+    const previousBlockNumber = (blockNumber as unknown as number) - 1 - i
+    const previousBlockHash = await api.query.system.blockHash(previousBlockNumber)
+    const apiAt = await api.at(previousBlockHash.toString())
+    const events = await apiAt.query.system.events()
+    console.log((events as any).length)
+  }
 
   process.exit(0)
 }

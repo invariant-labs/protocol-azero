@@ -5,11 +5,12 @@ import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { getSubstrateChain } from '@scio-labs/use-inkathon/chains'
 import { getBalance, initPolkadotJs as initApi } from '@scio-labs/use-inkathon/helpers'
 import { readFile } from 'fs/promises'
-import { InvariantError, Percentage } from 'math'
+import { FeeTier, Percentage, PoolKey, _newFeeTier, _newPoolKey } from 'math/math.js'
 import { Invariant } from './invariant.js'
 import { Network } from './network.js'
 import { PSP22 } from './psp22.js'
-import { InvariantTx, Query, Tx } from './schema.js'
+import { Query, Tx, TxResult } from './schema.js'
+import { WrappedAZERO } from './wrapped_azero.js'
 
 export const DEFAULT_REF_TIME = 100000000000
 export const DEFAULT_PROOF_SIZE = 100000000000
@@ -33,6 +34,101 @@ export const initPolkadotApi = async (network: Network): Promise<ApiPromise> => 
   }
 }
 
+export async function sendQuery(
+  contract: ContractPromise,
+  gasLimit: WeightV2,
+  storageDepositLimit: number | null,
+  signer: IKeyringPair,
+  message: Query | Tx,
+  data: any[]
+): Promise<any> {
+  const { result, output } = await contract.query[message](
+    signer.address,
+    {
+      gasLimit: gasLimit,
+      storageDepositLimit: storageDepositLimit
+    },
+    ...data
+  )
+
+  if (result.isOk && output) {
+    return parse(JSON.parse(output.toString()).ok)
+  } else {
+    throw new Error(result.asErr.toHuman()?.toString())
+  }
+}
+
+export async function sendTx(
+  contract: ContractPromise,
+  gasLimit: WeightV2,
+  storageDepositLimit: number | null,
+  value: bigint,
+  signer: IKeyringPair,
+  message: Tx,
+  data: any[],
+  waitForFinalization: boolean = true,
+  block: boolean = true
+): Promise<TxResult> {
+  if (!contract) {
+    throw new Error('contract not loaded')
+  }
+
+  const call = contract.tx[message](
+    {
+      gasLimit,
+      storageDepositLimit,
+      value
+    },
+    ...data
+  )
+
+  return new Promise<TxResult>(async (resolve, reject) => {
+    await call.signAndSend(signer, result => {
+      if (!block) {
+        resolve({
+          hash: result.txHash.toHex(),
+          events: parseEvents((result as any).contractEvents || [])
+        })
+      }
+
+      if (result.isError || result.dispatchError) {
+        reject(new Error(message))
+      }
+
+      if (result.isCompleted && !waitForFinalization) {
+        resolve({
+          hash: result.txHash.toHex(),
+          events: parseEvents((result as any).contractEvents || [])
+        })
+      }
+
+      if (result.isFinalized) {
+        resolve({
+          hash: result.txHash.toHex(),
+          events: parseEvents((result as any).contractEvents || [])
+        })
+      }
+    })
+  })
+}
+
+export const printBalance = async (api: ApiPromise, account: IKeyringPair) => {
+  const network = (await api.rpc.system.chain())?.toString() || ''
+  const version = (await api.rpc.system.version())?.toString() || ''
+  const balance = await getBalance(api, account.address)
+
+  console.log(`network: ${network} (${version})`)
+  console.log(`account: ${account.address} (${balance.balanceFormatted})\n`)
+}
+
+export const newPoolKey = (token0: string, token1: string, feeTier: FeeTier): PoolKey => {
+  return parse(_newPoolKey(token0, token1, _newFeeTier(feeTier.fee, Number(feeTier.tickSpacing))))
+}
+
+export const newFeeTier = (fee: Percentage, tickSpacing: bigint): FeeTier => {
+  return parse(_newFeeTier(fee, Number(tickSpacing)))
+}
+
 export const getEnvAccount = async (keyring: Keyring): Promise<IKeyringPair> => {
   const accountUri = process.env.ACCOUNT_URI
 
@@ -43,23 +139,66 @@ export const getEnvAccount = async (keyring: Keyring): Promise<IKeyringPair> => 
   return keyring.addFromUri(accountUri)
 }
 
-export const getEnvTestAccount = async (keyring: Keyring): Promise<IKeyringPair> => {
-  const accountUri = process.env.TEST_ACCOUNT_URI
+export const parseEvent = (event: { [key: string]: any }) => {
+  const eventObj: { [key: string]: any } = {}
 
-  if (!accountUri) {
-    throw new Error('invalid account uri')
+  for (let i = 0; i < event.args.length; i++) {
+    eventObj[event.event.args[i].name] = event.args[i].toPrimitive()
   }
 
-  return keyring.addFromUri(accountUri)
+  return parse(eventObj)
 }
 
-export const printBalance = async (api: ApiPromise, account: IKeyringPair) => {
-  const network = (await api.rpc.system.chain())?.toString() || ''
-  const version = (await api.rpc.system.version())?.toString() || ''
-  const balance = await getBalance(api, account.address)
+export const parseEvents = (events: { [key: string]: any }[]) => {
+  return events.map(event => parseEvent(event))
+}
 
-  console.log(`network: ${network} (${version})`)
-  console.log(`account: ${account.address} (${balance.balanceFormatted})\n`)
+export const deployInvariant = async (
+  api: ApiPromise,
+  account: IKeyringPair,
+  initFee: Percentage,
+  network: Network
+): Promise<Invariant> => {
+  return Invariant.getContract(
+    api,
+    account,
+    null,
+    DEFAULT_REF_TIME,
+    DEFAULT_PROOF_SIZE,
+    initFee,
+    network
+  )
+}
+
+export const deployPSP22 = async (
+  api: ApiPromise,
+  account: IKeyringPair,
+  supply: bigint,
+  name: string,
+  symbol: string,
+  decimals: bigint,
+  network: Network
+): Promise<PSP22> => {
+  return PSP22.getContract(
+    api,
+    network,
+    null,
+    DEFAULT_REF_TIME,
+    DEFAULT_PROOF_SIZE,
+    account,
+    supply,
+    name,
+    symbol,
+    decimals
+  )
+}
+
+export const deployWrappedAZERO = async (
+  api: ApiPromise,
+  account: IKeyringPair,
+  network: Network
+): Promise<WrappedAZERO> => {
+  return WrappedAZERO.getContract(api, account, null, DEFAULT_REF_TIME, DEFAULT_PROOF_SIZE, network)
 }
 
 export const getDeploymentData = async (
@@ -77,186 +216,40 @@ export const getDeploymentData = async (
   }
 }
 
-export const sleep = async (ms: number) => {
-  return await new Promise(resolve => setTimeout(resolve, ms))
-}
-
-export async function sendQuery(
-  contract: ContractPromise | null,
-  gasLimit: WeightV2,
-  storageDepositLimit: number | null,
-  signer: IKeyringPair,
-  message: Query | Tx,
-  data: any[]
-): Promise<unknown> {
-  if (!contract) {
-    throw new Error('contract not loaded')
+export const parse = (value: any) => {
+  if (isArray(value)) {
+    return value.map((element: any) => parse(element))
   }
 
-  const { result, output } = await contract.query[message](
-    signer.address,
-    {
-      gasLimit: gasLimit,
-      storageDepositLimit: storageDepositLimit
-    },
-    ...data
-  )
+  if (isObject(value)) {
+    const newValue: { [key: string]: any } = {}
 
-  if (result.isOk && output) {
-    return JSON.parse(output.toString()).ok
-  } else {
-    throw new Error(result.asErr.toHuman()?.toString())
-  }
-}
-
-export async function sendTx(
-  contract: ContractPromise | null,
-  gasLimit: WeightV2,
-  storageDepositLimit: number | null,
-  value: number,
-  signer: IKeyringPair,
-  message: Tx,
-  data: any[],
-  waitForFinalization: boolean = true,
-  block: boolean = true
-): Promise<string> {
-  if (!contract) {
-    throw new Error('contract not loaded')
-  }
-
-  const call = contract.tx[message](
-    {
-      gasLimit,
-      storageDepositLimit,
-      value
-    },
-    ...data
-  )
-
-  return new Promise<string>(async (resolve, reject) => {
-    await call.signAndSend(signer, result => {
-      if (!block) {
-        resolve(result.txHash.toHex())
-      }
-      if (result.isError || result.dispatchError) {
-        reject(new Error(message))
-      }
-      if (result.isCompleted && !waitForFinalization) {
-        resolve(result.txHash.toHex())
-      }
-      if (result.isFinalized) {
-        resolve(result.txHash.toHex())
-      }
+    Object.entries(value as { [key: string]: any }).forEach(([key, value]) => {
+      newValue[key] = parse(value)
     })
-  })
-}
 
-export const deployInvariant = async (
-  api: ApiPromise,
-  account: IKeyringPair,
-  initFee: Percentage
-): Promise<Invariant> => {
-  const invariantData = await getDeploymentData('invariant')
-  const invariant = new Invariant(api, Network.Local)
-
-  const invariantDeploy = await invariant.deploy(
-    account,
-    invariantData.abi,
-    invariantData.wasm,
-    initFee
-  )
-  await invariant.load(invariantDeploy.address, invariantData.abi)
-
-  return invariant
-}
-
-export const deployPSP22 = async (
-  api: ApiPromise,
-  account: IKeyringPair,
-  supply: bigint,
-  name: string,
-  symbol: string,
-  decimals: bigint
-) => {
-  const tokenData = await getDeploymentData('psp22')
-  const token = new PSP22(api, Network.Local)
-
-  const tokenDeploy = await token.deploy(
-    account,
-    tokenData.abi,
-    tokenData.wasm,
-    supply,
-    name,
-    symbol,
-    decimals
-  )
-  await token.load(tokenDeploy.address, tokenData.abi)
-
-  return token
-}
-
-export const convertObj = <T>(obj: T): T => {
-  const newObj: { [key: string]: any } = {}
-
-  Object.entries(obj as { [key: string]: any }).forEach(([key, value]) => {
-    newObj[key] = value
-
-    if (typeof value === 'number' || (typeof value === 'string' && value.startsWith('0x'))) {
-      newObj[key] = BigInt(value)
-    }
-
-    if (typeof value.v === 'number' || (typeof value.v === 'string' && value.v.startsWith('0x'))) {
-      newObj[key] = { v: BigInt(value.v) }
-    }
-
-    if (typeof value === 'object' && value.v === undefined) {
-      newObj[key] = convertObj(value)
-    }
-
-    if (value.constructor === Array) {
-      newObj[key] = convertArr(value)
-    }
-  })
-
-  return newObj as T
-}
-
-export const convertArr = (arr: any[]): any[] => {
-  return arr.map(value => {
-    if (typeof value === 'number' || (typeof value === 'string' && value.startsWith('0x'))) {
-      return BigInt(value)
-    }
-
-    if (typeof value.v === 'number' || (typeof value.v === 'string' && value.v.startsWith('0x'))) {
-      return { v: BigInt(value.v) }
-    }
-
-    if (typeof value === 'object' && value.v === undefined) {
-      return convertObj(value)
-    }
-
-    if (value.constructor === Array) {
-      return convertArr(value)
-    }
-
-    return value
-  })
-}
-
-export const assertThrowsAsync = async (fn: Promise<any>, word?: InvariantError | InvariantTx) => {
-  try {
-    await fn
-  } catch (e: any) {
-    if (word) {
-      const err = e.toString()
-      console.log(err)
-      const regex = new RegExp(`${word}$`)
-      if (!regex.test(err)) {
-        console.log(err)
-        throw new Error('Invalid Error message')
-      }
-    }
-    return
+    return newValue
   }
-  throw new Error('Function did not throw error')
+
+  if (isBoolean(value)) {
+    return value
+  }
+
+  try {
+    return BigInt(value)
+  } catch (e) {
+    return value
+  }
+}
+
+const isBoolean = (value: any): boolean => {
+  return typeof value === 'boolean'
+}
+
+const isArray = (value: any): boolean => {
+  return Array.isArray(value)
+}
+
+const isObject = (value: any): boolean => {
+  return typeof value === 'object' && value !== null
 }
