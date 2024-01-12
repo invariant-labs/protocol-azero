@@ -1,13 +1,12 @@
+use crate::clamm::calculate_amount_delta;
+use crate::storage::pool::Pool;
 use crate::storage::pool_key::PoolKey;
+use crate::storage::position::Position;
 use crate::storage::tick::Tick;
-use crate::types::{
-    fee_growth::FeeGrowth, fixed_point::FixedPoint, liquidity::Liquidity, percentage::Percentage,
-    seconds_per_liquidity::SecondsPerLiquidity, sqrt_price::SqrtPrice, token_amount::TokenAmount,
-};
-use decimal::*;
-// use paste::paste;
+use crate::types::{sqrt_price::SqrtPrice, token_amount::TokenAmount};
+
 extern crate paste;
-use js_sys::BigInt;
+
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;
@@ -35,6 +34,14 @@ pub struct QuoteResult {
     pub amount_out: TokenAmount,
     pub target_sqrt_price: SqrtPrice,
     pub ticks: Vec<Tick>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+#[serde(rename_all = "camelCase")]
+pub struct CalculateTokenAmounts {
+    pub x: TokenAmount,
+    pub y: TokenAmount,
 }
 
 #[macro_export]
@@ -65,4 +72,30 @@ macro_rules! resolve {
             Err(error) => Err(JsValue::from_str(&error.to_string())),
         }
     }};
+}
+
+#[wasm_bindgen(js_name = "calculateTokenAmountsFromPosition")]
+pub fn calculate_token_amounts_from_position_liquidity(
+    js_pool: JsValue,
+    js_position: JsValue,
+) -> Result<CalculateTokenAmounts, JsValue> {
+    let pool: Pool = convert!(js_pool)?;
+    let position: Position = convert!(js_position)?;
+
+    let (x, y, _) = calculate_amount_delta(
+        pool.current_tick_index as i32,
+        pool.sqrt_price,
+        position.liquidity,
+        false,
+        position.upper_tick_index as i32,
+        position.lower_tick_index as i32,
+    )
+    .map_err(|e| JsValue::from_str(&e.to_string()))?;
+
+    let total_x = x + position.tokens_owed_x;
+    let total_y = y + position.tokens_owed_y;
+    Ok(CalculateTokenAmounts {
+        x: total_x,
+        y: total_y,
+    })
 }

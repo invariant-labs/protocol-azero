@@ -5,6 +5,7 @@ import {
   Position,
   SqrtPrice,
   TokenAmount,
+  calculateTokenAmountsFromPosition,
   newFeeTier,
   newPoolKey
 } from 'math/math.js'
@@ -448,6 +449,36 @@ describe('invariant', async () => {
         tokensOwedY: 0n
       }
       await positionEquals(position, expectedPosition)
+    })
+    it.only('calculate token amounts from position liquidity', async () => {
+      const position = await invariant.getPosition(account, account.address, 0n)
+      const pool = await invariant.getPool(
+        account,
+        token0.contract.address.toString(),
+        token1.contract.address.toString(),
+        feeTier
+      )
+
+      const tmpPool = {
+        ...pool,
+        currentTickIndex: Number(pool.currentTickIndex)
+      }
+
+      const tmpPosition = {
+        ...position,
+        poolKey: {
+          ...position.poolKey,
+          feeTier: {
+            fee: position.poolKey.feeTier.fee,
+            tickSpacing: Number(position.poolKey.feeTier.tickSpacing)
+          }
+        },
+        lowerTickIndex: Number(position.lowerTickIndex),
+        upperTickIndex: Number(position.upperTickIndex)
+      }
+      const { x, y } = calculateTokenAmountsFromPosition(tmpPool, tmpPosition)
+      assert.deepEqual(x, 499)
+      assert.deepEqual(y, 999)
     })
     it('remove position', async () => {
       {
