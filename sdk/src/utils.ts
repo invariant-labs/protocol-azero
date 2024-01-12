@@ -272,6 +272,8 @@ export const getDeploymentData = async (
   }
 }
 
+export const DENOMINATOR = BigInt(Math.pow(10, 12))
+
 export const calculatePriceImpact = (
   startingSqrtPrice: SqrtPrice,
   endingSqrtPrice: SqrtPrice
@@ -281,10 +283,10 @@ export const calculatePriceImpact = (
   let priceQuotient
 
   if (endingPrice >= startingPrice) {
-    priceQuotient = (BigInt(Math.pow(10, 12)) * startingPrice) / endingPrice
+    priceQuotient = (DENOMINATOR * startingPrice) / endingPrice
   } else {
-    priceQuotient = (BigInt(Math.pow(10, 12)) * endingPrice) / startingPrice
+    priceQuotient = (DENOMINATOR * endingPrice) / startingPrice
   }
 
-  return { v: BigInt(Math.pow(10, 12)) - priceQuotient }
+  return { v: DENOMINATOR - priceQuotient }
 }
