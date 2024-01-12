@@ -1,29 +1,53 @@
-use proc_macro2::TokenStream;
-use quote::quote;
-use syn::{parse_macro_input, ItemFn};
+extern crate proc_macro;
 
-#[proc_macro]
-pub fn wasm_wrapper(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    // Parse the input function
+use proc_macro::TokenStream;
+use quote::quote;
+use syn::{parse_macro_input, ItemFn, ReturnType, Type};
+use wasm_bindgen::prelude::*;
+
+#[proc_macro_attribute]
+pub fn wasm_wrapper(_attr: TokenStream, input: TokenStream) -> TokenStream {
+    // Parse the input tokens into a syntax tree
     let input = parse_macro_input!(input as ItemFn);
 
-    // Extract function name and parameters
-    let func_name = &input.sig.ident;
-    let params = &input.sig.inputs;
+    let original_function_block = &input.block;
+    let original_function_name = &input.sig.ident;
+    let visibility = &input.vis;
+    let generated_function_name = format!("{}_generated", original_function_name);
+    let generated_function_ident =
+        syn::Ident::new(&generated_function_name, original_function_name.span());
+    let original_return_type = match &input.sig.output {
+        ReturnType::Default => quote! { () },
+        ReturnType::Type(_, ty) => quote! { #ty },
+    };
 
-    // Generate the output code
-    let mut result = proc_macro::TokenStream::from(quote! {
-        // pub fn #func_name(#params) -> Result<TokenAmount, JsValue> {
-        //     // Convert parameters using the `convert!` macro or any other conversion logic
-        //     $(
-        //         let #params = convert!(#params)?;
-        //     )*
-
-        //     // Call the original function using the `resolve!` macro or any other logic
-        //     resolve!(#func_name(#(#params),*))
-        // }
+    let params = input.sig.inputs.iter().filter_map(|param| {
+        if let syn::FnArg::Typed(pat_type) = param {
+            if let syn::Pat::Ident(ident) = &*pat_type.pat {
+                let param_name = &ident.ident;
+                let param_ty = quote! { wasm_bindgen::JsValue };
+                Some(quote! { #param_name: #param_ty })
+            } else {
+                None
+            }
+        } else {
+            None
+        }
     });
 
-    // Return the generated code as a TokenStream
-    result
+    // Generate the new function with the specified name
+    let new_function = quote! {
+        #[wasm_bindgen]
+        #visibility fn #generated_function_ident(#(#params),*) {
+            // #original_function_block
+        }
+    };
+
+    // Combine the original function with the generated function
+    let result = quote! {
+        #input
+        #new_function
+    };
+
+    result.into()
 }
