@@ -460,7 +460,7 @@ describe('invariant', async () => {
         feeTier
       )
 
-      let providedAmount = 500n
+      const providedAmount = 500n
       const expectedYAmount = getLiquidityByX(
         500n,
         lowerTickIndex,
