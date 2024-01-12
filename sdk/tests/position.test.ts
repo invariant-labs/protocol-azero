@@ -1,8 +1,13 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import { InvariantError, Position, SqrtPrice, TokenAmount } from 'math/math.js'
+import { CreatePositionEvent, InvariantError, Position, SqrtPrice, TokenAmount } from 'math/math.js'
 import { Network } from '../src/network'
-import { assertThrowsAsync, positionEquals } from '../src/testUtils'
+import {
+  assertThrowsAsync,
+  createPositionEventEquals,
+  positionEquals,
+  removePositionEventEquals
+} from '../src/testUtils'
 import { deployInvariant, deployPSP22, initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
 
 const api = await initPolkadotApi(Network.Local)
@@ -67,15 +72,21 @@ describe('position', async () => {
       pool.sqrtPrice
     )
 
-    assert.deepEqual(result.events[0].address, account.address.toString())
-    assert.deepEqual(result.events[0].currentSqrtPrice, {
-      v: 1000000000000000000000000n
-    })
-    assert.deepEqual(result.events[0].liquidity, { v: 1000000000000n })
-    assert.deepEqual(result.events[0].lowerTick, -20n)
-    assert.deepEqual(result.events[0].pool.tokenX, poolKey.tokenX)
-    assert.deepEqual(result.events[0].pool.tokenY, poolKey.tokenY)
-    assert.deepEqual(result.events[0].upperTick, 10n)
+    const expectedCreatePositionEvent: CreatePositionEvent = {
+      address: account.address.toString(),
+      currentSqrtPrice: { v: 1000000000000000000000000n },
+      liquidity: { v: 1000000000000n },
+      lowerTick: -20n,
+      pool: {
+        tokenX: token0.contract.address.toString(),
+        tokenY: token1.contract.address.toString(),
+        feeTier: feeTier
+      },
+      upperTick: 10n,
+      timestamp: 0n
+    }
+
+    createPositionEventEquals(result.events[0], expectedCreatePositionEvent)
   })
 
   it('create position', async () => {
@@ -98,15 +109,21 @@ describe('position', async () => {
     {
       const result = await invariant.removePosition(account, 0n)
 
-      assert.deepEqual(result.events[0].address, account.address.toString())
-      assert.deepEqual(result.events[0].currentSqrtPrice, {
-        v: 1000000000000000000000000n
-      })
-      assert.deepEqual(result.events[0].liquidity, { v: 1000000000000n })
-      assert.deepEqual(result.events[0].lowerTick, -20n)
-      assert.deepEqual(result.events[0].pool.tokenX, poolKey.tokenX)
-      assert.deepEqual(result.events[0].pool.tokenY, poolKey.tokenY)
-      assert.deepEqual(result.events[0].upperTick, 10n)
+      const expectedRemovePositionEvent = {
+        address: account.address.toString(),
+        currentSqrtPrice: { v: 1000000000000000000000000n },
+        liquidity: { v: 1000000000000n },
+        lowerTick: -20n,
+        pool: {
+          tokenX: token0.contract.address.toString(),
+          tokenY: token1.contract.address.toString(),
+          feeTier: feeTier
+        },
+        upperTick: 10n,
+        timestamp: 0n
+      }
+
+      removePositionEventEquals(result.events[0], expectedRemovePositionEvent)
 
       assertThrowsAsync(
         invariant.getPosition(account, account.address, 0n),
