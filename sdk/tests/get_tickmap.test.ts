@@ -8,7 +8,6 @@ const api = await initPolkadotApi(Network.Local)
 
 const keyring = new Keyring({ type: 'sr25519' })
 const account = await keyring.addFromUri('//Alice')
-const testAccount = await keyring.addFromUri('//Bob')
 
 let invariant = await deployInvariant(api, account, { v: 10000000000n }, Network.Local)
 let token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
