@@ -5,7 +5,7 @@ import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { getSubstrateChain } from '@scio-labs/use-inkathon/chains'
 import { getBalance, initPolkadotJs as initApi } from '@scio-labs/use-inkathon/helpers'
 import { readFile } from 'fs/promises'
-import { FeeTier, Percentage, PoolKey, newPoolKey } from 'math/math.js'
+import { FeeTier, Percentage, PoolKey, SqrtPrice, newPoolKey } from 'math/math.js'
 import { Invariant } from './invariant.js'
 import { Network } from './network.js'
 import { PSP22 } from './psp22.js'
@@ -270,4 +270,21 @@ export const getDeploymentData = async (
   } catch (error) {
     throw new Error(`${contractName}.json or ${contractName}.wasm not found`)
   }
+}
+
+export const calculatePriceImpact = (
+  startingSqrtPrice: SqrtPrice,
+  endingSqrtPrice: SqrtPrice
+): Percentage => {
+  const startingPrice = (startingSqrtPrice.v as bigint) * (startingSqrtPrice.v as bigint)
+  const endingPrice = (endingSqrtPrice.v as bigint) * (endingSqrtPrice.v as bigint)
+  let priceQuotient
+
+  if (endingPrice >= startingPrice) {
+    priceQuotient = (BigInt(Math.pow(10, 12)) * startingPrice) / endingPrice
+  } else {
+    priceQuotient = (BigInt(Math.pow(10, 12)) * endingPrice) / startingPrice
+  }
+
+  return { v: BigInt(Math.pow(10, 12)) - priceQuotient }
 }
