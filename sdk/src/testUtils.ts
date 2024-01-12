@@ -1,8 +1,9 @@
 import { Keyring } from '@polkadot/api'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { assert } from 'chai'
-import { InvariantError, Position } from 'math/math.js'
+import { InvariantError, Percentage, Position, SqrtPrice } from 'math/math.js'
 import { InvariantTx } from './schema.js'
+import { DENOMINATOR, PRICE_DENOMINATOR } from './utils.js'
 
 export const positionEquals = async (recievedPosition: Position, expectedPosition: Position) => {
   assert.deepEqual(recievedPosition.poolKey, expectedPosition.poolKey)
@@ -45,4 +46,16 @@ export const getEnvTestAccount = async (keyring: Keyring): Promise<IKeyringPair>
   }
 
   return keyring.addFromUri(accountUri)
+}
+
+export const toSqrtPrice = (x: bigint, decimals: bigint = 0n): SqrtPrice => {
+  return toDecimalWithDenominator(x, PRICE_DENOMINATOR, decimals)
+}
+
+export const toPercentage = (x: bigint, decimals: bigint = 0n): Percentage => {
+  return toDecimalWithDenominator(x, DENOMINATOR, decimals)
+}
+
+export const toDecimalWithDenominator = (x: bigint, denominator: bigint, decimals: bigint = 0n) => {
+  return { v: (denominator * x) / BigInt(Math.pow(10, Number(decimals))) }
 }

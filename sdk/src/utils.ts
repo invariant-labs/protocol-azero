@@ -5,7 +5,7 @@ import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { getSubstrateChain } from '@scio-labs/use-inkathon/chains'
 import { getBalance, initPolkadotJs as initApi } from '@scio-labs/use-inkathon/helpers'
 import { readFile } from 'fs/promises'
-import { FeeTier, Percentage, PoolKey, newPoolKey } from 'math/math.js'
+import { FeeTier, Percentage, PoolKey, SqrtPrice, newPoolKey } from 'math/math.js'
 import { Invariant } from './invariant.js'
 import { Network } from './network.js'
 import { PSP22 } from './psp22.js'
@@ -270,4 +270,21 @@ export const getDeploymentData = async (
   } catch (error) {
     throw new Error(`${contractName}.json or ${contractName}.wasm not found`)
   }
+}
+
+export const DENOMINATOR = BigInt(Math.pow(10, 12))
+export const PRICE_DENOMINATOR = BigInt(Math.pow(10, 24))
+
+export const calculatePriceAfterSlippage = (
+  priceSqrt: SqrtPrice,
+  slippage: Percentage,
+  up: boolean
+): SqrtPrice => {
+  // using sqrt of slippage, because price is a sqrt
+  const multiplier = up
+    ? (slippage.v as bigint) + DENOMINATOR
+    : DENOMINATOR - (slippage.v as bigint)
+  const slippageSqrt = BigInt(Math.round(Math.sqrt(Number(multiplier * DENOMINATOR))))
+
+  return { v: ((priceSqrt.v as bigint) * slippageSqrt) / DENOMINATOR }
 }
