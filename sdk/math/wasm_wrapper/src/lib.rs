@@ -3,6 +3,7 @@ extern crate proc_macro;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::spanned::Spanned;
+use syn::Type;
 use syn::{parse_macro_input, FnArg, ItemFn};
 
 #[proc_macro_attribute]
@@ -60,10 +61,28 @@ pub fn wasm_wrapper(_attr: TokenStream, input: TokenStream) -> TokenStream {
                     let js_param_name =
                         syn::Ident::new(&format!("js_{}", param_name), ident.span());
                     let param_ty = &pat_type.ty;
+
+                    let conversion_code = if is_i32_type(param_ty) {
+                        quote! {
+                            let #param_name: i64 = serde_wasm_bindgen::from_value(#js_param_name).unwrap();
+                            let #param_name: i32 = #param_name as i32;
+                        }
+                    } else if is_u16_type(param_ty) {
+                        quote! {
+                            let #param_name: u64 = serde_wasm_bindgen::from_value(#js_param_name).unwrap();
+                            let #param_name: u16 = #param_name as u16;
+                        }
+                    } else {
+                        quote! {
+                            let #param_name: #param_ty = serde_wasm_bindgen::from_value(#js_param_name).unwrap();
+                        }
+                    };
+    
                     (
-                        quote! { let #param_name: #param_ty = serde_wasm_bindgen::from_value(#js_param_name).unwrap(); },
+                        conversion_code,
                         quote! { #param_name },
                     )
+                    
                 } else {
                     (quote! {}, quote! {})
                 }
@@ -93,4 +112,24 @@ pub fn wasm_wrapper(_attr: TokenStream, input: TokenStream) -> TokenStream {
     };
 
     result.into()
+}
+
+// Function to check if the type is i32
+fn is_i32_type(ty: &Type) -> bool {
+    if let Type::Path(path) = ty {
+        if let Some(segment) = path.path.segments.last() {
+            return segment.ident.to_string() == "i32";
+        }
+    }
+    false
+}
+
+// Function to check if the type is u16
+fn is_u16_type(ty: &Type) -> bool {
+    if let Type::Path(path) = ty {
+        if let Some(segment) = path.path.segments.last() {
+            return segment.ident.to_string() == "u16";
+        }
+    }
+    false
 }
