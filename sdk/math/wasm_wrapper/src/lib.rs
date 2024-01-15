@@ -21,15 +21,12 @@ pub fn wasm_wrapper(_attr: TokenStream, input: TokenStream) -> TokenStream {
         ReturnType::Default => quote! { () },
         ReturnType::Type(_, ty) => quote! { #ty },
     };
-    println!("return_ty: {:?}", return_ty.clone().into_iter());
-    println!();
 
     let mut idents: Vec<String> = Vec::new();
     
     for token in return_ty.clone().into_iter() {
         match token {
             TokenTree::Group(group) => {
-                // Inside the Group, you can iterate over its TokenTree items
                 for inner_token in group.stream() {
                     match inner_token {
                         TokenTree::Ident(ident) => {
@@ -37,20 +34,17 @@ pub fn wasm_wrapper(_attr: TokenStream, input: TokenStream) -> TokenStream {
                             println!("Ident type: {:?}", ident.to_string());
                             idents.push(ident.to_string());
                         }
-                        _ => {
-                        }
+                        _ => { }
                     }
                 }
             }
-            _ => {
-                // Handle other TokenTree types outside the Group
-            }
+            _ => { }
         }
     }
 
     println!("idents: {:?}", idents);
 
-    // Create a tuple struct using the extracted Idents
+    // TODO: Change tuple name to more generic depending on function name
     let tuple_struct_name = Ident::new("MyTupleStruct", proc_macro2::Span::call_site());
     let tuple_struct_fields: Vec<proc_macro2::TokenStream> = idents
         .iter()
@@ -59,12 +53,6 @@ pub fn wasm_wrapper(_attr: TokenStream, input: TokenStream) -> TokenStream {
             quote::quote! { #field_ident }
         })
         .collect();
-
-    // let tuple_struct_definition = quote::quote! {
-    //     struct #tuple_struct_name (#( pub #tuple_struct_fields ),*)
-    // };
-
-    // println!("{}", tuple_struct_definition);
 
 
     let camel_case_string = {
@@ -145,31 +133,11 @@ pub fn wasm_wrapper(_attr: TokenStream, input: TokenStream) -> TokenStream {
         })
         .unzip();
 
-    // let exported_struct = if idents.len() > 1 {
-    //     quote! {
-        
-    //         #[derive(serde::Serialize, serde::Deserialize, Tsify)]
-    //         #[tsify(into_wasm_abi, from_wasm_abi)]
-    //         // tuple_struct_definition
-    //         pub struct #tuple_struct_name (
-    //             #(#tuple_struct_fields),*
-    //         );
-    //     // #[derive(serde::Serialize, serde::Deserialize, Tsify)]
-    //     // #[tsify(into_wasm_abi, from_wasm_abi)]
-    //     // // tuple_struct_definition
-    //     // pub struct #tuple_struct_name {
-    //     //     #(#tuple_struct_fields),*
-    //     // }
-    //     }
-    // } else {
-    //     quote! {}
-    // };
 
-    let exported_function = if idents.len() > 1 {
+    let exported_function = if idents.len() > 0 {
         quote! {
             #[derive(serde::Serialize, serde::Deserialize, Tsify)]
             #[tsify(into_wasm_abi, from_wasm_abi)]
-            // tuple_struct_definition
             pub struct #tuple_struct_name (
                 #(#tuple_struct_fields),*
             );
@@ -179,15 +147,12 @@ pub fn wasm_wrapper(_attr: TokenStream, input: TokenStream) -> TokenStream {
                 #(#conversion_code)*
     
                 let result = #original_function_name(#(#converted_params),*);
-
     
                 match result {
                     Ok(tuple) => {
-                        // Destructure the tuple and create an instance of your exported tuple
-                        let my_tuple_struct_instance = #tuple_struct_name(tuple.0, tuple.1);
-            
-                        // Serialize the instance to a JsValue using serde_wasm_bindgen
-                        Ok(serde_wasm_bindgen::to_value(&my_tuple_struct_instance)?)
+                        let tuple_struct_instance = #tuple_struct_name(tuple.0, tuple.1);
+    
+                        Ok(serde_wasm_bindgen::to_value(&tuple_struct_instance)?)
                     }
                     Err(error) => Err(JsValue::from_str(&error.to_string())),
                 }
