@@ -228,15 +228,33 @@ export const getDeploymentData = async (
   }
 }
 
+const sqrt = (value: bigint): bigint => {
+  if (value < 0n) {
+    throw 'square root of negative numbers is not supported'
+  }
+
+  if (value < 2n) {
+    return value
+  }
+
+  return newtonIteration(value, 1n)
+}
+
+const newtonIteration = (n: bigint, x0: bigint): bigint => {
+  const x1 = (n / x0 + x0) >> 1n
+  if (x0 === x1 || x0 === x1 - 1n) {
+    return x0
+  }
+  return newtonIteration(n, x1)
+}
+
 export const calculateSqrtPriceAfterSlippage = (
   sqrtPrice: SqrtPrice,
   slippage: Percentage,
   up: boolean
 ): SqrtPrice => {
   const multiplier = getPercentageDenominator() + (up ? slippage.v : -slippage.v)
-  const multiplierSqrt = BigInt(
-    Math.round(Math.sqrt(Number(multiplier * getPercentageDenominator())))
-  )
+  const multiplierSqrt = sqrt(multiplier * getPercentageDenominator())
 
   return { v: (sqrtPrice.v * multiplierSqrt) / getPercentageDenominator() }
 }

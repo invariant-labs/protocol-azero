@@ -39,7 +39,7 @@ describe('utils', () => {
       const slippage = toPercentage(1n, 2n)
 
       // sqrt(1) * sqrt(1 - 0.01) = 0.99498744
-      const expected = { v: 994987437107000000000000n }
+      const expected = { v: 994987437106000000000000n }
 
       const limitSqrt = calculateSqrtPriceAfterSlippage({ v: sqrtPrice }, { v: slippage }, false)
 
@@ -75,7 +75,7 @@ describe('utils', () => {
       const slippage = toPercentage(3n, 7n)
 
       // sqrt(1) * sqrt(1 + 0.0000003) = 1.00000015
-      const expected = { v: 1000000150000000000000000n }
+      const expected = { v: 1000000149999000000000000n }
 
       const limitSqrt = calculateSqrtPriceAfterSlippage({ v: sqrtPrice }, { v: slippage }, true)
 
@@ -87,7 +87,7 @@ describe('utils', () => {
       const slippage = toPercentage(3n, 7n)
 
       // sqrt(1) * sqrt(1 - 0.0000003) = 0.99999985
-      const expected = { v: 999999850000000000000000n }
+      const expected = { v: 999999849999000000000000n }
 
       const limitSqrt = calculateSqrtPriceAfterSlippage({ v: sqrtPrice }, { v: slippage }, false)
 
