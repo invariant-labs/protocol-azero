@@ -37,7 +37,7 @@ pub struct QuoteResult {
 #[derive(Debug, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 #[serde(rename_all = "camelCase")]
-pub struct CalculateTokenAmounts {
+pub struct TokenAmounts {
     pub x: TokenAmount,
     pub y: TokenAmount,
 }
@@ -91,8 +91,8 @@ macro_rules! resolve {
     }};
 }
 
-#[wasm_bindgen(js_name = "wrappedCalculateTokenAmountsFromPosition")]
-pub fn calculate_token_amounts_from_position_liquidity(
+#[wasm_bindgen(js_name = "wrappedCalculateTokenAmounts")]
+pub fn calculate_token_amounts(
     js_current_tick_index: JsValue,
     js_current_sqrt_price: JsValue,
     js_liquidity: JsValue,
@@ -115,8 +115,5 @@ pub fn calculate_token_amounts_from_position_liquidity(
     )
     .map_err(|e| JsValue::from_str(&e.to_string()))?;
 
-    Ok(serde_wasm_bindgen::to_value(&CalculateTokenAmounts {
-        x,
-        y,
-    })?)
+    Ok(serde_wasm_bindgen::to_value(&TokenAmounts { x, y })?)
 }
