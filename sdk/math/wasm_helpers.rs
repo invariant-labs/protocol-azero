@@ -1,4 +1,3 @@
-extern crate paste;
 use crate::storage::pool_key::PoolKey;
 use crate::storage::tick::Tick;
 use crate::types::{sqrt_price::SqrtPrice, token_amount::TokenAmount};
