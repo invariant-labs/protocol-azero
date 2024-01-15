@@ -557,15 +557,13 @@ export class Invariant {
   }
 
   async getAllTicks(account: IKeyringPair, pool_key: PoolKey): Promise<Tick[]> {
-    const result = (await sendQuery(
+    return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       account,
       InvariantQuery.GetAllTicks,
       [pool_key]
-    )) as any
-
-    return convertArr(result)
+    )
   }
 }
