@@ -8,11 +8,15 @@ import { readFile } from 'fs/promises'
 import {
   FeeTier,
   Percentage,
+  Pool,
   PoolKey,
+  Position,
   SqrtPrice,
+  TokenAmounts,
   _newFeeTier,
   _newPoolKey,
-  getPercentageDenominator
+  getPercentageDenominator,
+  wrappedCalculateTokenAmounts
 } from 'math/math.js'
 import { Invariant } from './invariant.js'
 import { Network } from './network.js'
@@ -239,6 +243,16 @@ export const calculatePriceImpact = (
       Math.round((Number(nominator) / Number(denominator)) * Number(getPercentageDenominator()))
     )
   }
+}
+
+export const calculateTokenAmounts = (pool: Pool, position: Position): TokenAmounts => {
+  return wrappedCalculateTokenAmounts(
+    pool.currentTickIndex,
+    pool.sqrtPrice,
+    position.liquidity,
+    position.upperTickIndex,
+    position.lowerTickIndex
+  )
 }
 
 export const parse = (value: any) => {
