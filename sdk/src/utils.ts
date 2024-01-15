@@ -229,19 +229,16 @@ export const getDeploymentData = async (
 }
 
 export const calculateSqrtPriceAfterSlippage = (
-  priceSqrt: SqrtPrice,
+  sqrtPrice: SqrtPrice,
   slippage: Percentage,
   up: boolean
 ): SqrtPrice => {
-  // using sqrt of slippage, because price is a sqrt
-  const multiplier = up
-    ? slippage.v + getPercentageDenominator()
-    : getPercentageDenominator() - slippage.v
-  const slippageSqrt = BigInt(
+  const multiplier = getPercentageDenominator() + (up ? slippage.v : -slippage.v)
+  const multiplierSqrt = BigInt(
     Math.round(Math.sqrt(Number(multiplier * getPercentageDenominator())))
   )
 
-  return { v: (priceSqrt.v * slippageSqrt) / getPercentageDenominator() }
+  return { v: (sqrtPrice.v * multiplierSqrt) / getPercentageDenominator() }
 }
 
 export const calculateTokenAmounts = (pool: Pool, position: Position): TokenAmounts => {
