@@ -1,4 +1,4 @@
-use crate::clamm::calculate_amount_delta;
+// use crate::clamm::calculate_amount_delta;
 use crate::storage::pool_key::PoolKey;
 use crate::storage::tick::Tick;
 use crate::types::{liquidity::Liquidity, sqrt_price::SqrtPrice, token_amount::TokenAmount};
@@ -84,32 +84,32 @@ macro_rules! resolve {
     }};
 }
 
-#[wasm_bindgen(js_name = "wrappedCalculateTokenAmounts")]
-pub fn calculate_token_amounts(
-    js_current_tick_index: JsValue,
-    js_current_sqrt_price: JsValue,
-    js_liquidity: JsValue,
-    js_upper_tick_index: JsValue,
-    js_lower_tick_index: JsValue,
-) -> Result<JsValue, JsValue> {
-    let current_tick_index: i64 = convert!(js_current_tick_index)?;
-    let current_sqrt_price: SqrtPrice = convert!(js_current_sqrt_price)?;
-    let liquidity: Liquidity = convert!(js_liquidity)?;
-    let upper_tick_index: i64 = convert!(js_upper_tick_index)?;
-    let lower_tick_index: i64 = convert!(js_lower_tick_index)?;
+// #[wasm_bindgen(js_name = "wrappedCalculateTokenAmounts")]
+// pub fn calculate_token_amounts(
+//     js_current_tick_index: JsValue,
+//     js_current_sqrt_price: JsValue,
+//     js_liquidity: JsValue,
+//     js_upper_tick_index: JsValue,
+//     js_lower_tick_index: JsValue,
+// ) -> Result<JsValue, JsValue> {
+//     let current_tick_index: i64 = convert!(js_current_tick_index)?;
+//     let current_sqrt_price: SqrtPrice = convert!(js_current_sqrt_price)?;
+//     let liquidity: Liquidity = convert!(js_liquidity)?;
+//     let upper_tick_index: i64 = convert!(js_upper_tick_index)?;
+//     let lower_tick_index: i64 = convert!(js_lower_tick_index)?;
 
-    let result = calculate_amount_delta(
-        current_tick_index as i32,
-        current_sqrt_price,
-        liquidity,
-        false,
-        upper_tick_index as i32,
-        lower_tick_index as i32,
-    )
-    .map_err(|e| JsValue::from_str(&e.to_string()))?;
+//     let result = calculate_amount_delta(
+//         current_tick_index as i32,
+//         current_sqrt_price,
+//         liquidity,
+//         false,
+//         upper_tick_index as i32,
+//         lower_tick_index as i32,
+//     )
+//     .map_err(|e| JsValue::from_str(&e.to_string()))?;
 
-    Ok(serde_wasm_bindgen::to_value(&TokenAmounts {
-        x: result.x,
-        y: result.y,
-    })?)
-}
+//     Ok(serde_wasm_bindgen::to_value(&TokenAmounts {
+//         x: result.x,
+//         y: result.y,
+//     })?)
+// }

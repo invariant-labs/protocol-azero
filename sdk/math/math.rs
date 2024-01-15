@@ -21,6 +21,10 @@ pub struct SingleTokenLiquidity {
 }
 
 #[wasm_wrapper]
+pub fn check_returning_tuple() -> TrackableResult<(u8, u8)> {
+    Ok((1u8, 2u8))
+}
+#[wasm_wrapper]
 pub fn get_liquidity_by_x(
     x: TokenAmount,
     lower_tick: i32,
@@ -94,7 +98,7 @@ pub fn get_liquidity_by_x_sqrt_price(
     })
 }
 
-#[wasm_wrapper]
+// #[wasm_wrapper]
 pub fn get_liquidity_by_y(
     y: TokenAmount,
     lower_tick: i32,

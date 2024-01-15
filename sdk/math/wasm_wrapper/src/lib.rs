@@ -1,10 +1,12 @@
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
+use proc_macro::Group;
+use proc_macro2::TokenTree;
 use quote::quote;
+use quote::ToTokens;
 use syn::spanned::Spanned;
-use syn::Type;
-use syn::{parse_macro_input, FnArg, ItemFn};
+use syn::{parse_macro_input, FnArg, ItemFn, ReturnType, Type, Ident};
 
 #[proc_macro_attribute]
 pub fn wasm_wrapper(_attr: TokenStream, input: TokenStream) -> TokenStream {
@@ -14,6 +16,56 @@ pub fn wasm_wrapper(_attr: TokenStream, input: TokenStream) -> TokenStream {
     let generated_function_name = format!("wrapped_{}", original_function_name);
     let generated_function_ident =
         syn::Ident::new(&generated_function_name, original_function_name.span());
+        
+    let return_ty = match &input.sig.output {
+        ReturnType::Default => quote! { () },
+        ReturnType::Type(_, ty) => quote! { #ty },
+    };
+    println!("return_ty: {:?}", return_ty.clone().into_iter());
+    println!();
+
+    let mut idents: Vec<String> = Vec::new();
+    
+    for token in return_ty.clone().into_iter() {
+        match token {
+            TokenTree::Group(group) => {
+                // Inside the Group, you can iterate over its TokenTree items
+                for inner_token in group.stream() {
+                    match inner_token {
+                        TokenTree::Ident(ident) => {
+                            println!("Ident inside Group: {:?}", ident);
+                            println!("Ident type: {:?}", ident.to_string());
+                            idents.push(ident.to_string());
+                        }
+                        _ => {
+                        }
+                    }
+                }
+            }
+            _ => {
+                // Handle other TokenTree types outside the Group
+            }
+        }
+    }
+
+    println!("idents: {:?}", idents);
+
+    // Create a tuple struct using the extracted Idents
+    let tuple_struct_name = Ident::new("MyTupleStruct", proc_macro2::Span::call_site());
+    let tuple_struct_fields: Vec<proc_macro2::TokenStream> = idents
+        .iter()
+        .map(|ident| {
+            let field_ident = Ident::new(ident, proc_macro2::Span::call_site());
+            quote::quote! { #field_ident }
+        })
+        .collect();
+
+    // let tuple_struct_definition = quote::quote! {
+    //     struct #tuple_struct_name (#( pub #tuple_struct_fields ),*)
+    // };
+
+    // println!("{}", tuple_struct_definition);
+
 
     let camel_case_string = {
         let mut camel_case = String::new();
@@ -93,6 +145,26 @@ pub fn wasm_wrapper(_attr: TokenStream, input: TokenStream) -> TokenStream {
         })
         .unzip();
 
+    let exported_struct = if idents.len() > 1 {
+        quote! {
+        
+            #[derive(serde::Serialize, serde::Deserialize, Tsify)]
+            #[tsify(into_wasm_abi, from_wasm_abi)]
+            // tuple_struct_definition
+            pub struct #tuple_struct_name (
+                #(#tuple_struct_fields),*
+            );
+        // #[derive(serde::Serialize, serde::Deserialize, Tsify)]
+        // #[tsify(into_wasm_abi, from_wasm_abi)]
+        // // tuple_struct_definition
+        // pub struct #tuple_struct_name {
+        //     #(#tuple_struct_fields),*
+        // }
+        }
+    } else {
+        quote! {}
+    };
+
     let exported_function = quote! {
         #[wasm_bindgen(js_name = #camel_case_string)]
         pub fn #generated_function_ident(#(#params),*) -> Result<JsValue, JsValue> {
@@ -109,6 +181,7 @@ pub fn wasm_wrapper(_attr: TokenStream, input: TokenStream) -> TokenStream {
 
     let result = quote! {
         #input
+        #exported_struct
         #exported_function
     };
 
