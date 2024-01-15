@@ -1,16 +1,7 @@
 import { Keyring } from '@polkadot/api'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { assert } from 'chai'
-import {
-  CreatePositionEvent,
-  InvariantError,
-  Percentage,
-  Position,
-  RemovePositionEvent,
-  SqrtPrice,
-  getPercentageDenominator,
-  getSqrtPriceDenominator
-} from 'math/math.js'
+import { CreatePositionEvent, InvariantError, Position, RemovePositionEvent } from 'math/math.js'
 import { InvariantTx } from './schema.js'
 
 export const positionEquals = async (recievedPosition: Position, expectedPosition: Position) => {
@@ -54,18 +45,6 @@ export const getEnvTestAccount = async (keyring: Keyring): Promise<IKeyringPair>
   }
 
   return keyring.addFromUri(accountUri)
-}
-
-export const toSqrtPrice = (x: bigint, decimals: bigint = 0n): SqrtPrice => {
-  return toDecimalWithDenominator(x, getSqrtPriceDenominator(), decimals)
-}
-
-export const toPercentage = (x: bigint, decimals: bigint = 0n): Percentage => {
-  return toDecimalWithDenominator(x, getPercentageDenominator(), decimals)
-}
-
-export const toDecimalWithDenominator = (x: bigint, denominator: bigint, decimals: bigint = 0n) => {
-  return { v: (denominator * x) / 10n ** decimals }
 }
 
 export const createPositionEventEquals = (

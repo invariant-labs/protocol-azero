@@ -1,4 +1,4 @@
-use crate::scale;
+use crate::{convert, decimal_ops};
 use core::convert::{TryFrom, TryInto};
 use decimal::*;
 use js_sys::BigInt;
@@ -14,4 +14,5 @@ pub struct Percentage {
     #[tsify(type = "bigint")]
     pub v: u64,
 }
-scale!(Percentage);
+
+decimal_ops!(Percentage);

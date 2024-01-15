@@ -1,4 +1,5 @@
 use crate::clamm::calculate_amount_delta;
+use crate::convert;
 use crate::storage::pool_key::PoolKey;
 use crate::storage::tick::Tick;
 use crate::types::{liquidity::Liquidity, sqrt_price::SqrtPrice, token_amount::TokenAmount};
@@ -62,13 +63,27 @@ extern "C" {
 }
 
 #[macro_export]
-macro_rules! scale {
+macro_rules! decimal_ops {
     ($decimal:ident) => {
         ::paste::paste! {
             #[wasm_bindgen]
             #[allow(non_snake_case)]
             pub fn [<get $decimal Scale >] () -> BigInt {
                 BigInt::from($decimal::scale())
+            }
+
+            #[wasm_bindgen]
+            #[allow(non_snake_case)]
+            pub fn [<get $decimal Denominator >] () -> BigInt {
+                BigInt::from(10u128.pow($decimal::scale() as u32))
+            }
+
+            #[wasm_bindgen]
+            #[allow(non_snake_case)]
+            pub fn [<to $decimal >] (js_val: JsValue, js_scale: JsValue) -> BigInt {
+                let js_val: u64 = convert!(js_val).unwrap();
+                let scale: u64 = convert!(js_scale).unwrap();
+                BigInt::from($decimal::from_scale(js_val, scale as u8).get())
             }
         }
     };
