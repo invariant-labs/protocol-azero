@@ -30,7 +30,7 @@ impl FeeTier {
     }
 }
 
-#[wasm_bindgen(js_name = "newFeeTier")]
+#[wasm_bindgen(js_name = "_newFeeTier")]
 pub fn new_fee_tier(js_fee: JsValue, js_tick_spacing: JsValue) -> Result<JsValue, JsValue> {
     let fee: Percentage = convert!(js_fee)?;
     let tick_spacing: u16 = convert!(js_tick_spacing)?;

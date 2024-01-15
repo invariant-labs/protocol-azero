@@ -1,7 +1,7 @@
 import { Keyring } from '@polkadot/api'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { assert } from 'chai'
-import { InvariantError, Position } from 'math/math.js'
+import { CreatePositionEvent, InvariantError, Position, RemovePositionEvent } from 'math/math.js'
 import { InvariantTx } from './schema.js'
 
 export const positionEquals = async (recievedPosition: Position, expectedPosition: Position) => {
@@ -45,4 +45,34 @@ export const getEnvTestAccount = async (keyring: Keyring): Promise<IKeyringPair>
   }
 
   return keyring.addFromUri(accountUri)
+}
+
+export const createPositionEventEquals = (
+  createPositionEvent: CreatePositionEvent,
+  expectedCreatePositionEvent: CreatePositionEvent
+) => {
+  assert.deepEqual(createPositionEvent.address, expectedCreatePositionEvent.address)
+  assert.deepEqual(
+    createPositionEvent.currentSqrtPrice,
+    expectedCreatePositionEvent.currentSqrtPrice
+  )
+  assert.deepEqual(createPositionEvent.liquidity, expectedCreatePositionEvent.liquidity)
+  assert.deepEqual(createPositionEvent.lowerTick, expectedCreatePositionEvent.lowerTick)
+  assert.deepEqual(createPositionEvent.pool, expectedCreatePositionEvent.pool)
+  assert.deepEqual(createPositionEvent.upperTick, expectedCreatePositionEvent.upperTick)
+}
+
+export const removePositionEventEquals = (
+  removePositionEvent: RemovePositionEvent,
+  expectedRemovePositionEvent: RemovePositionEvent
+) => {
+  assert.deepEqual(removePositionEvent.address, expectedRemovePositionEvent.address)
+  assert.deepEqual(
+    removePositionEvent.currentSqrtPrice,
+    expectedRemovePositionEvent.currentSqrtPrice
+  )
+  assert.deepEqual(removePositionEvent.liquidity, expectedRemovePositionEvent.liquidity)
+  assert.deepEqual(removePositionEvent.lowerTick, expectedRemovePositionEvent.lowerTick)
+  assert.deepEqual(removePositionEvent.pool, expectedRemovePositionEvent.pool)
+  assert.deepEqual(removePositionEvent.upperTick, expectedRemovePositionEvent.upperTick)
 }
