@@ -4,11 +4,12 @@ import { Network } from './network.js'
 import {
   DEFAULT_PROOF_SIZE,
   DEFAULT_REF_TIME,
-  _newPoolKey,
   deployInvariant,
   deployPSP22,
   getEnvAccount,
   initPolkadotApi,
+  newFeeTier,
+  newPoolKey,
   printBalance
 } from './utils.js'
 import { WrappedAZERO } from './wrapped_azero.js'
@@ -21,13 +22,14 @@ import {
   Liquidity,
   PoolKey,
   SqrtPrice,
+  TokenAmount,
   getDeltaY,
+  getLiquidityByX,
+  getLiquidityByY,
   getLiquidityScale,
   getPercentageScale,
   getSqrtPriceScale,
-  getTokenAmountScale,
-  newFeeTier,
-  newPoolKey
+  getTokenAmountScale
 } from 'math/math.js'
 import { InvariantEvent } from './schema.js'
 import { getEnvTestAccount } from './testUtils.js'
@@ -52,7 +54,40 @@ const main = async () => {
   }
 
   {
-    const feeTier: FeeTier = newFeeTier({ v: 10n }, 55)
+    const providedAmount: TokenAmount = 47600000000n
+    const poolSqrtPrice: SqrtPrice = { v: 1000000000000000000000000000n }
+    const lowerTickIndex = -22000n
+    const upperTickIndex = -21000n
+
+    const { l, amount } = getLiquidityByY(
+      providedAmount,
+      lowerTickIndex,
+      upperTickIndex,
+      poolSqrtPrice,
+      true
+    )
+    console.log('Liquidity = ', l)
+    console.log('Amount = ', amount)
+  }
+  {
+    const providedAmount = 430000n
+    const initSqrtPrice: SqrtPrice = { v: 1005012269622000000000000n }
+    const lowerTickIndex = 80n
+    const upperTickIndex = 120n
+
+    const { l, amount } = getLiquidityByX(
+      providedAmount,
+      lowerTickIndex,
+      upperTickIndex,
+      initSqrtPrice,
+      true
+    )
+    console.log('Liquidity = ', l)
+    console.log('Amount = ', amount)
+  }
+
+  {
+    const feeTier: FeeTier = newFeeTier({ v: 10n }, 55n)
     console.log(feeTier)
     const poolKey: PoolKey = newPoolKey(
       '5H79vf7qQKdpefChp4sGh8j4BNq8JoL5x8nez8RsEebPJu9D',
@@ -86,9 +121,9 @@ const main = async () => {
   const token0 = await deployPSP22(api, account, 1000n, 'Coin', 'COIN', 12n, network)
   const token1 = await deployPSP22(api, account, 1000n, 'Coin', 'COIN', 12n, network)
 
-  const feeTier = newFeeTier({ v: 6000000000n }, 10)
+  const feeTier = newFeeTier({ v: 6000000000n }, 10n)
 
-  const poolKey = await _newPoolKey(
+  const poolKey = await newPoolKey(
     token0.contract.address.toString(),
     token1.contract.address.toString(),
     feeTier

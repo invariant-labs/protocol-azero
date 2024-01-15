@@ -19,7 +19,7 @@ describe('psp22', function () {
   it('should set metadata', async () => {
     expect(await token.tokenName(account)).to.equal('Coin')
     expect(await token.tokenSymbol(account)).to.equal('COIN')
-    expect(await token.tokenDecimals(account)).to.equal(12)
+    expect(await token.tokenDecimals(account)).to.equal(12n)
   })
 
   it('should mint tokens', async () => {
@@ -29,13 +29,13 @@ describe('psp22', function () {
 
   it('should transfer tokens', async () => {
     const data = api.createType('Vec<u8>', [])
-    await token.transfer(account, testAccount.address, 250, data)
+    await token.transfer(account, testAccount.address, 250n, data)
     expect(await token.balanceOf(account, account.address)).to.equal(750n)
     expect(await token.balanceOf(account, testAccount.address)).to.equal(250n)
   })
 
   it('should approve tokens', async () => {
     await token.approve(account, testAccount.address, 250n)
-    expect(await token.allowance(account, account.address, testAccount.address)).to.equal(250)
+    expect(await token.allowance(account, account.address, testAccount.address)).to.equal(250n)
   })
 })
