@@ -7,7 +7,7 @@ use ink::storage::Mapping;
 
 pub const TICK_SEARCH_RANGE: i32 = 256;
 pub const CHUNK_SIZE: i32 = 64;
-pub const MAX_CHUNKS: u16 = 6932; // (221818 * 2 + 1) / 64
+pub const MAX_CHUNKS: u16 = ((MAX_TICK * 2 + 1) / CHUNK_SIZE) as u16;
 
 #[derive(Debug)]
 #[ink::storage_item]
