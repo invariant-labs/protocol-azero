@@ -107,7 +107,7 @@ export class PSP22 {
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      0,
+      0n,
       account,
       PSP22Tx.Mint,
       [value],
@@ -119,7 +119,7 @@ export class PSP22 {
   async transfer(
     account: IKeyringPair,
     to: string,
-    value: number,
+    value: bigint,
     data: Bytes,
     block: boolean = true
   ): Promise<TxResult> {
@@ -127,7 +127,7 @@ export class PSP22 {
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      0,
+      0n,
       account,
       PSP22Tx.Transfer,
       [to, value, data],
@@ -146,7 +146,7 @@ export class PSP22 {
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      0,
+      0n,
       account,
       PSP22Tx.Approve,
       [spender, value],
@@ -189,16 +189,14 @@ export class PSP22 {
   }
 
   async balanceOf(account: IKeyringPair, owner: string): Promise<bigint> {
-    const result = (await sendQuery(
+    return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       account,
       PSP22Query.BalanceOf,
       [owner]
-    )) as number
-
-    return BigInt(result)
+    )
   }
 
   async totalSupply(account: IKeyringPair): Promise<unknown> {
