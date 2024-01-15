@@ -1,3 +1,4 @@
+use crate::denominator;
 use crate::scale;
 use core::convert::{TryFrom, TryInto};
 use decimal::*;
@@ -14,3 +15,4 @@ pub struct FixedPoint {
 }
 
 scale!(FixedPoint);
+denominator!(FixedPoint);

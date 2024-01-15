@@ -9,7 +9,7 @@ describe('utils', () => {
       const startingSqrtPrice = { v: 10954451150103322269139395n }
       const endingSqrtPrice = { v: 24474476501040834315678144n }
       const priceImpact = calculatePriceImpact(startingSqrtPrice, endingSqrtPrice)
-      assert.equal(priceImpact.v as bigint, 799666110184n)
+      assert.equal(priceImpact.v, 799666110184n)
     })
 
     it('decreasing price', () => {
@@ -18,7 +18,7 @@ describe('utils', () => {
       const startingSqrtPrice = { v: 605805249234438377196232n }
       const endingSqrtPrice = { v: 15258932449895975601n }
       const priceImpact = calculatePriceImpact(startingSqrtPrice, endingSqrtPrice)
-      assert.equal(priceImpact.v as bigint, 999999999366n)
+      assert.equal(priceImpact.v, 999999999366n)
     })
   })
 })

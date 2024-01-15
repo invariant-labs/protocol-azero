@@ -5,7 +5,15 @@ import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { getSubstrateChain } from '@scio-labs/use-inkathon/chains'
 import { getBalance, initPolkadotJs as initApi } from '@scio-labs/use-inkathon/helpers'
 import { readFile } from 'fs/promises'
-import { FeeTier, Percentage, PoolKey, SqrtPrice, _newFeeTier, _newPoolKey } from 'math/math.js'
+import {
+  FeeTier,
+  Percentage,
+  PoolKey,
+  SqrtPrice,
+  _newFeeTier,
+  _newPoolKey,
+  getPercentageDenominator
+} from 'math/math.js'
 import { Invariant } from './invariant.js'
 import { Network } from './network.js'
 import { PSP22 } from './psp22.js'
@@ -216,23 +224,21 @@ export const getDeploymentData = async (
   }
 }
 
-export const DENOMINATOR = BigInt(Math.pow(10, 12))
-
 export const calculatePriceImpact = (
   startingSqrtPrice: SqrtPrice,
   endingSqrtPrice: SqrtPrice
 ): Percentage => {
-  const startingPrice = (startingSqrtPrice.v as bigint) * (startingSqrtPrice.v as bigint)
-  const endingPrice = (endingSqrtPrice.v as bigint) * (endingSqrtPrice.v as bigint)
-  let priceQuotient
+  const startingPrice = startingSqrtPrice.v * startingSqrtPrice.v
+  const endingPrice = endingSqrtPrice.v * endingSqrtPrice.v
 
-  if (endingPrice >= startingPrice) {
-    priceQuotient = (DENOMINATOR * startingPrice) / endingPrice
-  } else {
-    priceQuotient = (DENOMINATOR * endingPrice) / startingPrice
+  const nominator = BigInt(Math.abs(Number(startingPrice - endingPrice)))
+  const denominator = BigInt(Math.max(Number(startingPrice), Number(endingPrice)))
+
+  return {
+    v: BigInt(
+      Math.round((Number(nominator) / Number(denominator)) * Number(getPercentageDenominator()))
+    )
   }
-
-  return { v: DENOMINATOR - priceQuotient }
 }
 
 export const parse = (value: any) => {

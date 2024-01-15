@@ -1,4 +1,5 @@
 use crate::consts::*;
+use crate::denominator;
 use crate::scale;
 use crate::types::{fixed_point::FixedPoint, token_amount::TokenAmount};
 use core::convert::{TryFrom, TryInto};
@@ -18,6 +19,7 @@ pub struct SqrtPrice {
 }
 
 scale!(SqrtPrice);
+denominator!(SqrtPrice);
 
 impl SqrtPrice {
     pub fn from_tick(i: i32) -> TrackableResult<Self> {

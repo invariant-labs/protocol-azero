@@ -66,6 +66,19 @@ macro_rules! scale {
 }
 
 #[macro_export]
+macro_rules! denominator {
+    ($decimal:ident) => {
+        ::paste::paste! {
+            #[wasm_bindgen]
+            #[allow(non_snake_case)]
+            pub fn [<get $decimal Denominator >] () -> BigInt {
+                BigInt::from(10u128.pow($decimal::scale() as u32))
+            }
+        }
+    };
+}
+
+#[macro_export]
 macro_rules! convert {
     ($value:expr) => {{
         serde_wasm_bindgen::from_value($value)

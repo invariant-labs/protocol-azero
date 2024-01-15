@@ -1,5 +1,6 @@
 use crate::liquidity::*;
 
+use crate::denominator;
 use crate::scale;
 use crate::token_amount::TokenAmount;
 use core::convert::{TryFrom, TryInto};
@@ -19,6 +20,7 @@ pub struct FeeGrowth {
 }
 
 scale!(FeeGrowth);
+denominator!(FeeGrowth);
 
 impl FeeGrowth {
     pub fn unchecked_add(self, other: FeeGrowth) -> FeeGrowth {

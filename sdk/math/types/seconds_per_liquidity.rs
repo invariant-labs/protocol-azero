@@ -1,3 +1,4 @@
+use crate::denominator;
 use crate::liquidity::Liquidity;
 use crate::scale;
 use core::convert::{TryFrom, TryInto};
@@ -17,6 +18,7 @@ pub struct SecondsPerLiquidity {
 }
 
 scale!(SecondsPerLiquidity);
+denominator!(SecondsPerLiquidity);
 
 impl SecondsPerLiquidity {
     pub fn unchecked_add(self, other: SecondsPerLiquidity) -> SecondsPerLiquidity {

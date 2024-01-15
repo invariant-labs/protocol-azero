@@ -1,3 +1,4 @@
+use crate::denominator;
 use crate::scale;
 use core::convert::{TryFrom, TryInto};
 use decimal::*;
@@ -13,3 +14,4 @@ pub struct Liquidity {
     pub v: u128,
 }
 scale!(Liquidity);
+denominator!(Liquidity);
