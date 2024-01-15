@@ -1,6 +1,13 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import { CreatePositionEvent, InvariantError, Position, SqrtPrice, TokenAmount } from 'math/math.js'
+import {
+  CreatePositionEvent,
+  InvariantError,
+  Position,
+  SqrtPrice,
+  TokenAmount,
+  getLiquidityByX
+} from 'math/math.js'
 import { Network } from '../src/network'
 import {
   assertThrowsAsync,
@@ -8,7 +15,14 @@ import {
   positionEquals,
   removePositionEventEquals
 } from '../src/testUtils'
-import { deployInvariant, deployPSP22, initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
+import {
+  calculateTokenAmounts,
+  deployInvariant,
+  deployPSP22,
+  initPolkadotApi,
+  newFeeTier,
+  newPoolKey
+} from '../src/utils'
 
 const api = await initPolkadotApi(Network.Local)
 
@@ -100,7 +114,29 @@ describe('position', async () => {
     }
     await positionEquals(position, expectedPosition)
   })
+  it('calculate token amounts from position liquidity', async () => {
+    const position = await invariant.getPosition(account, account.address, 0n)
+    const pool = await invariant.getPool(
+      account,
+      token0.contract.address.toString(),
+      token1.contract.address.toString(),
+      feeTier
+    )
 
+    const providedAmount = 500n
+    const { amount: expectedYAmount } = getLiquidityByX(
+      500n,
+      lowerTickIndex,
+      upperTickIndex,
+      pool.sqrtPrice,
+      false
+    )
+
+    const { x, y } = calculateTokenAmounts(pool, position)
+    // 1n diffrence in result comes from rounding in `getLiquidityByX`
+    assert.deepEqual(x, providedAmount - 1n)
+    assert.deepEqual(y, expectedYAmount)
+  })
   it('remove position', async () => {
     {
       const result = await invariant.removePosition(account, 0n)
