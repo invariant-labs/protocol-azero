@@ -61,15 +61,17 @@ pub fn wasm_wrapper(_attr: TokenStream, input: TokenStream) -> TokenStream {
                         syn::Ident::new(&format!("js_{}", param_name), ident.span());
                     let param_ty = &pat_type.ty;
 
-                    let conversion_code = if is_i32_type(param_ty) {
+                    let (require_cast, intermediate_cast) = requires_special_casting(param_ty);
+                    let intermediate_cast = if require_cast {
+                        Some(intermediate_cast)
+                    } else {
+                        None
+                    };
+    
+                    let conversion_code = if let Some(intermediate_cast) = intermediate_cast {
                         quote! {
-                            let #param_name: i64 = serde_wasm_bindgen::from_value(#js_param_name)?;
-                            let #param_name: i32 = #param_name as i32;
-                        }
-                    } else if is_u16_type(param_ty) {
-                        quote! {
-                            let #param_name: u64 = serde_wasm_bindgen::from_value(#js_param_name)?;
-                            let #param_name: u16 = #param_name as u16;
+                            let #param_name: #intermediate_cast = serde_wasm_bindgen::from_value(#js_param_name)?;
+                            let #param_name: #param_ty = #param_name as #param_ty;
                         }
                     } else {
                         quote! {
@@ -113,20 +115,15 @@ pub fn wasm_wrapper(_attr: TokenStream, input: TokenStream) -> TokenStream {
     result.into()
 }
 
-fn is_i32_type(ty: &Type) -> bool {
+fn requires_special_casting(ty: &Type) -> (bool, syn::Ident) {
     if let Type::Path(path) = ty {
         if let Some(segment) = path.path.segments.last() {
-            return segment.ident.to_string() == "i32";
+            match segment.ident.to_string().as_str() {
+                "i32" | "i16" | "i8" => return (true, syn::Ident::new("i64", segment.ident.span())),
+                "u32" | "u16" | "u8" => return (true, syn::Ident::new("i64", segment.ident.span())),
+                _ => return (false, segment.ident.clone()),
+            };
         }
     }
-    false
-}
-
-fn is_u16_type(ty: &Type) -> bool {
-    if let Type::Path(path) = ty {
-        if let Some(segment) = path.path.segments.last() {
-            return segment.ident.to_string() == "u16";
-        }
-    }
-    false
+    (false, syn::Ident::new("unknown", ty.span()))
 }
