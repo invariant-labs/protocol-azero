@@ -16,10 +16,10 @@ describe('wrapped_azero', function () {
   })
 
   it('wraps and unwraps azero', async () => {
-    await wazero.deposit(account, 1000000000000)
-    expect(await wazero.balanceOf(account, account.address)).to.equal(1000000000000)
+    await wazero.deposit(account, 1000000000000n)
+    expect(await wazero.balanceOf(account, account.address)).to.equal(1000000000000n)
 
-    await wazero.withdraw(account, 1000000000000)
-    expect(await wazero.balanceOf(account, account.address)).to.equal(0)
+    await wazero.withdraw(account, 1000000000000n)
+    expect(await wazero.balanceOf(account, account.address)).to.equal(0n)
   })
 })

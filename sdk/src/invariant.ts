@@ -22,13 +22,21 @@ import {
   TokenAmount
 } from 'math/math.js'
 import { Network } from './network.js'
-import { InvariantEvent, InvariantQuery, InvariantTx, TxResult } from './schema.js'
+import {
+  CreatePositionTxResult,
+  InvariantEvent,
+  InvariantQuery,
+  InvariantTx,
+  RemovePositionTxResult,
+  SwapRouteTxResult,
+  SwapTxResult,
+  TxResult
+} from './schema.js'
 import {
   DEFAULT_PROOF_SIZE,
   DEFAULT_REF_TIME,
-  convertArr,
-  convertObj,
   getDeploymentData,
+  parse,
   sendQuery,
   sendTx
 } from './utils.js'
@@ -143,7 +151,7 @@ export class Invariant {
 
           this.eventListeners.map(eventListener => {
             if (eventListener.identifier === decoded.event.identifier) {
-              eventListener.listener(convertObj(eventObj))
+              eventListener.listener(parse(eventObj))
             }
           })
         })
@@ -171,7 +179,7 @@ export class Invariant {
       account,
       InvariantQuery.ProtocolFee,
       []
-    ) as Promise<Percentage>
+    )
   }
 
   async changeProtocolFee(
@@ -183,7 +191,7 @@ export class Invariant {
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      0,
+      0n,
       account,
       InvariantTx.ChangeProtocolFee,
       [fee],
@@ -201,7 +209,7 @@ export class Invariant {
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      0,
+      0n,
       account,
       InvariantTx.AddFeeTier,
       [feeTier],
@@ -219,7 +227,7 @@ export class Invariant {
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      0,
+      0n,
       account,
       InvariantTx.RemoveFeeTier,
       [feeTier],
@@ -229,16 +237,14 @@ export class Invariant {
   }
 
   async getFeeTiers(account: IKeyringPair): Promise<FeeTier[]> {
-    const result = (await sendQuery(
+    return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       account,
       InvariantQuery.GetFeeTiers,
       []
-    )) as any
-
-    return convertArr(result)
+    )
   }
 
   async feeTierExist(account: IKeyringPair, feeTier: FeeTier): Promise<boolean> {
@@ -249,7 +255,7 @@ export class Invariant {
       account,
       InvariantQuery.FeeTierExist,
       [feeTier]
-    ) as Promise<boolean>
+    )
   }
 
   async changeFeeReceiver(
@@ -262,7 +268,7 @@ export class Invariant {
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      0,
+      0n,
       account,
       InvariantTx.ChangeFeeReceiver,
       [poolKey, feeReceiver],
@@ -280,7 +286,7 @@ export class Invariant {
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      0,
+      0n,
       account,
       InvariantTx.WithdrawProtocolFee,
       [poolKey],
@@ -290,33 +296,31 @@ export class Invariant {
   }
 
   async getPosition(account: IKeyringPair, owner: string, index: bigint): Promise<Position> {
-    const result = (await sendQuery(
+    const result = await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       account,
       InvariantQuery.GetPosition,
       [owner, index]
-    )) as any
+    )
 
     if (result.ok) {
-      return convertObj(result.ok)
+      return parse(result.ok)
     } else {
       throw new Error(InvariantError[result.err])
     }
   }
 
   async getPositions(account: IKeyringPair, owner: string): Promise<Position[]> {
-    const result = (await sendQuery(
+    return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       account,
       InvariantQuery.GetAllPositions,
       [owner]
-    )) as any
-
-    return convertArr(result)
+    )
   }
 
   async createPosition(
@@ -328,18 +332,18 @@ export class Invariant {
     slippageLimitLower: SqrtPrice,
     slippageLimitUpper: SqrtPrice,
     block: boolean = true
-  ): Promise<TxResult> {
+  ): Promise<CreatePositionTxResult> {
     return sendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      0,
+      0n,
       account,
       InvariantTx.CreatePosition,
       [poolKey, lowerTick, upperTick, liquidityDelta, slippageLimitLower, slippageLimitUpper],
       this.waitForFinalization,
       block
-    )
+    ) as Promise<CreatePositionTxResult>
   }
 
   async transferPosition(
@@ -352,7 +356,7 @@ export class Invariant {
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      0,
+      0n,
       account,
       InvariantTx.TransferPosition,
       [index, receiver],
@@ -365,18 +369,18 @@ export class Invariant {
     account: IKeyringPair,
     index: bigint,
     block: boolean = true
-  ): Promise<TxResult> {
+  ): Promise<RemovePositionTxResult> {
     return sendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      0,
+      0n,
       account,
       InvariantTx.RemovePosition,
       [index],
       this.waitForFinalization,
       block
-    )
+    ) as Promise<RemovePositionTxResult>
   }
 
   async claimFee(account: IKeyringPair, index: bigint, block: boolean = true): Promise<TxResult> {
@@ -384,7 +388,7 @@ export class Invariant {
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      0,
+      0n,
       account,
       InvariantTx.ClaimFee,
       [index],
@@ -394,31 +398,31 @@ export class Invariant {
   }
 
   async getTick(account: IKeyringPair, key: PoolKey, index: bigint): Promise<Tick> {
-    const result = (await sendQuery(
+    const result = await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       account,
       InvariantQuery.GetTick,
       [key, index]
-    )) as any
+    )
 
     if (result.ok) {
-      return convertObj(result.ok)
+      return parse(result.ok)
     } else {
       throw new Error(InvariantError[result.err])
     }
   }
 
   async isTickInitialized(account: IKeyringPair, key: PoolKey, index: bigint): Promise<boolean> {
-    return (await sendQuery(
+    return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       account,
       InvariantQuery.IsTickInitialized,
       [key, index]
-    )) as Promise<boolean>
+    )
   }
 
   async getPool(
@@ -427,33 +431,31 @@ export class Invariant {
     token1: string,
     feeTier: FeeTier
   ): Promise<Pool> {
-    const result = (await sendQuery(
+    const result = await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       account,
       InvariantQuery.GetPool,
       [token0, token1, feeTier]
-    )) as any
+    )
 
     if (result.ok) {
-      return convertObj(result.ok)
+      return parse(result.ok)
     } else {
       throw new Error(InvariantError[result.err])
     }
   }
 
   async getPools(account: IKeyringPair): Promise<Pool[]> {
-    const result = (await sendQuery(
+    return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       account,
       InvariantQuery.GetPools,
       []
-    )) as any
-
-    return convertArr(result)
+    )
   }
 
   async createPool(
@@ -469,7 +471,7 @@ export class Invariant {
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      0,
+      0n,
       account,
       InvariantTx.CreatePool,
       [token0, token1, feeTier, initSqrtPrice, initTick],
@@ -486,16 +488,14 @@ export class Invariant {
     byAmountIn: boolean,
     sqrtPriceLimit: SqrtPrice
   ): Promise<QuoteResult> {
-    const result = (await sendQuery(
+    return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       account,
       InvariantQuery.Quote,
       [poolKey, xToY, amount, byAmountIn, sqrtPriceLimit]
-    )) as any
-
-    return convertObj(result)
+    )
   }
 
   async quoteRoute(
@@ -503,16 +503,14 @@ export class Invariant {
     amountIn: TokenAmount,
     swaps: SwapHop[]
   ): Promise<TokenAmount> {
-    const result = (await sendQuery(
+    return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       account,
       InvariantQuery.QuoteRoute,
       [amountIn, swaps]
-    )) as any
-
-    return convertObj(result)
+    )
   }
 
   async swap(
@@ -523,18 +521,18 @@ export class Invariant {
     byAmountIn: boolean,
     sqrtPriceLimit: SqrtPrice,
     block: boolean = true
-  ): Promise<TxResult> {
+  ): Promise<SwapTxResult> {
     return sendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      0,
+      0n,
       account,
       InvariantTx.Swap,
       [poolKey, xToY, amount, byAmountIn, sqrtPriceLimit],
       this.waitForFinalization,
       block
-    )
+    ) as Promise<SwapTxResult>
   }
 
   async swapRoute(
@@ -544,18 +542,18 @@ export class Invariant {
     slippage: Percentage,
     swaps: SwapHop[],
     block: boolean = true
-  ): Promise<TxResult> {
+  ): Promise<SwapRouteTxResult> {
     return sendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      0,
+      0n,
       account,
       InvariantTx.SwapRoute,
       [amountIn, expectedAmountOut, slippage, swaps],
       this.waitForFinalization,
       block
-    )
+    ) as Promise<SwapRouteTxResult>
   }
 
   async getAllTicks(account: IKeyringPair, pool_key: PoolKey): Promise<Tick[]> {
