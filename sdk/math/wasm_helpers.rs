@@ -8,13 +8,6 @@ extern crate paste;
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;
-#[derive(PartialEq, Eq, Debug, Copy, Clone, Serialize, Deserialize, Tsify)]
-#[tsify(into_wasm_abi, from_wasm_abi)]
-pub struct AmountDeltaResult {
-    pub x: TokenAmount,
-    pub y: TokenAmount,
-    pub update_liquidity: bool,
-}
 
 #[derive(PartialEq, Debug, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
@@ -105,7 +98,7 @@ pub fn calculate_token_amounts(
     let upper_tick_index: i64 = convert!(js_upper_tick_index)?;
     let lower_tick_index: i64 = convert!(js_lower_tick_index)?;
 
-    let (x, y, _) = calculate_amount_delta(
+    let result = calculate_amount_delta(
         current_tick_index as i32,
         current_sqrt_price,
         liquidity,
@@ -115,5 +108,8 @@ pub fn calculate_token_amounts(
     )
     .map_err(|e| JsValue::from_str(&e.to_string()))?;
 
-    Ok(serde_wasm_bindgen::to_value(&TokenAmounts { x, y })?)
+    Ok(serde_wasm_bindgen::to_value(&TokenAmounts {
+        x: result.x,
+        y: result.y,
+    })?)
 }

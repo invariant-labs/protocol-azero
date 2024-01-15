@@ -47,6 +47,7 @@ const main = async () => {
     }
     const sqrtPriceB: SqrtPrice = { v: 87854456421658000000000000n }
     const liquidity: Liquidity = { v: 983983249092n }
+
     const deltaYUp = getDeltaY(sqrtPriceA, sqrtPriceB, liquidity, true)
     const deltaYDown = getDeltaY(sqrtPriceA, sqrtPriceB, liquidity, false)
     console.log(deltaYUp)

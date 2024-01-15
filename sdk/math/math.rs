@@ -9,6 +9,9 @@ use decimal::*;
 use serde::{Deserialize, Serialize};
 use traceable_result::*;
 use tsify::Tsify;
+use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsValue;
+use wasm_wrapper::wasm_wrapper;
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
@@ -17,7 +20,7 @@ pub struct SingleTokenLiquidity {
     pub amount: TokenAmount,
 }
 
-#[allow(dead_code)]
+#[wasm_wrapper]
 pub fn get_liquidity_by_x(
     x: TokenAmount,
     lower_tick: i32,
@@ -40,6 +43,7 @@ pub fn get_liquidity_by_x(
         rounding_up,
     ))
 }
+
 pub fn get_liquidity_by_x_sqrt_price(
     x: TokenAmount,
     lower_sqrt_price: SqrtPrice,
@@ -90,7 +94,7 @@ pub fn get_liquidity_by_x_sqrt_price(
     })
 }
 
-#[allow(dead_code)]
+#[wasm_wrapper]
 pub fn get_liquidity_by_y(
     y: TokenAmount,
     lower_tick: i32,
