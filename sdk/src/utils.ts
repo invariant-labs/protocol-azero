@@ -5,7 +5,15 @@ import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { getSubstrateChain } from '@scio-labs/use-inkathon/chains'
 import { getBalance, initPolkadotJs as initApi } from '@scio-labs/use-inkathon/helpers'
 import { readFile } from 'fs/promises'
-import { FeeTier, Percentage, PoolKey, newPoolKey } from 'math/math.js'
+import {
+  FeeTier,
+  Percentage,
+  Pool,
+  PoolKey,
+  Position,
+  newPoolKey,
+  wrappedCalculateTokenAmountsFromPosition
+} from 'math/math.js'
 import { Invariant } from './invariant.js'
 import { Network } from './network.js'
 import { PSP22 } from './psp22.js'
@@ -270,4 +278,14 @@ export const getDeploymentData = async (
   } catch (error) {
     throw new Error(`${contractName}.json or ${contractName}.wasm not found`)
   }
+}
+
+export const calculatedTokensAmountFromPositionLiquidity = (pool: Pool, position: Position) => {
+  return wrappedCalculateTokenAmountsFromPosition(
+    pool.currentTickIndex,
+    pool.sqrtPrice,
+    position.liquidity,
+    position.upperTickIndex,
+    position.lowerTickIndex
+  )
 }

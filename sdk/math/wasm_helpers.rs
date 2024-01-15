@@ -91,23 +91,19 @@ macro_rules! resolve {
     }};
 }
 
-#[wasm_bindgen(js_name = "calculateTokenAmountsFromPosition")]
+#[wasm_bindgen(js_name = "wrappedCalculateTokenAmountsFromPosition")]
 pub fn calculate_token_amounts_from_position_liquidity(
     js_current_tick_index: JsValue,
     js_current_sqrt_price: JsValue,
     js_liquidity: JsValue,
     js_upper_tick_index: JsValue,
     js_lower_tick_index: JsValue,
-    js_tokens_owed_x: JsValue,
-    js_tokens_owed_y: JsValue,
 ) -> Result<JsValue, JsValue> {
     let current_tick_index: i64 = convert!(js_current_tick_index)?;
     let current_sqrt_price: SqrtPrice = convert!(js_current_sqrt_price)?;
     let liquidity: Liquidity = convert!(js_liquidity)?;
     let upper_tick_index: i64 = convert!(js_upper_tick_index)?;
     let lower_tick_index: i64 = convert!(js_lower_tick_index)?;
-    let tokens_owed_x: TokenAmount = convert!(js_tokens_owed_x)?;
-    let tokens_owed_y: TokenAmount = convert!(js_tokens_owed_y)?;
 
     let (x, y, _) = calculate_amount_delta(
         current_tick_index as i32,
@@ -119,10 +115,8 @@ pub fn calculate_token_amounts_from_position_liquidity(
     )
     .map_err(|e| JsValue::from_str(&e.to_string()))?;
 
-    let total_x = x + tokens_owed_x;
-    let total_y = y + tokens_owed_y;
     Ok(serde_wasm_bindgen::to_value(&CalculateTokenAmounts {
-        x: total_x,
-        y: total_y,
+        x,
+        y,
     })?)
 }

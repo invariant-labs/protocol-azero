@@ -5,7 +5,6 @@ import {
   Position,
   SqrtPrice,
   TokenAmount,
-  calculateTokenAmountsFromPosition,
   getLiquidityByX,
   newFeeTier,
   newPoolKey
@@ -13,7 +12,13 @@ import {
 import { Network } from '../src/network'
 import { InvariantTx } from '../src/schema'
 import { assertThrowsAsync, positionEquals } from '../src/testUtils'
-import { _newPoolKey, deployInvariant, deployPSP22, initPolkadotApi } from '../src/utils'
+import {
+  _newPoolKey,
+  calculatedTokensAmountFromPositionLiquidity,
+  deployInvariant,
+  deployPSP22,
+  initPolkadotApi
+} from '../src/utils'
 
 const api = await initPolkadotApi(Network.Local)
 
@@ -461,23 +466,16 @@ describe('invariant', async () => {
       )
 
       const providedAmount = 500n
-      const expectedYAmount = getLiquidityByX(
+      const { amount: expectedYAmount } = getLiquidityByX(
         500n,
         lowerTickIndex,
         upperTickIndex,
         pool.sqrtPrice,
         false
-      ).amount
-
-      const { x, y } = calculateTokenAmountsFromPosition(
-        pool.currentTickIndex,
-        pool.sqrtPrice,
-        position.liquidity,
-        position.upperTickIndex,
-        position.lowerTickIndex,
-        position.tokensOwedX,
-        position.tokensOwedY
       )
+
+      const { x, y } = calculatedTokensAmountFromPositionLiquidity(pool, position)
+      // 1n diffrence in result comes from rounding in `getLiquidityByX`
       assert.deepEqual(x, providedAmount - 1n)
       assert.deepEqual(y, expectedYAmount)
     })
