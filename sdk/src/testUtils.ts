@@ -7,10 +7,11 @@ import {
   Percentage,
   Position,
   RemovePositionEvent,
-  SqrtPrice
+  SqrtPrice,
+  getPercentageDenominator,
+  getSqrtPriceDenominator
 } from 'math/math.js'
 import { InvariantTx } from './schema.js'
-import { DENOMINATOR, PRICE_DENOMINATOR } from './utils.js'
 
 export const positionEquals = async (recievedPosition: Position, expectedPosition: Position) => {
   assert.deepEqual(recievedPosition.poolKey, expectedPosition.poolKey)
@@ -56,15 +57,15 @@ export const getEnvTestAccount = async (keyring: Keyring): Promise<IKeyringPair>
 }
 
 export const toSqrtPrice = (x: bigint, decimals: bigint = 0n): SqrtPrice => {
-  return toDecimalWithDenominator(x, PRICE_DENOMINATOR, decimals)
+  return toDecimalWithDenominator(x, getSqrtPriceDenominator(), decimals)
 }
 
 export const toPercentage = (x: bigint, decimals: bigint = 0n): Percentage => {
-  return toDecimalWithDenominator(x, DENOMINATOR, decimals)
+  return toDecimalWithDenominator(x, getPercentageDenominator(), decimals)
 }
 
 export const toDecimalWithDenominator = (x: bigint, denominator: bigint, decimals: bigint = 0n) => {
-  return { v: (denominator * x) / BigInt(Math.pow(10, Number(decimals))) }
+  return { v: (denominator * x) / 10n ** decimals }
 }
 
 export const createPositionEventEquals = (

@@ -15,6 +15,7 @@ import {
   TokenAmounts,
   _newFeeTier,
   _newPoolKey,
+  getPercentageDenominator,
   wrappedCalculateTokenAmounts
 } from 'math/math.js'
 import { Invariant } from './invariant.js'
@@ -227,21 +228,20 @@ export const getDeploymentData = async (
   }
 }
 
-export const DENOMINATOR = BigInt(Math.pow(10, 12))
-export const PRICE_DENOMINATOR = BigInt(Math.pow(10, 24))
-
-export const calculatePriceAfterSlippage = (
+export const calculateSqrtPriceAfterSlippage = (
   priceSqrt: SqrtPrice,
   slippage: Percentage,
   up: boolean
 ): SqrtPrice => {
   // using sqrt of slippage, because price is a sqrt
   const multiplier = up
-    ? (slippage.v as bigint) + DENOMINATOR
-    : DENOMINATOR - (slippage.v as bigint)
-  const slippageSqrt = BigInt(Math.round(Math.sqrt(Number(multiplier * DENOMINATOR))))
+    ? slippage.v + getPercentageDenominator()
+    : getPercentageDenominator() - slippage.v
+  const slippageSqrt = BigInt(
+    Math.round(Math.sqrt(Number(multiplier * getPercentageDenominator())))
+  )
 
-  return { v: ((priceSqrt.v as bigint) * slippageSqrt) / DENOMINATOR }
+  return { v: (priceSqrt.v * slippageSqrt) / getPercentageDenominator() }
 }
 
 export const calculateTokenAmounts = (pool: Pool, position: Position): TokenAmounts => {
