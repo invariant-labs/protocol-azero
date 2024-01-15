@@ -234,38 +234,19 @@ export const simulateUnclaimedFees = (
   lowerTick: Tick,
   upperTick: Tick
 ): TokenAmounts => {
-  const temporaryPool = {
-    ...pool,
-    currentTickIndex: Number(pool.currentTickIndex)
-  }
-  const temporaryPosition = {
-    ...position,
-    lowerTickIndex: Number(position.lowerTickIndex),
-    upperTickIndex: Number(position.upperTickIndex),
-    poolKey: {
-      ...position.poolKey,
-      feeTier: {
-        ...position.poolKey.feeTier,
-        tickSpacing: Number(position.poolKey.feeTier.tickSpacing)
-      }
-    }
-  }
-  const temporaryLowerTick = {
-    ...lowerTick,
-    index: Number(lowerTick.index),
-    secondsOutside: Number(lowerTick.secondsOutside)
-  }
-  const temporaryUpperTick = {
-    ...upperTick,
-    index: Number(upperTick.index),
-    secondsOutside: Number(upperTick.secondsOutside)
-  }
-
   return _simulateUnclaimedFees(
-    temporaryPool,
-    temporaryPosition,
-    temporaryLowerTick,
-    temporaryUpperTick
+    lowerTick.index,
+    lowerTick.feeGrowthOutsideX.v,
+    lowerTick.feeGrowthOutsideY.v,
+    upperTick.index,
+    upperTick.feeGrowthOutsideX.v,
+    upperTick.feeGrowthOutsideY.v,
+    pool.currentTickIndex,
+    pool.feeGrowthGlobalX.v,
+    pool.feeGrowthGlobalY.v,
+    position.feeGrowthInsideX.v,
+    position.feeGrowthInsideY.v,
+    position.liquidity.v
   )
 }
 export const calculateTokenAmounts = (pool: Pool, position: Position): TokenAmounts => {
