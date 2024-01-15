@@ -187,9 +187,9 @@ pub fn wrapped_is_enough_to_change_price(
 pub fn wrapped_calculate_max_liquidity_per_tick(
     js_tick_spacing: JsValue,
 ) -> Result<JsValue, JsValue> {
-    let tick_spacing: u16 = convert!(js_tick_spacing)?;
+    let tick_spacing: u64 = convert!(js_tick_spacing)?;
     Ok(serde_wasm_bindgen::to_value(
-        &calculate_max_liquidity_per_tick(tick_spacing),
+        &calculate_max_liquidity_per_tick(tick_spacing as u16),
     )?)
 }
 
