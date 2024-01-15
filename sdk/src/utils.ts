@@ -234,14 +234,13 @@ export const calculatePriceImpact = (
 ): Percentage => {
   const startingPrice = startingSqrtPrice.v * startingSqrtPrice.v
   const endingPrice = endingSqrtPrice.v * endingSqrtPrice.v
+  const diff = startingPrice - endingPrice
 
-  const nominator = BigInt(Math.abs(Number(startingPrice - endingPrice)))
-  const denominator = BigInt(Math.max(Number(startingPrice), Number(endingPrice)))
+  const nominator = diff > 0n ? diff : -diff
+  const denominator = startingPrice > endingPrice ? startingPrice : endingPrice
 
   return {
-    v: BigInt(
-      Math.round((Number(nominator) / Number(denominator)) * Number(getPercentageDenominator()))
-    )
+    v: (nominator * getPercentageDenominator()) / denominator
   }
 }
 
