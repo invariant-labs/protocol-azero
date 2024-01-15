@@ -145,43 +145,73 @@ pub fn wasm_wrapper(_attr: TokenStream, input: TokenStream) -> TokenStream {
         })
         .unzip();
 
-    let exported_struct = if idents.len() > 1 {
-        quote! {
+    // let exported_struct = if idents.len() > 1 {
+    //     quote! {
         
+    //         #[derive(serde::Serialize, serde::Deserialize, Tsify)]
+    //         #[tsify(into_wasm_abi, from_wasm_abi)]
+    //         // tuple_struct_definition
+    //         pub struct #tuple_struct_name (
+    //             #(#tuple_struct_fields),*
+    //         );
+    //     // #[derive(serde::Serialize, serde::Deserialize, Tsify)]
+    //     // #[tsify(into_wasm_abi, from_wasm_abi)]
+    //     // // tuple_struct_definition
+    //     // pub struct #tuple_struct_name {
+    //     //     #(#tuple_struct_fields),*
+    //     // }
+    //     }
+    // } else {
+    //     quote! {}
+    // };
+
+    let exported_function = if idents.len() > 1 {
+        quote! {
             #[derive(serde::Serialize, serde::Deserialize, Tsify)]
             #[tsify(into_wasm_abi, from_wasm_abi)]
             // tuple_struct_definition
             pub struct #tuple_struct_name (
                 #(#tuple_struct_fields),*
             );
-        // #[derive(serde::Serialize, serde::Deserialize, Tsify)]
-        // #[tsify(into_wasm_abi, from_wasm_abi)]
-        // // tuple_struct_definition
-        // pub struct #tuple_struct_name {
-        //     #(#tuple_struct_fields),*
-        // }
+
+            #[wasm_bindgen(js_name = #camel_case_string)]
+            pub fn #generated_function_ident(#(#params),*) -> Result<JsValue, JsValue> {
+                #(#conversion_code)*
+    
+                let result = #original_function_name(#(#converted_params),*);
+
+    
+                match result {
+                    Ok(tuple) => {
+                        // Destructure the tuple and create an instance of your exported tuple
+                        let my_tuple_struct_instance = #tuple_struct_name(tuple.0, tuple.1);
+            
+                        // Serialize the instance to a JsValue using serde_wasm_bindgen
+                        Ok(serde_wasm_bindgen::to_value(&my_tuple_struct_instance)?)
+                    }
+                    Err(error) => Err(JsValue::from_str(&error.to_string())),
+                }
+            }
         }
     } else {
-        quote! {}
-    };
+        quote! {
+            #[wasm_bindgen(js_name = #camel_case_string)]
+            pub fn #generated_function_ident(#(#params),*) -> Result<JsValue, JsValue> {
+                #(#conversion_code)*
 
-    let exported_function = quote! {
-        #[wasm_bindgen(js_name = #camel_case_string)]
-        pub fn #generated_function_ident(#(#params),*) -> Result<JsValue, JsValue> {
-            #(#conversion_code)*
+                let result = #original_function_name(#(#converted_params),*);
 
-            let result = #original_function_name(#(#converted_params),*);
-
-            match result {
-                Ok(v) => Ok(serde_wasm_bindgen::to_value(&v)?),
-                Err(error) => Err(JsValue::from_str(&error.to_string())),
+                match result {
+                    Ok(v) => Ok(serde_wasm_bindgen::to_value(&v)?),
+                    Err(error) => Err(JsValue::from_str(&error.to_string())),
+                }
             }
         }
     };
 
     let result = quote! {
         #input
-        #exported_struct
+        // #exported_struct
         #exported_function
     };
 
