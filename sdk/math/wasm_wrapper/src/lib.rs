@@ -10,7 +10,6 @@ use syn::{parse_macro_input, FnArg, ItemFn};
 pub fn wasm_wrapper(_attr: TokenStream, input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as ItemFn);
     let original_function_name = &input.sig.ident;
-    let visibility = &input.vis;
 
     let generated_function_name = format!("wrapped_{}", original_function_name);
     let generated_function_ident =
@@ -64,17 +63,17 @@ pub fn wasm_wrapper(_attr: TokenStream, input: TokenStream) -> TokenStream {
 
                     let conversion_code = if is_i32_type(param_ty) {
                         quote! {
-                            let #param_name: i64 = serde_wasm_bindgen::from_value(#js_param_name).unwrap();
+                            let #param_name: i64 = serde_wasm_bindgen::from_value(#js_param_name)?;
                             let #param_name: i32 = #param_name as i32;
                         }
                     } else if is_u16_type(param_ty) {
                         quote! {
-                            let #param_name: u64 = serde_wasm_bindgen::from_value(#js_param_name).unwrap();
+                            let #param_name: u64 = serde_wasm_bindgen::from_value(#js_param_name)?;
                             let #param_name: u16 = #param_name as u16;
                         }
                     } else {
                         quote! {
-                            let #param_name: #param_ty = serde_wasm_bindgen::from_value(#js_param_name).unwrap();
+                            let #param_name: #param_ty = serde_wasm_bindgen::from_value(#js_param_name)?;
                         }
                     };
     
@@ -92,9 +91,9 @@ pub fn wasm_wrapper(_attr: TokenStream, input: TokenStream) -> TokenStream {
         })
         .unzip();
 
-    let new_function = quote! {
+    let exported_function = quote! {
         #[wasm_bindgen(js_name = #camel_case_string)]
-        #visibility fn #generated_function_ident(#(#params),*) -> Result<JsValue, JsValue> {
+        pub fn #generated_function_ident(#(#params),*) -> Result<JsValue, JsValue> {
             #(#conversion_code)*
 
             let result = #original_function_name(#(#converted_params),*);
@@ -108,13 +107,12 @@ pub fn wasm_wrapper(_attr: TokenStream, input: TokenStream) -> TokenStream {
 
     let result = quote! {
         #input
-        #new_function
+        #exported_function
     };
 
     result.into()
 }
 
-// Function to check if the type is i32
 fn is_i32_type(ty: &Type) -> bool {
     if let Type::Path(path) = ty {
         if let Some(segment) = path.path.segments.last() {
@@ -124,7 +122,6 @@ fn is_i32_type(ty: &Type) -> bool {
     false
 }
 
-// Function to check if the type is u16
 fn is_u16_type(ty: &Type) -> bool {
     if let Type::Path(path) = ty {
         if let Some(segment) = path.path.segments.last() {

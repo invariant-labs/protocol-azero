@@ -23,13 +23,11 @@ pub struct SingleTokenLiquidity {
 #[wasm_wrapper]
 pub fn get_liquidity_by_x(
     x: TokenAmount,
-    lower_tick: i64,
-    upper_tick: i64,
+    lower_tick: i32,
+    upper_tick: i32,
     current_sqrt_price: SqrtPrice,
     rounding_up: bool,
 ) -> TrackableResult<SingleTokenLiquidity> {
-    let lower_tick = lower_tick as i32;
-    let upper_tick = upper_tick as i32;
     if lower_tick < -MAX_TICK || upper_tick > MAX_TICK {
         return Err(err!("Invalid Ticks"));
     }
@@ -99,13 +97,11 @@ pub fn get_liquidity_by_x_sqrt_price(
 #[wasm_wrapper]
 pub fn get_liquidity_by_y(
     y: TokenAmount,
-    lower_tick: i64,
-    upper_tick: i64,
+    lower_tick: i32,
+    upper_tick: i32,
     current_sqrt_price: SqrtPrice,
     rounding_up: bool,
 ) -> TrackableResult<SingleTokenLiquidity> {
-    let lower_tick = lower_tick as i32;
-    let upper_tick = upper_tick as i32;
     if lower_tick < -MAX_TICK || upper_tick > MAX_TICK {
         return Err(err!("Invalid Ticks"));
     }
