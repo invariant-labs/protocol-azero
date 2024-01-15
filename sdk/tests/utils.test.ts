@@ -1,8 +1,14 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import { newFeeTier, newPoolKey } from 'math/math.js'
 import { Network } from '../src/network'
-import { deployInvariant, deployPSP22, initPolkadotApi, simulateUnclaimedFees } from '../src/utils'
+import {
+  deployInvariant,
+  deployPSP22,
+  initPolkadotApi,
+  newFeeTier,
+  newPoolKey,
+  simulateUnclaimedFees
+} from '../src/utils'
 
 const api = await initPolkadotApi(Network.Local)
 
@@ -13,7 +19,7 @@ const invariant = await deployInvariant(api, account, { v: 10000000000n }, Netwo
 const token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
 const token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
 
-const feeTier = newFeeTier({ v: 10000000000n }, 1)
+const feeTier = newFeeTier({ v: 10000000000n }, 1n)
 
 describe('utils', () => {
   describe('test simulateUnclaimedFees', () => {
