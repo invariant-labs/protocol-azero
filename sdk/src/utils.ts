@@ -6,6 +6,7 @@ import { getSubstrateChain } from '@scio-labs/use-inkathon/chains'
 import { getBalance, initPolkadotJs as initApi } from '@scio-labs/use-inkathon/helpers'
 import { readFile } from 'fs/promises'
 import {
+  CalculateTokenAmounts,
   FeeTier,
   Percentage,
   Pool,
@@ -225,7 +226,10 @@ export const getDeploymentData = async (
   }
 }
 
-export const calculateTokensAmountFromPositionLiquidity = (pool: Pool, position: Position) => {
+export const calculateTokensAmountFromPositionLiquidity = (
+  pool: Pool,
+  position: Position
+): CalculateTokenAmounts => {
   return wrappedCalculateTokenAmountsFromPosition(
     pool.currentTickIndex,
     pool.sqrtPrice,
