@@ -4,11 +4,12 @@ import { Network } from './network.js'
 import {
   DEFAULT_PROOF_SIZE,
   DEFAULT_REF_TIME,
-  _newPoolKey,
   deployInvariant,
   deployPSP22,
   getEnvAccount,
   initPolkadotApi,
+  newFeeTier,
+  newPoolKey,
   printBalance
 } from './utils.js'
 import { WrappedAZERO } from './wrapped_azero.js'
@@ -28,8 +29,7 @@ import {
   getLiquidityScale,
   getPercentageScale,
   getSqrtPriceScale,
-  getTokenAmountScale,
-  newFeeTier
+  getTokenAmountScale
 } from 'math/math.js'
 import { InvariantEvent } from './schema.js'
 import { getEnvTestAccount } from './testUtils.js'
@@ -47,6 +47,7 @@ const main = async () => {
     }
     const sqrtPriceB: SqrtPrice = { v: 87854456421658000000000000n }
     const liquidity: Liquidity = { v: 983983249092n }
+
     const deltaYUp = getDeltaY(sqrtPriceA, sqrtPriceB, liquidity, true)
     const deltaYDown = getDeltaY(sqrtPriceA, sqrtPriceB, liquidity, false)
     console.log(deltaYUp)
@@ -87,9 +88,9 @@ const main = async () => {
   }
 
   {
-    const feeTier: FeeTier = newFeeTier({ v: 10n }, 55)
+    const feeTier: FeeTier = newFeeTier({ v: 10n }, 55n)
     console.log(feeTier)
-    const poolKey: PoolKey = _newPoolKey(
+    const poolKey: PoolKey = newPoolKey(
       '5H79vf7qQKdpefChp4sGh8j4BNq8JoL5x8nez8RsEebPJu9D',
       '5DxazQgoKEPMLqyUBRpqgAV7JnGv3w6i4EACTU8RDJxPHisH',
       feeTier
@@ -121,9 +122,9 @@ const main = async () => {
   const token0 = await deployPSP22(api, account, 1000n, 'Coin', 'COIN', 12n, network)
   const token1 = await deployPSP22(api, account, 1000n, 'Coin', 'COIN', 12n, network)
 
-  const feeTier = newFeeTier({ v: 6000000000n }, 10)
+  const feeTier = newFeeTier({ v: 6000000000n }, 10n)
 
-  const poolKey = await _newPoolKey(
+  const poolKey = await newPoolKey(
     token0.contract.address.toString(),
     token1.contract.address.toString(),
     feeTier

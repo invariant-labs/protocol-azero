@@ -83,7 +83,7 @@ export class WrappedAZERO {
     return deployContract(api, account, abi, wasm, 'new', [])
   }
 
-  async deposit(account: IKeyringPair, value: number, block: boolean = true): Promise<TxResult> {
+  async deposit(account: IKeyringPair, value: bigint, block: boolean = true): Promise<TxResult> {
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -97,12 +97,12 @@ export class WrappedAZERO {
     )
   }
 
-  async withdraw(account: IKeyringPair, value: number, block: boolean = true): Promise<TxResult> {
+  async withdraw(account: IKeyringPair, value: bigint, block: boolean = true): Promise<TxResult> {
     return sendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      0,
+      0n,
       account,
       WrappedAZEROTx.Withdraw,
       [value],
@@ -114,14 +114,14 @@ export class WrappedAZERO {
   async approve(
     account: IKeyringPair,
     spender: string,
-    value: number,
+    value: bigint,
     block: boolean = true
   ): Promise<TxResult> {
     return sendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      0,
+      0n,
       account,
       PSP22Tx.Approve,
       [spender, value],

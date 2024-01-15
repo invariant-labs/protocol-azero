@@ -1,9 +1,9 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import { Position, SqrtPrice, getLiquidityByX, getLiquidityByY, newFeeTier } from 'math/math.js'
+import { Position, SqrtPrice, getLiquidityByX, getLiquidityByY } from 'math/math.js'
 import { Network } from '../src/network'
 import { assertThrowsAsync, positionEquals } from '../src/testUtils'
-import { _newPoolKey, deployInvariant, deployPSP22, initPolkadotApi } from '../src/utils'
+import { deployInvariant, deployPSP22, initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
 
 const api = await initPolkadotApi(Network.Local)
 
@@ -17,10 +17,10 @@ let token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Ne
 describe('check get liquidity by x', async () => {
   const providedAmount = 430000n
 
-  const feeTier = newFeeTier({ v: 6000000000n }, 10)
+  const feeTier = newFeeTier({ v: 6000000000n }, 10n)
   const positionOwner = keyring.addFromUri('//Bob')
 
-  let poolKey = _newPoolKey(
+  let poolKey = newPoolKey(
     token0.contract.address.toString(),
     token1.contract.address.toString(),
     feeTier
@@ -33,7 +33,7 @@ describe('check get liquidity by x', async () => {
     token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
     token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
 
-    poolKey = _newPoolKey(
+    poolKey = newPoolKey(
       token0.contract.address.toString(),
       token1.contract.address.toString(),
       feeTier
@@ -184,10 +184,10 @@ describe('check get liquidity by x', async () => {
 
 describe('check get liquidity by y', async () => {
   const providedAmount = 47600000000n
-  const feeTier = newFeeTier({ v: 6000000000n }, 10)
+  const feeTier = newFeeTier({ v: 6000000000n }, 10n)
   const positionOwner = keyring.addFromUri('//Bob')
 
-  let poolKey = _newPoolKey(
+  let poolKey = newPoolKey(
     token0.contract.address.toString(),
     token1.contract.address.toString(),
     feeTier
@@ -200,7 +200,7 @@ describe('check get liquidity by y', async () => {
     token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
     token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
 
-    poolKey = _newPoolKey(
+    poolKey = newPoolKey(
       token0.contract.address.toString(),
       token1.contract.address.toString(),
       feeTier
