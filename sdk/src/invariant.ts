@@ -556,14 +556,19 @@ export class Invariant {
     ) as Promise<SwapRouteTxResult>
   }
 
-  async getAllTicks(account: IKeyringPair, pool_key: PoolKey): Promise<Tick[]> {
+  async getAllTicks(
+    account: IKeyringPair,
+    pool_key: PoolKey,
+    offset: bigint,
+    limit: bigint
+  ): Promise<[Tick[], boolean]> {
     return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       account,
       InvariantQuery.GetAllTicks,
-      [pool_key]
+      [pool_key, offset, limit]
     )
   }
 }

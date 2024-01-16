@@ -487,9 +487,9 @@ macro_rules! get_fee_tiers {
 
 #[macro_export]
 macro_rules! get_all_ticks {
-    ($client:ident, $dex:ty, $dex_address:expr, $pool_key:expr) => {{
+    ($client:ident, $dex:ty, $dex_address:expr, $pool_key:expr, $offset:expr, $limit:expr) => {{
         let message = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.get_all_ticks($pool_key));
+            .call(|contract| contract.get_all_ticks($pool_key, $offset, $limit));
         $client
             .call_dry_run(&ink_e2e::alice(), &message, 0, None)
             .await

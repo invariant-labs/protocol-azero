@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x616474bfd4753e3c35f53e798ee65899e9107522a15536b7bd77e1d7e97c8d58",
+    "hash": "0x89b9d62240b653d4e5e55703f16a806a5befd4d76f04f31ead0a87ea78238cb4",
     "language": "ink! 4.3.0",
     "compiler": "rustc 1.72.1",
     "build_info": {
@@ -72,13 +72,13 @@
         "displayName": [
           "ChainExtension"
         ],
-        "type": 56
+        "type": 57
       },
       "hash": {
         "displayName": [
           "Hash"
         ],
-        "type": 55
+        "type": 56
       },
       "maxEventTopics": 4,
       "timestamp": {
@@ -215,7 +215,7 @@
               "displayName": [
                 "Vec"
               ],
-              "type": 54
+              "type": 55
             }
           }
         ],
@@ -1248,6 +1248,24 @@
                 "PoolKey"
               ],
               "type": 13
+            }
+          },
+          {
+            "label": "offset",
+            "type": {
+              "displayName": [
+                "i32"
+              ],
+              "type": 7
+            }
+          },
+          {
+            "label": "limit",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 3
             }
           }
         ],
@@ -3633,7 +3651,7 @@
               {
                 "fields": [
                   {
-                    "type": 32
+                    "type": 54
                   }
                 ],
                 "index": 0,
@@ -3654,7 +3672,7 @@
         "params": [
           {
             "name": "T",
-            "type": 32
+            "type": 54
           },
           {
             "name": "E",
@@ -3670,6 +3688,17 @@
       "id": 54,
       "type": {
         "def": {
+          "tuple": [
+            32,
+            8
+          ]
+        }
+      }
+    },
+    {
+      "id": 55,
+      "type": {
+        "def": {
           "sequence": {
             "type": 7
           }
@@ -3677,7 +3706,7 @@
       }
     },
     {
-      "id": 55,
+      "id": 56,
       "type": {
         "def": {
           "composite": {
@@ -3697,7 +3726,7 @@
       }
     },
     {
-      "id": 56,
+      "id": 57,
       "type": {
         "def": {
           "variant": {}

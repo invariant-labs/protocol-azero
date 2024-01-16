@@ -1,5 +1,6 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
+import { Tick } from 'math'
 import { Network } from '../src/network'
 import { deployInvariant, deployPSP22, initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
 
@@ -57,12 +58,13 @@ describe('get all ticks', async () => {
       { v: 1000000000000000000000000n }
     )
 
-    const ticks = await invariant.getAllTicks(account, poolKey)
+    const result = await invariant.getAllTicks(account, poolKey, -221818n, 2n)
 
     const tick1 = await invariant.getTick(account, poolKey, -10n)
     const tick2 = await invariant.getTick(account, poolKey, 10n)
 
-    assert.deepEqual(ticks, [tick1, tick2])
+    assert.deepEqual(result[0], [tick1, tick2])
+    assert.equal(result[1], false)
   })
 
   it('should get all ticks limit', async () => {
@@ -78,8 +80,40 @@ describe('get all ticks', async () => {
       )
     }
 
-    const ticks = await invariant.getAllTicks(account, poolKey)
+    const result = await invariant.getAllTicks(account, poolKey, -221818n, 176n)
 
-    assert.equal(ticks.length, 176)
+    assert.equal(result[0].length, 176)
+    assert.equal(result[1], false)
+  })
+
+  it('should get all ticks with multiple queries', async () => {
+    for (let i = 1n; i <= 100n; i++) {
+      await invariant.createPosition(
+        account,
+        poolKey,
+        -i,
+        i,
+        { v: 10n },
+        { v: 1000000000000000000000000n },
+        { v: 1000000000000000000000000n }
+      )
+    }
+
+    const ticks: Tick[] = []
+    let end = false
+
+    while (!end) {
+      let index = -221818n
+
+      if (ticks.length > 0) {
+        index = ticks[ticks.length - 1].index + 1n
+      }
+
+      const result = await invariant.getAllTicks(account, poolKey, index, 20n)
+      ticks.push(...result[0])
+      end = result[1]
+    }
+
+    assert.equal(ticks.length, 200)
   })
 })
