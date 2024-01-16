@@ -1,8 +1,7 @@
 import { Keyring } from '@polkadot/api'
-import { assert, expect } from 'chai'
+import { expect } from 'chai'
 import { Network } from '../src/network'
-import { PSP22 } from '../src/psp22'
-import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME, deployPSP22, initPolkadotApi } from '../src/utils'
+import { deployPSP22, initPolkadotApi } from '../src/utils'
 
 const api = await initPolkadotApi(Network.Local)
 
@@ -33,20 +32,6 @@ describe('psp22', function () {
     await token.transfer(account, testAccount.address, 250n, data)
     expect(await token.balanceOf(account, account.address)).to.equal(750n)
     expect(await token.balanceOf(account, testAccount.address)).to.equal(250n)
-  })
-
-  it.only('should change token', async () => {
-    const token1 = await deployPSP22(api, account, 1000n, 'Coin', 'COIN', 12n, Network.Local)
-    const loaded = await PSP22.load(
-      api,
-      Network.Local,
-      null,
-      DEFAULT_REF_TIME,
-      DEFAULT_PROOF_SIZE,
-      token1.contract.address.toString()
-    )
-
-    assert.exists(loaded instanceof PSP22)
   })
 
   it('should approve tokens', async () => {
