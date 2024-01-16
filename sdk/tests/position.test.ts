@@ -216,7 +216,7 @@ describe('position', async () => {
   })
 
   it('claim fee', async () => {
-    let [tokenX, tokenY] = isTokenX(
+    const [tokenX, tokenY] = isTokenX(
       token0.contract.address.toString(),
       token1.contract.address.toString()
     )
