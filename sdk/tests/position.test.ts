@@ -6,7 +6,8 @@ import {
   Position,
   SqrtPrice,
   TokenAmount,
-  getLiquidityByX
+  getLiquidityByX,
+  isTokenX
 } from 'math/math.js'
 import { Network } from '../src/network'
 import {
@@ -215,15 +216,12 @@ describe('position', async () => {
   })
 
   it('claim fee', async () => {
-    let tokenX
-    let tokenY
-    if (token0.contract.address.toString() < token1.contract.address.toString()) {
-      tokenX = token0
-      tokenY = token1
-    } else {
-      tokenX = token1
-      tokenY = token0
-    }
+    let [tokenX, tokenY] = isTokenX(
+      token0.contract.address.toString(),
+      token1.contract.address.toString()
+    )
+      ? [token0, token1]
+      : [token1, token0]
 
     {
       const amount: TokenAmount = 1000n
