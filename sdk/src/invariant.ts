@@ -467,7 +467,7 @@ export class Invariant {
     initSqrtPrice: SqrtPrice,
     initTick: bigint,
     block: boolean = true
-  ): Promise<TxResult | InvariantError> {
+  ): Promise<TxResult> {
     const isInRelationship = checkTickToSqrtPriceRelationship(
       initTick,
       feeTier.tickSpacing,
