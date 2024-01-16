@@ -190,8 +190,7 @@ pub fn calculate_token_amounts(
     })?)
 }
 
-// #[wasm_bindgen(js_name = "isTokenX")]
 #[wasm_wrapper]
-pub fn is_token_x(token_0: String, token_1: String) -> TrackableResult<bool> {
-    Ok(token_0 < token_1)
+pub fn is_token_x(token_candidate: String, token_to_compare: String) -> TrackableResult<bool> {
+    Ok(token_candidate < token_to_compare)
 }
