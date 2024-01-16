@@ -354,6 +354,8 @@ pub trait InvariantTrait {
     ///
     /// # Parameters
     /// - `pool_key`: A unique key that identifies the specified pool.
+    /// - `offset`: The offset from which ticks will be retrieved.
+    /// - `limit`: The maximum number of ticks to retrieve.
     #[ink(message)]
     fn get_all_ticks(&self, pool_key: PoolKey, offset: i32, limit: u8) -> (Vec<Tick>, bool);
 }
