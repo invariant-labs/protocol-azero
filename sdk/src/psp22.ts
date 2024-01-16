@@ -102,6 +102,26 @@ export class PSP22 {
     return deployContract(api, account, abi, wasm, 'new', [supply, name, symbol, decimals])
   }
 
+  static async load(
+    api: ApiPromise,
+    network: Network,
+    storageDepositLimit: number | null = null,
+    refTime: number = DEFAULT_REF_TIME,
+    proofSize: number = DEFAULT_PROOF_SIZE,
+    address: string
+  ): Promise<PSP22> {
+    const tokenData = await getDeploymentData('psp22')
+    return new PSP22(
+      api,
+      Network.Local,
+      storageDepositLimit,
+      refTime,
+      proofSize,
+      tokenData.abi,
+      address
+    )
+  }
+
   async mint(account: IKeyringPair, value: bigint, block: boolean = true): Promise<TxResult> {
     return sendTx(
       this.contract,
