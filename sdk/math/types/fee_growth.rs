@@ -1,5 +1,6 @@
 use crate::liquidity::*;
 
+use crate::denominator;
 use crate::scale;
 use crate::token_amount::TokenAmount;
 use core::convert::{TryFrom, TryInto};
@@ -14,11 +15,12 @@ use wasm_bindgen::prelude::*;
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct FeeGrowth {
-    #[tsify(type = "BigInt")]
+    #[tsify(type = "bigint")]
     pub v: u128,
 }
 
 scale!(FeeGrowth);
+denominator!(FeeGrowth);
 
 impl FeeGrowth {
     pub fn unchecked_add(self, other: FeeGrowth) -> FeeGrowth {

@@ -1,5 +1,6 @@
 use super::sqrt_price::SqrtPrice;
 use crate::alloc::string::ToString;
+use crate::denominator;
 use crate::scale;
 use core::convert::{TryFrom, TryInto};
 use decimal::*;
@@ -12,9 +13,10 @@ use wasm_bindgen::prelude::*;
 #[decimal(0)]
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
-pub struct TokenAmount(#[tsify(type = "u128")] pub u128);
+pub struct TokenAmount(#[tsify(type = "bigint")] pub u128);
 
 scale!(TokenAmount);
+denominator!(TokenAmount);
 
 impl TokenAmount {
     pub fn from_big_sqrt_price(value: U256) -> TrackableResult<TokenAmount> {

@@ -1,8 +1,7 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import { newFeeTier } from 'math/math.js'
 import { Network } from '../src/network'
-import { _newPoolKey, deployInvariant, deployPSP22, initPolkadotApi } from '../src/utils'
+import { deployInvariant, deployPSP22, initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
 
 const api = await initPolkadotApi(Network.Local)
 
@@ -17,9 +16,9 @@ let token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Ne
 let token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
 
 describe.only('tickmap', async () => {
-  const feeTier = newFeeTier({ v: 10000000000n }, 1)
+  const feeTier = newFeeTier({ v: 10000000000n }, 1n)
   const ticks = [-221818n, -221817n, 0n, 1n, 2n, 221817n, 221818n]
-  let poolKey = _newPoolKey(
+  let poolKey = newPoolKey(
     token0.contract.address.toString(),
     token1.contract.address.toString(),
     feeTier
@@ -28,7 +27,7 @@ describe.only('tickmap', async () => {
     invariant = await deployInvariant(api, account, { v: 10000000000n }, Network.Local)
     token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
     token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
-    poolKey = _newPoolKey(
+    poolKey = newPoolKey(
       token0.contract.address.toString(),
       token1.contract.address.toString(),
       feeTier
