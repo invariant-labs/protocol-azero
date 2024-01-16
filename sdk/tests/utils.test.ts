@@ -1,6 +1,6 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import { toPercentage, toSqrtPrice } from 'math'
+import { toPercentage, toSqrtPrice } from 'math/math.js'
 import { Network } from '../src/network'
 import {
   calculatePriceImpact,
