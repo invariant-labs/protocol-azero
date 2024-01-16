@@ -18,6 +18,7 @@ import {
   _newPoolKey,
   _simulateUnclaimedFees,
   getPercentageDenominator,
+  getSqrtPriceDenominator,
   wrappedCalculateTokenAmounts
 } from 'math/math.js'
 import { Invariant } from './invariant.js'
@@ -227,6 +228,44 @@ export const getDeploymentData = async (
     return { abi, wasm }
   } catch (error) {
     throw new Error(`${contractName}.json or ${contractName}.wasm not found`)
+  }
+}
+
+const sqrt = (value: bigint): bigint => {
+  if (value < 0n) {
+    throw 'square root of negative numbers is not supported'
+  }
+
+  if (value < 2n) {
+    return value
+  }
+
+  return newtonIteration(value, 1n)
+}
+
+const newtonIteration = (n: bigint, x0: bigint): bigint => {
+  const x1 = (n / x0 + x0) >> 1n
+  if (x0 === x1 || x0 === x1 - 1n) {
+    return x0
+  }
+  return newtonIteration(n, x1)
+}
+
+export const calculateSqrtPriceAfterSlippage = (
+  sqrtPrice: SqrtPrice,
+  slippage: Percentage,
+  up: boolean
+): SqrtPrice => {
+  const multiplier = getPercentageDenominator() + (up ? slippage.v : -slippage.v)
+
+  return {
+    v:
+      sqrt(
+        ((sqrtPrice.v * sqrtPrice.v) / getSqrtPriceDenominator()) *
+          multiplier *
+          getSqrtPriceDenominator() *
+          getPercentageDenominator()
+      ) / getPercentageDenominator()
   }
 }
 

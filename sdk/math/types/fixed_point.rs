@@ -1,5 +1,4 @@
-use crate::denominator;
-use crate::scale;
+use crate::{convert, decimal_ops};
 use core::convert::{TryFrom, TryInto};
 use decimal::*;
 use js_sys::BigInt;
@@ -14,5 +13,4 @@ pub struct FixedPoint {
     pub v: u128,
 }
 
-scale!(FixedPoint);
-denominator!(FixedPoint);
+decimal_ops!(FixedPoint);
