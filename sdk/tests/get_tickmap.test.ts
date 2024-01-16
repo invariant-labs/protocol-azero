@@ -8,6 +8,9 @@ const api = await initPolkadotApi(Network.Local)
 
 const keyring = new Keyring({ type: 'sr25519' })
 const account = await keyring.addFromUri('//Alice')
+const startingChunk = 0n
+const finishingChunk = 6932n
+const chunkOrder = [0n, 1638n, 3276n, 4914n, 6552n, 6932n]
 
 let invariant = await deployInvariant(api, account, { v: 10000000000n }, Network.Local)
 let token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
@@ -71,7 +74,7 @@ describe.only('tickmap', async () => {
       pool.sqrtPrice,
       pool.sqrtPrice
     )
-    const tickmap = await invariant.getTickmap(account, poolKey)
+    const tickmap = await invariant.getTickmap(account, poolKey, startingChunk, finishingChunk)
     assert.deepEqual(tickmap, [[3465n, 2017612633061982208n]])
   })
   it('get edge ticks', async () => {
@@ -99,7 +102,7 @@ describe.only('tickmap', async () => {
       pool.sqrtPrice,
       pool.sqrtPrice
     )
-    const tickmap = await invariant.getTickmap(account, poolKey)
+    const tickmap = await invariant.getTickmap(account, poolKey, startingChunk, finishingChunk)
     assert.deepEqual(tickmap, [
       [0n, 3n],
       [6931n, 6755399441055744n]
@@ -121,7 +124,7 @@ describe.only('tickmap', async () => {
       pool.sqrtPrice,
       pool.sqrtPrice
     )
-    const tickmap = await invariant.getTickmap(account, poolKey)
+    const tickmap = await invariant.getTickmap(account, poolKey, startingChunk, finishingChunk)
     assert.deepEqual(tickmap, [
       [0n, 1n],
       [6931n, 4503599627370496n]
@@ -145,7 +148,41 @@ describe.only('tickmap', async () => {
         pool.sqrtPrice
       )
     }
-    const tickmap = await invariant.getTickmap(account, poolKey)
+    const tickmap = await invariant.getTickmap(account, poolKey, startingChunk, finishingChunk)
     assert.equal(tickmap.length, 1638)
+  })
+  it('get whole tickmap', async () => {
+    const pool = await invariant.getPool(
+      account,
+      token0.contract.address.toString(),
+      token1.contract.address.toString(),
+      feeTier
+    )
+    for (let i = 6n; i < 104838n; i += 64n) {
+      await invariant.createPosition(
+        account,
+        poolKey,
+        i,
+        i + 1n,
+        { v: 10n },
+        pool.sqrtPrice,
+        pool.sqrtPrice
+      )
+    }
+
+    const tickmap = await Promise.all([
+      await invariant.getTickmap(account, poolKey, chunkOrder[0], chunkOrder[1]),
+      await invariant.getTickmap(account, poolKey, chunkOrder[1], chunkOrder[2]),
+      await invariant.getTickmap(account, poolKey, chunkOrder[2], chunkOrder[3]),
+      await invariant.getTickmap(account, poolKey, chunkOrder[3], chunkOrder[4]),
+      await invariant.getTickmap(account, poolKey, chunkOrder[4], chunkOrder[5])
+    ])
+
+    assert.equal(tickmap.length, 5)
+    assert.equal(tickmap[0].length, 0)
+    assert.equal(tickmap[1].length, 0)
+    assert.equal(tickmap[2].length, 1449)
+    assert.equal(tickmap[3].length, 190)
+    assert.equal(tickmap[4].length, 0)
   })
 })

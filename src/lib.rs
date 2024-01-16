@@ -37,6 +37,7 @@ pub enum InvariantError {
 }
 #[ink::contract]
 pub mod invariant {
+    use crate::contracts::storage::tickmap::MAX_CHUNK;
     use crate::contracts::{
         FeeTier, FeeTiers, InvariantConfig, InvariantTrait, Pool, PoolKey, PoolKeys, Pools,
         Position, Positions, Tick, Tickmap, Ticks,
@@ -944,14 +945,21 @@ pub mod invariant {
         }
 
         #[ink(message)]
-        fn get_tickmap(&self, pool_key: PoolKey) -> Vec<(u16, u64)> {
-            let max_chunks = 6932u16;
+        fn get_tickmap(
+            &self,
+            pool_key: PoolKey,
+            starting_chunk: u16,
+            finishing_chunk: u16,
+        ) -> Vec<(u16, u64)> {
+            if starting_chunk > finishing_chunk || finishing_chunk > MAX_CHUNK {
+                return vec![];
+            };
             let tick_spacing = pool_key.fee_tier.tick_spacing;
-            let max_chunk = max_chunks / tick_spacing;
+            let max_chunk = finishing_chunk / tick_spacing;
 
             let mut tickmap = vec![];
 
-            for current_chunk_index in 0..=max_chunk {
+            for current_chunk_index in starting_chunk..=max_chunk {
                 let chunk = self
                     .tickmap
                     .bitmap

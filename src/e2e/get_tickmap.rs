@@ -1,7 +1,7 @@
 #[cfg(test)]
 pub mod e2e_tests {
     use crate::{
-        contracts::{entrypoints::InvariantTrait, FeeTier, PoolKey},
+        contracts::{entrypoints::InvariantTrait, FeeTier, PoolKey, MAX_CHUNK},
         invariant::InvariantRef,
         math::types::liquidity::Liquidity,
         math::types::percentage::Percentage,
@@ -31,6 +31,8 @@ pub mod e2e_tests {
         let dex = create_dex!(client, InvariantRef, Percentage::new(0));
         let initial_amount = 10u128.pow(10);
         let (token_x, token_y) = create_tokens!(client, TokenRef, initial_amount, initial_amount);
+        let starting_chunk = 0;
+        let finishing_chunk = MAX_CHUNK;
         approve!(client, TokenRef, token_x, dex, initial_amount, alice).unwrap();
         approve!(client, TokenRef, token_y, dex, initial_amount, alice).unwrap();
 
@@ -86,7 +88,15 @@ pub mod e2e_tests {
         )
         .unwrap();
 
-        let tickmap = get_tickmap!(client, InvariantRef, dex, pool_key, alice);
+        let tickmap = get_tickmap!(
+            client,
+            InvariantRef,
+            dex,
+            pool_key,
+            starting_chunk,
+            finishing_chunk,
+            alice
+        );
 
         assert_eq!(tickmap.len(), 1);
         assert_eq!(tickmap[0], (3465, 2017612633061982208));
@@ -99,6 +109,8 @@ pub mod e2e_tests {
         let dex = create_dex!(client, InvariantRef, Percentage::new(0));
         let initial_amount = 10u128.pow(10);
         let (token_x, token_y) = create_tokens!(client, TokenRef, initial_amount, initial_amount);
+        let starting_chunk = 0;
+        let finishing_chunk = MAX_CHUNK;
         approve!(client, TokenRef, token_x, dex, initial_amount, alice).unwrap();
         approve!(client, TokenRef, token_y, dex, initial_amount, alice).unwrap();
 
@@ -154,7 +166,15 @@ pub mod e2e_tests {
         )
         .unwrap();
 
-        let tickmap = get_tickmap!(client, InvariantRef, dex, pool_key, alice);
+        let tickmap = get_tickmap!(
+            client,
+            InvariantRef,
+            dex,
+            pool_key,
+            starting_chunk,
+            finishing_chunk,
+            alice
+        );
 
         assert_eq!(tickmap.len(), 2);
         assert_eq!(tickmap[0], (0, 3));
@@ -169,6 +189,8 @@ pub mod e2e_tests {
         let dex = create_dex!(client, InvariantRef, Percentage::new(0));
         let initial_amount = 10u128.pow(10);
         let (token_x, token_y) = create_tokens!(client, TokenRef, initial_amount, initial_amount);
+        let starting_chunk = 0;
+        let finishing_chunk = MAX_CHUNK;
         approve!(client, TokenRef, token_x, dex, initial_amount, alice).unwrap();
         approve!(client, TokenRef, token_y, dex, initial_amount, alice).unwrap();
 
@@ -210,8 +232,15 @@ pub mod e2e_tests {
         )
         .unwrap();
 
-        let tickmap = get_tickmap!(client, InvariantRef, dex, pool_key, alice);
-
+        let tickmap = get_tickmap!(
+            client,
+            InvariantRef,
+            dex,
+            pool_key,
+            starting_chunk,
+            finishing_chunk,
+            alice
+        );
         assert_eq!(tickmap.len(), 2);
         assert_eq!(tickmap[0], (0, 1));
         assert_eq!(tickmap[1], (6931, 4503599627370496));
@@ -225,6 +254,8 @@ pub mod e2e_tests {
         let dex = create_dex!(client, InvariantRef, Percentage::new(0));
         let initial_amount = 10u128.pow(10);
         let (token_x, token_y) = create_tokens!(client, TokenRef, initial_amount, initial_amount);
+        let starting_chunk = 0;
+        let finishing_chunk = MAX_CHUNK;
         approve!(client, TokenRef, token_x, dex, initial_amount, alice).unwrap();
         approve!(client, TokenRef, token_y, dex, initial_amount, alice).unwrap();
 
@@ -269,7 +300,15 @@ pub mod e2e_tests {
             .unwrap();
         }
 
-        let tickmap = get_tickmap!(client, InvariantRef, dex, pool_key, alice);
+        let tickmap = get_tickmap!(
+            client,
+            InvariantRef,
+            dex,
+            pool_key,
+            starting_chunk,
+            finishing_chunk,
+            alice
+        );
         // Max 1638 chunks to be queried
         assert_eq!(tickmap.len(), 1638);
 

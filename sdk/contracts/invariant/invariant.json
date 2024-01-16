@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0xb47bc739480a2f5e0bc071514b5c4064a20f290c36b3f4c71729c80bdb8b83fc",
+    "hash": "0x7214303dc87abede6c1424c7945cc8ec2ecacea798b67f25c3108057182b214f",
     "language": "ink! 4.3.0",
     "compiler": "rustc 1.72.1",
     "build_info": {
@@ -1248,6 +1248,24 @@
                 "PoolKey"
               ],
               "type": 13
+            }
+          },
+          {
+            "label": "starting_chunk",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "label": "finishing_chunk",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 5
             }
           }
         ],
