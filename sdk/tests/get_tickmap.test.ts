@@ -15,7 +15,7 @@ let invariant = await deployInvariant(api, account, { v: 10000000000n }, Network
 let token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
 let token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
 
-describe.only('tickmap', async () => {
+describe('tickmap', async () => {
   const feeTier = newFeeTier({ v: 10000000000n }, 1n)
   const ticks = [-221818n, -221817n, 0n, 1n, 2n, 221817n, 221818n]
   let poolKey = newPoolKey(
