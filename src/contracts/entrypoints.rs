@@ -350,7 +350,7 @@ pub trait InvariantTrait {
     #[ink(message)]
     fn get_fee_tiers(&self) -> Vec<FeeTier>;
 
-    /// Retrieves all ticks for a specified pool.
+    /// Retrieves ticks for a specified pool.
     ///
     /// # Parameters
     /// - `pool_key`: A unique key that identifies the specified pool.
