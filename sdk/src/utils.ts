@@ -12,9 +12,11 @@ import {
   PoolKey,
   Position,
   SqrtPrice,
+  Tick,
   TokenAmounts,
   _newFeeTier,
   _newPoolKey,
+  _simulateUnclaimedFees,
   getPercentageDenominator,
   getSqrtPriceDenominator,
   wrappedCalculateTokenAmounts
@@ -267,6 +269,43 @@ export const calculateSqrtPriceAfterSlippage = (
   }
 }
 
+export const calculatePriceImpact = (
+  startingSqrtPrice: SqrtPrice,
+  endingSqrtPrice: SqrtPrice
+): Percentage => {
+  const startingPrice = startingSqrtPrice.v * startingSqrtPrice.v
+  const endingPrice = endingSqrtPrice.v * endingSqrtPrice.v
+  const diff = startingPrice - endingPrice
+
+  const nominator = diff > 0n ? diff : -diff
+  const denominator = startingPrice > endingPrice ? startingPrice : endingPrice
+
+  return {
+    v: (nominator * getPercentageDenominator()) / denominator
+  }
+}
+
+export const simulateUnclaimedFees = (
+  pool: Pool,
+  position: Position,
+  lowerTick: Tick,
+  upperTick: Tick
+): TokenAmounts => {
+  return _simulateUnclaimedFees(
+    lowerTick.index,
+    lowerTick.feeGrowthOutsideX.v,
+    lowerTick.feeGrowthOutsideY.v,
+    upperTick.index,
+    upperTick.feeGrowthOutsideX.v,
+    upperTick.feeGrowthOutsideY.v,
+    pool.currentTickIndex,
+    pool.feeGrowthGlobalX.v,
+    pool.feeGrowthGlobalY.v,
+    position.feeGrowthInsideX.v,
+    position.feeGrowthInsideY.v,
+    position.liquidity.v
+  )
+}
 export const calculateTokenAmounts = (pool: Pool, position: Position): TokenAmounts => {
   return wrappedCalculateTokenAmounts(
     pool.currentTickIndex,
@@ -276,6 +315,7 @@ export const calculateTokenAmounts = (pool: Pool, position: Position): TokenAmou
     position.lowerTickIndex
   )
 }
+
 export const parse = (value: any) => {
   if (isArray(value)) {
     return value.map((element: any) => parse(element))
