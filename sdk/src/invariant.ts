@@ -558,17 +558,17 @@ export class Invariant {
   async getTickmap(
     account: IKeyringPair,
     poolKey: PoolKey,
-    startingChunk: bigint,
-    finishingChunk: bigint
-  ): Promise<bigint[][]> {
+    currentTickIndex: bigint
+  ): Promise<any> {
     const result = (await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       account,
       InvariantQuery.GetTickmap,
-      [poolKey, startingChunk, finishingChunk]
+      [poolKey, currentTickIndex]
     )) as any
-    return parse(result)
+    return result
+    // return parse(result)
   }
 }

@@ -37,7 +37,8 @@ pub enum InvariantError {
 }
 #[ink::contract]
 pub mod invariant {
-    use crate::contracts::storage::tickmap::MAX_CHUNK;
+    use crate::contracts::storage::tickmap::CHUNK_SIZE;
+    use crate::contracts::tickmap::tick_to_position;
     use crate::contracts::{
         FeeTier, FeeTiers, InvariantConfig, InvariantTrait, Pool, PoolKey, PoolKeys, Pools,
         Position, Positions, Tick, Tickmap, Ticks,
@@ -49,6 +50,7 @@ pub mod invariant {
     use crate::math::sqrt_price::SqrtPrice;
     use crate::math::token_amount::TokenAmount;
     use crate::math::types::liquidity::Liquidity;
+    use alloc::format;
 
     use crate::InvariantError; //
 
@@ -945,33 +947,42 @@ pub mod invariant {
         }
 
         #[ink(message)]
-        fn get_tickmap(
-            &self,
-            pool_key: PoolKey,
-            starting_chunk: u16,
-            finishing_chunk: u16,
-        ) -> Vec<(u16, u64)> {
-            if starting_chunk > finishing_chunk || finishing_chunk > MAX_CHUNK {
-                return vec![];
-            };
+        fn get_tickmap(&self, pool_key: PoolKey, current_tick: i32) -> (Vec<u8>, Vec<u8>) {
             let tick_spacing = pool_key.fee_tier.tick_spacing;
-            let max_chunk = finishing_chunk / tick_spacing;
+            let (chunk, bit) = tick_to_position(current_tick, tick_spacing);
 
-            let mut tickmap = vec![];
+            let current_chunk = self.tickmap.bitmap.get((chunk, pool_key)).unwrap_or(0);
 
-            for current_chunk_index in starting_chunk..=max_chunk {
-                let chunk = self
-                    .tickmap
-                    .bitmap
-                    .get((current_chunk_index, pool_key))
-                    .unwrap_or(0);
+            let current_string = format!("{:b}", current_chunk);
+            let mut current_binary_vector: Vec<u8> = current_string
+                .chars()
+                .map(|c| c.to_digit(2).unwrap() as u8)
+                .collect();
 
-                if chunk != 0 {
-                    tickmap.push((current_chunk_index, chunk));
+            current_binary_vector.reverse();
+
+            let (below, above) = current_binary_vector.split_at(bit as usize);
+
+            let mut below_vec = below.to_vec();
+            let mut above_vec = above.to_vec();
+            let extracted_length = (below_vec.len() + above_vec.len()) as i32;
+
+            if extracted_length < CHUNK_SIZE {
+                if bit >= (CHUNK_SIZE / 2) as u8 {
+                    above_vec.resize(
+                        (CHUNK_SIZE - extracted_length) as usize + above_vec.len(),
+                        0,
+                    );
+                } else {
+                    below_vec.resize(
+                        (CHUNK_SIZE - extracted_length) as usize + below_vec.len(),
+                        0,
+                    );
                 }
+                (below_vec, above_vec)
+            } else {
+                (below_vec, above_vec)
             }
-
-            tickmap
         }
     }
 
