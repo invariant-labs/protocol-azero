@@ -2,10 +2,9 @@ import { ApiPromise } from '@polkadot/api'
 import { ContractPromise } from '@polkadot/api-contract'
 import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types'
-import { DeployedContract } from '@scio-labs/use-inkathon'
 import { deployContract } from '@scio-labs/use-inkathon/helpers'
 import { Network } from './network.js'
-import { PSP22Query, PSP22Tx, TxResult, WrappedAZEROTx } from './schema.js'
+import { ContractOptions, PSP22Query, PSP22Tx, TxResult, WrappedAZEROTx } from './schema.js'
 import {
   DEFAULT_PROOF_SIZE,
   DEFAULT_REF_TIME,
@@ -24,63 +23,84 @@ export class WrappedAZERO {
   private constructor(
     api: ApiPromise,
     network: Network,
+    abi: any,
+    address: string,
     storageDepositLimit: number | null = null,
     refTime: number = DEFAULT_REF_TIME,
-    proofSize: number = DEFAULT_PROOF_SIZE,
-    abi: any,
-    deploymentAddress: string
+    proofSize: number = DEFAULT_PROOF_SIZE
   ) {
     this.api = api
+    this.waitForFinalization = network !== Network.Local
+    this.contract = new ContractPromise(this.api, abi, address)
     this.gasLimit = api.registry.createType('WeightV2', {
       refTime,
       proofSize
     }) as WeightV2
     this.storageDepositLimit = storageDepositLimit
-    this.waitForFinalization = network != Network.Local
-    this.contract = new ContractPromise(this.api, abi, deploymentAddress)
   }
 
   static async getContract(
     api: ApiPromise,
-    account: IKeyringPair,
-    storageDepositLimit: number | null = null,
-    refTime: number = DEFAULT_REF_TIME,
-    proofSize: number = DEFAULT_PROOF_SIZE,
-    network: Network
+    network: Network,
+    account?: IKeyringPair,
+    address?: string,
+    options?: ContractOptions
   ): Promise<WrappedAZERO> {
-    const wazeroData = await getDeploymentData('wrapped_azero')
-
-    if (process.env.WAZERO_ADDRESS && network !== Network.Local) {
-      return new WrappedAZERO(
-        api,
-        network,
-        storageDepositLimit,
-        refTime,
-        proofSize,
-        wazeroData.abi,
-        process.env.WAZERO_ADDRESS
-      )
-    } else {
-      const wazeroDeploy = await WrappedAZERO.deploy(api, account, wazeroData.abi, wazeroData.wasm)
-      return new WrappedAZERO(
-        api,
-        network,
-        storageDepositLimit,
-        refTime,
-        proofSize,
-        wazeroData.abi,
-        wazeroDeploy.address
-      )
+    if (address) {
+      return WrappedAZERO.load(api, network, address, options)
     }
+
+    if (account) {
+      return WrappedAZERO.deploy(api, network, account, options)
+    }
+
+    throw new Error('Invalid arguments')
   }
 
   static async deploy(
     api: ApiPromise,
+    network: Network,
     account: IKeyringPair,
-    abi: any,
-    wasm: Buffer
-  ): Promise<DeployedContract> {
-    return deployContract(api, account, abi, wasm, 'new', [])
+    options?: ContractOptions
+  ): Promise<WrappedAZERO> {
+    const deploymentData = await getDeploymentData('wrapped_azero')
+    const deploy = await deployContract(
+      api,
+      account,
+      deploymentData.abi,
+      deploymentData.wasm,
+      'new',
+      []
+    )
+
+    return new WrappedAZERO(
+      api,
+      network,
+      deploymentData.abi,
+      deploy.address,
+      options?.storageDepositLimit,
+      options?.refTime,
+      options?.proofSize
+    )
+  }
+
+  static async load(
+    api: ApiPromise,
+    network: Network,
+    address: string,
+    options?: ContractOptions
+  ): Promise<WrappedAZERO> {
+    const deploymentData = await getDeploymentData('wrapped_azero')
+
+    return new WrappedAZERO(
+      api,
+      network,
+      deploymentData.abi,
+      address,
+      options?.storageDepositLimit,
+      options?.refTime,
+      options?.proofSize
+    )
   }
 
   async deposit(account: IKeyringPair, value: bigint, block: boolean = true): Promise<TxResult> {

@@ -5,7 +5,6 @@ import { Abi, ContractPromise } from '@polkadot/api-contract'
 import { Bytes } from '@polkadot/types'
 import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
-import { DeployedContract } from '@scio-labs/use-inkathon'
 import { deployContract } from '@scio-labs/use-inkathon/helpers'
 import {
   FeeTier,
@@ -23,6 +22,7 @@ import {
 } from 'math/math.js'
 import { Network } from './network.js'
 import {
+  ContractOptions,
   CreatePositionTxResult,
   InvariantEvent,
   InvariantQuery,
@@ -53,72 +53,87 @@ export class Invariant {
   private constructor(
     api: ApiPromise,
     network: Network,
+    abi: any,
+    address: string,
     storageDepositLimit: number | null = null,
     refTime: number = DEFAULT_REF_TIME,
-    proofSize: number = DEFAULT_PROOF_SIZE,
-    abi: any,
-    deploymentAddress: string
+    proofSize: number = DEFAULT_PROOF_SIZE
   ) {
     this.api = api
+    this.waitForFinalization = network !== Network.Local
+    this.contract = new ContractPromise(this.api, abi, address)
     this.gasLimit = api.registry.createType('WeightV2', {
       refTime,
       proofSize
     }) as WeightV2
     this.storageDepositLimit = storageDepositLimit
-    this.waitForFinalization = network != Network.Local
-    this.contract = new ContractPromise(this.api, abi, deploymentAddress)
     this.abi = new Abi(abi)
   }
 
   static async getContract(
     api: ApiPromise,
-    account: IKeyringPair,
-    storageDepositLimit: number | null = null,
-    refTime: number = DEFAULT_REF_TIME,
-    proofSize: number = DEFAULT_PROOF_SIZE,
-    initFee: Percentage,
-    network: Network
+    network: Network,
+    account?: IKeyringPair,
+    fee?: Percentage,
+    address?: string,
+    options?: ContractOptions
   ): Promise<Invariant> {
-    const invariantData = await getDeploymentData('invariant')
-    if (process.env.INVARIANT_ADDRESS && network != Network.Local) {
-      return new Invariant(
-        api,
-        network,
-        storageDepositLimit,
-        refTime,
-        proofSize,
-        invariantData.abi,
-        process.env.INVARIANT_ADDRESS
-      )
-    } else {
-      const invariantDeploy = await Invariant.deploy(
-        api,
-        account,
-        invariantData.abi,
-        invariantData.wasm,
-        initFee
-      )
-      const invariant = new Invariant(
-        api,
-        Network.Local,
-        storageDepositLimit,
-        refTime,
-        proofSize,
-        invariantData.abi,
-        invariantDeploy.address
-      )
-      return invariant
+    if (address) {
+      return Invariant.load(api, network, address, options)
     }
+
+    if (account) {
+      return Invariant.deploy(api, network, account, fee, options)
+    }
+
+    throw new Error('Invalid arguments')
   }
 
   static async deploy(
     api: ApiPromise,
+    network: Network,
     account: IKeyringPair,
-    abi: any,
-    wasm: Buffer,
-    fee: Percentage
-  ): Promise<DeployedContract> {
-    return deployContract(api, account, abi, wasm, 'new', [fee])
+    fee: Percentage = { v: 0n },
+    options?: ContractOptions
+  ): Promise<Invariant> {
+    const deploymentData = await getDeploymentData('invariant')
+    const deploy = await deployContract(
+      api,
+      account,
+      deploymentData.abi,
+      deploymentData.wasm,
+      'new',
+      [fee]
+    )
+
+    return new Invariant(
+      api,
+      network,
+      deploymentData.abi,
+      deploy.address,
+      options?.storageDepositLimit,
+      options?.refTime,
+      options?.proofSize
+    )
+  }
+
+  static async load(
+    api: ApiPromise,
+    network: Network,
+    address: string,
+    options?: ContractOptions
+  ): Promise<Invariant> {
+    const deploymentData = await getDeploymentData('invariant')
+
+    return new Invariant(
+      api,
+      network,
+      deploymentData.abi,
+      address,
+      options?.storageDepositLimit,
+      options?.refTime,
+      options?.proofSize
+    )
   }
 
   on(identifier: InvariantEvent, listener: (event: any) => void): void {

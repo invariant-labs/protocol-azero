@@ -174,15 +174,7 @@ export const deployInvariant = async (
   initFee: Percentage,
   network: Network
 ): Promise<Invariant> => {
-  return Invariant.getContract(
-    api,
-    account,
-    null,
-    DEFAULT_REF_TIME,
-    DEFAULT_PROOF_SIZE,
-    initFee,
-    network
-  )
+  return Invariant.getContract(api, network, account, initFee)
 }
 
 export const deployPSP22 = async (
@@ -194,18 +186,7 @@ export const deployPSP22 = async (
   decimals: bigint,
   network: Network
 ): Promise<PSP22> => {
-  return PSP22.getContract(
-    api,
-    network,
-    null,
-    DEFAULT_REF_TIME,
-    DEFAULT_PROOF_SIZE,
-    account,
-    supply,
-    name,
-    symbol,
-    decimals
-  )
+  return PSP22.getContract(api, network, account, supply, name, symbol, decimals)
 }
 
 export const deployWrappedAZERO = async (
@@ -213,7 +194,7 @@ export const deployWrappedAZERO = async (
   account: IKeyringPair,
   network: Network
 ): Promise<WrappedAZERO> => {
-  return WrappedAZERO.getContract(api, account, null, DEFAULT_REF_TIME, DEFAULT_PROOF_SIZE, network)
+  return WrappedAZERO.getContract(api, network, account, process.env.WAZERO_ADDRESS)
 }
 
 export const getDeploymentData = async (
