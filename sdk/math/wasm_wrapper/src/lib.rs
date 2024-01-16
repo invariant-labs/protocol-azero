@@ -120,7 +120,7 @@ fn requires_special_casting(ty: &Type) -> (bool, syn::Ident) {
         if let Some(segment) = path.path.segments.last() {
             match segment.ident.to_string().as_str() {
                 "i32" | "i16" | "i8" => return (true, syn::Ident::new("i64", segment.ident.span())),
-                "u32" | "u16" | "u8" => return (true, syn::Ident::new("i64", segment.ident.span())),
+                "u32" | "u16" | "u8" => return (true, syn::Ident::new("u64", segment.ident.span())),
                 _ => return (false, segment.ident.clone()),
             };
         }

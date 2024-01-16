@@ -6,7 +6,9 @@ use crate::types::{
     sqrt_price::SqrtPrice, token_amount::TokenAmount,
 };
 use decimal::Decimal;
+use traceable_result::TrackableResult;
 use traceable_result::{function, location, ok_or_mark_trace, trace};
+use wasm_wrapper::wasm_wrapper;
 // use paste::paste;
 
 extern crate paste;
@@ -186,4 +188,9 @@ pub fn calculate_token_amounts(
         x: result.x,
         y: result.y,
     })?)
+}
+
+#[wasm_wrapper]
+pub fn is_token_x(token_candidate: String, token_to_compare: String) -> TrackableResult<bool> {
+    Ok(token_candidate < token_to_compare)
 }
