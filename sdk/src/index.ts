@@ -2,8 +2,6 @@ import { Keyring } from '@polkadot/api'
 import dotenv from 'dotenv'
 import { Network } from './network.js'
 import {
-  DEFAULT_PROOF_SIZE,
-  DEFAULT_REF_TIME,
   deployInvariant,
   deployPSP22,
   getEnvAccount,
@@ -162,14 +160,7 @@ const main = async () => {
   )
 
   // deploy wrapped azero
-  const wazero = await WrappedAZERO.getContract(
-    api,
-    account,
-    null,
-    DEFAULT_REF_TIME,
-    DEFAULT_PROOF_SIZE,
-    network
-  )
+  const wazero = await WrappedAZERO.getContract(api, network, account)
 
   await transferBalance(api, account, testAccount.address, 1000000000000)
   console.log('account balance: ', (await getBalance(api, account.address)).balanceFormatted)
