@@ -19,7 +19,8 @@ import {
   SqrtPrice,
   SwapHop,
   Tick,
-  TokenAmount
+  TokenAmount,
+  checkTickToSqrtPriceRelationship
 } from 'math/math.js'
 import { Network } from './network.js'
 import {
@@ -467,6 +468,16 @@ export class Invariant {
     initTick: bigint,
     block: boolean = true
   ): Promise<TxResult> {
+    const isInRelationship = checkTickToSqrtPriceRelationship(
+      initTick,
+      feeTier.tickSpacing,
+      initSqrtPrice
+    )
+
+    if (!isInRelationship) {
+      throw new Error(InvariantError[24])
+    }
+
     return sendTx(
       this.contract,
       this.gasLimit,
