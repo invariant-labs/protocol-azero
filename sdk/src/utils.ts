@@ -11,11 +11,13 @@ import {
   Pool,
   PoolKey,
   Position,
+  SqrtPrice,
   Tick,
   TokenAmounts,
   _newFeeTier,
   _newPoolKey,
   _simulateUnclaimedFees,
+  getPercentageDenominator,
   wrappedCalculateTokenAmounts
 } from 'math/math.js'
 import { Invariant } from './invariant.js'
@@ -228,6 +230,22 @@ export const getDeploymentData = async (
   }
 }
 
+export const calculatePriceImpact = (
+  startingSqrtPrice: SqrtPrice,
+  endingSqrtPrice: SqrtPrice
+): Percentage => {
+  const startingPrice = startingSqrtPrice.v * startingSqrtPrice.v
+  const endingPrice = endingSqrtPrice.v * endingSqrtPrice.v
+  const diff = startingPrice - endingPrice
+
+  const nominator = diff > 0n ? diff : -diff
+  const denominator = startingPrice > endingPrice ? startingPrice : endingPrice
+
+  return {
+    v: (nominator * getPercentageDenominator()) / denominator
+  }
+}
+
 export const simulateUnclaimedFees = (
   pool: Pool,
   position: Position,
@@ -258,6 +276,7 @@ export const calculateTokenAmounts = (pool: Pool, position: Position): TokenAmou
     position.lowerTickIndex
   )
 }
+
 export const parse = (value: any) => {
   if (isArray(value)) {
     return value.map((element: any) => parse(element))

@@ -2,6 +2,7 @@ import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
 import { Network } from '../src/network'
 import {
+  calculatePriceImpact,
   deployInvariant,
   deployPSP22,
   initPolkadotApi,
@@ -22,6 +23,26 @@ const token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, 
 const feeTier = newFeeTier({ v: 10000000000n }, 1n)
 
 describe('utils', () => {
+  describe('test calculatePriceImpact', () => {
+    it('increasing price', () => {
+      // price change       120 -> 599
+      // real price impact  79.96661101836...%
+      const startingSqrtPrice = { v: 10954451150103322269139395n }
+      const endingSqrtPrice = { v: 24474476501040834315678144n }
+      const priceImpact = calculatePriceImpact(startingSqrtPrice, endingSqrtPrice)
+      assert.equal(priceImpact.v, 799666110183n)
+    })
+
+    it('decreasing price', () => {
+      // price change       0.367 -> 1.0001^(-221818)
+      // real price impact  99.9999999365...%
+      const startingSqrtPrice = { v: 605805249234438377196232n }
+      const endingSqrtPrice = { v: 15258932449895975601n }
+      const priceImpact = calculatePriceImpact(startingSqrtPrice, endingSqrtPrice)
+      assert.equal(priceImpact.v, 999999999365n)
+    })
+  })
+
   describe('test simulateUnclaimedFees', () => {
     it('should return correct price', async () => {
       await invariant.addFeeTier(account, feeTier)

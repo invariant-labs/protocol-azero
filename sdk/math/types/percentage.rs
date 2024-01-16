@@ -1,3 +1,4 @@
+use crate::denominator;
 use crate::scale;
 use core::convert::{TryFrom, TryInto};
 use decimal::*;
@@ -15,3 +16,4 @@ pub struct Percentage {
     pub v: u64,
 }
 scale!(Percentage);
+denominator!(Percentage);
