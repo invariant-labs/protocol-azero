@@ -18,3 +18,4 @@ js-sys = "0.3.66"
 
 decimal = { path= "../../src/decimal" }
 traceable_result = { path = "../../src/traceable_result" }
+wasm_wrapper = { path = "./wasm_wrapper"}

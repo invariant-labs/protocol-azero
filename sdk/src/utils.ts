@@ -12,9 +12,11 @@ import {
   PoolKey,
   Position,
   SqrtPrice,
+  Tick,
   TokenAmounts,
   _newFeeTier,
   _newPoolKey,
+  _simulateUnclaimedFees,
   getPercentageDenominator,
   wrappedCalculateTokenAmounts
 } from 'math/math.js'
@@ -244,6 +246,27 @@ export const calculatePriceImpact = (
   }
 }
 
+export const simulateUnclaimedFees = (
+  pool: Pool,
+  position: Position,
+  lowerTick: Tick,
+  upperTick: Tick
+): TokenAmounts => {
+  return _simulateUnclaimedFees(
+    lowerTick.index,
+    lowerTick.feeGrowthOutsideX.v,
+    lowerTick.feeGrowthOutsideY.v,
+    upperTick.index,
+    upperTick.feeGrowthOutsideX.v,
+    upperTick.feeGrowthOutsideY.v,
+    pool.currentTickIndex,
+    pool.feeGrowthGlobalX.v,
+    pool.feeGrowthGlobalY.v,
+    position.feeGrowthInsideX.v,
+    position.feeGrowthInsideY.v,
+    position.liquidity.v
+  )
+}
 export const calculateTokenAmounts = (pool: Pool, position: Position): TokenAmounts => {
   return wrappedCalculateTokenAmounts(
     pool.currentTickIndex,
