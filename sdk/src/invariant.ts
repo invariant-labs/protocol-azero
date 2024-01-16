@@ -559,7 +559,7 @@ export class Invariant {
     account: IKeyringPair,
     poolKey: PoolKey,
     currentTickIndex: bigint
-  ): Promise<any> {
+  ): Promise<bigint[][]> {
     const result = (await sendQuery(
       this.contract,
       this.gasLimit,
@@ -568,7 +568,6 @@ export class Invariant {
       InvariantQuery.GetTickmap,
       [poolKey, currentTickIndex]
     )) as any
-    return result
-    // return parse(result)
+    return parse(result)
   }
 }

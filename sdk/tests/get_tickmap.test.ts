@@ -62,5 +62,6 @@ describe.only('tickmap', async () => {
     )
 
     const tickmap = await invariant.getTickmap(account, poolKey, pool.currentTickIndex)
+    console.log(tickmap)
   })
 })
