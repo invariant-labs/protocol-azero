@@ -6,7 +6,9 @@ use crate::types::{
     sqrt_price::SqrtPrice, token_amount::TokenAmount,
 };
 use decimal::Decimal;
+use traceable_result::TrackableResult;
 use traceable_result::{function, location, ok_or_mark_trace, trace};
+use wasm_wrapper::wasm_wrapper;
 // use paste::paste;
 
 extern crate paste;
@@ -188,14 +190,8 @@ pub fn calculate_token_amounts(
     })?)
 }
 
-#[wasm_bindgen(js_name = "isTokenX")]
-pub fn is_token_x(js_token_0: JsValue, js_token_1: JsValue) -> Result<JsValue, JsValue> {
-    let token_x: String = convert!(js_token_0)?;
-    let token_y: String = convert!(js_token_1)?;
-
-    if token_x < token_y {
-        Ok(serde_wasm_bindgen::to_value(&true)?)
-    } else {
-        Ok(serde_wasm_bindgen::to_value(&false)?)
-    }
+// #[wasm_bindgen(js_name = "isTokenX")]
+#[wasm_wrapper]
+pub fn is_token_x(token_0: String, token_1: String) -> TrackableResult<bool> {
+    Ok(token_0 < token_1)
 }
