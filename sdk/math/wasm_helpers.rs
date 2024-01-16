@@ -75,7 +75,7 @@ macro_rules! decimal_ops {
             #[wasm_bindgen]
             #[allow(non_snake_case)]
             pub fn [<get $decimal Denominator >] () -> BigInt {
-                BigInt::from(10u128.pow($decimal::scale() as u32))
+                BigInt::from($decimal::from_integer(1).get())
             }
 
             #[wasm_bindgen]

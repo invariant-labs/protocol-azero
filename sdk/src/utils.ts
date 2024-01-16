@@ -16,6 +16,7 @@ import {
   _newFeeTier,
   _newPoolKey,
   getPercentageDenominator,
+  getSqrtPriceDenominator,
   wrappedCalculateTokenAmounts
 } from 'math/math.js'
 import { Invariant } from './invariant.js'
@@ -254,9 +255,16 @@ export const calculateSqrtPriceAfterSlippage = (
   up: boolean
 ): SqrtPrice => {
   const multiplier = getPercentageDenominator() + (up ? slippage.v : -slippage.v)
-  const multiplierSqrt = sqrt(multiplier * getPercentageDenominator())
 
-  return { v: (sqrtPrice.v * multiplierSqrt) / getPercentageDenominator() }
+  return {
+    v:
+      sqrt(
+        ((sqrtPrice.v * sqrtPrice.v) / getSqrtPriceDenominator()) *
+          multiplier *
+          getSqrtPriceDenominator() *
+          getPercentageDenominator()
+      ) / getPercentageDenominator()
+  }
 }
 
 export const calculateTokenAmounts = (pool: Pool, position: Position): TokenAmounts => {
