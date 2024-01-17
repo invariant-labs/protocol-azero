@@ -10,6 +10,7 @@ import {
   DEFAULT_PROOF_SIZE,
   DEFAULT_REF_TIME,
   getDeploymentData,
+  isLoaded,
   sendQuery,
   sendTx
 } from './utils.js'
@@ -17,6 +18,7 @@ import {
 export class PSP22 {
   contract: ContractPromise
   api: ApiPromise
+  abi: any
   gasLimit: WeightV2
   storageDepositLimit: number | null = null
   waitForFinalization: boolean
@@ -31,6 +33,7 @@ export class PSP22 {
     proofSize: number = DEFAULT_PROOF_SIZE
   ) {
     this.api = api
+    this.abi = abi
     this.waitForFinalization = network !== Network.Local
     this.contract = new ContractPromise(this.api, abi, address)
     this.gasLimit = api.registry.createType('WeightV2', {
@@ -90,7 +93,19 @@ export class PSP22 {
     )
   }
 
-  async mint(account: IKeyringPair, value: bigint, block: boolean = true): Promise<TxResult> {
+  async load(address: string) {
+    this.contract = new ContractPromise(this.api, this.abi, address)
+  }
+
+  async mint(
+    account: IKeyringPair,
+    value: bigint,
+    address: string = this.contract.address.toString(),
+    block: boolean = true
+  ): Promise<TxResult> {
+    if (!isLoaded(address, this.contract.address.toString())) {
+      this.load(address)
+    }
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -109,8 +124,12 @@ export class PSP22 {
     to: string,
     value: bigint,
     data: Bytes,
+    address: string = this.contract.address.toString(),
     block: boolean = true
   ): Promise<TxResult> {
+    if (!isLoaded(address, this.contract.address.toString())) {
+      this.load(address)
+    }
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -128,8 +147,12 @@ export class PSP22 {
     account: IKeyringPair,
     spender: string,
     value: bigint,
+    address: string = this.contract.address.toString(),
     block: boolean = true
   ): Promise<TxResult> {
+    if (!isLoaded(address, this.contract.address.toString())) {
+      this.load(address)
+    }
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -143,7 +166,13 @@ export class PSP22 {
     )
   }
 
-  async tokenName(account: IKeyringPair): Promise<unknown> {
+  async tokenName(
+    account: IKeyringPair,
+    address: string = this.contract.address.toString()
+  ): Promise<unknown> {
+    if (!isLoaded(address, this.contract.address.toString())) {
+      await this.load(address)
+    }
     return sendQuery(
       this.contract,
       this.gasLimit,
@@ -154,7 +183,13 @@ export class PSP22 {
     )
   }
 
-  async tokenSymbol(account: IKeyringPair): Promise<unknown> {
+  async tokenSymbol(
+    account: IKeyringPair,
+    address: string = this.contract.address.toString()
+  ): Promise<unknown> {
+    if (!isLoaded(address, this.contract.address.toString())) {
+      this.load(address)
+    }
     return sendQuery(
       this.contract,
       this.gasLimit,
@@ -165,7 +200,13 @@ export class PSP22 {
     )
   }
 
-  async tokenDecimals(account: IKeyringPair): Promise<unknown> {
+  async tokenDecimals(
+    account: IKeyringPair,
+    address: string = this.contract.address.toString()
+  ): Promise<unknown> {
+    if (!isLoaded(address, this.contract.address.toString())) {
+      this.load(address)
+    }
     return sendQuery(
       this.contract,
       this.gasLimit,
@@ -176,7 +217,14 @@ export class PSP22 {
     )
   }
 
-  async balanceOf(account: IKeyringPair, owner: string): Promise<bigint> {
+  async balanceOf(
+    account: IKeyringPair,
+    owner: string,
+    address: string = this.contract.address.toString()
+  ): Promise<bigint> {
+    if (!isLoaded(address, this.contract.address.toString())) {
+      this.load(address)
+    }
     return sendQuery(
       this.contract,
       this.gasLimit,
@@ -187,7 +235,13 @@ export class PSP22 {
     )
   }
 
-  async totalSupply(account: IKeyringPair): Promise<unknown> {
+  async totalSupply(
+    account: IKeyringPair,
+    address: string = this.contract.address.toString()
+  ): Promise<unknown> {
+    if (!isLoaded(address, this.contract.address.toString())) {
+      this.load(address)
+    }
     return sendQuery(
       this.contract,
       this.gasLimit,
@@ -198,7 +252,15 @@ export class PSP22 {
     )
   }
 
-  async allowance(account: IKeyringPair, owner: string, spender: string): Promise<unknown> {
+  async allowance(
+    account: IKeyringPair,
+    owner: string,
+    spender: string,
+    address: string = this.contract.address.toString()
+  ): Promise<unknown> {
+    if (!isLoaded(address, this.contract.address.toString())) {
+      this.load(address)
+    }
     return sendQuery(
       this.contract,
       this.gasLimit,

@@ -96,8 +96,18 @@ describe('invariant', async () => {
       0n
     )
 
-    await token0.approve(account, invariant.contract.address.toString(), 1000000000n)
-    await token1.approve(account, invariant.contract.address.toString(), 1000000000n)
+    await token0.approve(
+      account,
+      invariant.contract.address.toString(),
+      1000000000n,
+      token0.contract.address.toString()
+    )
+    await token1.approve(
+      account,
+      invariant.contract.address.toString(),
+      1000000000n,
+      token1.contract.address.toString()
+    )
 
     const poolKey = newPoolKey(
       token0.contract.address.toString(),

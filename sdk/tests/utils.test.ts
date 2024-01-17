@@ -58,8 +58,18 @@ describe('utils', () => {
         0n
       )
 
-      await token0.approve(account, invariant.contract.address.toString(), 10000000000000n)
-      await token1.approve(account, invariant.contract.address.toString(), 10000000000000n)
+      await token0.approve(
+        account,
+        invariant.contract.address.toString(),
+        10000000000000n,
+        token0.contract.address.toString()
+      )
+      await token1.approve(
+        account,
+        invariant.contract.address.toString(),
+        10000000000000n,
+        token1.contract.address.toString()
+      )
 
       const poolKey = newPoolKey(
         token0.contract.address.toString(),
@@ -77,8 +87,18 @@ describe('utils', () => {
         { v: 1000000000000000000000000n }
       )
 
-      await token0.approve(account, invariant.contract.address.toString(), 1000000000n)
-      await token1.approve(account, invariant.contract.address.toString(), 1000000000n)
+      await token0.approve(
+        account,
+        invariant.contract.address.toString(),
+        1000000000n,
+        token0.contract.address.toString()
+      )
+      await token1.approve(
+        account,
+        invariant.contract.address.toString(),
+        1000000000n,
+        token1.contract.address.toString()
+      )
 
       await invariant.swap(account, poolKey, true, 4999n, true, {
         v: 999505344804856076727628n
@@ -96,13 +116,29 @@ describe('utils', () => {
 
       const result = simulateUnclaimedFees(pool, position, lowerTick, upperTick)
 
-      const token0Before = await token0.balanceOf(account, account.address.toString())
-      const token1Before = await token1.balanceOf(account, account.address.toString())
+      const token0Before = await token0.balanceOf(
+        account,
+        account.address.toString(),
+        token0.contract.address.toString()
+      )
+      const token1Before = await token1.balanceOf(
+        account,
+        account.address.toString(),
+        token1.contract.address.toString()
+      )
 
       await invariant.claimFee(account, 0n)
 
-      const token0After = await token0.balanceOf(account, account.address.toString())
-      const token1After = await token1.balanceOf(account, account.address.toString())
+      const token0After = await token0.balanceOf(
+        account,
+        account.address.toString(),
+        token0.contract.address.toString()
+      )
+      const token1After = await token1.balanceOf(
+        account,
+        account.address.toString(),
+        token1.contract.address.toString()
+      )
 
       if (poolKey.tokenX === token0.contract.address.toString()) {
         assert.equal(token0Before + result.x, token0After)
