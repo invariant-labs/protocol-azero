@@ -7,7 +7,7 @@ use syn::Type;
 use syn::{parse_macro_input, FnArg, ItemFn};
 
 #[proc_macro_attribute]
-pub fn wasm_wrapper(_attr: TokenStream, input: TokenStream) -> TokenStream {
+pub fn wasm_wrapper(attr: TokenStream, input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as ItemFn);
     let original_function_name = &input.sig.ident;
 
@@ -15,7 +15,15 @@ pub fn wasm_wrapper(_attr: TokenStream, input: TokenStream) -> TokenStream {
     let generated_function_ident =
         syn::Ident::new(&generated_function_name, original_function_name.span());
 
-    let camel_case_string = {
+    
+    let args_str = attr.to_string();
+    let args: Vec<&str> = args_str.split(',').collect();
+    
+    let camel_case_string = if args.len() ==  1 && args[0] != "" {
+        let trimmed_string = args[0].trim_matches(|c| c == '"' || c == '\\');
+        
+        trimmed_string.to_string()
+    } else {
         let mut camel_case = String::new();
         let mut capitalize_next = false;
         for c in original_function_name.to_string().chars() {
