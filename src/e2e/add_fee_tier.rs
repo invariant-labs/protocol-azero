@@ -1,6 +1,5 @@
 #[cfg(test)]
 pub mod e2e_tests {
-    use crate::math::types::percentage::Percentage;
     use crate::InvariantError;
     use crate::{
         contracts::{entrypoints::InvariantTrait, FeeTier},
@@ -8,6 +7,7 @@ pub mod e2e_tests {
     };
     use decimal::*;
     use ink_e2e::build_message;
+    use math::types::percentage::Percentage;
     use test_helpers::{add_fee_tier, create_dex, fee_tier_exist, get_fee_tiers};
 
     type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;

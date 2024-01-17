@@ -87,7 +87,7 @@ pub mod tests {
 
     use super::*;
 
-    use crate::math::types::seconds_per_liquidity::SecondsPerLiquidity;
+    use crate::types::seconds_per_liquidity::SecondsPerLiquidity;
     #[test]
     fn test_domain_calculate_seconds_per_liquidity_global() {
         // current_timestamp <= last_timestamp
@@ -163,7 +163,10 @@ pub mod tests {
             )
             .unwrap_err()
             .get();
-            assert_eq!(cause, "conversion to invariant::math::types::seconds_per_liquidity::SecondsPerLiquidity type failed");
+            assert_eq!(
+                cause,
+                "conversion to math::types::seconds_per_liquidity::SecondsPerLiquidity type failed"
+            );
             assert_eq!(stack.len(), 1);
         }
 
