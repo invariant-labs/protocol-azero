@@ -1,7 +1,20 @@
 // use crate::clamm::calculate_amount_delta;
 use crate::storage::pool_key::PoolKey;
 use crate::storage::tick::Tick;
-use crate::types::{liquidity::Liquidity, sqrt_price::SqrtPrice, token_amount::TokenAmount};
+use crate::types::{
+    fee_growth::calculate_fee_growth_inside,
+    fee_growth::FeeGrowth,
+    liquidity::Liquidity,
+    sqrt_price::{get_max_tick, SqrtPrice},
+    token_amount::TokenAmount,
+};
+use crate::MAX_TICK;
+use decimal::Decimal;
+use traceable_result::TrackableResult;
+use traceable_result::{function, location, ok_or_mark_trace, trace};
+use wasm_wrapper::wasm_wrapper;
+
+// use paste::paste;
 
 extern crate paste;
 
@@ -55,13 +68,27 @@ extern "C" {
 }
 
 #[macro_export]
-macro_rules! scale {
+macro_rules! decimal_ops {
     ($decimal:ident) => {
         ::paste::paste! {
             #[wasm_bindgen]
             #[allow(non_snake_case)]
             pub fn [<get $decimal Scale >] () -> BigInt {
                 BigInt::from($decimal::scale())
+            }
+
+            #[wasm_bindgen]
+            #[allow(non_snake_case)]
+            pub fn [<get $decimal Denominator >] () -> BigInt {
+                BigInt::from($decimal::from_integer(1).get())
+            }
+
+            #[wasm_bindgen]
+            #[allow(non_snake_case)]
+            pub fn [<to $decimal >] (js_val: JsValue, js_scale: JsValue) -> BigInt {
+                let js_val: u64 = convert!(js_val).unwrap();
+                let scale: u64 = convert!(js_scale).unwrap();
+                BigInt::from($decimal::from_scale(js_val, scale as u8).get())
             }
         }
     };
@@ -84,6 +111,61 @@ macro_rules! resolve {
     }};
 }
 
+#[wasm_bindgen(js_name = "_simulateUnclaimedFees")]
+pub fn simulate_unclaimed_fees(
+    js_lower_tick_index: JsValue,
+    js_lower_tick_fee_growth_outside_x: JsValue,
+    js_lower_tick_fee_growth_outside_y: JsValue,
+    js_upper_tick_index: JsValue,
+    js_upper_tick_fee_growth_outside_x: JsValue,
+    js_upper_tick_fee_growth_outside_y: JsValue,
+    js_pool_current_tick_index: JsValue,
+    js_pool_fee_growth_global_x: JsValue,
+    js_pool_fee_growth_global_y: JsValue,
+    js_position_fee_growth_inside_x: JsValue,
+    js_position_fee_growth_inside_y: JsValue,
+    js_position_liquidity: JsValue,
+) -> Result<JsValue, JsValue> {
+    let lower_tick_index: i64 = convert!(js_lower_tick_index)?;
+    let lower_tick_fee_growth_outside_x: u128 = convert!(js_lower_tick_fee_growth_outside_x)?;
+    let lower_tick_fee_growth_outside_y: u128 = convert!(js_lower_tick_fee_growth_outside_y)?;
+    let upper_tick_index: i64 = convert!(js_upper_tick_index)?;
+    let upper_tick_fee_growth_outside_x: u128 = convert!(js_upper_tick_fee_growth_outside_x)?;
+    let upper_tick_fee_growth_outside_y: u128 = convert!(js_upper_tick_fee_growth_outside_y)?;
+    let pool_current_tick_index: i64 = convert!(js_pool_current_tick_index)?;
+    let pool_fee_growth_global_x: u128 = convert!(js_pool_fee_growth_global_x)?;
+    let pool_fee_growth_global_y: u128 = convert!(js_pool_fee_growth_global_y)?;
+    let position_fee_growth_inside_x: u128 = convert!(js_position_fee_growth_inside_x)?;
+    let position_fee_growth_inside_y: u128 = convert!(js_position_fee_growth_inside_y)?;
+    let position_liquidity: u128 = convert!(js_position_liquidity)?;
+
+    let (fee_growth_inside_x, fee_growth_inside_y) = calculate_fee_growth_inside(
+        lower_tick_index as i32,
+        FeeGrowth::new(lower_tick_fee_growth_outside_x),
+        FeeGrowth::new(lower_tick_fee_growth_outside_y),
+        upper_tick_index as i32,
+        FeeGrowth::new(upper_tick_fee_growth_outside_x),
+        FeeGrowth::new(upper_tick_fee_growth_outside_y),
+        pool_current_tick_index as i32,
+        FeeGrowth::new(pool_fee_growth_global_x),
+        FeeGrowth::new(pool_fee_growth_global_y),
+    );
+
+    let tokens_owed_x = ok_or_mark_trace!(fee_growth_inside_x
+        .unchecked_sub(FeeGrowth::new(position_fee_growth_inside_x))
+        .to_fee(Liquidity::new(position_liquidity)))
+    .map_err(|e| e.to_string())?;
+    let tokens_owed_y = ok_or_mark_trace!(fee_growth_inside_y
+        .unchecked_sub(FeeGrowth::new(position_fee_growth_inside_y))
+        .to_fee(Liquidity::new(position_liquidity)))
+    .map_err(|e| e.to_string())?;
+
+    Ok(serde_wasm_bindgen::to_value(&TokenAmounts {
+        x: tokens_owed_x,
+        y: tokens_owed_y,
+    })?)
+}
+
 // #[wasm_bindgen(js_name = "wrappedCalculateTokenAmounts")]
 // pub fn calculate_token_amounts(
 //     js_current_tick_index: JsValue,
@@ -97,19 +179,36 @@ macro_rules! resolve {
 //     let liquidity: Liquidity = convert!(js_liquidity)?;
 //     let upper_tick_index: i64 = convert!(js_upper_tick_index)?;
 //     let lower_tick_index: i64 = convert!(js_lower_tick_index)?;
-
-//     let result = calculate_amount_delta(
-//         current_tick_index as i32,
-//         current_sqrt_price,
-//         liquidity,
-//         false,
-//         upper_tick_index as i32,
-//         lower_tick_index as i32,
-//     )
-//     .map_err(|e| JsValue::from_str(&e.to_string()))?;
-
 //     Ok(serde_wasm_bindgen::to_value(&TokenAmounts {
 //         x: result.x,
 //         y: result.y,
 //     })?)
 // }
+
+#[wasm_wrapper]
+pub fn is_token_x(token_candidate: String, token_to_compare: String) -> TrackableResult<bool> {
+    Ok(token_candidate < token_to_compare)
+}
+
+#[wasm_wrapper]
+pub fn check_tick_to_sqrt_price_relationship(
+    tick_index: i32,
+    tick_spacing: u16,
+    sqrt_price: SqrtPrice,
+) -> TrackableResult<bool> {
+    if tick_index + tick_spacing as i32 > MAX_TICK {
+        let max_tick = get_max_tick(tick_spacing);
+        let max_sqrt_price = ok_or_mark_trace!(SqrtPrice::from_tick(max_tick))?;
+        if sqrt_price != max_sqrt_price {
+            return Ok(false);
+        }
+    } else {
+        let lower_bound = ok_or_mark_trace!(SqrtPrice::from_tick(tick_index))?;
+        let upper_bound =
+            ok_or_mark_trace!(SqrtPrice::from_tick(tick_index + tick_spacing as i32))?;
+        if sqrt_price >= upper_bound || sqrt_price < lower_bound {
+            return Ok(false);
+        }
+    }
+    Ok(true)
+}
