@@ -1,5 +1,6 @@
-use crate::{math::types::percentage::Percentage, InvariantError};
+use crate::InvariantError;
 use decimal::*;
+use math::types::percentage::Percentage;
 #[derive(scale::Decode, scale::Encode, Debug, Copy, Clone, PartialEq)]
 #[cfg_attr(
     feature = "std",

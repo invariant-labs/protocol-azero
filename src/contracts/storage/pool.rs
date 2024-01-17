@@ -1,16 +1,15 @@
 use super::{FeeTier, Tick};
-use crate::math::types::sqrt_price::check_tick_to_sqrt_price_relationship;
-use crate::{
-    contracts::PoolKey,
-    math::{
-        clamm::*,
-        log::get_tick_at_sqrt_price,
-        types::{
-            fee_growth::FeeGrowth, liquidity::Liquidity, percentage::Percentage,
-            sqrt_price::SqrtPrice, token_amount::TokenAmount,
-        },
+use crate::{contracts::PoolKey, InvariantError};
+use math::{
+    clamm::*,
+    log::get_tick_at_sqrt_price,
+    types::{
+        fee_growth::FeeGrowth,
+        liquidity::Liquidity,
+        percentage::Percentage,
+        sqrt_price::{check_tick_to_sqrt_price_relationship, SqrtPrice},
+        token_amount::TokenAmount,
     },
-    InvariantError,
 };
 
 use decimal::*;
@@ -204,9 +203,9 @@ impl Pool {
 
 #[cfg(test)]
 mod tests {
-    use crate::math::types::sqrt_price::calculate_sqrt_price;
-    use crate::math::MAX_TICK;
     use decimal::Factories;
+    use math::types::sqrt_price::calculate_sqrt_price;
+    use math::MAX_TICK;
 
     use super::*;
 

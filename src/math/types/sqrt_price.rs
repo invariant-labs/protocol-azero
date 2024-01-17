@@ -1,15 +1,23 @@
+use crate::alloc::string::ToString;
+use crate::consts::*;
+use crate::types::{fixed_point::FixedPoint, token_amount::TokenAmount};
+use core::convert::{TryFrom, TryInto};
 use decimal::*;
+use serde::{Deserialize, Serialize};
 use traceable_result::*;
-
-use crate::math::consts::*;
-use crate::math::types::{fixed_point::FixedPoint, token_amount::TokenAmount};
-
+use tsify::Tsify;
 #[decimal(24)]
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, scale::Decode, scale::Encode)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Serialize, Deserialize, Tsify)]
 #[cfg_attr(
     feature = "std",
-    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+    derive(
+        scale_info::TypeInfo,
+        scale::Decode,
+        scale::Encode,
+        ink::storage::traits::StorageLayout
+    )
 )]
+#[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct SqrtPrice {
     pub v: u128,
 }

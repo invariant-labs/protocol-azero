@@ -48,9 +48,10 @@ impl Pools {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{contracts::FeeTier, math::percentage::Percentage};
+    use crate::contracts::FeeTier;
     use decimal::*;
     use ink::primitives::AccountId;
+    use math::percentage::Percentage;
 
     #[ink::test]
     fn test_add() {

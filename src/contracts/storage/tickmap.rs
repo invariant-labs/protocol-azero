@@ -1,9 +1,9 @@
 use crate::contracts::PoolKey;
-use crate::math::{
+use ink::storage::Mapping;
+use math::{
     types::sqrt_price::{calculate_sqrt_price, SqrtPrice},
     MAX_TICK,
 };
-use ink::storage::Mapping;
 
 pub const TICK_SEARCH_RANGE: i32 = 256;
 pub const CHUNK_SIZE: i32 = 64;
@@ -245,9 +245,9 @@ mod tests {
 
     use super::*;
     use crate::contracts::FeeTier;
-    use crate::math::percentage::Percentage;
     use decimal::*;
     use ink::primitives::AccountId;
+    use math::percentage::Percentage;
 
     #[ink::test]
     fn test_get_closer_limit() {
