@@ -29,6 +29,7 @@ pub fn process_params(input: &syn::ItemFn) -> Vec<TokenStream> {
 
 pub fn process_return_type(
     return_ty: proc_macro2::TokenStream,
+    camel_case_string: String,
 ) -> (Ident, Vec<proc_macro2::TokenStream>) {
     let mut idents: Vec<String> = Vec::new();
 
@@ -38,8 +39,6 @@ pub fn process_return_type(
                 for inner_token in group.stream() {
                     match inner_token {
                         TokenTree::Ident(ident) => {
-                            println!("Ident inside Group: {:?}", ident);
-                            println!("Ident type: {:?}", ident.to_string());
                             idents.push(ident.to_string());
                         }
                         _ => {}
@@ -50,10 +49,11 @@ pub fn process_return_type(
         }
     }
 
-    println!("idents: {:?}", idents);
-
     // TODO: Change tuple name to more generic depending on function name
-    let tuple_struct_name = Ident::new("MyTupleStruct", proc_macro2::Span::call_site());
+    let tuple_struct_name = Ident::new(
+        &format!("{}{}", camel_case_string, "Result"),
+        proc_macro2::Span::call_site(),
+    );
     let tuple_struct_fields: Vec<proc_macro2::TokenStream> = idents
         .iter()
         .map(|ident| {
@@ -61,8 +61,6 @@ pub fn process_return_type(
             quote::quote! { #field_ident }
         })
         .collect();
-
-    println!("tuple_struct_fields: {:?}", tuple_struct_fields);
 
     (tuple_struct_name, tuple_struct_fields)
 }

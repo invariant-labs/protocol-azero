@@ -17,6 +17,8 @@ import {
   _newFeeTier,
   _newPoolKey,
   _simulateUnclaimedFees,
+  calculateAmountDelta,
+  calculateAmountDeltaResult,
   getPercentageDenominator,
   getSqrtPriceDenominator
 } from 'math/math.js'
@@ -254,15 +256,20 @@ export const simulateUnclaimedFees = (
     position.liquidity.v
   )
 }
-// export const calculateTokenAmounts = (pool: Pool, position: Position): TokenAmounts => {
-//   return wrappedCalculateTokenAmounts(
-//     pool.currentTickIndex,
-//     pool.sqrtPrice,
-//     position.liquidity,
-//     position.upperTickIndex,
-//     position.lowerTickIndex
-//   )
-// }
+export const calculateTokenAmounts = (
+  pool: Pool,
+  position: Position,
+  sign: boolean
+): calculateAmountDeltaResult => {
+  return calculateAmountDelta(
+    pool.currentTickIndex,
+    pool.sqrtPrice,
+    position.liquidity,
+    sign,
+    position.upperTickIndex,
+    position.lowerTickIndex
+  )
+}
 
 export const parse = (value: any) => {
   if (isArray(value)) {

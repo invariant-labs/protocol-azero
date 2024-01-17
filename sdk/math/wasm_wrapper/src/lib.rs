@@ -27,9 +27,9 @@ pub fn wasm_wrapper(attr: TokenStream, input: TokenStream) -> TokenStream {
     let args_str = attr.to_string();
     let args: Vec<&str> = args_str.split(',').collect();
 
-    let (tuple_struct_name, tuple_struct_fields) = process_return_type(return_ty.clone());
-
     let camel_case_string = construct_camel_case(args.clone(), original_function_name.to_string());
+    let (tuple_struct_name, tuple_struct_fields) =
+        process_return_type(return_ty.clone(), camel_case_string.clone());
 
     let params: Vec<_> = process_params(&input);
 

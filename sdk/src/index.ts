@@ -13,6 +13,7 @@ import {
   PoolKey,
   SqrtPrice,
   TokenAmount,
+  calculateAmountDelta,
   getDeltaY,
   getLiquidityByX,
   getLiquidityByY,
@@ -78,6 +79,23 @@ const main = async () => {
     console.log('Amount = ', amount)
   }
   {
+    const currentTickIndex = 2n
+    const currentSqrtPrice: SqrtPrice = { v: 1000140000000000000000000n }
+    const liquidity: Liquidity = { v: 5000000000000n }
+    const liquiditySign = true
+    const upperTick = 3n
+    const lowerTick = 0n
+    const [x, y, updateLiquidity] = calculateAmountDelta(
+      currentTickIndex,
+      currentSqrtPrice,
+      liquidity,
+      liquiditySign,
+      upperTick,
+      lowerTick
+    )
+    console.log('x = ', x)
+    console.log('y = ', y)
+    console.log('updateLiquidity = ', updateLiquidity)
   }
 
   {
