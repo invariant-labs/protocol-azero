@@ -87,7 +87,7 @@ pub mod e2e_tests {
         )
         .unwrap();
 
-        let (below, above) = get_tickmap!(
+        let tickmap = get_tickmap!(
             client,
             InvariantRef,
             dex,
@@ -96,18 +96,13 @@ pub mod e2e_tests {
             alice
         );
 
-        let expected_below = vec![0u8; 58];
-        let expected_above = vec![1, 1, 0, 1, 0, 0];
-
-        assert_eq!(below, expected_below);
-        assert_eq!(above, expected_above);
-        assert_eq!(below.len() + above.len(), 64);
+        assert_eq!(tickmap.len(), 2047);
 
         Ok(())
     }
 
     #[ink_e2e::test]
-    async fn test_get_tickmap_edge_chunk_ticks_initialized(
+    async fn test_get_tickmap_close_to_upper_limit(
         mut client: ink_e2e::Client<C, E>,
     ) -> E2EResult<()> {
         let alice = ink_e2e::alice();
@@ -120,7 +115,7 @@ pub mod e2e_tests {
 
         let fee_tier = FeeTier::new(Percentage::from_scale(5, 1), 1).unwrap();
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
-        let init_tick = 0;
+        let init_tick = 200_000;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
 
         add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
@@ -156,7 +151,7 @@ pub mod e2e_tests {
         )
         .unwrap();
 
-        let (below, above) = get_tickmap!(
+        let tickmap = get_tickmap!(
             client,
             InvariantRef,
             dex,
@@ -165,19 +160,13 @@ pub mod e2e_tests {
             alice
         );
 
-        let mut expected_below = vec![1];
-        expected_below.resize(58, 0);
-        let expected_above = vec![0, 0, 0, 0, 0, 1];
-
-        assert_eq!(below, expected_below);
-        assert_eq!(above, expected_above);
-        assert_eq!(below.len() + above.len(), 64);
+        assert_eq!(tickmap.len(), 2047);
 
         Ok(())
     }
 
     #[ink_e2e::test]
-    async fn test_get_tickmap_init_tick_symmetric(
+    async fn test_get_tickmap_close_to_bottom_limit(
         mut client: ink_e2e::Client<C, E>,
     ) -> E2EResult<()> {
         let alice = ink_e2e::alice();
@@ -190,7 +179,7 @@ pub mod e2e_tests {
 
         let fee_tier = FeeTier::new(Percentage::from_scale(5, 1), 1).unwrap();
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
-        let init_tick = -26;
+        let init_tick = -200_000;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
 
         add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
@@ -226,7 +215,7 @@ pub mod e2e_tests {
         )
         .unwrap();
 
-        let (below, above) = get_tickmap!(
+        let tickmap = get_tickmap!(
             client,
             InvariantRef,
             dex,
@@ -235,16 +224,7 @@ pub mod e2e_tests {
             alice
         );
 
-        let mut expected_below = vec![1];
-        expected_below.resize(32, 0);
-        let mut expected_above = vec![0u8; 31];
-        expected_above.push(1);
-
-        assert_eq!(below, expected_below);
-        assert_eq!(above, expected_above);
-        assert_eq!(below.len() + above.len(), 64);
-        assert_eq!(below.len(), above.len());
-
+        assert_eq!(tickmap.len(), 2047);
         Ok(())
     }
 }

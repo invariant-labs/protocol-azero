@@ -351,6 +351,10 @@ pub trait InvariantTrait {
     fn get_fee_tiers(&self) -> Vec<FeeTier>;
 
     /// Retrieves tickmap chunks
+    ///
+    /// # Parameters
+    /// - `pool_key`: A unique key that identifies the specified pool.
+    /// - `current_index`: Current pool tick index.
     #[ink(message)]
-    fn get_tickmap(&self, pool_key: PoolKey, current_tick: i32) -> (Vec<u8>, Vec<u8>);
+    fn get_tickmap(&self, pool_key: PoolKey, current_tick: i32) -> Vec<u64>;
 }

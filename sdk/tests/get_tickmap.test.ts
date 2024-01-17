@@ -1,4 +1,5 @@
 import { Keyring } from '@polkadot/api'
+import { assert } from 'chai'
 import { Network } from '../src/network'
 import { deployInvariant, deployPSP22, initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
 
@@ -11,7 +12,7 @@ let invariant = await deployInvariant(api, account, { v: 10000000000n }, Network
 let token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
 let token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
 
-describe.only('tickmap', async () => {
+describe('tickmap', async () => {
   const feeTier = newFeeTier({ v: 10000000000n }, 1n)
   const ticks = [-58n, -26n, 1n, 3n, 5n]
   let poolKey = newPoolKey(
@@ -62,6 +63,6 @@ describe.only('tickmap', async () => {
     )
 
     const tickmap = await invariant.getTickmap(account, poolKey, pool.currentTickIndex)
-    console.log(tickmap)
+    assert.equal(tickmap.length, 2047)
   })
 })

@@ -37,8 +37,7 @@ pub enum InvariantError {
 }
 #[ink::contract]
 pub mod invariant {
-    use crate::contracts::storage::tickmap::CHUNK_SIZE;
-    use crate::contracts::tickmap::tick_to_position;
+    use crate::contracts::tickmap::{tick_to_position, MAX_CHUNK};
     use crate::contracts::{
         FeeTier, FeeTiers, InvariantConfig, InvariantTrait, Pool, PoolKey, PoolKeys, Pools,
         Position, Positions, Tick, Tickmap, Ticks,
@@ -50,7 +49,6 @@ pub mod invariant {
     use crate::math::sqrt_price::SqrtPrice;
     use crate::math::token_amount::TokenAmount;
     use crate::math::types::liquidity::Liquidity;
-    use alloc::format;
 
     use crate::InvariantError; //
 
@@ -947,42 +945,57 @@ pub mod invariant {
         }
 
         #[ink(message)]
-        fn get_tickmap(&self, pool_key: PoolKey, current_tick: i32) -> (Vec<u8>, Vec<u8>) {
+        fn get_tickmap(&self, pool_key: PoolKey, current_tick: i32) -> Vec<u64> {
             let tick_spacing = pool_key.fee_tier.tick_spacing;
-            let (chunk, bit) = tick_to_position(current_tick, tick_spacing);
+            let mut tickmap_slice: Vec<u64> = vec![];
 
-            let current_chunk = self.tickmap.bitmap.get((chunk, pool_key)).unwrap_or(0);
+            let (current_chunk_index, _) = tick_to_position(current_tick, tick_spacing);
+            let current_chunk = self
+                .tickmap
+                .bitmap
+                .get((current_chunk_index, pool_key))
+                .unwrap_or(0);
+            tickmap_slice.push(current_chunk);
 
-            let current_string = format!("{:b}", current_chunk);
-            let mut current_binary_vector: Vec<u8> = current_string
-                .chars()
-                .map(|c| c.to_digit(2).unwrap() as u8)
-                .collect();
-
-            current_binary_vector.reverse();
-
-            let (below, above) = current_binary_vector.split_at(bit as usize);
-
-            let mut below_vec = below.to_vec();
-            let mut above_vec = above.to_vec();
-            let extracted_length = (below_vec.len() + above_vec.len()) as i32;
-
-            if extracted_length < CHUNK_SIZE {
-                if bit >= (CHUNK_SIZE / 2) as u8 {
-                    above_vec.resize(
-                        (CHUNK_SIZE - extracted_length) as usize + above_vec.len(),
-                        0,
-                    );
+            let mut step = 1;
+            let max_chunks_queried = 2047;
+            while tickmap_slice.len() < max_chunks_queried {
+                if current_chunk_index + step > MAX_CHUNK {
+                    let chunk = self
+                        .tickmap
+                        .bitmap
+                        .get((current_chunk_index - step, pool_key))
+                        .unwrap_or(0);
+                    step += 1;
+                    tickmap_slice.insert(0, chunk);
                 } else {
-                    below_vec.resize(
-                        (CHUNK_SIZE - extracted_length) as usize + below_vec.len(),
-                        0,
-                    );
+                    let chunk = self
+                        .tickmap
+                        .bitmap
+                        .get((current_chunk_index + step, pool_key))
+                        .unwrap_or(0);
+                    tickmap_slice.push(chunk);
                 }
-                (below_vec, above_vec)
-            } else {
-                (below_vec, above_vec)
+                if current_chunk_index as i16 - step as i16 <= 0 {
+                    step += 1;
+                    let chunk = self
+                        .tickmap
+                        .bitmap
+                        .get((current_chunk_index + step, pool_key))
+                        .unwrap_or(0);
+                    tickmap_slice.push(chunk);
+                } else {
+                    let chunk = self
+                        .tickmap
+                        .bitmap
+                        .get((current_chunk_index - step, pool_key))
+                        .unwrap_or(0);
+                    tickmap_slice.insert(0, chunk);
+                }
+                step += 1;
             }
+
+            tickmap_slice
         }
     }
 
