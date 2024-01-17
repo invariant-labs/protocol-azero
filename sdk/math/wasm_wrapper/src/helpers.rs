@@ -49,7 +49,6 @@ pub fn process_return_type(
         }
     }
 
-    // TODO: Change tuple name to more generic depending on function name
     let tuple_struct_name = Ident::new(
         &format!("{}{}", camel_case_string, "Result"),
         proc_macro2::Span::call_site(),
