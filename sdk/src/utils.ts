@@ -18,8 +18,7 @@ import {
   _newPoolKey,
   _simulateUnclaimedFees,
   getPercentageDenominator,
-  getSqrtPriceDenominator,
-  wrappedCalculateTokenAmounts
+  getSqrtPriceDenominator
 } from 'math/math.js'
 import { Network } from './network.js'
 import { Query, Tx, TxResult } from './schema.js'
@@ -255,15 +254,15 @@ export const simulateUnclaimedFees = (
     position.liquidity.v
   )
 }
-export const calculateTokenAmounts = (pool: Pool, position: Position): TokenAmounts => {
-  return wrappedCalculateTokenAmounts(
-    pool.currentTickIndex,
-    pool.sqrtPrice,
-    position.liquidity,
-    position.upperTickIndex,
-    position.lowerTickIndex
-  )
-}
+// export const calculateTokenAmounts = (pool: Pool, position: Position): TokenAmounts => {
+//   return wrappedCalculateTokenAmounts(
+//     pool.currentTickIndex,
+//     pool.sqrtPrice,
+//     position.liquidity,
+//     position.upperTickIndex,
+//     position.lowerTickIndex
+//   )
+// }
 
 export const parse = (value: any) => {
   if (isArray(value)) {

@@ -98,7 +98,7 @@ pub fn get_liquidity_by_x_sqrt_price(
     })
 }
 
-// #[wasm_wrapper]
+#[wasm_wrapper]
 pub fn get_liquidity_by_y(
     y: TokenAmount,
     lower_tick: i32,
