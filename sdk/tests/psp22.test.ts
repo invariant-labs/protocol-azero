@@ -36,8 +36,8 @@ describe('psp22', function () {
     expect(await token.balanceOf(account, testAccount.address, address)).to.equal(250n)
   })
 
-  it.only('should change instance', async () => {
-    let secondToken = await PSP22.deploy(
+  it('should change instance', async () => {
+    const secondToken = await PSP22.deploy(
       api,
       Network.Local,
       account,
