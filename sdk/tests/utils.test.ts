@@ -1,12 +1,12 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
 import { toPercentage, toSqrtPrice } from 'math/math.js'
+import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
+import { PSP22 } from '../src/psp22'
 import {
   calculatePriceImpact,
   calculateSqrtPriceAfterSlippage,
-  deployInvariant,
-  deployPSP22,
   initPolkadotApi,
   newFeeTier,
   newPoolKey,
@@ -18,9 +18,9 @@ const api = await initPolkadotApi(Network.Local)
 const keyring = new Keyring({ type: 'sr25519' })
 const account = await keyring.addFromUri('//Alice')
 
-const invariant = await deployInvariant(api, account, { v: 10000000000n }, Network.Local)
-const token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
-const token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
+const invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
+const token0 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
+const token1 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
 
 const feeTier = newFeeTier({ v: 10000000000n }, 1n)
 

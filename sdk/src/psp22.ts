@@ -40,32 +40,10 @@ export class PSP22 {
     this.storageDepositLimit = storageDepositLimit
   }
 
-  static async getContract(
-    api: ApiPromise,
-    network: Network,
-    account?: IKeyringPair,
-    supply?: bigint,
-    name?: string,
-    symbol?: string,
-    decimals?: bigint,
-    address?: string,
-    options?: ContractOptions
-  ): Promise<PSP22> {
-    if (address) {
-      return PSP22.load(api, network, address, options)
-    }
-
-    if (account) {
-      return PSP22.deploy(api, network, account, supply, name, symbol, decimals, options)
-    }
-
-    throw new Error('Invalid arguments')
-  }
-
   static async deploy(
     api: ApiPromise,
     network: Network,
-    account: IKeyringPair,
+    deployer: IKeyringPair,
     supply: bigint = 0n,
     name: string = '',
     symbol: string = '',
@@ -75,7 +53,7 @@ export class PSP22 {
     const deploymentData = await getDeploymentData('psp22')
     const deploy = await deployContract(
       api,
-      account,
+      deployer,
       deploymentData.abi,
       deploymentData.wasm,
       'new',

@@ -1,18 +1,20 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
 import { Position, SqrtPrice, getLiquidityByX, getLiquidityByY } from 'math/math.js'
+import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
+import { PSP22 } from '../src/psp22'
 import { assertThrowsAsync, positionEquals } from '../src/testUtils'
-import { deployInvariant, deployPSP22, initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
+import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
 
 const api = await initPolkadotApi(Network.Local)
 
 const keyring = new Keyring({ type: 'sr25519' })
 const account = await keyring.addFromUri('//Alice')
 
-let invariant = await deployInvariant(api, account, { v: 10000000000n }, Network.Local)
-let token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
-let token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
+let invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
+let token0 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
+let token1 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
 
 describe('check get liquidity by x', async () => {
   const providedAmount = 430000n
@@ -29,9 +31,9 @@ describe('check get liquidity by x', async () => {
   let tokenY = token1
 
   beforeEach(async () => {
-    invariant = await deployInvariant(api, account, { v: 10000000000n }, Network.Local)
-    token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
-    token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
+    invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
+    token0 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
+    token1 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
 
     poolKey = newPoolKey(
       token0.contract.address.toString(),
@@ -196,9 +198,9 @@ describe('check get liquidity by y', async () => {
   let tokenY = token1
 
   beforeEach(async () => {
-    invariant = await deployInvariant(api, account, { v: 10000000000n }, Network.Local)
-    token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
-    token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
+    invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
+    token0 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
+    token1 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
 
     poolKey = newPoolKey(
       token0.contract.address.toString(),

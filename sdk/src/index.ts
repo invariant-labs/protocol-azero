@@ -1,16 +1,8 @@
 import { Keyring } from '@polkadot/api'
 import dotenv from 'dotenv'
 import { Network } from './network.js'
-import {
-  deployInvariant,
-  deployPSP22,
-  getEnvAccount,
-  initPolkadotApi,
-  newFeeTier,
-  newPoolKey,
-  printBalance
-} from './utils.js'
-import { WrappedAZERO } from './wrapped_azero.js'
+import { getEnvAccount, initPolkadotApi, newFeeTier, newPoolKey, printBalance } from './utils.js'
+import { WrappedAZERO } from './wrapped-azero.js'
 dotenv.config()
 
 import { getBalance, transferBalance } from '@scio-labs/use-inkathon'
@@ -29,6 +21,8 @@ import {
   getSqrtPriceScale,
   getTokenAmountScale
 } from 'math/math.js'
+import { Invariant } from './invariant.js'
+import { PSP22 } from './psp22.js'
 import { InvariantEvent } from './schema.js'
 import { getEnvTestAccount } from './testUtils.js'
 
@@ -110,15 +104,15 @@ const main = async () => {
 
   // deploy invariant
   const initFee = { v: 10n }
-  const invariant = await deployInvariant(api, account, initFee, network)
+  const invariant = await Invariant.deploy(api, network, account, initFee)
 
   invariant.on(InvariantEvent.CreatePositionEvent, (event: CreatePositionEvent) => {
     console.log(event)
   })
 
   // deploy token
-  const token0 = await deployPSP22(api, account, 1000n, 'Coin', 'COIN', 12n, network)
-  const token1 = await deployPSP22(api, account, 1000n, 'Coin', 'COIN', 12n, network)
+  const token0 = await PSP22.deploy(api, network, account, 1000n, 'Coin', 'COIN', 12n)
+  const token1 = await PSP22.deploy(api, network, account, 1000n, 'Coin', 'COIN', 12n)
 
   const feeTier = newFeeTier({ v: 6000000000n }, 10n)
 
@@ -160,7 +154,7 @@ const main = async () => {
   )
 
   // deploy wrapped azero
-  const wazero = await WrappedAZERO.getContract(api, network, account)
+  const wazero = await WrappedAZERO.deploy(api, network, account)
 
   await transferBalance(api, account, testAccount.address, 1000000000000)
   console.log('account balance: ', (await getBalance(api, account.address)).balanceFormatted)

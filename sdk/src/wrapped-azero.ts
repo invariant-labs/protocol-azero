@@ -39,34 +39,16 @@ export class WrappedAZERO {
     this.storageDepositLimit = storageDepositLimit
   }
 
-  static async getContract(
-    api: ApiPromise,
-    network: Network,
-    account?: IKeyringPair,
-    address?: string,
-    options?: ContractOptions
-  ): Promise<WrappedAZERO> {
-    if (address) {
-      return WrappedAZERO.load(api, network, address, options)
-    }
-
-    if (account) {
-      return WrappedAZERO.deploy(api, network, account, options)
-    }
-
-    throw new Error('Invalid arguments')
-  }
-
   static async deploy(
     api: ApiPromise,
     network: Network,
-    account: IKeyringPair,
+    deployer: IKeyringPair,
     options?: ContractOptions
   ): Promise<WrappedAZERO> {
-    const deploymentData = await getDeploymentData('wrapped_azero')
+    const deploymentData = await getDeploymentData('wrapped-azero')
     const deploy = await deployContract(
       api,
-      account,
+      deployer,
       deploymentData.abi,
       deploymentData.wasm,
       'new',
@@ -87,16 +69,16 @@ export class WrappedAZERO {
   static async load(
     api: ApiPromise,
     network: Network,
-    address: string,
+    deployer: string,
     options?: ContractOptions
   ): Promise<WrappedAZERO> {
-    const deploymentData = await getDeploymentData('wrapped_azero')
+    const deploymentData = await getDeploymentData('wrapped-azero')
 
     return new WrappedAZERO(
       api,
       network,
       deploymentData.abi,
-      address,
+      deployer,
       options?.storageDepositLimit,
       options?.refTime,
       options?.proofSize

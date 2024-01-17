@@ -47,7 +47,7 @@ export class Invariant {
   gasLimit: WeightV2
   storageDepositLimit: number | null
   waitForFinalization: boolean
-  abi: Abi | null = null
+  abi: Abi
   eventListeners: { identifier: InvariantEvent; listener: (event: any) => void }[] = []
 
   private constructor(
@@ -70,36 +70,17 @@ export class Invariant {
     this.abi = new Abi(abi)
   }
 
-  static async getContract(
-    api: ApiPromise,
-    network: Network,
-    account?: IKeyringPair,
-    fee?: Percentage,
-    address?: string,
-    options?: ContractOptions
-  ): Promise<Invariant> {
-    if (address) {
-      return Invariant.load(api, network, address, options)
-    }
-
-    if (account) {
-      return Invariant.deploy(api, network, account, fee, options)
-    }
-
-    throw new Error('Invalid arguments')
-  }
-
   static async deploy(
     api: ApiPromise,
     network: Network,
-    account: IKeyringPair,
+    deployer: IKeyringPair,
     fee: Percentage = { v: 0n },
     options?: ContractOptions
   ): Promise<Invariant> {
     const deploymentData = await getDeploymentData('invariant')
     const deploy = await deployContract(
       api,
-      account,
+      deployer,
       deploymentData.abi,
       deploymentData.wasm,
       'new',
@@ -152,7 +133,7 @@ export class Invariant {
             return
           }
 
-          const decoded = this.abi?.decodeEvent(contract_evt as Bytes)
+          const decoded = this.abi.decodeEvent(contract_evt as Bytes)
 
           if (!decoded) {
             return

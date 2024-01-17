@@ -1,18 +1,19 @@
 import { Keyring } from '@polkadot/api'
 import { expect } from 'chai'
 import { Network } from '../src/network'
-import { deployWrappedAZERO, initPolkadotApi } from '../src/utils'
+import { initPolkadotApi } from '../src/utils'
+import { WrappedAZERO } from '../src/wrapped-azero'
 
 const api = await initPolkadotApi(Network.Local)
 
 const keyring = new Keyring({ type: 'sr25519' })
 const account = await keyring.addFromUri('//Alice')
 
-let wazero = await deployWrappedAZERO(api, account, Network.Local)
+let wazero = await WrappedAZERO.deploy(api, Network.Local, account)
 
-describe('wrapped_azero', function () {
+describe('wrapped azero', function () {
   beforeEach(async () => {
-    wazero = await deployWrappedAZERO(api, account, Network.Local)
+    wazero = await WrappedAZERO.deploy(api, Network.Local, account)
   })
 
   it('wraps and unwraps azero', async () => {
