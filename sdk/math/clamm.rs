@@ -289,7 +289,7 @@ pub fn calculate_amount_delta(
     liquidity_sign: bool,
     upper_tick: i32,
     lower_tick: i32,
-) -> TrackableResult<AmountDeltaResult> {
+) -> TrackableResult<(TokenAmount, TokenAmount, bool)> {
     if upper_tick < lower_tick {
         return Err(err!("upper_tick is not greater than lower_tick"));
     }
@@ -327,11 +327,7 @@ pub fn calculate_amount_delta(
         ))?;
     }
 
-    Ok(AmountDeltaResult {
-        x: amount_x,
-        y: amount_y,
-        update_liquidity,
-    })
+    Ok((amount_x, amount_y, update_liquidity))
 }
 
 #[wasm_wrapper]

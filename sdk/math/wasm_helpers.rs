@@ -166,25 +166,6 @@ pub fn simulate_unclaimed_fees(
     })?)
 }
 
-// #[wasm_bindgen(js_name = "wrappedCalculateTokenAmounts")]
-// pub fn calculate_token_amounts(
-//     js_current_tick_index: JsValue,
-//     js_current_sqrt_price: JsValue,
-//     js_liquidity: JsValue,
-//     js_upper_tick_index: JsValue,
-//     js_lower_tick_index: JsValue,
-// ) -> Result<JsValue, JsValue> {
-//     let current_tick_index: i64 = convert!(js_current_tick_index)?;
-//     let current_sqrt_price: SqrtPrice = convert!(js_current_sqrt_price)?;
-//     let liquidity: Liquidity = convert!(js_liquidity)?;
-//     let upper_tick_index: i64 = convert!(js_upper_tick_index)?;
-//     let lower_tick_index: i64 = convert!(js_lower_tick_index)?;
-//     Ok(serde_wasm_bindgen::to_value(&TokenAmounts {
-//         x: result.x,
-//         y: result.y,
-//     })?)
-// }
-
 #[wasm_wrapper]
 pub fn is_token_x(token_candidate: String, token_to_compare: String) -> TrackableResult<bool> {
     Ok(token_candidate < token_to_compare)

@@ -45,7 +45,6 @@ const main = async () => {
     console.log(deltaYUp)
     console.log(deltaYDown)
   }
-
   {
     const providedAmount: TokenAmount = 47600000000n
     const poolSqrtPrice: SqrtPrice = { v: 1000000000000000000000000000n }
@@ -77,6 +76,8 @@ const main = async () => {
     )
     console.log('Liquidity = ', l)
     console.log('Amount = ', amount)
+  }
+  {
   }
 
   {
