@@ -1,5 +1,4 @@
-use crate::denominator;
-use crate::scale;
+use crate::{convert, decimal_ops};
 use core::convert::{TryFrom, TryInto};
 use decimal::*;
 use js_sys::BigInt;
@@ -13,5 +12,5 @@ pub struct Liquidity {
     #[tsify(type = "bigint")]
     pub v: u128,
 }
-scale!(Liquidity);
-denominator!(Liquidity);
+
+decimal_ops!(Liquidity);

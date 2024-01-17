@@ -1,8 +1,7 @@
 use crate::liquidity::*;
 
-use crate::denominator;
-use crate::scale;
 use crate::token_amount::TokenAmount;
+use crate::{convert, decimal_ops};
 use core::convert::{TryFrom, TryInto};
 use decimal::*;
 use js_sys::BigInt;
@@ -19,8 +18,7 @@ pub struct FeeGrowth {
     pub v: u128,
 }
 
-scale!(FeeGrowth);
-denominator!(FeeGrowth);
+decimal_ops!(FeeGrowth);
 
 impl FeeGrowth {
     pub fn unchecked_add(self, other: FeeGrowth) -> FeeGrowth {

@@ -1,7 +1,6 @@
 use crate::consts::*;
-use crate::denominator;
-use crate::scale;
 use crate::types::{fixed_point::FixedPoint, token_amount::TokenAmount};
+use crate::{convert, decimal_ops};
 use core::convert::{TryFrom, TryInto};
 use decimal::*;
 use js_sys::BigInt;
@@ -18,8 +17,7 @@ pub struct SqrtPrice {
     pub v: u128,
 }
 
-scale!(SqrtPrice);
-denominator!(SqrtPrice);
+decimal_ops!(SqrtPrice);
 
 impl SqrtPrice {
     pub fn from_tick(i: i32) -> TrackableResult<Self> {

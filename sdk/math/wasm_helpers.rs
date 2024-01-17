@@ -1,12 +1,20 @@
 use crate::clamm::calculate_amount_delta;
+use crate::convert;
 use crate::storage::pool_key::PoolKey;
 use crate::storage::tick::Tick;
 use crate::types::{
-    fee_growth::calculate_fee_growth_inside, fee_growth::FeeGrowth, liquidity::Liquidity,
-    sqrt_price::SqrtPrice, token_amount::TokenAmount,
+    fee_growth::calculate_fee_growth_inside,
+    fee_growth::FeeGrowth,
+    liquidity::Liquidity,
+    sqrt_price::{get_max_tick, SqrtPrice},
+    token_amount::TokenAmount,
 };
+use crate::MAX_TICK;
 use decimal::Decimal;
+use traceable_result::TrackableResult;
 use traceable_result::{function, location, ok_or_mark_trace, trace};
+use wasm_wrapper::wasm_wrapper;
+
 // use paste::paste;
 
 extern crate paste;
@@ -61,7 +69,7 @@ extern "C" {
 }
 
 #[macro_export]
-macro_rules! scale {
+macro_rules! decimal_ops {
     ($decimal:ident) => {
         ::paste::paste! {
             #[wasm_bindgen]
@@ -69,18 +77,19 @@ macro_rules! scale {
             pub fn [<get $decimal Scale >] () -> BigInt {
                 BigInt::from($decimal::scale())
             }
-        }
-    };
-}
 
-#[macro_export]
-macro_rules! denominator {
-    ($decimal:ident) => {
-        ::paste::paste! {
             #[wasm_bindgen]
             #[allow(non_snake_case)]
             pub fn [<get $decimal Denominator >] () -> BigInt {
-                BigInt::from(10u128.pow($decimal::scale() as u32))
+                BigInt::from($decimal::from_integer(1).get())
+            }
+
+            #[wasm_bindgen]
+            #[allow(non_snake_case)]
+            pub fn [<to $decimal >] (js_val: JsValue, js_scale: JsValue) -> BigInt {
+                let js_val: u64 = convert!(js_val).unwrap();
+                let scale: u64 = convert!(js_scale).unwrap();
+                BigInt::from($decimal::from_scale(js_val, scale as u8).get())
             }
         }
     };
@@ -186,4 +195,32 @@ pub fn calculate_token_amounts(
         x: result.x,
         y: result.y,
     })?)
+}
+
+#[wasm_wrapper]
+pub fn is_token_x(token_candidate: String, token_to_compare: String) -> TrackableResult<bool> {
+    Ok(token_candidate < token_to_compare)
+}
+
+#[wasm_wrapper]
+pub fn check_tick_to_sqrt_price_relationship(
+    tick_index: i32,
+    tick_spacing: u16,
+    sqrt_price: SqrtPrice,
+) -> TrackableResult<bool> {
+    if tick_index + tick_spacing as i32 > MAX_TICK {
+        let max_tick = get_max_tick(tick_spacing);
+        let max_sqrt_price = ok_or_mark_trace!(SqrtPrice::from_tick(max_tick))?;
+        if sqrt_price != max_sqrt_price {
+            return Ok(false);
+        }
+    } else {
+        let lower_bound = ok_or_mark_trace!(SqrtPrice::from_tick(tick_index))?;
+        let upper_bound =
+            ok_or_mark_trace!(SqrtPrice::from_tick(tick_index + tick_spacing as i32))?;
+        if sqrt_price >= upper_bound || sqrt_price < lower_bound {
+            return Ok(false);
+        }
+    }
+    Ok(true)
 }
