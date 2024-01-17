@@ -3,10 +3,9 @@ import { ContractPromise } from '@polkadot/api-contract'
 import { Bytes } from '@polkadot/types'
 import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types'
-import { DeployedContract } from '@scio-labs/use-inkathon'
 import { deployContract } from '@scio-labs/use-inkathon/helpers'
 import { Network } from './network.js'
-import { PSP22Query, PSP22Tx, TxResult } from './schema.js'
+import { ContractOptions, PSP22Query, PSP22Tx, TxResult } from './schema.js'
 import {
   DEFAULT_PROOF_SIZE,
   DEFAULT_REF_TIME,
@@ -25,100 +24,69 @@ export class PSP22 {
   private constructor(
     api: ApiPromise,
     network: Network,
+    abi: any,
+    address: string,
     storageDepositLimit: number | null = null,
     refTime: number = DEFAULT_REF_TIME,
-    proofSize: number = DEFAULT_PROOF_SIZE,
-    abi: any,
-    deploymentAddress: string
+    proofSize: number = DEFAULT_PROOF_SIZE
   ) {
     this.api = api
+    this.waitForFinalization = network !== Network.Local
+    this.contract = new ContractPromise(this.api, abi, address)
     this.gasLimit = api.registry.createType('WeightV2', {
       refTime,
       proofSize
     }) as WeightV2
     this.storageDepositLimit = storageDepositLimit
-    this.waitForFinalization = network !== Network.Local
-    this.contract = new ContractPromise(this.api, abi, deploymentAddress)
-  }
-
-  static async getContract(
-    api: ApiPromise,
-    network: Network,
-    storageDepositLimit: number | null = null,
-    refTime: number = DEFAULT_REF_TIME,
-    proofSize: number = DEFAULT_PROOF_SIZE,
-    account: IKeyringPair,
-    supply: bigint,
-    name: string,
-    symbol: string,
-    decimals: bigint,
-    address?: string
-  ): Promise<PSP22> {
-    const tokenData = await getDeploymentData('psp22')
-    if (address && network != Network.Local) {
-      return new PSP22(
-        api,
-        network,
-        storageDepositLimit,
-        refTime,
-        proofSize,
-        tokenData.abi,
-        address
-      )
-    } else {
-      const tokenDeploy = await PSP22.deploy(
-        api,
-        account,
-        tokenData.abi,
-        tokenData.wasm,
-        supply,
-        name,
-        symbol,
-        decimals
-      )
-
-      return new PSP22(
-        api,
-        Network.Local,
-        storageDepositLimit,
-        refTime,
-        proofSize,
-        tokenData.abi,
-        tokenDeploy.address
-      )
-    }
   }
 
   static async deploy(
     api: ApiPromise,
-    account: IKeyringPair,
-    abi: any,
-    wasm: Buffer,
-    supply: bigint,
-    name: string,
-    symbol: string,
-    decimals: bigint
-  ): Promise<DeployedContract> {
-    return deployContract(api, account, abi, wasm, 'new', [supply, name, symbol, decimals])
+    network: Network,
+    deployer: IKeyringPair,
+    supply: bigint = 0n,
+    name: string = '',
+    symbol: string = '',
+    decimals: bigint = 0n,
+    options?: ContractOptions
+  ): Promise<PSP22> {
+    const deploymentData = await getDeploymentData('psp22')
+    const deploy = await deployContract(
+      api,
+      deployer,
+      deploymentData.abi,
+      deploymentData.wasm,
+      'new',
+      [supply, name, symbol, decimals]
+    )
+
+    return new PSP22(
+      api,
+      network,
+      deploymentData.abi,
+      deploy.address,
+      options?.storageDepositLimit,
+      options?.refTime,
+      options?.proofSize
+    )
   }
 
   static async load(
     api: ApiPromise,
     network: Network,
-    storageDepositLimit: number | null = null,
-    refTime: number = DEFAULT_REF_TIME,
-    proofSize: number = DEFAULT_PROOF_SIZE,
-    address: string
+    address: string,
+    options?: ContractOptions
   ): Promise<PSP22> {
-    const tokenData = await getDeploymentData('psp22')
+    const deploymentData = await getDeploymentData('psp22')
+
     return new PSP22(
       api,
-      Network.Local,
-      storageDepositLimit,
-      refTime,
-      proofSize,
-      tokenData.abi,
-      address
+      network,
+      deploymentData.abi,
+      address,
+      options?.storageDepositLimit,
+      options?.refTime,
+      options?.proofSize
     )
   }
 

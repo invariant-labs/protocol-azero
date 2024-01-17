@@ -18,13 +18,11 @@ import {
   _newPoolKey,
   _simulateUnclaimedFees,
   getPercentageDenominator,
+  getSqrtPriceDenominator,
   wrappedCalculateTokenAmounts
 } from 'math/math.js'
-import { Invariant } from './invariant.js'
 import { Network } from './network.js'
-import { PSP22 } from './psp22.js'
 import { Query, Tx, TxResult } from './schema.js'
-import { WrappedAZERO } from './wrapped_azero.js'
 
 export const DEFAULT_REF_TIME = 100000000000
 export const DEFAULT_PROOF_SIZE = 100000000000
@@ -167,54 +165,6 @@ export const parseEvents = (events: { [key: string]: any }[]) => {
   return events.map(event => parseEvent(event))
 }
 
-export const deployInvariant = async (
-  api: ApiPromise,
-  account: IKeyringPair,
-  initFee: Percentage,
-  network: Network
-): Promise<Invariant> => {
-  return Invariant.getContract(
-    api,
-    account,
-    null,
-    DEFAULT_REF_TIME,
-    DEFAULT_PROOF_SIZE,
-    initFee,
-    network
-  )
-}
-
-export const deployPSP22 = async (
-  api: ApiPromise,
-  account: IKeyringPair,
-  supply: bigint,
-  name: string,
-  symbol: string,
-  decimals: bigint,
-  network: Network
-): Promise<PSP22> => {
-  return PSP22.getContract(
-    api,
-    network,
-    null,
-    DEFAULT_REF_TIME,
-    DEFAULT_PROOF_SIZE,
-    account,
-    supply,
-    name,
-    symbol,
-    decimals
-  )
-}
-
-export const deployWrappedAZERO = async (
-  api: ApiPromise,
-  account: IKeyringPair,
-  network: Network
-): Promise<WrappedAZERO> => {
-  return WrappedAZERO.getContract(api, account, null, DEFAULT_REF_TIME, DEFAULT_PROOF_SIZE, network)
-}
-
 export const getDeploymentData = async (
   contractName: string
 ): Promise<{ abi: any; wasm: Buffer }> => {
@@ -227,6 +177,44 @@ export const getDeploymentData = async (
     return { abi, wasm }
   } catch (error) {
     throw new Error(`${contractName}.json or ${contractName}.wasm not found`)
+  }
+}
+
+const sqrt = (value: bigint): bigint => {
+  if (value < 0n) {
+    throw 'square root of negative numbers is not supported'
+  }
+
+  if (value < 2n) {
+    return value
+  }
+
+  return newtonIteration(value, 1n)
+}
+
+const newtonIteration = (n: bigint, x0: bigint): bigint => {
+  const x1 = (n / x0 + x0) >> 1n
+  if (x0 === x1 || x0 === x1 - 1n) {
+    return x0
+  }
+  return newtonIteration(n, x1)
+}
+
+export const calculateSqrtPriceAfterSlippage = (
+  sqrtPrice: SqrtPrice,
+  slippage: Percentage,
+  up: boolean
+): SqrtPrice => {
+  const multiplier = getPercentageDenominator() + (up ? slippage.v : -slippage.v)
+
+  return {
+    v:
+      sqrt(
+        ((sqrtPrice.v * sqrtPrice.v) / getSqrtPriceDenominator()) *
+          multiplier *
+          getSqrtPriceDenominator() *
+          getPercentageDenominator()
+      ) / getPercentageDenominator()
   }
 }
 

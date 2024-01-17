@@ -1,6 +1,5 @@
-use crate::denominator;
 use crate::liquidity::Liquidity;
-use crate::scale;
+use crate::{convert, decimal_ops};
 use core::convert::{TryFrom, TryInto};
 use decimal::*;
 use js_sys::BigInt;
@@ -17,8 +16,7 @@ pub struct SecondsPerLiquidity {
     pub v: u128,
 }
 
-scale!(SecondsPerLiquidity);
-denominator!(SecondsPerLiquidity);
+decimal_ops!(SecondsPerLiquidity);
 
 impl SecondsPerLiquidity {
     pub fn unchecked_add(self, other: SecondsPerLiquidity) -> SecondsPerLiquidity {
