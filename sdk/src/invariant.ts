@@ -36,6 +36,7 @@ import {
 import {
   DEFAULT_PROOF_SIZE,
   DEFAULT_REF_TIME,
+  constructTickmap,
   getDeploymentData,
   parse,
   sendQuery,
@@ -566,7 +567,8 @@ export class Invariant {
     account: IKeyringPair,
     poolKey: PoolKey,
     currentTickIndex: bigint
-  ): Promise<bigint[][]> {
+  ): Promise<bigint[]> {
+    console.log('getTickmap')
     const result = await sendQuery(
       this.contract,
       this.gasLimit,
@@ -575,8 +577,7 @@ export class Invariant {
       InvariantQuery.GetTickmap,
       [poolKey, currentTickIndex]
     )
-    console.log('RESULT = ', result)
-    return result
+    return constructTickmap(result)
     // return parse(result)
   }
 }

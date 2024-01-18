@@ -17,6 +17,7 @@ import {
   _newFeeTier,
   _newPoolKey,
   _simulateUnclaimedFees,
+  getMaxChunk,
   getPercentageDenominator,
   getSqrtPriceDenominator,
   wrappedCalculateTokenAmounts
@@ -24,8 +25,8 @@ import {
 import { Network } from './network.js'
 import { Query, Tx, TxResult } from './schema.js'
 
-export const DEFAULT_REF_TIME = 100000000000
-export const DEFAULT_PROOF_SIZE = 100000000000
+export const DEFAULT_REF_TIME = 1000000000000
+export const DEFAULT_PROOF_SIZE = 1000000000000
 
 export const initPolkadotApi = async (network: Network): Promise<ApiPromise> => {
   if (network === Network.Local) {
@@ -301,4 +302,16 @@ const isArray = (value: any): boolean => {
 
 const isObject = (value: any): boolean => {
   return typeof value === 'object' && value !== null
+}
+
+export const constructTickmap = (tickmap: bigint[][]): bigint[] => {
+  const maxChunk = getMaxChunk()
+  const tmpTickmap = []
+  for (let i = 0; i <= maxChunk; i++) {
+    tmpTickmap[i] = 0n
+  }
+  for (let i = 0; i < tickmap.length; i++) {
+    tmpTickmap[Number(tickmap[i][0])] = tickmap[i][1]
+  }
+  return tmpTickmap
 }
