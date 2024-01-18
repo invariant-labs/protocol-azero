@@ -37,7 +37,7 @@ pub enum InvariantError {
 }
 #[ink::contract]
 pub mod invariant {
-    use crate::contracts::tickmap::{tick_to_position, MAX_CHUNK};
+    use crate::contracts::tickmap::{tick_to_position, MAX_CHUNK, MAX_TICKMAP_CHUNK};
     use crate::contracts::{
         FeeTier, FeeTiers, InvariantConfig, InvariantTrait, Pool, PoolKey, PoolKeys, Pools,
         Position, Positions, Tick, Tickmap, Ticks,
@@ -945,54 +945,39 @@ pub mod invariant {
         }
 
         #[ink(message)]
-        fn get_tickmap(&self, pool_key: PoolKey, current_tick: i32) -> Vec<u64> {
+        fn get_tickmap(&self, pool_key: PoolKey, center_tick: i32) -> Vec<(u16, u64)> {
             let tick_spacing = pool_key.fee_tier.tick_spacing;
-            let mut tickmap_slice: Vec<u64> = vec![];
+            let mut tickmap_slice: Vec<(u16, u64)> = Vec::with_capacity(MAX_TICKMAP_CHUNK as usize);
 
-            let (current_chunk_index, _) = tick_to_position(current_tick, tick_spacing);
+            let (current_chunk_index, _) = tick_to_position(center_tick, tick_spacing);
             let current_chunk = self
                 .tickmap
                 .bitmap
                 .get((current_chunk_index, pool_key))
                 .unwrap_or(0);
-            tickmap_slice.push(current_chunk);
+            if current_chunk != 0 {
+                tickmap_slice.push((current_chunk_index, current_chunk));
+            }
 
-            let mut step = 1;
-            let max_chunks_queried = 2047;
-            while tickmap_slice.len() < max_chunks_queried {
-                if current_chunk_index + step > MAX_CHUNK {
-                    let chunk = self
-                        .tickmap
-                        .bitmap
-                        .get((current_chunk_index - step, pool_key))
-                        .unwrap_or(0);
-                    step += 1;
-                    tickmap_slice.insert(0, chunk);
-                } else {
-                    let chunk = self
-                        .tickmap
-                        .bitmap
-                        .get((current_chunk_index + step, pool_key))
-                        .unwrap_or(0);
-                    tickmap_slice.push(chunk);
+            for step in 1..=MAX_CHUNK {
+                for &offset in &[step as i16, -(step as i16)] {
+                    let target_index = (current_chunk_index as i16 + offset) as u16;
+
+                    if target_index <= MAX_CHUNK {
+                        let chunk = self
+                            .tickmap
+                            .bitmap
+                            .get((target_index, pool_key))
+                            .unwrap_or(0);
+                        if chunk != 0 {
+                            if offset > 0 {
+                                tickmap_slice.push((target_index, chunk));
+                            } else {
+                                tickmap_slice.insert(0, (target_index, chunk));
+                            }
+                        }
+                    }
                 }
-                if current_chunk_index as i16 - step as i16 <= 0 {
-                    step += 1;
-                    let chunk = self
-                        .tickmap
-                        .bitmap
-                        .get((current_chunk_index + step, pool_key))
-                        .unwrap_or(0);
-                    tickmap_slice.push(chunk);
-                } else {
-                    let chunk = self
-                        .tickmap
-                        .bitmap
-                        .get((current_chunk_index - step, pool_key))
-                        .unwrap_or(0);
-                    tickmap_slice.insert(0, chunk);
-                }
-                step += 1;
             }
 
             tickmap_slice
