@@ -1,16 +1,18 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
+import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
-import { deployInvariant, deployPSP22, initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
+import { PSP22 } from '../src/psp22'
+import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
 
 const api = await initPolkadotApi(Network.Local)
 
 const keyring = new Keyring({ type: 'sr25519' })
 const account = await keyring.addFromUri('//Alice')
 
-let invariant = await deployInvariant(api, account, { v: 10000000000n }, Network.Local)
-let token0 = await deployPSP22(api, account, 10000000000n, 'Coin', 'COIN', 0n, Network.Local)
-let token1 = await deployPSP22(api, account, 10000000000n, 'Coin', 'COIN', 0n, Network.Local)
+let invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
+let token0 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
+let token1 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
 
 const feeTier = newFeeTier({ v: 10000000000n }, 1n)
 let poolKey = newPoolKey(
@@ -21,9 +23,9 @@ let poolKey = newPoolKey(
 
 describe('get position ticks', async () => {
   beforeEach(async () => {
-    invariant = await deployInvariant(api, account, { v: 10000000000n }, Network.Local)
-    token0 = await deployPSP22(api, account, 10000000000n, 'Coin', 'COIN', 0n, Network.Local)
-    token1 = await deployPSP22(api, account, 10000000000n, 'Coin', 'COIN', 0n, Network.Local)
+    invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
+    token0 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
+    token1 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
 
     poolKey = newPoolKey(
       token0.contract.address.toString(),
@@ -46,7 +48,7 @@ describe('get position ticks', async () => {
     await token1.approve(account, invariant.contract.address.toString(), 10000000000n)
   })
 
-  it('should get all ticks', async () => {
+  it('should get position ticks', async () => {
     await invariant.createPosition(
       account,
       poolKey,
@@ -61,7 +63,7 @@ describe('get position ticks', async () => {
     assert.equal(result.length, 2)
   })
 
-  it('should get all ticks limit', async () => {
+  it('should get position ticks limit', async () => {
     for (let i = 1n; i <= 372n; i++) {
       await invariant.createPosition(
         account,
@@ -79,7 +81,7 @@ describe('get position ticks', async () => {
     assert.equal(result.length, 372)
   })
 
-  it('should get all ticks with offset', async () => {
+  it('should get position ticks with offset', async () => {
     await invariant.createPosition(
       account,
       poolKey,

@@ -5,15 +5,27 @@ import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { getSubstrateChain } from '@scio-labs/use-inkathon/chains'
 import { getBalance, initPolkadotJs as initApi } from '@scio-labs/use-inkathon/helpers'
 import { readFile } from 'fs/promises'
-import { FeeTier, Percentage, PoolKey, _newFeeTier, _newPoolKey } from 'math/math.js'
-import { Invariant } from './invariant.js'
+import {
+  FeeTier,
+  Percentage,
+  Pool,
+  PoolKey,
+  Position,
+  SqrtPrice,
+  Tick,
+  TokenAmounts,
+  _newFeeTier,
+  _newPoolKey,
+  _simulateUnclaimedFees,
+  getPercentageDenominator,
+  getSqrtPriceDenominator,
+  wrappedCalculateTokenAmounts
+} from 'math/math.js'
 import { Network } from './network.js'
-import { PSP22 } from './psp22.js'
 import { Query, Tx, TxResult } from './schema.js'
-import { WrappedAZERO } from './wrapped_azero.js'
 
-export const DEFAULT_REF_TIME = 100000000000
-export const DEFAULT_PROOF_SIZE = 100000000000
+export const DEFAULT_REF_TIME = 1000000000000
+export const DEFAULT_PROOF_SIZE = 1000000000000
 
 export const initPolkadotApi = async (network: Network): Promise<ApiPromise> => {
   if (network === Network.Local) {
@@ -153,46 +165,6 @@ export const parseEvents = (events: { [key: string]: any }[]) => {
   return events.map(event => parseEvent(event))
 }
 
-export const deployInvariant = async (
-  api: ApiPromise,
-  account: IKeyringPair,
-  initFee: Percentage,
-  network: Network
-): Promise<Invariant> => {
-  return Invariant.getContract(api, account, null, 1000000000000, 1000000000000, initFee, network)
-}
-
-export const deployPSP22 = async (
-  api: ApiPromise,
-  account: IKeyringPair,
-  supply: bigint,
-  name: string,
-  symbol: string,
-  decimals: bigint,
-  network: Network
-): Promise<PSP22> => {
-  return PSP22.getContract(
-    api,
-    network,
-    null,
-    DEFAULT_REF_TIME,
-    DEFAULT_PROOF_SIZE,
-    account,
-    supply,
-    name,
-    symbol,
-    decimals
-  )
-}
-
-export const deployWrappedAZERO = async (
-  api: ApiPromise,
-  account: IKeyringPair,
-  network: Network
-): Promise<WrappedAZERO> => {
-  return WrappedAZERO.getContract(api, account, null, DEFAULT_REF_TIME, DEFAULT_PROOF_SIZE, network)
-}
-
 export const getDeploymentData = async (
   contractName: string
 ): Promise<{ abi: any; wasm: Buffer }> => {
@@ -206,6 +178,91 @@ export const getDeploymentData = async (
   } catch (error) {
     throw new Error(`${contractName}.json or ${contractName}.wasm not found`)
   }
+}
+
+const sqrt = (value: bigint): bigint => {
+  if (value < 0n) {
+    throw 'square root of negative numbers is not supported'
+  }
+
+  if (value < 2n) {
+    return value
+  }
+
+  return newtonIteration(value, 1n)
+}
+
+const newtonIteration = (n: bigint, x0: bigint): bigint => {
+  const x1 = (n / x0 + x0) >> 1n
+  if (x0 === x1 || x0 === x1 - 1n) {
+    return x0
+  }
+  return newtonIteration(n, x1)
+}
+
+export const calculateSqrtPriceAfterSlippage = (
+  sqrtPrice: SqrtPrice,
+  slippage: Percentage,
+  up: boolean
+): SqrtPrice => {
+  const multiplier = getPercentageDenominator() + (up ? slippage.v : -slippage.v)
+
+  return {
+    v:
+      sqrt(
+        ((sqrtPrice.v * sqrtPrice.v) / getSqrtPriceDenominator()) *
+          multiplier *
+          getSqrtPriceDenominator() *
+          getPercentageDenominator()
+      ) / getPercentageDenominator()
+  }
+}
+
+export const calculatePriceImpact = (
+  startingSqrtPrice: SqrtPrice,
+  endingSqrtPrice: SqrtPrice
+): Percentage => {
+  const startingPrice = startingSqrtPrice.v * startingSqrtPrice.v
+  const endingPrice = endingSqrtPrice.v * endingSqrtPrice.v
+  const diff = startingPrice - endingPrice
+
+  const nominator = diff > 0n ? diff : -diff
+  const denominator = startingPrice > endingPrice ? startingPrice : endingPrice
+
+  return {
+    v: (nominator * getPercentageDenominator()) / denominator
+  }
+}
+
+export const simulateUnclaimedFees = (
+  pool: Pool,
+  position: Position,
+  lowerTick: Tick,
+  upperTick: Tick
+): TokenAmounts => {
+  return _simulateUnclaimedFees(
+    lowerTick.index,
+    lowerTick.feeGrowthOutsideX.v,
+    lowerTick.feeGrowthOutsideY.v,
+    upperTick.index,
+    upperTick.feeGrowthOutsideX.v,
+    upperTick.feeGrowthOutsideY.v,
+    pool.currentTickIndex,
+    pool.feeGrowthGlobalX.v,
+    pool.feeGrowthGlobalY.v,
+    position.feeGrowthInsideX.v,
+    position.feeGrowthInsideY.v,
+    position.liquidity.v
+  )
+}
+export const calculateTokenAmounts = (pool: Pool, position: Position): TokenAmounts => {
+  return wrappedCalculateTokenAmounts(
+    pool.currentTickIndex,
+    pool.sqrtPrice,
+    position.liquidity,
+    position.upperTickIndex,
+    position.lowerTickIndex
+  )
 }
 
 export const parse = (value: any) => {

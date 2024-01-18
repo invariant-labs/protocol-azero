@@ -1,15 +1,14 @@
 use super::{FeeTier, Tick};
+use crate::math::types::sqrt_price::check_tick_to_sqrt_price_relationship;
 use crate::{
     contracts::PoolKey,
     math::{
         clamm::*,
         log::get_tick_at_sqrt_price,
-        sqrt_price::get_max_tick,
         types::{
             fee_growth::FeeGrowth, liquidity::Liquidity, percentage::Percentage,
             sqrt_price::SqrtPrice, token_amount::TokenAmount,
         },
-        MAX_TICK,
     },
     InvariantError,
 };
@@ -61,19 +60,12 @@ impl Pool {
         tick_spacing: u16,
         fee_receiver: AccountId,
     ) -> Result<Self, InvariantError> {
-        if init_tick + tick_spacing as i32 > MAX_TICK {
-            let max_tick = get_max_tick(tick_spacing);
-            let max_sqrt_price = unwrap!(SqrtPrice::from_tick(max_tick));
-            if init_sqrt_price != max_sqrt_price {
-                return Err(InvariantError::InvalidInitSqrtPrice);
-            }
-        } else {
-            let lower_bound = unwrap!(SqrtPrice::from_tick(init_tick));
-            let upper_bound = unwrap!(SqrtPrice::from_tick(init_tick + tick_spacing as i32));
+        let is_in_relationship =
+            check_tick_to_sqrt_price_relationship(init_tick, tick_spacing, init_sqrt_price)
+                .map_err(|_| InvariantError::InvalidInitTick)?;
 
-            if init_sqrt_price >= upper_bound || init_sqrt_price < lower_bound {
-                return Err(InvariantError::InvalidInitSqrtPrice);
-            }
+        if !is_in_relationship {
+            return Err(InvariantError::InvalidInitSqrtPrice);
         }
 
         Ok(Self {
@@ -213,6 +205,7 @@ impl Pool {
 #[cfg(test)]
 mod tests {
     use crate::math::types::sqrt_price::calculate_sqrt_price;
+    use crate::math::MAX_TICK;
     use decimal::Factories;
 
     use super::*;

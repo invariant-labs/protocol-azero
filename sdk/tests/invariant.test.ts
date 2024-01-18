@@ -1,27 +1,29 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
 import { InvariantError, SqrtPrice } from 'math/math.js'
+import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
+import { PSP22 } from '../src/psp22'
 import { InvariantTx } from '../src/schema'
 import { assertThrowsAsync } from '../src/testUtils'
-import { deployInvariant, deployPSP22, initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
+import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
 
 const api = await initPolkadotApi(Network.Local)
 
 const keyring = new Keyring({ type: 'sr25519' })
 const account = await keyring.addFromUri('//Alice')
 
-let invariant = await deployInvariant(api, account, { v: 10000000000n }, Network.Local)
-let token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
-let token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
+let invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
+let token0 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
+let token1 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
 
 const feeTier = newFeeTier({ v: 10000000000n }, 1n)
 
 describe('invariant', async () => {
   beforeEach(async () => {
-    invariant = await deployInvariant(api, account, { v: 10000000000n }, Network.Local)
-    token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
-    token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
+    invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
+    token0 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
+    token1 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
   })
 
   it('should change protocol fee', async () => {
@@ -187,6 +189,27 @@ describe('invariant', async () => {
       lastTimestamp: pool.lastTimestamp,
       feeReceiver: pool.feeReceiver
     })
+  })
+
+  it('attempt to try create pool with wrong tick sqrtPrice relationship', async () => {
+    await invariant.addFeeTier(account, feeTier)
+    const addedFeeTierExists = await invariant.feeTierExist(account, feeTier)
+    assert.deepEqual(addedFeeTierExists, true)
+
+    const initSqrtPrice: SqrtPrice = { v: 1000175003749000000000000n }
+    const initTick = 2n
+
+    assertThrowsAsync(
+      invariant.createPool(
+        account,
+        token0.contract.address.toString(),
+        token1.contract.address.toString(),
+        feeTier,
+        initSqrtPrice,
+        initTick
+      ),
+      InvariantError.InvalidInitTick
+    )
   })
 
   it('create pool x/y and y/x', async () => {

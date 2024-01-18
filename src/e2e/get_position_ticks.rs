@@ -20,7 +20,7 @@ pub mod e2e_tests {
     type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
     #[ink_e2e::test]
-    async fn test_get_all_ticks(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+    async fn test_get_position_ticks(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let dex = create_dex!(client, InvariantRef, Percentage::from_scale(1, 2));
         let initial_amount = 10u128.pow(10);
         let (token_x, token_y) = create_tokens!(client, TokenRef, initial_amount, initial_amount);
@@ -71,7 +71,7 @@ pub mod e2e_tests {
     }
 
     #[ink_e2e::test]
-    async fn test_get_all_ticks_different_tick_spacings(
+    async fn test_get_position_ticks_different_tick_spacings(
         mut client: ink_e2e::Client<C, E>,
     ) -> E2EResult<()> {
         let dex = create_dex!(client, InvariantRef, Percentage::from_scale(1, 2));
@@ -159,7 +159,7 @@ pub mod e2e_tests {
     }
 
     #[ink_e2e::test]
-    async fn test_get_all_ticks_limit(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+    async fn test_get_position_ticks_limit(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let dex = create_dex!(client, InvariantRef, Percentage::from_scale(1, 2));
         let initial_amount = 10u128.pow(10);
         let (token_x, token_y) = create_tokens!(client, TokenRef, initial_amount, initial_amount);
@@ -212,7 +212,7 @@ pub mod e2e_tests {
     }
 
     #[ink_e2e::test]
-    async fn test_get_all_ticks_limit_with_spread(
+    async fn test_get_position_ticks_limit_with_spread(
         mut client: ink_e2e::Client<C, E>,
     ) -> E2EResult<()> {
         let dex = create_dex!(client, InvariantRef, Percentage::from_scale(1, 2));
@@ -270,7 +270,9 @@ pub mod e2e_tests {
     }
 
     #[ink_e2e::test]
-    async fn test_get_all_ticks_with_offset(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+    async fn test_get_position_ticks_with_offset(
+        mut client: ink_e2e::Client<C, E>,
+    ) -> E2EResult<()> {
         let dex = create_dex!(client, InvariantRef, Percentage::from_scale(1, 2));
         let initial_amount = 10u128.pow(10);
         let (token_x, token_y) = create_tokens!(client, TokenRef, initial_amount, initial_amount);

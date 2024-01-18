@@ -1,7 +1,8 @@
 import { Keyring } from '@polkadot/api'
 import { expect } from 'chai'
 import { Network } from '../src/network'
-import { deployPSP22, initPolkadotApi } from '../src/utils'
+import { PSP22 } from '../src/psp22'
+import { initPolkadotApi } from '../src/utils'
 
 const api = await initPolkadotApi(Network.Local)
 
@@ -9,11 +10,11 @@ const keyring = new Keyring({ type: 'sr25519' })
 const account = await keyring.addFromUri('//Alice')
 const testAccount = await keyring.addFromUri('//Bob')
 
-let token = await deployPSP22(api, account, 1000n, 'Coin', 'COIN', 12n, Network.Local)
+let token = await PSP22.deploy(api, Network.Local, account, 1000n, 'Coin', 'COIN', 12n)
 
 describe('psp22', function () {
   beforeEach(async () => {
-    token = await deployPSP22(api, account, 1000n, 'Coin', 'COIN', 12n, Network.Local)
+    token = await PSP22.deploy(api, Network.Local, account, 1000n, 'Coin', 'COIN', 12n)
   })
 
   it('should set metadata', async () => {

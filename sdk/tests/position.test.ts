@@ -1,23 +1,33 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import { CreatePositionEvent, InvariantError, Position, SqrtPrice, TokenAmount } from 'math/math.js'
+import {
+  CreatePositionEvent,
+  InvariantError,
+  Position,
+  SqrtPrice,
+  TokenAmount,
+  getLiquidityByX,
+  isTokenX
+} from 'math/math.js'
+import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
+import { PSP22 } from '../src/psp22'
 import {
   assertThrowsAsync,
   createPositionEventEquals,
   positionEquals,
   removePositionEventEquals
 } from '../src/testUtils'
-import { deployInvariant, deployPSP22, initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
+import { calculateTokenAmounts, initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
 
 const api = await initPolkadotApi(Network.Local)
 
 const keyring = new Keyring({ type: 'sr25519' })
 const account = await keyring.addFromUri('//Alice')
 
-let invariant = await deployInvariant(api, account, { v: 10000000000n }, Network.Local)
-let token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
-let token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
+let invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
+let token0 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
+let token1 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
 
 const lowerTickIndex = -20n
 const upperTickIndex = 10n
@@ -31,9 +41,9 @@ let poolKey = newPoolKey(
 
 describe('position', async () => {
   beforeEach(async () => {
-    invariant = await deployInvariant(api, account, { v: 10000000000n }, Network.Local)
-    token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
-    token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
+    invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
+    token0 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
+    token1 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
 
     poolKey = newPoolKey(
       token0.contract.address.toString(),
@@ -100,7 +110,29 @@ describe('position', async () => {
     }
     await positionEquals(position, expectedPosition)
   })
+  it('calculate token amounts from position liquidity', async () => {
+    const position = await invariant.getPosition(account, account.address, 0n)
+    const pool = await invariant.getPool(
+      account,
+      token0.contract.address.toString(),
+      token1.contract.address.toString(),
+      feeTier
+    )
 
+    const providedAmount = 500n
+    const { amount: expectedYAmount } = getLiquidityByX(
+      500n,
+      lowerTickIndex,
+      upperTickIndex,
+      pool.sqrtPrice,
+      false
+    )
+
+    const { x, y } = calculateTokenAmounts(pool, position)
+    // 1n diffrence in result comes from rounding in `getLiquidityByX`
+    assert.deepEqual(x, providedAmount - 1n)
+    assert.deepEqual(y, expectedYAmount)
+  })
   it('remove position', async () => {
     {
       const result = await invariant.removePosition(account, 0n)
@@ -179,15 +211,12 @@ describe('position', async () => {
   })
 
   it('claim fee', async () => {
-    let tokenX
-    let tokenY
-    if (token0.contract.address.toString() < token1.contract.address.toString()) {
-      tokenX = token0
-      tokenY = token1
-    } else {
-      tokenX = token1
-      tokenY = token0
-    }
+    const [tokenX, tokenY] = isTokenX(
+      token0.contract.address.toString(),
+      token1.contract.address.toString()
+    )
+      ? [token0, token1]
+      : [token1, token0]
 
     {
       const amount: TokenAmount = 1000n

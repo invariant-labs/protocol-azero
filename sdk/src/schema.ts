@@ -91,3 +91,9 @@ export type SwapRouteTxResult = {
   hash: string
   events: (CrossTickEvent | SwapEvent)[]
 }
+
+export type ContractOptions = {
+  storageDepositLimit: number | null
+  refTime: number
+  proofSize: number
+}
