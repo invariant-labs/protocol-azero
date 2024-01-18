@@ -36,7 +36,6 @@ describe('check get liquidity by x', async () => {
 
     poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
-    // TODO unify
     if (isTokenX(token0Address, token1Address)) {
       tokenX = token0Address
       tokenY = token1Address
@@ -179,7 +178,6 @@ describe('check get liquidity by y', async () => {
 
     poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
-    // TODO unify
     if (isTokenX(token0Address, token1Address)) {
       tokenX = token0Address
       tokenY = token1Address
