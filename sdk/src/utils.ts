@@ -302,7 +302,3 @@ const isArray = (value: any): boolean => {
 const isObject = (value: any): boolean => {
   return typeof value === 'object' && value !== null
 }
-
-export const isLoaded = (providedAddress: string, loadedAddress: string): boolean => {
-  return providedAddress === loadedAddress
-}

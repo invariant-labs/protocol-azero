@@ -19,21 +19,24 @@ describe('psp22', function () {
   })
 
   it('should set metadata', async () => {
-    expect(await token.tokenName(account, address)).to.equal('Coin')
-    expect(await token.tokenSymbol(account, address)).to.equal('COIN')
-    expect(await token.tokenDecimals(account, address)).to.equal(12n)
+    await token.setContractAddress(address)
+    expect(await token.tokenName(account)).to.equal('Coin')
+    expect(await token.tokenSymbol(account)).to.equal('COIN')
+    expect(await token.tokenDecimals(account)).to.equal(12n)
   })
 
   it('should mint tokens', async () => {
-    await token.mint(account, 500n, address)
-    expect(await token.balanceOf(account, account.address, address)).to.equal(1500n)
+    await token.setContractAddress(address)
+    await token.mint(account, 500n)
+    expect(await token.balanceOf(account, account.address)).to.equal(1500n)
   })
 
   it('should transfer tokens', async () => {
     const data = api.createType('Vec<u8>', [])
-    await token.transfer(account, testAccount.address, 250n, data, address)
-    expect(await token.balanceOf(account, account.address, address)).to.equal(750n)
-    expect(await token.balanceOf(account, testAccount.address, address)).to.equal(250n)
+    await token.setContractAddress(address)
+    await token.transfer(account, testAccount.address, 250n, data)
+    expect(await token.balanceOf(account, account.address)).to.equal(750n)
+    expect(await token.balanceOf(account, testAccount.address)).to.equal(250n)
   })
 
   it('should change instance', async () => {
@@ -46,16 +49,15 @@ describe('psp22', function () {
       'SCOIN',
       12n
     )
-    const tokenName = await token.tokenName(account, secondToken.contract.address.toString())
-    const tokenNameAfterChange = await token.tokenName(account)
+    const secondTokenAddress = secondToken.contract.address.toString()
+    await token.setContractAddress(secondTokenAddress)
+    const tokenName = await token.tokenName(account)
     assert.equal(tokenName, 'SecondCoin')
-    assert.equal(tokenName, tokenNameAfterChange)
   })
 
   it('should approve tokens', async () => {
-    await token.approve(account, testAccount.address, 250n, address)
-    expect(await token.allowance(account, account.address, testAccount.address, address)).to.equal(
-      250n
-    )
+    await token.setContractAddress(address)
+    await token.approve(account, testAccount.address, 250n)
+    expect(await token.allowance(account, account.address, testAccount.address)).to.equal(250n)
   })
 })

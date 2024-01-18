@@ -15,6 +15,7 @@ const account = await keyring.addFromUri('//Alice')
 let invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
 let token0 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
 let token1 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
+const psp22 = token0
 
 describe('check get liquidity by x', async () => {
   const providedAmount = 430000n
@@ -61,18 +62,10 @@ describe('check get liquidity by x', async () => {
       100n
     )
 
-    await token0.approve(
-      account,
-      invariant.contract.address.toString(),
-      10000000000n,
-      token0.contract.address.toString()
-    )
-    await token1.approve(
-      account,
-      invariant.contract.address.toString(),
-      10000000000n,
-      token1.contract.address.toString()
-    )
+    await psp22.setContractAddress(token0.contract.address.toString())
+    await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
+    await psp22.setContractAddress(token1.contract.address.toString())
+    await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
   })
   it('check get liquidity by x', async () => {
     // below range
@@ -113,20 +106,12 @@ describe('check get liquidity by x', async () => {
         true
       )
 
-      await tokenX.mint(positionOwner, providedAmount, tokenX.contract.address.toString())
-      await tokenX.approve(
-        positionOwner,
-        invariant.contract.address.toString(),
-        providedAmount,
-        tokenX.contract.address.toString()
-      )
-      await tokenY.mint(positionOwner, amount, tokenY.contract.address.toString())
-      await tokenY.approve(
-        positionOwner,
-        invariant.contract.address.toString(),
-        amount,
-        tokenY.contract.address.toString()
-      )
+      await psp22.setContractAddress(tokenX.contract.address.toString())
+      await psp22.mint(positionOwner, providedAmount)
+      await psp22.approve(positionOwner, invariant.contract.address.toString(), providedAmount)
+      await psp22.setContractAddress(tokenY.contract.address.toString())
+      await psp22.mint(positionOwner, amount)
+      await psp22.approve(positionOwner, invariant.contract.address.toString(), amount)
 
       await invariant.createPosition(
         positionOwner,
@@ -174,13 +159,9 @@ describe('check get liquidity by x', async () => {
 
       assert.deepEqual(amount, 0n)
 
-      await tokenX.mint(positionOwner, providedAmount, tokenX.contract.address.toString())
-      await tokenX.approve(
-        positionOwner,
-        invariant.contract.address.toString(),
-        providedAmount,
-        tokenX.contract.address.toString()
-      )
+      await psp22.setContractAddress(tokenX.contract.address.toString())
+      await psp22.mint(positionOwner, providedAmount)
+      await psp22.approve(positionOwner, invariant.contract.address.toString(), providedAmount)
 
       await invariant.createPosition(
         positionOwner,
@@ -253,18 +234,10 @@ describe('check get liquidity by y', async () => {
       -20000n
     )
 
-    await token0.approve(
-      account,
-      invariant.contract.address.toString(),
-      10000000000n,
-      token0.contract.address.toString()
-    )
-    await token1.approve(
-      account,
-      invariant.contract.address.toString(),
-      10000000000n,
-      token1.contract.address.toString()
-    )
+    await psp22.setContractAddress(token0.contract.address.toString())
+    await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
+    await psp22.setContractAddress(token1.contract.address.toString())
+    await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
   })
   it('check get liquidity by y', async () => {
     // below range
@@ -289,13 +262,9 @@ describe('check get liquidity by y', async () => {
 
       assert.deepEqual(amount, 0n)
 
-      await tokenY.mint(positionOwner, providedAmount, tokenY.contract.address.toString())
-      await tokenY.approve(
-        positionOwner,
-        invariant.contract.address.toString(),
-        providedAmount,
-        tokenY.contract.address.toString()
-      )
+      await psp22.setContractAddress(tokenY.contract.address.toString())
+      await psp22.mint(positionOwner, providedAmount)
+      await psp22.approve(positionOwner, invariant.contract.address.toString(), providedAmount)
 
       await invariant.createPosition(
         positionOwner,
@@ -341,20 +310,12 @@ describe('check get liquidity by y', async () => {
         true
       )
 
-      await tokenY.mint(positionOwner, providedAmount, tokenY.contract.address.toString())
-      await tokenY.approve(
-        positionOwner,
-        invariant.contract.address.toString(),
-        providedAmount,
-        tokenY.contract.address.toString()
-      )
-      await tokenX.mint(positionOwner, amount, tokenX.contract.address.toString())
-      await tokenX.approve(
-        positionOwner,
-        invariant.contract.address.toString(),
-        amount,
-        tokenX.contract.address.toString()
-      )
+      await psp22.setContractAddress(tokenY.contract.address.toString())
+      await psp22.mint(positionOwner, providedAmount)
+      await psp22.approve(positionOwner, invariant.contract.address.toString(), providedAmount)
+      await psp22.setContractAddress(tokenX.contract.address.toString())
+      await psp22.mint(positionOwner, amount)
+      await psp22.approve(positionOwner, invariant.contract.address.toString(), amount)
 
       await invariant.createPosition(
         positionOwner,

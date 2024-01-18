@@ -16,6 +16,7 @@ const account = await keyring.addFromUri('//Alice')
 let invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
 let token0 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
 let token1 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
+const psp22 = token0
 
 const feeTier = newFeeTier({ v: 10000000000n }, 1n)
 
@@ -96,18 +97,10 @@ describe('invariant', async () => {
       0n
     )
 
-    await token0.approve(
-      account,
-      invariant.contract.address.toString(),
-      1000000000n,
-      token0.contract.address.toString()
-    )
-    await token1.approve(
-      account,
-      invariant.contract.address.toString(),
-      1000000000n,
-      token1.contract.address.toString()
-    )
+    await psp22.setContractAddress(token0.contract.address.toString())
+    await psp22.approve(account, invariant.contract.address.toString(), 1000000000n)
+    await psp22.setContractAddress(token1.contract.address.toString())
+    await psp22.approve(account, invariant.contract.address.toString(), 1000000000n)
 
     const poolKey = newPoolKey(
       token0.contract.address.toString(),

@@ -16,6 +16,7 @@ const testAccount = await keyring.addFromUri('//Bob')
 let invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
 let token0 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
 let token1 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
+const psp22 = token0
 
 const feeTier = newFeeTier({ v: 10000000000n }, 1n)
 
@@ -36,18 +37,10 @@ describe('protocol fee', async () => {
       0n
     )
 
-    await token0.approve(
-      account,
-      invariant.contract.address.toString(),
-      10000000000000n,
-      token0.contract.address.toString()
-    )
-    await token1.approve(
-      account,
-      invariant.contract.address.toString(),
-      10000000000000n,
-      token1.contract.address.toString()
-    )
+    await psp22.setContractAddress(token0.contract.address.toString())
+    await psp22.approve(account, invariant.contract.address.toString(), 10000000000000n)
+    await psp22.setContractAddress(token1.contract.address.toString())
+    await psp22.approve(account, invariant.contract.address.toString(), 10000000000000n)
 
     const poolKey = newPoolKey(
       token0.contract.address.toString(),
@@ -65,18 +58,10 @@ describe('protocol fee', async () => {
       { v: 1000000000000000000000000n }
     )
 
-    await token0.approve(
-      account,
-      invariant.contract.address.toString(),
-      1000000000n,
-      token0.contract.address.toString()
-    )
-    await token1.approve(
-      account,
-      invariant.contract.address.toString(),
-      1000000000n,
-      token1.contract.address.toString()
-    )
+    await psp22.setContractAddress(token0.contract.address.toString())
+    await psp22.approve(account, invariant.contract.address.toString(), 1000000000n)
+    await psp22.setContractAddress(token1.contract.address.toString())
+    await psp22.approve(account, invariant.contract.address.toString(), 1000000000n)
 
     await invariant.swap(account, poolKey, true, 4999n, true, {
       v: 999505344804856076727628n
@@ -92,16 +77,10 @@ describe('protocol fee', async () => {
       feeTier
     )
 
-    const token0Before = await token0.balanceOf(
-      account,
-      account.address.toString(),
-      token0.contract.address.toString()
-    )
-    const token1Before = await token1.balanceOf(
-      account,
-      account.address.toString(),
-      token1.contract.address.toString()
-    )
+    await psp22.setContractAddress(token0.contract.address.toString())
+    const token0Before = await psp22.balanceOf(account, account.address.toString())
+    await psp22.setContractAddress(token1.contract.address.toString())
+    const token1Before = await psp22.balanceOf(account, account.address.toString())
 
     const poolBefore = await invariant.getPool(
       account,
@@ -123,16 +102,11 @@ describe('protocol fee', async () => {
     assert.deepEqual(poolAfter.feeProtocolTokenX, 0n)
     assert.deepEqual(poolAfter.feeProtocolTokenY, 0n)
 
-    const token0After = await token0.balanceOf(
-      account,
-      account.address.toString(),
-      token0.contract.address.toString()
-    )
-    const token1After = await token1.balanceOf(
-      account,
-      account.address.toString(),
-      token1.contract.address.toString()
-    )
+    await psp22.setContractAddress(token0.contract.address.toString())
+    const token0After = await psp22.balanceOf(account, account.address.toString())
+    await psp22.setContractAddress(token1.contract.address.toString())
+    const token1After = await psp22.balanceOf(account, account.address.toString())
+
     if (poolKey.tokenX === token0.contract.address.toString()) {
       assert.deepEqual(token0Before + 1n, token0After)
       assert.deepEqual(token1Before, token1After)
@@ -153,16 +127,10 @@ describe('protocol fee', async () => {
 
     await invariant.changeFeeReceiver(account, poolKey, testAccount.address.toString())
 
-    const token0Before = await token0.balanceOf(
-      account,
-      testAccount.address.toString(),
-      token0.contract.address.toString()
-    )
-    const token1Before = await token1.balanceOf(
-      account,
-      testAccount.address.toString(),
-      token1.contract.address.toString()
-    )
+    await psp22.setContractAddress(token0.contract.address.toString())
+    const token0Before = await psp22.balanceOf(account, testAccount.address.toString())
+    await psp22.setContractAddress(token1.contract.address.toString())
+    const token1Before = await psp22.balanceOf(account, testAccount.address.toString())
 
     const poolBefore = await invariant.getPool(
       account,
@@ -188,16 +156,10 @@ describe('protocol fee', async () => {
     assert.deepEqual(poolAfter.feeProtocolTokenX, 0n)
     assert.deepEqual(poolAfter.feeProtocolTokenY, 0n)
 
-    const token0After = await token0.balanceOf(
-      account,
-      testAccount.address.toString(),
-      token0.contract.address.toString()
-    )
-    const token1After = await token1.balanceOf(
-      account,
-      testAccount.address.toString(),
-      token1.contract.address.toString()
-    )
+    await psp22.setContractAddress(token0.contract.address.toString())
+    const token0After = await psp22.balanceOf(account, testAccount.address.toString())
+    await psp22.setContractAddress(token1.contract.address.toString())
+    const token1After = await psp22.balanceOf(account, testAccount.address.toString())
     if (poolKey.tokenX === token0.contract.address.toString()) {
       assert.deepEqual(token0Before + 1n, token0After)
       assert.deepEqual(token1Before, token1After)
