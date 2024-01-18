@@ -1,22 +1,19 @@
 #[cfg(test)]
 pub mod e2e_tests {
     use crate::{
-        contracts::{entrypoints::InvariantTrait, FeeTier, PoolKey, Tick},
+        contracts::{entrypoints::InvariantTrait, FeeTier, PoolKey, POSITION_TICK_LIMIT},
         invariant::InvariantRef,
-        math::{
-            types::{
-                liquidity::Liquidity,
-                percentage::Percentage,
-                sqrt_price::{calculate_sqrt_price, SqrtPrice},
-            },
-            MAX_TICK,
+        math::types::{
+            liquidity::Liquidity,
+            percentage::Percentage,
+            sqrt_price::{calculate_sqrt_price, SqrtPrice},
         },
     };
     use decimal::*;
     use ink_e2e::build_message;
     use test_helpers::{
         add_fee_tier, approve, create_dex, create_pool, create_position, create_tokens,
-        get_all_ticks, get_tick,
+        get_position_ticks,
     };
     use token::{TokenRef, PSP22};
 
@@ -67,13 +64,8 @@ pub mod e2e_tests {
         )
         .unwrap();
 
-        let expected_ticks = vec![
-            get_tick!(client, InvariantRef, dex, pool_key, -10).unwrap(),
-            get_tick!(client, InvariantRef, dex, pool_key, 10).unwrap(),
-        ];
-        let result = get_all_ticks!(client, InvariantRef, dex, pool_key, -MAX_TICK, 2);
-        assert_eq!(result.0, expected_ticks);
-        assert!(!result.1);
+        let result = get_position_ticks!(client, InvariantRef, dex, pool_key, 0);
+        assert_eq!(result.len(), 2);
 
         Ok(())
     }
@@ -157,21 +149,11 @@ pub mod e2e_tests {
         )
         .unwrap();
 
-        let expected_ticks = vec![
-            get_tick!(client, InvariantRef, dex, pool_key_1, -10).unwrap(),
-            get_tick!(client, InvariantRef, dex, pool_key_1, 30).unwrap(),
-        ];
-        let result = get_all_ticks!(client, InvariantRef, dex, pool_key_1, -MAX_TICK, 2);
-        assert_eq!(result.0, expected_ticks);
-        assert!(!result.1);
+        let result = get_position_ticks!(client, InvariantRef, dex, pool_key_1, 0);
+        assert_eq!(result.len(), 2);
 
-        let expected_ticks = vec![
-            get_tick!(client, InvariantRef, dex, pool_key_2, -20).unwrap(),
-            get_tick!(client, InvariantRef, dex, pool_key_2, 40).unwrap(),
-        ];
-        let result = get_all_ticks!(client, InvariantRef, dex, pool_key_2, -MAX_TICK, 2);
-        assert_eq!(result.0, expected_ticks);
-        assert!(!result.1);
+        let result = get_position_ticks!(client, InvariantRef, dex, pool_key_2, 0);
+        assert_eq!(result.len(), 2);
 
         Ok(())
     }
@@ -207,14 +189,14 @@ pub mod e2e_tests {
         approve!(client, TokenRef, token_y, dex, initial_amount, alice).unwrap();
 
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
-        for i in 1..=88 {
+        for i in 1..=POSITION_TICK_LIMIT / 2 {
             create_position!(
                 client,
                 InvariantRef,
                 dex,
                 pool_key,
-                -i,
-                i,
+                -(i as i32),
+                i as i32,
                 Liquidity::new(10),
                 SqrtPrice::new(0),
                 SqrtPrice::max_instance(),
@@ -223,9 +205,8 @@ pub mod e2e_tests {
             .unwrap();
         }
 
-        let result = get_all_ticks!(client, InvariantRef, dex, pool_key, -MAX_TICK, 176);
-        assert_eq!(result.0.len(), 176);
-        assert!(!result.1);
+        let result = get_position_ticks!(client, InvariantRef, dex, pool_key, 0);
+        assert_eq!(result.len(), POSITION_TICK_LIMIT);
 
         Ok(())
     }
@@ -263,15 +244,17 @@ pub mod e2e_tests {
         approve!(client, TokenRef, token_y, dex, initial_amount, alice).unwrap();
 
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
-        let max_tick_spread = 2520; // 221818 / 88
-        for i in 1..=88 {
+        let spread = 64;
+        for i in 1..=POSITION_TICK_LIMIT / 2 {
+            let index = (i * spread) as i32;
+
             create_position!(
                 client,
                 InvariantRef,
                 dex,
                 pool_key,
-                -i * max_tick_spread,
-                i * max_tick_spread,
+                -index,
+                index,
                 Liquidity::new(10),
                 SqrtPrice::new(0),
                 SqrtPrice::max_instance(),
@@ -280,9 +263,8 @@ pub mod e2e_tests {
             .unwrap();
         }
 
-        let result = get_all_ticks!(client, InvariantRef, dex, pool_key, -MAX_TICK, 176);
-        assert_eq!(result.0.len(), 176);
-        assert!(!result.1);
+        let result = get_position_ticks!(client, InvariantRef, dex, pool_key, 0);
+        assert_eq!(result.len(), POSITION_TICK_LIMIT);
 
         Ok(())
     }
@@ -332,83 +314,13 @@ pub mod e2e_tests {
         )
         .unwrap();
 
-        let expected_ticks = vec![get_tick!(client, InvariantRef, dex, pool_key, 10).unwrap()];
-        let result = get_all_ticks!(client, InvariantRef, dex, pool_key, -9, 1);
-        assert_eq!(result.0, expected_ticks);
-        assert!(!result.1);
+        let result_1 = get_position_ticks!(client, InvariantRef, dex, pool_key, 0);
+        assert_eq!(result_1.len(), 2);
 
-        let result = get_all_ticks!(client, InvariantRef, dex, pool_key, -9, 2);
-        assert_eq!(result.0, expected_ticks);
-        assert!(result.1);
+        let result_2 = get_position_ticks!(client, InvariantRef, dex, pool_key, 1);
+        assert_eq!(result_2.len(), 1);
 
-        Ok(())
-    }
-
-    #[ink_e2e::test]
-    async fn test_get_all_ticks_multiple_queries(
-        mut client: ink_e2e::Client<C, E>,
-    ) -> E2EResult<()> {
-        let dex = create_dex!(client, InvariantRef, Percentage::from_scale(1, 2));
-        let initial_amount = 10u128.pow(10);
-        let (token_x, token_y) = create_tokens!(client, TokenRef, initial_amount, initial_amount);
-
-        let alice = ink_e2e::alice();
-
-        let fee_tier = FeeTier::new(Percentage::from_scale(1, 2), 1).unwrap();
-
-        add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
-
-        let init_tick = 0;
-        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
-        create_pool!(
-            client,
-            InvariantRef,
-            dex,
-            token_x,
-            token_y,
-            fee_tier,
-            init_sqrt_price,
-            init_tick,
-            alice
-        )
-        .unwrap();
-
-        approve!(client, TokenRef, token_x, dex, initial_amount, alice).unwrap();
-        approve!(client, TokenRef, token_y, dex, initial_amount, alice).unwrap();
-
-        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
-        for i in 1..=500 {
-            create_position!(
-                client,
-                InvariantRef,
-                dex,
-                pool_key,
-                -i,
-                i,
-                Liquidity::new(10),
-                SqrtPrice::new(0),
-                SqrtPrice::max_instance(),
-                alice
-            )
-            .unwrap();
-        }
-
-        let mut end = false;
-        let mut ticks: Vec<Tick> = vec![];
-
-        while !end {
-            let index = if let Some(last_tick) = ticks.last() {
-                last_tick.index + 1
-            } else {
-                -MAX_TICK
-            };
-
-            let mut result = get_all_ticks!(client, InvariantRef, dex, pool_key, index, 100);
-            ticks.append(&mut result.0);
-            end = result.1;
-        }
-
-        assert_eq!(ticks.len(), 1000);
+        assert_eq!(result_1[1], result_2[0]);
 
         Ok(())
     }

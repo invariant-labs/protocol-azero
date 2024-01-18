@@ -40,7 +40,7 @@ pub mod invariant {
     use crate::contracts::MAX_CHUNKS;
     use crate::contracts::{
         FeeTier, FeeTiers, InvariantConfig, InvariantTrait, Pool, PoolKey, PoolKeys, Pools,
-        Position, Positions, Tick, Tickmap, Ticks, CHUNK_SIZE,
+        Position, PositionTick, Positions, Tick, Tickmap, Ticks, CHUNK_SIZE, POSITION_TICK_LIMIT,
     };
     use crate::math::calculate_min_amount_out;
     use crate::math::check_tick;
@@ -51,7 +51,8 @@ pub mod invariant {
     use crate::math::types::liquidity::Liquidity;
     use crate::math::MAX_TICK;
     use crate::math::{compute_swap_step, MAX_SQRT_PRICE, MIN_SQRT_PRICE};
-    use crate::InvariantError; //
+    use crate::InvariantError;
+    //
     use decimal::*;
     use ink::contract_ref;
     use ink::prelude::vec;
@@ -944,48 +945,50 @@ pub mod invariant {
         }
 
         #[ink(message)]
-        fn get_all_ticks(&self, pool_key: PoolKey, offset: i32, limit: u8) -> (Vec<Tick>, bool) {
-            let mut ticks = vec![];
+        fn get_position_ticks(&self, pool_key: PoolKey, offset: u16) -> Vec<PositionTick> {
+            let mut ticks: Vec<PositionTick> = vec![];
             let tick_spacing = pool_key.fee_tier.tick_spacing;
             let tick_range_limit = MAX_TICK - MAX_TICK % tick_spacing as i32;
 
-            let chunk_offset = ((MAX_TICK + offset) / 64) as u16;
-            let bit_offset = (MAX_TICK + offset) % 64;
-
-            let mut end = false;
-
             let chunk_limit = MAX_CHUNKS / tick_spacing;
+            let mut skipped_ticks = 0;
 
-            for i in chunk_offset..=chunk_limit {
+            'outer: for i in 0..=chunk_limit {
                 let chunk = self.tickmap.bitmap.get((i, pool_key)).unwrap_or(0);
 
                 if chunk != 0 {
-                    let start = if i == chunk_offset { bit_offset } else { 0 };
-
-                    for j in start..=CHUNK_SIZE - 1 {
+                    for j in 0..=CHUNK_SIZE - 1 {
                         if (chunk >> j) & 1 == 1 {
+                            if skipped_ticks < offset {
+                                skipped_ticks += 1;
+                                continue;
+                            }
+
                             self.ticks
                                 .get(
                                     pool_key,
                                     (i as i32 * 64 * tick_spacing as i32 + j * tick_spacing as i32)
                                         - tick_range_limit,
                                 )
-                                .map(|tick| ticks.push(tick))
+                                .map(|tick| {
+                                    ticks.push(PositionTick {
+                                        index: tick.index,
+                                        fee_growth_outside_x: tick.fee_growth_outside_x,
+                                        fee_growth_outside_y: tick.fee_growth_outside_y,
+                                        seconds_outside: tick.seconds_outside,
+                                    })
+                                })
                                 .ok();
+
+                            if ticks.len() >= POSITION_TICK_LIMIT {
+                                break 'outer;
+                            }
                         }
                     }
                 }
-
-                if i == chunk_limit {
-                    end = true;
-                }
-
-                if ticks.len() >= limit as usize {
-                    break;
-                }
             }
 
-            (ticks, end)
+            ticks
         }
     }
 

@@ -12,7 +12,7 @@ export enum InvariantQuery {
   GetAllPositions = 'invariantTrait::getAllPositions',
   Quote = 'invariantTrait::quote',
   QuoteRoute = 'invariantTrait::quoteRoute',
-  GetAllTicks = 'invariantTrait::getAllTicks'
+  getPositionTicks = 'invariantTrait::getPositionTicks'
 }
 
 export enum InvariantTx {

@@ -22,6 +22,21 @@ pub struct Tick {
     pub seconds_outside: u64,
 }
 
+// 131072 / (32 + 128 + 128 + 64) > 372
+pub const POSITION_TICK_LIMIT: usize = 372;
+
+#[derive(Debug, Copy, Clone, scale::Decode, scale::Encode, PartialEq)]
+#[cfg_attr(
+    feature = "std",
+    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+)]
+pub struct PositionTick {
+    pub index: i32,
+    pub fee_growth_outside_x: FeeGrowth,
+    pub fee_growth_outside_y: FeeGrowth,
+    pub seconds_outside: u64,
+}
+
 impl Default for Tick {
     fn default() -> Self {
         Tick {

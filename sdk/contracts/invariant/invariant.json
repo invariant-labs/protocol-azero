@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x89b9d62240b653d4e5e55703f16a806a5befd4d76f04f31ead0a87ea78238cb4",
+    "hash": "0x1af532578760cad92e0b15bf09efa55e5e61e321626ff47ba76c65ac4eb1342a",
     "language": "ink! 4.3.0",
     "compiler": "rustc 1.72.1",
     "build_info": {
@@ -72,13 +72,13 @@
         "displayName": [
           "ChainExtension"
         ],
-        "type": 57
+        "type": 58
       },
       "hash": {
         "displayName": [
           "Hash"
         ],
-        "type": 56
+        "type": 57
       },
       "maxEventTopics": 4,
       "timestamp": {
@@ -215,7 +215,7 @@
               "displayName": [
                 "Vec"
               ],
-              "type": 55
+              "type": 56
             }
           }
         ],
@@ -1254,24 +1254,15 @@
             "label": "offset",
             "type": {
               "displayName": [
-                "i32"
+                "u16"
               ],
-              "type": 7
-            }
-          },
-          {
-            "label": "limit",
-            "type": {
-              "displayName": [
-                "u8"
-              ],
-              "type": 3
+              "type": 5
             }
           }
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::get_all_ticks",
+        "label": "InvariantTrait::get_position_ticks",
         "mutates": false,
         "payable": false,
         "returnType": {
@@ -1281,7 +1272,7 @@
           ],
           "type": 53
         },
-        "selector": "0x2beeb34f"
+        "selector": "0xcc9476e7"
       }
     ]
   },
@@ -3688,15 +3679,52 @@
       "id": 54,
       "type": {
         "def": {
-          "tuple": [
-            32,
-            8
-          ]
+          "sequence": {
+            "type": 55
+          }
         }
       }
     },
     {
       "id": 55,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "index",
+                "type": 7,
+                "typeName": "i32"
+              },
+              {
+                "name": "fee_growth_outside_x",
+                "type": 26,
+                "typeName": "FeeGrowth"
+              },
+              {
+                "name": "fee_growth_outside_y",
+                "type": 26,
+                "typeName": "FeeGrowth"
+              },
+              {
+                "name": "seconds_outside",
+                "type": 4,
+                "typeName": "u64"
+              }
+            ]
+          }
+        },
+        "path": [
+          "invariant",
+          "contracts",
+          "storage",
+          "tick",
+          "PositionTick"
+        ]
+      }
+    },
+    {
+      "id": 56,
       "type": {
         "def": {
           "sequence": {
@@ -3706,7 +3734,7 @@
       }
     },
     {
-      "id": 56,
+      "id": 57,
       "type": {
         "def": {
           "composite": {
@@ -3726,7 +3754,7 @@
       }
     },
     {
-      "id": 57,
+      "id": 58,
       "type": {
         "def": {
           "variant": {}

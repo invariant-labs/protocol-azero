@@ -1,6 +1,5 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import { Tick } from 'math'
 import { Network } from '../src/network'
 import { deployInvariant, deployPSP22, initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
 
@@ -20,7 +19,7 @@ let poolKey = newPoolKey(
   feeTier
 )
 
-describe('get all ticks', async () => {
+describe('get position ticks', async () => {
   beforeEach(async () => {
     invariant = await deployInvariant(api, account, { v: 10000000000n }, Network.Local)
     token0 = await deployPSP22(api, account, 10000000000n, 'Coin', 'COIN', 0n, Network.Local)
@@ -58,17 +57,12 @@ describe('get all ticks', async () => {
       { v: 1000000000000000000000000n }
     )
 
-    const result = await invariant.getAllTicks(account, poolKey, -221818n, 2n)
-
-    const tick1 = await invariant.getTick(account, poolKey, -10n)
-    const tick2 = await invariant.getTick(account, poolKey, 10n)
-
-    assert.deepEqual(result[0], [tick1, tick2])
-    assert.equal(result[1], false)
+    const result = await invariant.getPositionTicks(account, poolKey, 0n)
+    assert.equal(result.length, 2)
   })
 
   it('should get all ticks limit', async () => {
-    for (let i = 1n; i <= 88n; i++) {
+    for (let i = 1n; i <= 372n; i++) {
       await invariant.createPosition(
         account,
         poolKey,
@@ -80,40 +74,28 @@ describe('get all ticks', async () => {
       )
     }
 
-    const result = await invariant.getAllTicks(account, poolKey, -221818n, 176n)
+    const result = await invariant.getPositionTicks(account, poolKey, 0n)
 
-    assert.equal(result[0].length, 176)
-    assert.equal(result[1], false)
+    assert.equal(result.length, 372)
   })
 
-  it('should get all ticks with multiple queries', async () => {
-    for (let i = 1n; i <= 100n; i++) {
-      await invariant.createPosition(
-        account,
-        poolKey,
-        -i,
-        i,
-        { v: 10n },
-        { v: 1000000000000000000000000n },
-        { v: 1000000000000000000000000n }
-      )
-    }
+  it('should get all ticks with offset', async () => {
+    await invariant.createPosition(
+      account,
+      poolKey,
+      -10n,
+      10n,
+      { v: 10n },
+      { v: 1000000000000000000000000n },
+      { v: 1000000000000000000000000n }
+    )
 
-    const ticks: Tick[] = []
-    let end = false
+    const result1 = await invariant.getPositionTicks(account, poolKey, 0n)
+    assert.equal(result1.length, 2)
 
-    while (!end) {
-      let index = -221818n
+    const result2 = await invariant.getPositionTicks(account, poolKey, 1n)
+    assert.equal(result2.length, 1)
 
-      if (ticks.length > 0) {
-        index = ticks[ticks.length - 1].index + 1n
-      }
-
-      const result = await invariant.getAllTicks(account, poolKey, index, 20n)
-      ticks.push(...result[0])
-      end = result[1]
-    }
-
-    assert.equal(ticks.length, 200)
+    assert.equal(result1[1].toString(), result2[0].toString())
   })
 })
