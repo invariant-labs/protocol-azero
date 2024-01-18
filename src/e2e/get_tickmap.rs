@@ -227,7 +227,7 @@ pub mod e2e_tests {
             alice
         );
 
-        for i in 0..tickmap.len() {
+        for (i, _) in (0..tickmap.len()).enumerate() {
             let current = 3466 + i as u16;
             assert_eq!(tickmap[i], (current, 3));
         }
@@ -295,11 +295,7 @@ pub mod e2e_tests {
             alice
         );
 
-        println!("Tickmap length = {:?}", tickmap.len());
-        println!("Tickmap = {:?}", tickmap);
-        _to_binary(tickmap[0]);
-
-        for i in 0..tickmap.len() {
+        for (i, _) in (0..tickmap.len()).enumerate() {
             let current = 3308 + i as u16;
             assert_eq!(tickmap[i], (current, 864691128455135232));
         }
@@ -342,7 +338,7 @@ pub mod e2e_tests {
 
         let liquidity_delta = Liquidity::new(1000);
 
-        for i in (0..100032).step_by(64) {
+        for i in (0..104832).step_by(64) {
             create_position!(
                 client,
                 InvariantRef,
