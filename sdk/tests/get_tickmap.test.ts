@@ -12,9 +12,9 @@ let invariant = await deployInvariant(api, account, { v: 10000000000n }, Network
 let token0 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
 let token1 = await deployPSP22(api, account, 1000000000n, 'Coin', 'COIN', 0n, Network.Local)
 
-describe('tickmap', async () => {
+describe.only('tickmap', async () => {
   const feeTier = newFeeTier({ v: 10000000000n }, 1n)
-  const ticks = [-58n, -26n, 1n, 3n, 5n]
+  const ticks = [-221818n, -221817n, -58n, 5n, 221817n, 221818n]
   let poolKey = newPoolKey(
     token0.contract.address.toString(),
     token1.contract.address.toString(),
@@ -63,6 +63,64 @@ describe('tickmap', async () => {
     )
 
     const tickmap = await invariant.getTickmap(account, poolKey, pool.currentTickIndex)
-    assert.equal(tickmap.length, 2047)
+    assert.deepEqual(tickmap[0], [3465n, 9223372036854775809n])
+    assert.equal(tickmap.length, 1)
+  })
+  it('get tickmap edge ticks initialized', async () => {
+    const pool = await invariant.getPool(
+      account,
+      token0.contract.address.toString(),
+      token1.contract.address.toString(),
+      feeTier
+    )
+    await invariant.createPosition(
+      account,
+      poolKey,
+      ticks[0],
+      ticks[1],
+      { v: 10n },
+      pool.sqrtPrice,
+      pool.sqrtPrice
+    )
+    await invariant.createPosition(
+      account,
+      poolKey,
+      ticks[4],
+      ticks[5],
+      { v: 10n },
+      pool.sqrtPrice,
+      pool.sqrtPrice
+    )
+
+    const tickmap = await invariant.getTickmap(account, poolKey, pool.currentTickIndex)
+    assert.deepEqual(tickmap[0], [0n, 3n])
+    assert.deepEqual(tickmap[1], [6931n, 6755399441055744n])
+  })
+  it('get tickmap more chunks above', async () => {
+    const pool = await invariant.getPool(
+      account,
+      token0.contract.address.toString(),
+      token1.contract.address.toString(),
+      feeTier
+    )
+
+    for (let i = 6n; i < 10048n; i += 64n) {
+      await invariant.createPosition(
+        account,
+        poolKey,
+        i,
+        i + 1n,
+        { v: 10n },
+        pool.sqrtPrice,
+        pool.sqrtPrice
+      )
+    }
+
+    const tickmap = await invariant.getTickmap(account, poolKey, pool.currentTickIndex)
+
+    for (let i = 0n; i < tickmap.length; i++) {
+      const current = 3466n + i
+      assert.deepEqual(tickmap[Number(i)], [current, 3n])
+    }
   })
 })

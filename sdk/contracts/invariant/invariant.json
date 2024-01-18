@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0xe25e9789f24e5fd720a2563078c3e5b353ac1fda9b8744a71c1bd07faa403db8",
+    "hash": "0x1f982cf42c5599235ce0f8536babf66a52828447c97197ca45889f5ba7a479fb",
     "language": "ink! 4.3.0",
     "compiler": "rustc 1.72.1",
     "build_info": {
@@ -72,13 +72,13 @@
         "displayName": [
           "ChainExtension"
         ],
-        "type": 57
+        "type": 58
       },
       "hash": {
         "displayName": [
           "Hash"
         ],
-        "type": 56
+        "type": 57
       },
       "maxEventTopics": 4,
       "timestamp": {
@@ -215,7 +215,7 @@
               "displayName": [
                 "Vec"
               ],
-              "type": 55
+              "type": 56
             }
           }
         ],
@@ -1251,7 +1251,7 @@
             }
           },
           {
-            "label": "current_tick",
+            "label": "center_tick",
             "type": {
               "displayName": [
                 "i32"
@@ -3680,13 +3680,24 @@
       "type": {
         "def": {
           "sequence": {
-            "type": 4
+            "type": 55
           }
         }
       }
     },
     {
       "id": 55,
+      "type": {
+        "def": {
+          "tuple": [
+            5,
+            4
+          ]
+        }
+      }
+    },
+    {
+      "id": 56,
       "type": {
         "def": {
           "sequence": {
@@ -3696,7 +3707,7 @@
       }
     },
     {
-      "id": 56,
+      "id": 57,
       "type": {
         "def": {
           "composite": {
@@ -3716,7 +3727,7 @@
       }
     },
     {
-      "id": 57,
+      "id": 58,
       "type": {
         "def": {
           "variant": {}
