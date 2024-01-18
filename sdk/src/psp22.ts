@@ -44,14 +44,12 @@ export class PSP22 {
 
   static async deploy(
     api: ApiPromise,
-    network: Network,
     deployer: IKeyringPair,
     supply: bigint = 0n,
     name: string = '',
     symbol: string = '',
-    decimals: bigint = 0n,
-    options?: ContractOptions
-  ): Promise<PSP22> {
+    decimals: bigint = 0n
+  ): Promise<string> {
     const deploymentData = await getDeploymentData('psp22')
     const deploy = await deployContract(
       api,
@@ -62,15 +60,7 @@ export class PSP22 {
       [supply, name, symbol, decimals]
     )
 
-    return new PSP22(
-      api,
-      network,
-      deploymentData.abi,
-      deploy.address,
-      options?.storageDepositLimit,
-      options?.refTime,
-      options?.proofSize
-    )
+    return deploy.address.toString()
   }
 
   static async load(

@@ -10,54 +10,45 @@ const keyring = new Keyring({ type: 'sr25519' })
 const account = await keyring.addFromUri('//Alice')
 const testAccount = await keyring.addFromUri('//Bob')
 
-let token = await PSP22.deploy(api, Network.Local, account, 1000n, 'Coin', 'COIN', 12n)
-let address = token.contract.address.toString()
+let token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
+const psp22 = await PSP22.load(api, Network.Local, token0Address)
+
 describe('psp22', function () {
   beforeEach(async () => {
-    token = await PSP22.deploy(api, Network.Local, account, 1000n, 'Coin', 'COIN', 12n)
-    address = token.contract.address.toString()
+    token0Address = await PSP22.deploy(api, account, 1000n, 'Coin', 'COIN', 12n)
   })
 
   it('should set metadata', async () => {
-    await token.setContractAddress(address)
-    expect(await token.tokenName(account)).to.equal('Coin')
-    expect(await token.tokenSymbol(account)).to.equal('COIN')
-    expect(await token.tokenDecimals(account)).to.equal(12n)
+    await psp22.setContractAddress(token0Address)
+    expect(await psp22.tokenName(account)).to.equal('Coin')
+    expect(await psp22.tokenSymbol(account)).to.equal('COIN')
+    expect(await psp22.tokenDecimals(account)).to.equal(12n)
   })
 
   it('should mint tokens', async () => {
-    await token.setContractAddress(address)
-    await token.mint(account, 500n)
-    expect(await token.balanceOf(account, account.address)).to.equal(1500n)
+    await psp22.setContractAddress(token0Address)
+    await psp22.mint(account, 500n)
+    expect(await psp22.balanceOf(account, account.address)).to.equal(1500n)
   })
 
   it('should transfer tokens', async () => {
     const data = api.createType('Vec<u8>', [])
-    await token.setContractAddress(address)
-    await token.transfer(account, testAccount.address, 250n, data)
-    expect(await token.balanceOf(account, account.address)).to.equal(750n)
-    expect(await token.balanceOf(account, testAccount.address)).to.equal(250n)
+    await psp22.setContractAddress(token0Address)
+    await psp22.transfer(account, testAccount.address, 250n, data)
+    expect(await psp22.balanceOf(account, account.address)).to.equal(750n)
+    expect(await psp22.balanceOf(account, testAccount.address)).to.equal(250n)
   })
 
   it('should change instance', async () => {
-    const secondToken = await PSP22.deploy(
-      api,
-      Network.Local,
-      account,
-      1000n,
-      'SecondCoin',
-      'SCOIN',
-      12n
-    )
-    const secondTokenAddress = secondToken.contract.address.toString()
-    await token.setContractAddress(secondTokenAddress)
-    const tokenName = await token.tokenName(account)
+    const secondTokenAddress = await PSP22.deploy(api, account, 1000n, 'SecondCoin', 'SCOIN', 12n)
+    await psp22.setContractAddress(secondTokenAddress)
+    const tokenName = await psp22.tokenName(account)
     assert.equal(tokenName, 'SecondCoin')
   })
 
   it('should approve tokens', async () => {
-    await token.setContractAddress(address)
-    await token.approve(account, testAccount.address, 250n)
-    expect(await token.allowance(account, account.address, testAccount.address)).to.equal(250n)
+    await psp22.setContractAddress(token0Address)
+    await psp22.approve(account, testAccount.address, 250n)
+    expect(await psp22.allowance(account, account.address, testAccount.address)).to.equal(250n)
   })
 })

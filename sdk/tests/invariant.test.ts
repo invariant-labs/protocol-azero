@@ -14,17 +14,17 @@ const keyring = new Keyring({ type: 'sr25519' })
 const account = await keyring.addFromUri('//Alice')
 
 let invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
-let token0 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
-let token1 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
-const psp22 = token0
+let token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
+let token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
+const psp22 = await PSP22.load(api, Network.Local, token0Address)
 
 const feeTier = newFeeTier({ v: 10000000000n }, 1n)
 
 describe('invariant', async () => {
   beforeEach(async () => {
     invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
-    token0 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
-    token1 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
+    token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
+    token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
   })
 
   it('should change protocol fee', async () => {
@@ -90,30 +90,21 @@ describe('invariant', async () => {
 
     await invariant.createPool(
       account,
-      token0.contract.address.toString(),
-      token1.contract.address.toString(),
+      token0Address,
+      token1Address,
       feeTier,
       { v: 1000000000000000000000000n },
       0n
     )
 
-    await psp22.setContractAddress(token0.contract.address.toString())
+    await psp22.setContractAddress(token0Address)
     await psp22.approve(account, invariant.contract.address.toString(), 1000000000n)
-    await psp22.setContractAddress(token1.contract.address.toString())
+    await psp22.setContractAddress(token1Address)
     await psp22.approve(account, invariant.contract.address.toString(), 1000000000n)
 
-    const poolKey = newPoolKey(
-      token0.contract.address.toString(),
-      token1.contract.address.toString(),
-      feeTier
-    )
+    const poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
-    const pool = await invariant.getPool(
-      account,
-      token0.contract.address.toString(),
-      token1.contract.address.toString(),
-      feeTier
-    )
+    const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
     await invariant.createPosition(
       account,
       poolKey,
@@ -166,20 +157,15 @@ describe('invariant', async () => {
 
     await invariant.createPool(
       account,
-      token0.contract.address.toString(),
-      token1.contract.address.toString(),
+      token0Address,
+      token1Address,
       feeTier,
       initSqrtPrice,
       initTick
     )
     const pools = await invariant.getPools(account)
     assert.deepEqual(pools.length, 1)
-    const pool = await invariant.getPool(
-      account,
-      token0.contract.address.toString(),
-      token1.contract.address.toString(),
-      feeTier
-    )
+    const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
     assert.deepEqual(pool, {
       liquidity: { v: 0n },
       sqrtPrice: { v: 1000000000000000000000000n },
@@ -203,14 +189,7 @@ describe('invariant', async () => {
     const initTick = 2n
 
     assertThrowsAsync(
-      invariant.createPool(
-        account,
-        token0.contract.address.toString(),
-        token1.contract.address.toString(),
-        feeTier,
-        initSqrtPrice,
-        initTick
-      ),
+      invariant.createPool(account, token0Address, token1Address, feeTier, initSqrtPrice, initTick),
       InvariantError.InvalidInitTick
     )
   })
@@ -226,8 +205,8 @@ describe('invariant', async () => {
     {
       await invariant.createPool(
         account,
-        token0.contract.address.toString(),
-        token1.contract.address.toString(),
+        token0Address,
+        token1Address,
         feeTier,
         initSqrtPrice,
         initTick
@@ -235,12 +214,7 @@ describe('invariant', async () => {
 
       const pools = await invariant.getPools(account)
       assert.deepEqual(pools.length, 1)
-      const pool = await invariant.getPool(
-        account,
-        token0.contract.address.toString(),
-        token1.contract.address.toString(),
-        feeTier
-      )
+      const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
       assert.deepEqual(pool, {
         liquidity: { v: 0n },
         sqrtPrice: { v: 1000000000000000000000000n },
@@ -258,8 +232,8 @@ describe('invariant', async () => {
       await assertThrowsAsync(
         invariant.createPool(
           account,
-          token1.contract.address.toString(),
-          token0.contract.address.toString(),
+          token1Address,
+          token0Address,
           feeTier,
           initSqrtPrice,
           initTick

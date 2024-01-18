@@ -19,9 +19,10 @@ const keyring = new Keyring({ type: 'sr25519' })
 const account = await keyring.addFromUri('//Alice')
 
 const invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
-let token0 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
-let token1 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
-const psp22 = token0
+let token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
+let token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
+const psp22 = await PSP22.load(api, Network.Local, token0Address)
+
 const feeTier = newFeeTier({ v: 10000000000n }, 1n)
 
 describe('utils', () => {
@@ -45,33 +46,29 @@ describe('utils', () => {
     })
   })
 
-  describe.only('test simulateUnclaimedFees', () => {
+  describe('test simulateUnclaimedFees', () => {
     beforeEach(async () => {
-      token0 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
-      token1 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
+      token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
+      token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
     })
     it('should return correct price', async () => {
       await invariant.addFeeTier(account, feeTier)
 
       await invariant.createPool(
         account,
-        token0.contract.address.toString(),
-        token1.contract.address.toString(),
+        token0Address,
+        token1Address,
         feeTier,
         { v: 1000000000000000000000000n },
         0n
       )
 
-      await psp22.setContractAddress(token0.contract.address.toString())
+      await psp22.setContractAddress(token0Address)
       await psp22.approve(account, invariant.contract.address.toString(), 10000000000000n)
-      await psp22.setContractAddress(token1.contract.address.toString())
+      await psp22.setContractAddress(token1Address)
       await psp22.approve(account, invariant.contract.address.toString(), 10000000000000n)
 
-      const poolKey = newPoolKey(
-        token0.contract.address.toString(),
-        token1.contract.address.toString(),
-        feeTier
-      )
+      const poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
       await invariant.createPosition(
         account,
@@ -83,40 +80,35 @@ describe('utils', () => {
         { v: 1000000000000000000000000n }
       )
 
-      await psp22.setContractAddress(token0.contract.address.toString())
+      await psp22.setContractAddress(token0Address)
       await psp22.approve(account, invariant.contract.address.toString(), 1000000000n)
-      await psp22.setContractAddress(token1.contract.address.toString())
+      await psp22.setContractAddress(token1Address)
       await psp22.approve(account, invariant.contract.address.toString(), 1000000000n)
 
       await invariant.swap(account, poolKey, true, 4999n, true, {
         v: 999505344804856076727628n
       })
 
-      const pool = await invariant.getPool(
-        account,
-        token0.contract.address.toString(),
-        token1.contract.address.toString(),
-        feeTier
-      )
+      const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
       const position = await invariant.getPosition(account, account.address, 0n)
       const lowerTick = await invariant.getTick(account, poolKey, -10n)
       const upperTick = await invariant.getTick(account, poolKey, 10n)
 
       const result = simulateUnclaimedFees(pool, position, lowerTick, upperTick)
 
-      await psp22.setContractAddress(token0.contract.address.toString())
+      await psp22.setContractAddress(token0Address)
       const token0Before = await psp22.balanceOf(account, account.address.toString())
-      await psp22.setContractAddress(token1.contract.address.toString())
+      await psp22.setContractAddress(token1Address)
       const token1Before = await psp22.balanceOf(account, account.address.toString())
 
       await invariant.claimFee(account, 0n)
 
-      await psp22.setContractAddress(token0.contract.address.toString())
+      await psp22.setContractAddress(token0Address)
       const token0After = await psp22.balanceOf(account, account.address.toString())
-      await psp22.setContractAddress(token1.contract.address.toString())
+      await psp22.setContractAddress(token1Address)
       const token1After = await psp22.balanceOf(account, account.address.toString())
 
-      if (poolKey.tokenX === token0.contract.address.toString()) {
+      if (poolKey.tokenX === token0Address) {
         assert.equal(token0Before + result.x, token0After)
         assert.equal(token1Before, token1After)
       } else {
