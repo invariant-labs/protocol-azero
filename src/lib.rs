@@ -947,7 +947,8 @@ pub mod invariant {
         #[ink(message)]
         fn get_tickmap(&self, pool_key: PoolKey, center_tick: i32) -> Vec<(u16, u64)> {
             let tick_spacing = pool_key.fee_tier.tick_spacing;
-            let mut tickmap_slice: Vec<(u16, u64)> = Vec::with_capacity(MAX_TICKMAP_CHUNK as usize);
+
+            let mut tickmap_slice: Vec<(u16, u64)> = vec![];
 
             let (current_chunk_index, _) = tick_to_position(center_tick, tick_spacing);
             let current_chunk = self
@@ -961,6 +962,9 @@ pub mod invariant {
 
             for step in 1..=MAX_CHUNK {
                 for &offset in &[step as i16, -(step as i16)] {
+                    if tickmap_slice.len() == MAX_TICKMAP_CHUNK as usize {
+                        return tickmap_slice;
+                    }
                     let target_index = (current_chunk_index as i16 + offset) as u16;
 
                     if target_index <= MAX_CHUNK {
