@@ -75,7 +75,7 @@ export class Invariant {
     api: ApiPromise,
     network: Network,
     deployer: IKeyringPair,
-    fee: Percentage = { v: 0n },
+    fee: Percentage = 0n,
     options?: ContractOptions
   ): Promise<Invariant> {
     const deploymentData = await getDeploymentData('invariant')

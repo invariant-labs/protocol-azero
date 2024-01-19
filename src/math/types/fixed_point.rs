@@ -6,6 +6,4 @@ use decimal::*;
     feature = "std",
     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
 )]
-pub struct FixedPoint {
-    pub v: u128,
-}
+pub struct FixedPoint(pub u128);
