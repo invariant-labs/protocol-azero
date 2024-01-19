@@ -37,7 +37,7 @@ pub enum InvariantError {
 }
 #[ink::contract]
 pub mod invariant {
-    use crate::contracts::tickmap::{tick_to_position, MAX_CHUNK, MAX_TICKMAP_CHUNK};
+    use crate::contracts::tickmap::{tick_to_position, MAX_CHUNK, MAX_TICKMAP_QUERY_SIZE};
     use crate::contracts::{
         FeeTier, FeeTiers, InvariantConfig, InvariantTrait, Pool, PoolKey, PoolKeys, Pools,
         Position, Positions, Tick, Tickmap, Ticks,
@@ -947,6 +947,8 @@ pub mod invariant {
         #[ink(message)]
         fn get_tickmap(&self, pool_key: PoolKey, center_tick: i32) -> Vec<(u16, u64)> {
             let tick_spacing = pool_key.fee_tier.tick_spacing;
+            // let max_tick = get_max_tick(tick_spacing);
+            // let max_chunk_index = (max_tick * 2 + CHUNK_SIZE / CHUNK_SIZE) as u32;
 
             let mut tickmap_slice: Vec<(u16, u64)> = vec![];
 
@@ -962,12 +964,15 @@ pub mod invariant {
 
             for step in 1..=MAX_CHUNK {
                 for &offset in &[step as i16, -(step as i16)] {
-                    if tickmap_slice.len() == MAX_TICKMAP_CHUNK as usize {
+                    if tickmap_slice.len() == MAX_TICKMAP_QUERY_SIZE as usize {
                         return tickmap_slice;
+                    }
+                    if (current_chunk_index as i16 + offset) < 0 {
+                        continue;
                     }
                     let target_index = (current_chunk_index as i16 + offset) as u16;
 
-                    if target_index <= MAX_CHUNK {
+                    if target_index <= MAX_CHUNK as u16 {
                         let chunk = self
                             .tickmap
                             .bitmap
