@@ -39,8 +39,8 @@ pub enum InvariantError {
 pub mod invariant {
     use crate::contracts::MAX_CHUNKS;
     use crate::contracts::{
-        FeeTier, FeeTiers, InvariantConfig, InvariantTrait, Pool, PoolKey, PoolKeys, Pools,
-        Position, PositionTick, Positions, Tick, Tickmap, Ticks, CHUNK_SIZE, POSITION_TICK_LIMIT,
+        FeeTier, FeeTiers, InvariantConfig, InvariantTrait, LiquidityTick, Pool, PoolKey, PoolKeys,
+        Pools, Position, Positions, Tick, Tickmap, Ticks, CHUNK_SIZE, LIQUIDITY_TICK_LIMIT,
     };
     use crate::math::calculate_min_amount_out;
     use crate::math::check_tick;
@@ -945,8 +945,8 @@ pub mod invariant {
         }
 
         #[ink(message)]
-        fn get_position_ticks(&self, pool_key: PoolKey, offset: u16) -> Vec<PositionTick> {
-            let mut ticks: Vec<PositionTick> = vec![];
+        fn get_liquidity_ticks(&self, pool_key: PoolKey, offset: u16) -> Vec<LiquidityTick> {
+            let mut ticks = vec![];
             let tick_spacing = pool_key.fee_tier.tick_spacing;
             let tick_range_limit = MAX_TICK - MAX_TICK % tick_spacing as i32;
 
@@ -971,7 +971,7 @@ pub mod invariant {
                                         - tick_range_limit,
                                 )
                                 .map(|tick| {
-                                    ticks.push(PositionTick {
+                                    ticks.push(LiquidityTick {
                                         index: tick.index,
                                         fee_growth_outside_x: tick.fee_growth_outside_x,
                                         fee_growth_outside_y: tick.fee_growth_outside_y,
@@ -980,7 +980,7 @@ pub mod invariant {
                                 })
                                 .ok();
 
-                            if ticks.len() >= POSITION_TICK_LIMIT {
+                            if ticks.len() >= LIQUIDITY_TICK_LIMIT {
                                 break 'outer;
                             }
                         }

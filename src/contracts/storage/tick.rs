@@ -23,14 +23,14 @@ pub struct Tick {
 }
 
 // 131072 / (32 + 128 + 128 + 64) > 372
-pub const POSITION_TICK_LIMIT: usize = 372;
+pub const LIQUIDITY_TICK_LIMIT: usize = 372;
 
 #[derive(Debug, Copy, Clone, scale::Decode, scale::Encode, PartialEq)]
 #[cfg_attr(
     feature = "std",
     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
 )]
-pub struct PositionTick {
+pub struct LiquidityTick {
     pub index: i32,
     pub fee_growth_outside_x: FeeGrowth,
     pub fee_growth_outside_y: FeeGrowth,

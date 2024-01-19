@@ -1,7 +1,7 @@
 #[cfg(test)]
 pub mod e2e_tests {
     use crate::{
-        contracts::{entrypoints::InvariantTrait, FeeTier, PoolKey, POSITION_TICK_LIMIT},
+        contracts::{entrypoints::InvariantTrait, FeeTier, PoolKey, LIQUIDITY_TICK_LIMIT},
         invariant::InvariantRef,
         math::types::{
             liquidity::Liquidity,
@@ -13,14 +13,14 @@ pub mod e2e_tests {
     use ink_e2e::build_message;
     use test_helpers::{
         add_fee_tier, approve, create_dex, create_pool, create_position, create_tokens,
-        get_position_ticks,
+        get_liquidity_ticks,
     };
     use token::{TokenRef, PSP22};
 
     type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
     #[ink_e2e::test]
-    async fn test_get_position_ticks(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+    async fn test_get_liquidity_ticks(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let dex = create_dex!(client, InvariantRef, Percentage::from_scale(1, 2));
         let initial_amount = 10u128.pow(10);
         let (token_x, token_y) = create_tokens!(client, TokenRef, initial_amount, initial_amount);
@@ -64,14 +64,14 @@ pub mod e2e_tests {
         )
         .unwrap();
 
-        let result = get_position_ticks!(client, InvariantRef, dex, pool_key, 0);
+        let result = get_liquidity_ticks!(client, InvariantRef, dex, pool_key, 0);
         assert_eq!(result.len(), 2);
 
         Ok(())
     }
 
     #[ink_e2e::test]
-    async fn test_get_position_ticks_different_tick_spacings(
+    async fn test_get_liquidity_ticks_different_tick_spacings(
         mut client: ink_e2e::Client<C, E>,
     ) -> E2EResult<()> {
         let dex = create_dex!(client, InvariantRef, Percentage::from_scale(1, 2));
@@ -149,17 +149,17 @@ pub mod e2e_tests {
         )
         .unwrap();
 
-        let result = get_position_ticks!(client, InvariantRef, dex, pool_key_1, 0);
+        let result = get_liquidity_ticks!(client, InvariantRef, dex, pool_key_1, 0);
         assert_eq!(result.len(), 2);
 
-        let result = get_position_ticks!(client, InvariantRef, dex, pool_key_2, 0);
+        let result = get_liquidity_ticks!(client, InvariantRef, dex, pool_key_2, 0);
         assert_eq!(result.len(), 2);
 
         Ok(())
     }
 
     #[ink_e2e::test]
-    async fn test_get_position_ticks_limit(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+    async fn test_get_liquidity_ticks_limit(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let dex = create_dex!(client, InvariantRef, Percentage::from_scale(1, 2));
         let initial_amount = 10u128.pow(10);
         let (token_x, token_y) = create_tokens!(client, TokenRef, initial_amount, initial_amount);
@@ -189,7 +189,7 @@ pub mod e2e_tests {
         approve!(client, TokenRef, token_y, dex, initial_amount, alice).unwrap();
 
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
-        for i in 1..=POSITION_TICK_LIMIT / 2 {
+        for i in 1..=LIQUIDITY_TICK_LIMIT / 2 {
             create_position!(
                 client,
                 InvariantRef,
@@ -205,14 +205,14 @@ pub mod e2e_tests {
             .unwrap();
         }
 
-        let result = get_position_ticks!(client, InvariantRef, dex, pool_key, 0);
-        assert_eq!(result.len(), POSITION_TICK_LIMIT);
+        let result = get_liquidity_ticks!(client, InvariantRef, dex, pool_key, 0);
+        assert_eq!(result.len(), LIQUIDITY_TICK_LIMIT);
 
         Ok(())
     }
 
     #[ink_e2e::test]
-    async fn test_get_position_ticks_limit_with_spread(
+    async fn test_get_liquidity_ticks_limit_with_spread(
         mut client: ink_e2e::Client<C, E>,
     ) -> E2EResult<()> {
         let dex = create_dex!(client, InvariantRef, Percentage::from_scale(1, 2));
@@ -245,7 +245,7 @@ pub mod e2e_tests {
 
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
         let spread = 64;
-        for i in 1..=POSITION_TICK_LIMIT / 2 {
+        for i in 1..=LIQUIDITY_TICK_LIMIT / 2 {
             let index = (i * spread) as i32;
 
             create_position!(
@@ -263,14 +263,14 @@ pub mod e2e_tests {
             .unwrap();
         }
 
-        let result = get_position_ticks!(client, InvariantRef, dex, pool_key, 0);
-        assert_eq!(result.len(), POSITION_TICK_LIMIT);
+        let result = get_liquidity_ticks!(client, InvariantRef, dex, pool_key, 0);
+        assert_eq!(result.len(), LIQUIDITY_TICK_LIMIT);
 
         Ok(())
     }
 
     #[ink_e2e::test]
-    async fn test_get_position_ticks_with_offset(
+    async fn test_get_liquidity_ticks_with_offset(
         mut client: ink_e2e::Client<C, E>,
     ) -> E2EResult<()> {
         let dex = create_dex!(client, InvariantRef, Percentage::from_scale(1, 2));
@@ -316,10 +316,10 @@ pub mod e2e_tests {
         )
         .unwrap();
 
-        let result_1 = get_position_ticks!(client, InvariantRef, dex, pool_key, 0);
+        let result_1 = get_liquidity_ticks!(client, InvariantRef, dex, pool_key, 0);
         assert_eq!(result_1.len(), 2);
 
-        let result_2 = get_position_ticks!(client, InvariantRef, dex, pool_key, 1);
+        let result_2 = get_liquidity_ticks!(client, InvariantRef, dex, pool_key, 1);
         assert_eq!(result_2.len(), 1);
 
         assert_eq!(result_1[1], result_2[0]);

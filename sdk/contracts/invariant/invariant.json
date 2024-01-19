@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0xe5967550459d7e5771c5b8e5944d56251022c163d5dd9641e3b15a370f937ce1",
+    "hash": "0x8ef743ac72293c7c7e675075075f026748c050c6f7b9655ea0cf5e61a3e5e21c",
     "language": "ink! 4.3.0",
     "compiler": "rustc 1.72.1",
     "build_info": {
@@ -1262,7 +1262,7 @@
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::get_position_ticks",
+        "label": "InvariantTrait::get_liquidity_ticks",
         "mutates": false,
         "payable": false,
         "returnType": {
@@ -1272,7 +1272,7 @@
           ],
           "type": 53
         },
-        "selector": "0xcc9476e7"
+        "selector": "0x8ef8d345"
       }
     ]
   },
@@ -3719,7 +3719,7 @@
           "contracts",
           "storage",
           "tick",
-          "PositionTick"
+          "LiquidityTick"
         ]
       }
     },
