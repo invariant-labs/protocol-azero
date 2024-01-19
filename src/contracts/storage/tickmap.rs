@@ -8,7 +8,7 @@ use ink::storage::Mapping;
 pub const TICK_SEARCH_RANGE: i32 = 256;
 pub const CHUNK_SIZE: i32 = 64;
 pub const MAX_TICKMAP_QUERY_SIZE: u16 = 1638;
-pub const MAX_CHUNK: u16 = ((MAX_TICK * 2 + CHUNK_SIZE) / CHUNK_SIZE) as u16;
+
 #[derive(Debug)]
 #[ink::storage_item]
 pub struct Tickmap {
