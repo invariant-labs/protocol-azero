@@ -484,3 +484,15 @@ macro_rules! get_fee_tiers {
             .return_value()
     }};
 }
+
+#[macro_export]
+macro_rules! get_position_ticks {
+    ($client:ident, $dex:ty, $dex_address:expr, $owner:expr, $offset:expr) => {{
+        let message = build_message::<$dex>($dex_address.clone())
+            .call(|contract| contract.get_position_ticks($owner, $offset));
+        $client
+            .call_dry_run(&ink_e2e::alice(), &message, 0, None)
+            .await
+            .return_value()
+    }};
+}

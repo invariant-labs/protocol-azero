@@ -39,7 +39,7 @@ pub enum InvariantError {
 pub mod invariant {
     use crate::contracts::{
         FeeTier, FeeTiers, InvariantConfig, InvariantTrait, Pool, PoolKey, PoolKeys, Pools,
-        Position, Positions, Tick, Tickmap, Ticks,
+        Position, PositionTick, Positions, Tick, Tickmap, Ticks, POSITION_TICK_LIMIT,
     };
     use crate::math::calculate_min_amount_out;
     use crate::math::check_tick;
@@ -940,6 +940,56 @@ pub mod invariant {
         #[ink(message)]
         fn get_fee_tiers(&self) -> Vec<FeeTier> {
             self.fee_tiers.get_all()
+        }
+
+        #[ink(message)]
+        fn get_position_ticks(&self, owner: AccountId, offset: u16) -> Vec<PositionTick> {
+            let positions = self.positions.get_all(owner);
+            let mut ticks = vec![];
+
+            let mut skipped_positions = 0;
+
+            for position in positions.iter() {
+                if skipped_positions < offset {
+                    skipped_positions += 1;
+                    continue;
+                }
+
+                let Position {
+                    pool_key,
+                    lower_tick_index,
+                    upper_tick_index,
+                    ..
+                } = position;
+
+                self.ticks
+                    .get(*pool_key, *lower_tick_index)
+                    .map(|tick| {
+                        ticks.push(PositionTick {
+                            index: tick.index,
+                            liquidity_change: tick.liquidity_change,
+                            sign: tick.sign,
+                        })
+                    })
+                    .ok();
+
+                self.ticks
+                    .get(*pool_key, *upper_tick_index)
+                    .map(|tick| {
+                        ticks.push(PositionTick {
+                            index: tick.index,
+                            liquidity_change: tick.liquidity_change,
+                            sign: tick.sign,
+                        })
+                    })
+                    .ok();
+
+                if ticks.len() >= POSITION_TICK_LIMIT {
+                    break;
+                }
+            }
+
+            ticks
         }
     }
 

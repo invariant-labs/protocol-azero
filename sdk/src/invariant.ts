@@ -14,6 +14,7 @@ import {
   Pool,
   PoolKey,
   Position,
+  PositionTick,
   QuoteResult,
   SqrtPrice,
   SwapHop,
@@ -561,5 +562,20 @@ export class Invariant {
       this.waitForFinalization,
       block
     ) as Promise<SwapRouteTxResult>
+  }
+
+  async getPositionTicks(
+    account: IKeyringPair,
+    owner: string,
+    offset: bigint
+  ): Promise<PositionTick[]> {
+    return sendQuery(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      account,
+      InvariantQuery.getPositionTicks,
+      [owner, offset]
+    )
   }
 }

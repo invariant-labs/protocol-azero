@@ -1,5 +1,5 @@
 use crate::{
-    contracts::{FeeTier, Pool, PoolKey, Position, Tick},
+    contracts::{FeeTier, Pool, PoolKey, Position, PositionTick, Tick},
     invariant::{CalculateSwapResult, QuoteResult, SwapHop},
     math::{
         liquidity::Liquidity, percentage::Percentage, sqrt_price::SqrtPrice,
@@ -349,4 +349,13 @@ pub trait InvariantTrait {
     /// Retrieves available fee tiers
     #[ink(message)]
     fn get_fee_tiers(&self) -> Vec<FeeTier>;
+
+    /// Retrieves all ticks in a specified range.
+    ///
+    /// # Parameters
+    /// - `key`: A unique key that identifies the specified pool.
+    /// - `owner`: An `AccountId` identifying the user who owns the position.
+    /// - `offset`: The offset from the current position index.
+    #[ink(message)]
+    fn get_position_ticks(&self, owner: AccountId, offset: u16) -> Vec<PositionTick>;
 }

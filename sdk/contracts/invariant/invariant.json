@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0xa650e5b2ccac74a63426f0505941b3124b5144b78806ff0a8cc4b4f4511431a0",
+    "hash": "0x41cdb152cdfba43ee66d2dd69c8439efeaf69e140f8085943af2fe37d981056d",
     "language": "ink! 4.3.0",
     "compiler": "rustc 1.72.1",
     "build_info": {
@@ -72,13 +72,13 @@
         "displayName": [
           "ChainExtension"
         ],
-        "type": 55
+        "type": 58
       },
       "hash": {
         "displayName": [
           "Hash"
         ],
-        "type": 54
+        "type": 57
       },
       "maxEventTopics": 4,
       "timestamp": {
@@ -215,7 +215,7 @@
               "displayName": [
                 "Vec"
               ],
-              "type": 53
+              "type": 56
             }
           }
         ],
@@ -1238,6 +1238,41 @@
           "type": 52
         },
         "selector": "0xd05b6003"
+      },
+      {
+        "args": [
+          {
+            "label": "owner",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 1
+            }
+          },
+          {
+            "label": "offset",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "InvariantTrait::get_position_ticks",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 53
+        },
+        "selector": "0xcc9476e7"
       }
     ]
   },
@@ -3602,6 +3637,91 @@
       "id": 53,
       "type": {
         "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 54
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 16
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 54
+          },
+          {
+            "name": "E",
+            "type": 16
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 54,
+      "type": {
+        "def": {
+          "sequence": {
+            "type": 55
+          }
+        }
+      }
+    },
+    {
+      "id": 55,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "index",
+                "type": 7,
+                "typeName": "i32"
+              },
+              {
+                "name": "liquidity_change",
+                "type": 21,
+                "typeName": "Liquidity"
+              },
+              {
+                "name": "sign",
+                "type": 8,
+                "typeName": "bool"
+              }
+            ]
+          }
+        },
+        "path": [
+          "invariant",
+          "contracts",
+          "storage",
+          "tick",
+          "PositionTick"
+        ]
+      }
+    },
+    {
+      "id": 56,
+      "type": {
+        "def": {
           "sequence": {
             "type": 7
           }
@@ -3609,7 +3729,7 @@
       }
     },
     {
-      "id": 54,
+      "id": 57,
       "type": {
         "def": {
           "composite": {
@@ -3629,7 +3749,7 @@
       }
     },
     {
-      "id": 55,
+      "id": 58,
       "type": {
         "def": {
           "variant": {}
