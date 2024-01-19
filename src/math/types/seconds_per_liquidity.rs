@@ -9,9 +9,7 @@ use crate::math::types::liquidity::Liquidity;
     feature = "std",
     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
 )]
-pub struct SecondsPerLiquidity {
-    pub v: u128,
-}
+pub struct SecondsPerLiquidity(pub u128);
 
 impl SecondsPerLiquidity {
     pub fn unchecked_add(self, other: SecondsPerLiquidity) -> SecondsPerLiquidity {

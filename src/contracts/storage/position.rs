@@ -88,7 +88,7 @@ impl Position {
         fee_growth_inside_x: FeeGrowth,
         fee_growth_inside_y: FeeGrowth,
     ) -> TrackableResult<()> {
-        if liquidity_delta.v == 0 && self.liquidity.v == 0 {
+        if liquidity_delta.is_zero() && self.liquidity.get() == 0 {
             return Err(err!("EmptyPositionPokes"));
         }
 

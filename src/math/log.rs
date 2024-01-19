@@ -1,3 +1,4 @@
+use decimal::*;
 use traceable_result::*;
 
 use crate::math::consts::*;
@@ -16,7 +17,7 @@ const LOG2_ACCURACY: u64 = 1u64 << (31 - LOG2_MIN_BINARY_POSITION);
 const SQRT_PRICE_DENOMINATOR: u128 = 1_000000_000000_000000_000000;
 
 fn sqrt_price_to_x32(decimal: SqrtPrice) -> u64 {
-    (decimal.v * LOG2_ONE / SQRT_PRICE_DENOMINATOR) as u64
+    (decimal.get() * LOG2_ONE / SQRT_PRICE_DENOMINATOR) as u64
 }
 
 fn align_tick_to_spacing(accurate_tick: i32, tick_spacing: i32) -> i32 {
@@ -83,7 +84,7 @@ fn log2_iterative_approximation_x32(mut sqrt_price_x32: u64) -> (bool, u64) {
 }
 
 pub fn get_tick_at_sqrt_price(sqrt_price: SqrtPrice, tick_spacing: u16) -> TrackableResult<i32> {
-    if sqrt_price.v > MAX_SQRT_PRICE || sqrt_price.v < MIN_SQRT_PRICE {
+    if sqrt_price.get() > MAX_SQRT_PRICE || sqrt_price.get() < MIN_SQRT_PRICE {
         return Err(err!("sqrt_price out of range"));
     }
 
@@ -136,7 +137,6 @@ pub fn get_tick_at_sqrt_price(sqrt_price: SqrtPrice, tick_spacing: u16) -> Track
 #[cfg(test)]
 mod tests {
     use super::*;
-    use decimal::*;
 
     #[test]
     fn test_sqrt_price_to_u64() {

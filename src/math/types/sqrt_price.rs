@@ -10,9 +10,7 @@ use crate::math::types::{fixed_point::FixedPoint, token_amount::TokenAmount};
     feature = "std",
     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
 )]
-pub struct SqrtPrice {
-    pub v: u128,
-}
+pub struct SqrtPrice(pub u128);
 
 impl SqrtPrice {
     pub fn from_tick(i: i32) -> TrackableResult<Self> {

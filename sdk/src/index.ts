@@ -34,11 +34,10 @@ const main = async () => {
     console.log(getLiquidityScale())
   }
   {
-    const sqrtPriceA: SqrtPrice = {
-      v: 234878324943782000000000000n
-    }
-    const sqrtPriceB: SqrtPrice = { v: 87854456421658000000000000n }
-    const liquidity: Liquidity = { v: 983983249092n }
+    const sqrtPriceA: SqrtPrice = 234878324943782000000000000n
+
+    const sqrtPriceB: SqrtPrice = 87854456421658000000000000n
+    const liquidity: Liquidity = 983983249092n
 
     const deltaYUp = getDeltaY(sqrtPriceA, sqrtPriceB, liquidity, true)
     const deltaYDown = getDeltaY(sqrtPriceA, sqrtPriceB, liquidity, false)
@@ -48,7 +47,7 @@ const main = async () => {
 
   {
     const providedAmount: TokenAmount = 47600000000n
-    const poolSqrtPrice: SqrtPrice = { v: 1000000000000000000000000000n }
+    const poolSqrtPrice: SqrtPrice = 1000000000000000000000000000n
     const lowerTickIndex = -22000n
     const upperTickIndex = -21000n
 
@@ -64,7 +63,7 @@ const main = async () => {
   }
   {
     const providedAmount = 430000n
-    const initSqrtPrice: SqrtPrice = { v: 1005012269622000000000000n }
+    const initSqrtPrice: SqrtPrice = 1005012269622000000000000n
     const lowerTickIndex = 80n
     const upperTickIndex = 120n
 
@@ -80,7 +79,7 @@ const main = async () => {
   }
 
   {
-    const feeTier: FeeTier = newFeeTier({ v: 10n }, 55n)
+    const feeTier: FeeTier = newFeeTier(10n, 55n)
     console.log(feeTier)
     const poolKey: PoolKey = newPoolKey(
       '5H79vf7qQKdpefChp4sGh8j4BNq8JoL5x8nez8RsEebPJu9D',
@@ -103,7 +102,7 @@ const main = async () => {
   await printBalance(api, testAccount)
 
   // deploy invariant
-  const initFee = { v: 10n }
+  const initFee = 10n
   const invariant = await Invariant.deploy(api, network, account, initFee)
 
   invariant.on(InvariantEvent.CreatePositionEvent, (event: CreatePositionEvent) => {
@@ -114,7 +113,7 @@ const main = async () => {
   const token0Address = await PSP22.deploy(api, account, 1000n, 'Coin', 'COIN', 12n)
   const token1Address = await PSP22.deploy(api, account, 1000n, 'Coin', 'COIN', 12n)
   const psp22 = await PSP22.load(api, network, token0Address)
-  const feeTier = newFeeTier({ v: 6000000000n }, 10n)
+  const feeTier = newFeeTier(6000000000n, 10n)
 
   const poolKey = await newPoolKey(token0Address, token1Address, feeTier)
 
@@ -125,7 +124,7 @@ const main = async () => {
     token0Address,
     token1Address,
     feeTier,
-    { v: 1000000000000000000000000n },
+    1000000000000000000000000n,
     0n
   )
 
@@ -141,7 +140,7 @@ const main = async () => {
     poolKey,
     -10n,
     10n,
-    { v: 1000000000000n },
+    1000000000000n,
     pool.sqrtPrice,
     pool.sqrtPrice
   )

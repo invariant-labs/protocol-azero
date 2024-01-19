@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0xa650e5b2ccac74a63426f0505941b3124b5144b78806ff0a8cc4b4f4511431a0",
+    "hash": "0x555d76ced836331abf5b3924429e1e765c45008ecbab33fbdd822e0dd6786586",
     "language": "ink! 4.3.0",
     "compiler": "rustc 1.72.1",
     "build_info": {
@@ -1307,7 +1307,7 @@
                                                               "ty": 4
                                                             }
                                                           },
-                                                          "name": "v"
+                                                          "name": "0"
                                                         }
                                                       ],
                                                       "name": "Percentage"
@@ -1347,7 +1347,7 @@
                                               "ty": 6
                                             }
                                           },
-                                          "name": "v"
+                                          "name": "0"
                                         }
                                       ],
                                       "name": "Liquidity"
@@ -1384,7 +1384,7 @@
                                               "ty": 6
                                             }
                                           },
-                                          "name": "v"
+                                          "name": "0"
                                         }
                                       ],
                                       "name": "FeeGrowth"
@@ -1403,7 +1403,7 @@
                                               "ty": 6
                                             }
                                           },
-                                          "name": "v"
+                                          "name": "0"
                                         }
                                       ],
                                       "name": "FeeGrowth"
@@ -1494,7 +1494,7 @@
                                               "ty": 6
                                             }
                                           },
-                                          "name": "v"
+                                          "name": "0"
                                         }
                                       ],
                                       "name": "Liquidity"
@@ -1513,7 +1513,7 @@
                                               "ty": 6
                                             }
                                           },
-                                          "name": "v"
+                                          "name": "0"
                                         }
                                       ],
                                       "name": "SqrtPrice"
@@ -1541,7 +1541,7 @@
                                               "ty": 6
                                             }
                                           },
-                                          "name": "v"
+                                          "name": "0"
                                         }
                                       ],
                                       "name": "FeeGrowth"
@@ -1560,7 +1560,7 @@
                                               "ty": 6
                                             }
                                           },
-                                          "name": "v"
+                                          "name": "0"
                                         }
                                       ],
                                       "name": "FeeGrowth"
@@ -1711,7 +1711,7 @@
                                               "ty": 6
                                             }
                                           },
-                                          "name": "v"
+                                          "name": "0"
                                         }
                                       ],
                                       "name": "Liquidity"
@@ -1730,7 +1730,7 @@
                                               "ty": 6
                                             }
                                           },
-                                          "name": "v"
+                                          "name": "0"
                                         }
                                       ],
                                       "name": "Liquidity"
@@ -1749,7 +1749,7 @@
                                               "ty": 6
                                             }
                                           },
-                                          "name": "v"
+                                          "name": "0"
                                         }
                                       ],
                                       "name": "SqrtPrice"
@@ -1768,7 +1768,7 @@
                                               "ty": 6
                                             }
                                           },
-                                          "name": "v"
+                                          "name": "0"
                                         }
                                       ],
                                       "name": "FeeGrowth"
@@ -1787,7 +1787,7 @@
                                               "ty": 6
                                             }
                                           },
-                                          "name": "v"
+                                          "name": "0"
                                         }
                                       ],
                                       "name": "FeeGrowth"
@@ -1881,7 +1881,7 @@
                                   "ty": 4
                                 }
                               },
-                              "name": "v"
+                              "name": "0"
                             }
                           ],
                           "name": "Percentage"
@@ -2035,7 +2035,6 @@
           "composite": {
             "fields": [
               {
-                "name": "v",
                 "type": 4,
                 "typeName": "u64"
               }
@@ -2415,7 +2414,6 @@
           "composite": {
             "fields": [
               {
-                "name": "v",
                 "type": 6,
                 "typeName": "u128"
               }
@@ -2438,7 +2436,6 @@
           "composite": {
             "fields": [
               {
-                "name": "v",
                 "type": 6,
                 "typeName": "u128"
               }
@@ -2608,7 +2605,6 @@
           "composite": {
             "fields": [
               {
-                "name": "v",
                 "type": 6,
                 "typeName": "u128"
               }

@@ -8,9 +8,7 @@ use traceable_result::*;
     feature = "std",
     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
 )]
-pub struct FeeGrowth {
-    pub v: u128,
-}
+pub struct FeeGrowth(pub u128);
 
 impl FeeGrowth {
     pub fn unchecked_add(self, other: FeeGrowth) -> FeeGrowth {
@@ -110,7 +108,7 @@ mod tests {
     #[test]
     fn test_unchecked_add() {
         let max = FeeGrowth::max_instance();
-        let almost_max = FeeGrowth::max_instance() - FeeGrowth { v: 1 };
+        let almost_max = FeeGrowth::max_instance() - FeeGrowth::new(1);
         {
             let result = max.unchecked_add(almost_max);
             assert_eq!(
@@ -119,7 +117,7 @@ mod tests {
             )
         }
         {
-            let addend = FeeGrowth::max_instance() - FeeGrowth { v: 6 };
+            let addend = FeeGrowth::max_instance() - FeeGrowth::new(6);
             let result = max.unchecked_add(addend);
             assert_eq!(
                 result,
@@ -127,7 +125,7 @@ mod tests {
             )
         }
         {
-            let addend = FeeGrowth::max_instance() - FeeGrowth { v: 20 };
+            let addend = FeeGrowth::max_instance() - FeeGrowth::new(20);
             let result = max.unchecked_add(addend);
             assert_eq!(
                 result,
@@ -135,7 +133,7 @@ mod tests {
             )
         }
         {
-            let addend = FeeGrowth::max_instance() - FeeGrowth { v: 50 };
+            let addend = FeeGrowth::max_instance() - FeeGrowth::new(50);
             let result = max.unchecked_add(addend);
             assert_eq!(
                 result,
@@ -143,8 +141,8 @@ mod tests {
             )
         }
         {
-            let num = FeeGrowth { v: 11 };
-            let addend = FeeGrowth { v: 1100 };
+            let num = FeeGrowth::new(11);
+            let addend = FeeGrowth::new(1100);
             let result = num.unchecked_add(addend);
             assert_eq!(result, FeeGrowth::new(1111));
         }
