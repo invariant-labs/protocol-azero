@@ -13,16 +13,16 @@ const keyring = new Keyring({ type: 'sr25519' })
 const account = await keyring.addFromUri('//Alice')
 const testAccount = await keyring.addFromUri('//Bob')
 
-let invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
+let invariant = await Invariant.deploy(api, Network.Local, account, 10000000000n)
 let token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
 let token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
 const psp22 = await PSP22.load(api, Network.Local, token0Address)
 
-const feeTier = newFeeTier({ v: 10000000000n }, 1n)
+const feeTier = newFeeTier(10000000000n, 1n)
 
 describe('protocol fee', async () => {
   beforeEach(async () => {
-    invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
+    invariant = await Invariant.deploy(api, Network.Local, account, 10000000000n)
     token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
     token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
 
@@ -33,7 +33,7 @@ describe('protocol fee', async () => {
       token0Address,
       token1Address,
       feeTier,
-      { v: 1000000000000000000000000n },
+      1000000000000000000000000n,
       0n
     )
 
@@ -49,9 +49,9 @@ describe('protocol fee', async () => {
       poolKey,
       -10n,
       10n,
-      { v: 10000000000000n },
-      { v: 1000000000000000000000000n },
-      { v: 1000000000000000000000000n }
+      10000000000000n,
+      1000000000000000000000000n,
+      1000000000000000000000000n
     )
 
     await psp22.setContractAddress(token0Address)
@@ -59,13 +59,11 @@ describe('protocol fee', async () => {
     await psp22.setContractAddress(token1Address)
     await psp22.approve(account, invariant.contract.address.toString(), 1000000000n)
 
-    await invariant.swap(account, poolKey, true, 4999n, true, {
-      v: 999505344804856076727628n
-    })
+    await invariant.swap(account, poolKey, true, 4999n, true, 999505344804856076727628n)
   })
 
   it('should withdraw protocol fee', async () => {
-    const feeTier = newFeeTier({ v: 10000000000n }, 1n)
+    const feeTier = newFeeTier(10000000000n, 1n)
 
     const poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
@@ -99,7 +97,7 @@ describe('protocol fee', async () => {
   })
 
   it('should change fee receiver', async () => {
-    const feeTier = newFeeTier({ v: 10000000000n }, 1n)
+    const feeTier = newFeeTier(10000000000n, 1n)
 
     const poolKey = newPoolKey(token0Address, token1Address, feeTier)
 

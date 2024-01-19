@@ -10,17 +10,17 @@ const api = await initPolkadotApi(Network.Local)
 const keyring = new Keyring({ type: 'sr25519' })
 const account = await keyring.addFromUri('//Alice')
 
-let invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
+let invariant = await Invariant.deploy(api, Network.Local, account, 10000000000n)
 let token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
 let token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
 const psp22 = await PSP22.load(api, Network.Local, token0Address)
 
-const feeTier = newFeeTier({ v: 10000000000n }, 1n)
+const feeTier = newFeeTier(10000000000n, 1n)
 let poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
 describe('get liquidity ticks', async () => {
   beforeEach(async () => {
-    invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
+    invariant = await Invariant.deploy(api, Network.Local, account, 10000000000n)
     token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
     token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
 
@@ -33,7 +33,7 @@ describe('get liquidity ticks', async () => {
       token0Address,
       token1Address,
       feeTier,
-      { v: 1000000000000000000000000n },
+      1000000000000000000000000n,
       0n
     )
 
@@ -49,9 +49,9 @@ describe('get liquidity ticks', async () => {
       poolKey,
       -10n,
       10n,
-      { v: 10n },
-      { v: 1000000000000000000000000n },
-      { v: 1000000000000000000000000n }
+      10n,
+      1000000000000000000000000n,
+      1000000000000000000000000n
     )
 
     const result = await invariant.getLiquidityTicks(account, poolKey, 0n)
@@ -67,9 +67,9 @@ describe('get liquidity ticks', async () => {
         poolKey,
         -i,
         i,
-        { v: 10n },
-        { v: 1000000000000000000000000n },
-        { v: 1000000000000000000000000n }
+        10n,
+        1000000000000000000000000n,
+        1000000000000000000000000n
       )
     }
 
@@ -84,9 +84,9 @@ describe('get liquidity ticks', async () => {
       poolKey,
       -10n,
       10n,
-      { v: 10n },
-      { v: 1000000000000000000000000n },
-      { v: 1000000000000000000000000n }
+      10n,
+      1000000000000000000000000n,
+      1000000000000000000000000n
     )
 
     const result1 = await invariant.getLiquidityTicks(account, poolKey, 0n)
