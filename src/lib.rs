@@ -991,6 +991,12 @@ pub mod invariant {
 
             ticks
         }
+
+        #[ink(message)]
+        fn get_position_amount(&self, owner: AccountId) -> u16 {
+            let positions = self.positions.get_all(owner);
+            positions.len() as u16
+        }
     }
 
     #[cfg(test)]

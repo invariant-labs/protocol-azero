@@ -358,4 +358,11 @@ pub trait InvariantTrait {
     /// - `offset`: The offset from the current position index.
     #[ink(message)]
     fn get_position_ticks(&self, owner: AccountId, offset: u16) -> Vec<PositionTick>;
+
+    /// Retrieves the amount of positions held by the user.
+    ///
+    /// # Parameters
+    /// - `owner`: An `AccountId` identifying the user who owns the position.
+    #[ink(message)]
+    fn get_position_amount(&self, owner: AccountId) -> u16;
 }

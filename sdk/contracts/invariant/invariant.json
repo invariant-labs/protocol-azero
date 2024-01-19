@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x017abe728abaf12258023e163fb6dfc20e1f31b929165ed3f46151567d3cf012",
+    "hash": "0xf6da970d4abc36561de60bdcadda5229756f1e889732f4803075d5cfa03bfaf1",
     "language": "ink! 4.3.0",
     "compiler": "rustc 1.72.1",
     "build_info": {
@@ -72,13 +72,13 @@
         "displayName": [
           "ChainExtension"
         ],
-        "type": 58
+        "type": 59
       },
       "hash": {
         "displayName": [
           "Hash"
         ],
-        "type": 57
+        "type": 58
       },
       "maxEventTopics": 4,
       "timestamp": {
@@ -215,7 +215,7 @@
               "displayName": [
                 "Vec"
               ],
-              "type": 56
+              "type": 57
             }
           }
         ],
@@ -1273,6 +1273,32 @@
           "type": 53
         },
         "selector": "0xcc9476e7"
+      },
+      {
+        "args": [
+          {
+            "label": "owner",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 1
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "InvariantTrait::get_position_amount",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 56
+        },
+        "selector": "0xb82f46ff"
       }
     ]
   },
@@ -3718,6 +3744,48 @@
       "id": 56,
       "type": {
         "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 5
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 16
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 5
+          },
+          {
+            "name": "E",
+            "type": 16
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 57,
+      "type": {
+        "def": {
           "sequence": {
             "type": 7
           }
@@ -3725,7 +3793,7 @@
       }
     },
     {
-      "id": 57,
+      "id": 58,
       "type": {
         "def": {
           "composite": {
@@ -3745,7 +3813,7 @@
       }
     },
     {
-      "id": 58,
+      "id": 59,
       "type": {
         "def": {
           "variant": {}
