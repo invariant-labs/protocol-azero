@@ -972,7 +972,7 @@ pub mod invariant {
                     }
                     let target_index = (current_chunk_index as i16 + offset) as u16;
 
-                    if target_index <= MAX_CHUNK as u16 {
+                    if target_index <= MAX_CHUNK {
                         let chunk = self
                             .tickmap
                             .bitmap

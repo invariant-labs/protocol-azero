@@ -12,50 +12,40 @@ const keyring = new Keyring({ type: 'sr25519' })
 const account = await keyring.addFromUri('//Alice')
 
 let invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
-let token0 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
-let token1 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
+let token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
+let token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
+const psp22 = await PSP22.load(api, Network.Local, token0Address)
 
-describe('tickmap', async () => {
+describe.only('tickmap', async () => {
   const feeTier = newFeeTier({ v: 10000000000n }, 1n)
   const ticks = [-221818n, -221817n, -58n, 5n, 221817n, 221818n]
-  let poolKey = newPoolKey(
-    token0.contract.address.toString(),
-    token1.contract.address.toString(),
-    feeTier
-  )
+  let poolKey = newPoolKey(token0Address, token1Address, feeTier)
   beforeEach(async () => {
     invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
-    token0 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
-    token1 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
+    token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
+    token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
 
-    poolKey = newPoolKey(
-      token0.contract.address.toString(),
-      token1.contract.address.toString(),
-      feeTier
-    )
+    poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
     await invariant.addFeeTier(account, feeTier)
 
     await invariant.createPool(
       account,
-      token0.contract.address.toString(),
-      token1.contract.address.toString(),
+      token0Address,
+      token1Address,
       feeTier,
       { v: 1000000000000000000000000n },
       0n
     )
 
-    await token0.approve(account, invariant.contract.address.toString(), 10000000000n)
-    await token1.approve(account, invariant.contract.address.toString(), 10000000000n)
+    psp22.setContractAddress(token0Address)
+    await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
+    psp22.setContractAddress(token1Address)
+    await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
   })
 
   it('get tickmap', async () => {
-    const pool = await invariant.getPool(
-      account,
-      token0.contract.address.toString(),
-      token1.contract.address.toString(),
-      feeTier
-    )
+    const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
     await invariant.createPosition(
       account,
       poolKey,
@@ -77,12 +67,7 @@ describe('tickmap', async () => {
     }
   })
   it('get tickmap edge ticks initialized', async () => {
-    const pool = await invariant.getPool(
-      account,
-      token0.contract.address.toString(),
-      token1.contract.address.toString(),
-      feeTier
-    )
+    const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
     await invariant.createPosition(
       account,
       poolKey,
@@ -107,12 +92,7 @@ describe('tickmap', async () => {
     assert.deepEqual(tickmap[6931], 6755399441055744n)
   })
   it('get tickmap more chunks above', async () => {
-    const pool = await invariant.getPool(
-      account,
-      token0.contract.address.toString(),
-      token1.contract.address.toString(),
-      feeTier
-    )
+    const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
 
     for (let i = 6n; i < 10048n; i += 64n) {
       await invariant.createPosition(
@@ -135,12 +115,7 @@ describe('tickmap', async () => {
     }
   })
   it('get tickmap more chunks below', async () => {
-    const pool = await invariant.getPool(
-      account,
-      token0.contract.address.toString(),
-      token1.contract.address.toString(),
-      feeTier
-    )
+    const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
 
     for (let i = -10048n; i < 6; i += 64n) {
       await invariant.createPosition(
@@ -162,12 +137,7 @@ describe('tickmap', async () => {
     }
   })
   it('get tickmap max chunks returned', async () => {
-    const pool = await invariant.getPool(
-      account,
-      token0.contract.address.toString(),
-      token1.contract.address.toString(),
-      feeTier
-    )
+    const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
 
     for (let i = 0n; i < 104832n; i += 64n) {
       await invariant.createPosition(
@@ -184,12 +154,7 @@ describe('tickmap', async () => {
     await invariant.getTickmap(account, poolKey, pool.currentTickIndex)
   })
   it('get tickmap max chunks + 1 returned', async () => {
-    const pool = await invariant.getPool(
-      account,
-      token0.contract.address.toString(),
-      token1.contract.address.toString(),
-      feeTier
-    )
+    const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
 
     for (let i = 0n; i < 104896n; i += 64n) {
       await invariant.createPosition(
