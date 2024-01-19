@@ -12,7 +12,7 @@ const api = await initPolkadotApi(Network.Local)
 const keyring = new Keyring({ type: 'sr25519' })
 const account = await keyring.addFromUri('//Alice')
 
-let invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
+let invariant = await Invariant.deploy(api, Network.Local, account, 10000000000n)
 let token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
 let token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
 const psp22 = await PSP22.load(api, Network.Local, token0Address)
@@ -20,7 +20,7 @@ const psp22 = await PSP22.load(api, Network.Local, token0Address)
 describe('check get liquidity by x', async () => {
   const providedAmount = 430000n
 
-  const feeTier = newFeeTier({ v: 6000000000n }, 10n)
+  const feeTier = newFeeTier(6000000000n, 10n)
   const positionOwner = keyring.addFromUri('//Bob')
 
   let poolKey = newPoolKey(token0Address, token1Address, feeTier)
@@ -30,7 +30,7 @@ describe('check get liquidity by x', async () => {
     : [token1Address, token0Address]
 
   beforeEach(async () => {
-    invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
+    invariant = await Invariant.deploy(api, Network.Local, account, 10000000000n)
     token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
     token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
 
@@ -46,7 +46,7 @@ describe('check get liquidity by x', async () => {
 
     await invariant.addFeeTier(account, feeTier)
 
-    const initSqrtPrice: SqrtPrice = { v: 1005012269622000000000000n }
+    const initSqrtPrice: SqrtPrice = 1005012269622000000000000n
     await invariant.createPool(account, token0Address, token1Address, feeTier, initSqrtPrice, 100n)
 
     await psp22.setContractAddress(token0Address)
@@ -106,8 +106,8 @@ describe('check get liquidity by x', async () => {
         liquidity: l,
         lowerTickIndex: lowerTickIndex,
         upperTickIndex: upperTickIndex,
-        feeGrowthInsideX: { v: 0n },
-        feeGrowthInsideY: { v: 0n },
+        feeGrowthInsideX: 0n,
+        feeGrowthInsideY: 0n,
         lastBlockNumber: 0n,
         tokensOwedX: 0n,
         tokensOwedY: 0n
@@ -151,8 +151,8 @@ describe('check get liquidity by x', async () => {
         liquidity: l,
         lowerTickIndex: lowerTickIndex,
         upperTickIndex: upperTickIndex,
-        feeGrowthInsideX: { v: 0n },
-        feeGrowthInsideY: { v: 0n },
+        feeGrowthInsideX: 0n,
+        feeGrowthInsideY: 0n,
         lastBlockNumber: 0n,
         tokensOwedX: 0n,
         tokensOwedY: 0n
@@ -164,7 +164,7 @@ describe('check get liquidity by x', async () => {
 
 describe('check get liquidity by y', async () => {
   const providedAmount = 47600000000n
-  const feeTier = newFeeTier({ v: 6000000000n }, 10n)
+  const feeTier = newFeeTier(6000000000n, 10n)
   const positionOwner = keyring.addFromUri('//Bob')
 
   let poolKey = newPoolKey(token0Address, token1Address, feeTier)
@@ -172,7 +172,7 @@ describe('check get liquidity by y', async () => {
     ? [token0Address, token1Address]
     : [token1Address, token0Address]
   beforeEach(async () => {
-    invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
+    invariant = await Invariant.deploy(api, Network.Local, account, 10000000000n)
     token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
     token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
 
@@ -188,7 +188,7 @@ describe('check get liquidity by y', async () => {
 
     await invariant.addFeeTier(account, feeTier)
 
-    const initSqrtPrice: SqrtPrice = { v: 367897834491000000000000n }
+    const initSqrtPrice: SqrtPrice = 367897834491000000000000n
     await invariant.createPool(
       account,
       token0Address,
@@ -241,8 +241,8 @@ describe('check get liquidity by y', async () => {
         liquidity: l,
         lowerTickIndex: lowerTickIndex,
         upperTickIndex: upperTickIndex,
-        feeGrowthInsideX: { v: 0n },
-        feeGrowthInsideY: { v: 0n },
+        feeGrowthInsideX: 0n,
+        feeGrowthInsideY: 0n,
         lastBlockNumber: 0n,
         tokensOwedX: 0n,
         tokensOwedY: 0n
@@ -287,8 +287,8 @@ describe('check get liquidity by y', async () => {
         liquidity: l,
         lowerTickIndex: lowerTickIndex,
         upperTickIndex: upperTickIndex,
-        feeGrowthInsideX: { v: 0n },
-        feeGrowthInsideY: { v: 0n },
+        feeGrowthInsideX: 0n,
+        feeGrowthInsideY: 0n,
         lastBlockNumber: 0n,
         tokensOwedX: 0n,
         tokensOwedY: 0n

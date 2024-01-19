@@ -6,11 +6,11 @@ import { InvariantTx } from './schema.js'
 
 export const positionEquals = async (recievedPosition: Position, expectedPosition: Position) => {
   assert.deepEqual(recievedPosition.poolKey, expectedPosition.poolKey)
-  assert.deepEqual(recievedPosition.liquidity.v, expectedPosition.liquidity.v)
+  assert.deepEqual(recievedPosition.liquidity, expectedPosition.liquidity)
   assert.deepEqual(recievedPosition.lowerTickIndex, expectedPosition.lowerTickIndex)
   assert.deepEqual(recievedPosition.upperTickIndex, expectedPosition.upperTickIndex)
-  assert.deepEqual(recievedPosition.feeGrowthInsideX.v, expectedPosition.feeGrowthInsideX.v)
-  assert.deepEqual(recievedPosition.feeGrowthInsideY.v, expectedPosition.feeGrowthInsideY.v)
+  assert.deepEqual(recievedPosition.feeGrowthInsideX, expectedPosition.feeGrowthInsideX)
+  assert.deepEqual(recievedPosition.feeGrowthInsideY, expectedPosition.feeGrowthInsideY)
   assert.deepEqual(recievedPosition.tokensOwedX, expectedPosition.tokensOwedX)
   assert.deepEqual(recievedPosition.tokensOwedY, expectedPosition.tokensOwedY)
 }
