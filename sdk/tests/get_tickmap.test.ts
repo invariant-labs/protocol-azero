@@ -4,7 +4,7 @@ import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
 import { assertThrowsAsync } from '../src/testUtils'
-import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
+import { initPolkadotApi, integerSafeCast, newFeeTier, newPoolKey } from '../src/utils'
 
 const api = await initPolkadotApi(Network.Local)
 
@@ -68,6 +68,13 @@ describe('tickmap', async () => {
 
     const tickmap = await invariant.getTickmap(account, poolKey, pool.currentTickIndex)
     assert.deepEqual(tickmap[3465], 9223372036854775809n)
+    for (const [chunkIndex, value] of tickmap.entries()) {
+      if (chunkIndex === 3465) {
+        assert.deepEqual(value, 9223372036854775809n)
+      } else {
+        assert.deepEqual(value, 0n)
+      }
+    }
   })
   it('get tickmap edge ticks initialized', async () => {
     const pool = await invariant.getPool(
@@ -124,7 +131,7 @@ describe('tickmap', async () => {
     const initializedChunks = 10048n / 64n
     for (let i = 0n; i < initializedChunks; i++) {
       const current = 3466n + i
-      assert.deepEqual(tickmap[Number(current)], 3n)
+      assert.deepEqual(tickmap[integerSafeCast(current)], 3n)
     }
   })
   it('get tickmap more chunks below', async () => {
@@ -151,7 +158,7 @@ describe('tickmap', async () => {
     const initializedChunks = 10048n / 64n
     for (let i = 0n; i < initializedChunks; i++) {
       const current = 3308n + i
-      assert.deepEqual(tickmap[Number(current)], 864691128455135232n)
+      assert.deepEqual(tickmap[integerSafeCast(current)], 864691128455135232n)
     }
   })
   it('get tickmap max chunks returned', async () => {

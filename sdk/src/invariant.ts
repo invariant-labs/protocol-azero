@@ -568,7 +568,6 @@ export class Invariant {
     poolKey: PoolKey,
     currentTickIndex: bigint
   ): Promise<bigint[]> {
-    console.log('getTickmap')
     const result = await sendQuery(
       this.contract,
       this.gasLimit,
@@ -577,7 +576,6 @@ export class Invariant {
       InvariantQuery.GetTickmap,
       [poolKey, currentTickIndex]
     )
-    return constructTickmap(result)
-    // return parse(result)
+    return constructTickmap(result, poolKey.feeTier.tickSpacing)
   }
 }
