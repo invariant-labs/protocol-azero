@@ -111,37 +111,30 @@ const main = async () => {
   })
 
   // deploy token
-  const token0 = await PSP22.deploy(api, network, account, 1000n, 'Coin', 'COIN', 12n)
-  const token1 = await PSP22.deploy(api, network, account, 1000n, 'Coin', 'COIN', 12n)
-
+  const token0Address = await PSP22.deploy(api, account, 1000n, 'Coin', 'COIN', 12n)
+  const token1Address = await PSP22.deploy(api, account, 1000n, 'Coin', 'COIN', 12n)
+  const psp22 = await PSP22.load(api, network, token0Address)
   const feeTier = newFeeTier({ v: 6000000000n }, 10n)
 
-  const poolKey = await newPoolKey(
-    token0.contract.address.toString(),
-    token1.contract.address.toString(),
-    feeTier
-  )
+  const poolKey = await newPoolKey(token0Address, token1Address, feeTier)
 
   await invariant.addFeeTier(account, feeTier)
 
   await invariant.createPool(
     account,
-    token0.contract.address.toString(),
-    token1.contract.address.toString(),
+    token0Address,
+    token1Address,
     feeTier,
     { v: 1000000000000000000000000n },
     0n
   )
 
-  await token0.approve(account, invariant.contract.address.toString(), 10000000000n)
-  await token1.approve(account, invariant.contract.address.toString(), 10000000000n)
+  await psp22.setContractAddress(token0Address)
+  await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
+  await psp22.setContractAddress(token1Address)
+  await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
 
-  const pool = await invariant.getPool(
-    account,
-    token0.contract.address.toString(),
-    token1.contract.address.toString(),
-    feeTier
-  )
+  const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
 
   await invariant.createPosition(
     account,
@@ -163,9 +156,10 @@ const main = async () => {
     (await getBalance(api, testAccount.address)).balanceFormatted
   )
 
+  await psp22.setContractAddress(token0Address)
   const results = await Promise.all([
     invariant.getFeeTiers(account),
-    token0.totalSupply(account),
+    psp22.totalSupply(account),
     wazero.balanceOf(account, account.address)
   ])
 

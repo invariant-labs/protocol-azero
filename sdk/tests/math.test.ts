@@ -1,6 +1,6 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import { Position, SqrtPrice, getLiquidityByX, getLiquidityByY } from 'math/math.js'
+import { Position, SqrtPrice, getLiquidityByX, getLiquidityByY, isTokenX } from 'math/math.js'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
@@ -13,8 +13,9 @@ const keyring = new Keyring({ type: 'sr25519' })
 const account = await keyring.addFromUri('//Alice')
 
 let invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
-let token0 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
-let token1 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
+let token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
+let token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
+const psp22 = await PSP22.load(api, Network.Local, token0Address)
 
 describe('check get liquidity by x', async () => {
   const providedAmount = 430000n
@@ -22,47 +23,36 @@ describe('check get liquidity by x', async () => {
   const feeTier = newFeeTier({ v: 6000000000n }, 10n)
   const positionOwner = keyring.addFromUri('//Bob')
 
-  let poolKey = newPoolKey(
-    token0.contract.address.toString(),
-    token1.contract.address.toString(),
-    feeTier
-  )
-  let tokenX = token0
-  let tokenY = token1
+  let poolKey = newPoolKey(token0Address, token1Address, feeTier)
+
+  let [tokenX, tokenY] = isTokenX(token0Address, token1Address)
+    ? [token0Address, token1Address]
+    : [token1Address, token0Address]
 
   beforeEach(async () => {
     invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
-    token0 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
-    token1 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
+    token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
+    token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
 
-    poolKey = newPoolKey(
-      token0.contract.address.toString(),
-      token1.contract.address.toString(),
-      feeTier
-    )
+    poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
-    if (token0.contract.address.toString() < token1.contract.address.toString()) {
-      tokenX = token0
-      tokenY = token1
+    if (isTokenX(token0Address, token1Address)) {
+      tokenX = token0Address
+      tokenY = token1Address
     } else {
-      tokenX = token1
-      tokenY = token0
+      tokenX = token1Address
+      tokenY = token0Address
     }
 
     await invariant.addFeeTier(account, feeTier)
 
     const initSqrtPrice: SqrtPrice = { v: 1005012269622000000000000n }
-    await invariant.createPool(
-      account,
-      token0.contract.address.toString(),
-      token1.contract.address.toString(),
-      feeTier,
-      initSqrtPrice,
-      100n
-    )
+    await invariant.createPool(account, token0Address, token1Address, feeTier, initSqrtPrice, 100n)
 
-    await token0.approve(account, invariant.contract.address.toString(), 10000000000n)
-    await token1.approve(account, invariant.contract.address.toString(), 10000000000n)
+    await psp22.setContractAddress(token0Address)
+    await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
+    await psp22.setContractAddress(token1Address)
+    await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
   })
   it('check get liquidity by x', async () => {
     // below range
@@ -70,12 +60,7 @@ describe('check get liquidity by x', async () => {
       const lowerTickIndex = 80n
       const upperTickIndex = 120n
 
-      const pool = await invariant.getPool(
-        account,
-        token0.contract.address.toString(),
-        token1.contract.address.toString(),
-        feeTier
-      )
+      const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
 
       assertThrowsAsync(
         new Promise(() => {
@@ -88,12 +73,7 @@ describe('check get liquidity by x', async () => {
       const lowerTickIndex = 80n
       const upperTickIndex = 120n
 
-      const pool = await invariant.getPool(
-        account,
-        token0.contract.address.toString(),
-        token1.contract.address.toString(),
-        feeTier
-      )
+      const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
 
       const { l, amount } = getLiquidityByX(
         providedAmount,
@@ -103,10 +83,12 @@ describe('check get liquidity by x', async () => {
         true
       )
 
-      await tokenX.mint(positionOwner, providedAmount)
-      await tokenX.approve(positionOwner, invariant.contract.address.toString(), providedAmount)
-      await tokenY.mint(positionOwner, amount)
-      await tokenY.approve(positionOwner, invariant.contract.address.toString(), amount)
+      await psp22.setContractAddress(tokenX)
+      await psp22.mint(positionOwner, providedAmount)
+      await psp22.approve(positionOwner, invariant.contract.address.toString(), providedAmount)
+      await psp22.setContractAddress(tokenY)
+      await psp22.mint(positionOwner, amount)
+      await psp22.approve(positionOwner, invariant.contract.address.toString(), amount)
 
       await invariant.createPosition(
         positionOwner,
@@ -137,12 +119,7 @@ describe('check get liquidity by x', async () => {
       const lowerTickIndex = 150n
       const upperTickIndex = 800n
 
-      const pool = await invariant.getPool(
-        account,
-        token0.contract.address.toString(),
-        token1.contract.address.toString(),
-        feeTier
-      )
+      const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
 
       const { l, amount } = getLiquidityByX(
         providedAmount,
@@ -154,8 +131,9 @@ describe('check get liquidity by x', async () => {
 
       assert.deepEqual(amount, 0n)
 
-      await tokenX.mint(positionOwner, providedAmount)
-      await tokenX.approve(positionOwner, invariant.contract.address.toString(), providedAmount)
+      await psp22.setContractAddress(tokenX)
+      await psp22.mint(positionOwner, providedAmount)
+      await psp22.approve(positionOwner, invariant.contract.address.toString(), providedAmount)
 
       await invariant.createPosition(
         positionOwner,
@@ -189,31 +167,23 @@ describe('check get liquidity by y', async () => {
   const feeTier = newFeeTier({ v: 6000000000n }, 10n)
   const positionOwner = keyring.addFromUri('//Bob')
 
-  let poolKey = newPoolKey(
-    token0.contract.address.toString(),
-    token1.contract.address.toString(),
-    feeTier
-  )
-  let tokenX = token0
-  let tokenY = token1
-
+  let poolKey = newPoolKey(token0Address, token1Address, feeTier)
+  let [tokenX, tokenY] = isTokenX(token0Address, token1Address)
+    ? [token0Address, token1Address]
+    : [token1Address, token0Address]
   beforeEach(async () => {
     invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
-    token0 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
-    token1 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
+    token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
+    token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
 
-    poolKey = newPoolKey(
-      token0.contract.address.toString(),
-      token1.contract.address.toString(),
-      feeTier
-    )
+    poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
-    if (token0.contract.address.toString() < token1.contract.address.toString()) {
-      tokenX = token0
-      tokenY = token1
+    if (isTokenX(token0Address, token1Address)) {
+      tokenX = token0Address
+      tokenY = token1Address
     } else {
-      tokenX = token1
-      tokenY = token0
+      tokenX = token1Address
+      tokenY = token0Address
     }
 
     await invariant.addFeeTier(account, feeTier)
@@ -221,15 +191,17 @@ describe('check get liquidity by y', async () => {
     const initSqrtPrice: SqrtPrice = { v: 367897834491000000000000n }
     await invariant.createPool(
       account,
-      token0.contract.address.toString(),
-      token1.contract.address.toString(),
+      token0Address,
+      token1Address,
       feeTier,
       initSqrtPrice,
       -20000n
     )
 
-    await token0.approve(account, invariant.contract.address.toString(), 10000000000n)
-    await token1.approve(account, invariant.contract.address.toString(), 10000000000n)
+    await psp22.setContractAddress(token0Address)
+    await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
+    await psp22.setContractAddress(token1Address)
+    await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
   })
   it('check get liquidity by y', async () => {
     // below range
@@ -237,12 +209,7 @@ describe('check get liquidity by y', async () => {
       const lowerTickIndex = -22000n
       const upperTickIndex = -21000n
 
-      const pool = await invariant.getPool(
-        account,
-        token0.contract.address.toString(),
-        token1.contract.address.toString(),
-        feeTier
-      )
+      const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
 
       const { l, amount } = getLiquidityByY(
         providedAmount,
@@ -254,8 +221,9 @@ describe('check get liquidity by y', async () => {
 
       assert.deepEqual(amount, 0n)
 
-      await tokenY.mint(positionOwner, providedAmount)
-      await tokenY.approve(positionOwner, invariant.contract.address.toString(), providedAmount)
+      await psp22.setContractAddress(tokenY)
+      await psp22.mint(positionOwner, providedAmount)
+      await psp22.approve(positionOwner, invariant.contract.address.toString(), providedAmount)
 
       await invariant.createPosition(
         positionOwner,
@@ -286,12 +254,7 @@ describe('check get liquidity by y', async () => {
       const lowerTickIndex = -25000n
       const upperTickIndex = -19000n
 
-      const pool = await invariant.getPool(
-        account,
-        token0.contract.address.toString(),
-        token1.contract.address.toString(),
-        feeTier
-      )
+      const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
 
       const { l, amount } = getLiquidityByY(
         providedAmount,
@@ -301,10 +264,12 @@ describe('check get liquidity by y', async () => {
         true
       )
 
-      await tokenY.mint(positionOwner, providedAmount)
-      await tokenY.approve(positionOwner, invariant.contract.address.toString(), providedAmount)
-      await tokenX.mint(positionOwner, amount)
-      await tokenX.approve(positionOwner, invariant.contract.address.toString(), amount)
+      await psp22.setContractAddress(tokenY)
+      await psp22.mint(positionOwner, providedAmount)
+      await psp22.approve(positionOwner, invariant.contract.address.toString(), providedAmount)
+      await psp22.setContractAddress(tokenX)
+      await psp22.mint(positionOwner, amount)
+      await psp22.approve(positionOwner, invariant.contract.address.toString(), amount)
 
       await invariant.createPosition(
         positionOwner,
@@ -335,12 +300,7 @@ describe('check get liquidity by y', async () => {
       const lowerTickIndex = -10000n
       const upperTickIndex = 0n
 
-      const pool = await invariant.getPool(
-        account,
-        token0.contract.address.toString(),
-        token1.contract.address.toString(),
-        feeTier
-      )
+      const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
 
       assertThrowsAsync(
         new Promise(() => {
