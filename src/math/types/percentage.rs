@@ -6,6 +6,4 @@ use decimal::*;
     feature = "std",
     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
 )]
-pub struct Percentage {
-    pub v: u64,
-}
+pub struct Percentage(pub u64);

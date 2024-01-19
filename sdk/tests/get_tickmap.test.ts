@@ -11,17 +11,17 @@ const api = await initPolkadotApi(Network.Local)
 const keyring = new Keyring({ type: 'sr25519' })
 const account = await keyring.addFromUri('//Alice')
 
-let invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
+let invariant = await Invariant.deploy(api, Network.Local, account, 10000000000n)
 let token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
 let token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
 const psp22 = await PSP22.load(api, Network.Local, token0Address)
 
 describe.only('tickmap', async () => {
-  const feeTier = newFeeTier({ v: 10000000000n }, 1n)
+  const feeTier = newFeeTier(10000000000n, 1n)
   const ticks = [-221818n, -221817n, -58n, 5n, 221817n, 221818n]
   let poolKey = newPoolKey(token0Address, token1Address, feeTier)
   beforeEach(async () => {
-    invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
+    invariant = await Invariant.deploy(api, Network.Local, account, 10000000000n)
     token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
     token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
 
@@ -34,7 +34,7 @@ describe.only('tickmap', async () => {
       token0Address,
       token1Address,
       feeTier,
-      { v: 1000000000000000000000000n },
+      1000000000000000000000000n,
       0n
     )
 
@@ -51,7 +51,7 @@ describe.only('tickmap', async () => {
       poolKey,
       ticks[2],
       ticks[3],
-      { v: 10n },
+      10n,
       pool.sqrtPrice,
       pool.sqrtPrice
     )
@@ -73,7 +73,7 @@ describe.only('tickmap', async () => {
       poolKey,
       ticks[0],
       ticks[1],
-      { v: 10n },
+      10n,
       pool.sqrtPrice,
       pool.sqrtPrice
     )
@@ -82,7 +82,7 @@ describe.only('tickmap', async () => {
       poolKey,
       ticks[4],
       ticks[5],
-      { v: 10n },
+      10n,
       pool.sqrtPrice,
       pool.sqrtPrice
     )
@@ -100,7 +100,7 @@ describe.only('tickmap', async () => {
         poolKey,
         i,
         i + 1n,
-        { v: 10n },
+        10n,
         pool.sqrtPrice,
         pool.sqrtPrice
       )
@@ -123,7 +123,7 @@ describe.only('tickmap', async () => {
         poolKey,
         i,
         i + 1n,
-        { v: 10n },
+        10n,
         pool.sqrtPrice,
         pool.sqrtPrice
       )
@@ -145,7 +145,7 @@ describe.only('tickmap', async () => {
         poolKey,
         i,
         i + 1n,
-        { v: 10n },
+        10n,
         pool.sqrtPrice,
         pool.sqrtPrice
       )
@@ -162,7 +162,7 @@ describe.only('tickmap', async () => {
         poolKey,
         i,
         i + 1n,
-        { v: 10n },
+        10n,
         pool.sqrtPrice,
         pool.sqrtPrice
       )

@@ -208,33 +208,30 @@ export const calculateSqrtPriceAfterSlippage = (
   slippage: Percentage,
   up: boolean
 ): SqrtPrice => {
-  const multiplier = getPercentageDenominator() + (up ? slippage.v : -slippage.v)
+  const multiplier = getPercentageDenominator() + (up ? slippage : -slippage)
 
-  return {
-    v:
-      sqrt(
-        ((sqrtPrice.v * sqrtPrice.v) / getSqrtPriceDenominator()) *
-          multiplier *
-          getSqrtPriceDenominator() *
-          getPercentageDenominator()
-      ) / getPercentageDenominator()
-  }
+  return (
+    sqrt(
+      ((sqrtPrice * sqrtPrice) / getSqrtPriceDenominator()) *
+        multiplier *
+        getSqrtPriceDenominator() *
+        getPercentageDenominator()
+    ) / getPercentageDenominator()
+  )
 }
 
 export const calculatePriceImpact = (
   startingSqrtPrice: SqrtPrice,
   endingSqrtPrice: SqrtPrice
 ): Percentage => {
-  const startingPrice = startingSqrtPrice.v * startingSqrtPrice.v
-  const endingPrice = endingSqrtPrice.v * endingSqrtPrice.v
+  const startingPrice = startingSqrtPrice * startingSqrtPrice
+  const endingPrice = endingSqrtPrice * endingSqrtPrice
   const diff = startingPrice - endingPrice
 
   const nominator = diff > 0n ? diff : -diff
   const denominator = startingPrice > endingPrice ? startingPrice : endingPrice
 
-  return {
-    v: (nominator * getPercentageDenominator()) / denominator
-  }
+  return (nominator * getPercentageDenominator()) / denominator
 }
 
 export const simulateUnclaimedFees = (
@@ -245,17 +242,17 @@ export const simulateUnclaimedFees = (
 ): TokenAmounts => {
   return _simulateUnclaimedFees(
     lowerTick.index,
-    lowerTick.feeGrowthOutsideX.v,
-    lowerTick.feeGrowthOutsideY.v,
+    lowerTick.feeGrowthOutsideX,
+    lowerTick.feeGrowthOutsideY,
     upperTick.index,
-    upperTick.feeGrowthOutsideX.v,
-    upperTick.feeGrowthOutsideY.v,
+    upperTick.feeGrowthOutsideX,
+    upperTick.feeGrowthOutsideY,
     pool.currentTickIndex,
-    pool.feeGrowthGlobalX.v,
-    pool.feeGrowthGlobalY.v,
-    position.feeGrowthInsideX.v,
-    position.feeGrowthInsideY.v,
-    position.liquidity.v
+    pool.feeGrowthGlobalX,
+    pool.feeGrowthGlobalY,
+    position.feeGrowthInsideX,
+    position.feeGrowthInsideY,
+    position.liquidity
   )
 }
 export const calculateTokenAmounts = (pool: Pool, position: Position): TokenAmounts => {
