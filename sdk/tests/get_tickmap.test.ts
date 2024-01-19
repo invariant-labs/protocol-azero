@@ -16,7 +16,7 @@ let token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN'
 let token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
 const psp22 = await PSP22.load(api, Network.Local, token0Address)
 
-describe.only('tickmap', async () => {
+describe('tickmap', async () => {
   const feeTier = newFeeTier(10000000000n, 1n)
   const ticks = [-221818n, -221817n, -58n, 5n, 221817n, 221818n]
   let poolKey = newPoolKey(token0Address, token1Address, feeTier)
