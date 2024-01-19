@@ -97,4 +97,38 @@ describe('get liquidity ticks', async () => {
 
     assert.equal(result1[1].toString(), result2[0].toString())
   })
+
+  it('should get position ticks with multiple queries', async function () {
+    this.timeout(15000)
+
+    for (let i = 1n; i <= 400n; i++) {
+      await invariant.createPosition(
+        account,
+        poolKey,
+        -i,
+        i,
+        10n,
+        1000000000000000000000000n,
+        1000000000000000000000000n
+      )
+    }
+
+    const liquidityTicks = await invariant.getLiquidityTicksAmount(account, poolKey)
+
+    const promises = []
+
+    for (let i = 0n; i < liquidityTicks; i += 372n) {
+      promises.push(invariant.getLiquidityTicks(account, poolKey, i))
+    }
+
+    const result = await Promise.all(promises)
+
+    let ticks = 0
+
+    for (let i = 0; i < result.length; i++) {
+      ticks += result[i].length
+    }
+
+    assert.equal(ticks, 800)
+  })
 })

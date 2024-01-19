@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0xf529f788186e5611b4902c84a3d5b59de3e7447fa00448ca052f6064af69adf3",
+    "hash": "0x5621ba19b53c72d2787e220490e6a03738c2a845551145174311601e5b68b1c1",
     "language": "ink! 4.3.0",
     "compiler": "rustc 1.72.1",
     "build_info": {
@@ -72,13 +72,13 @@
         "displayName": [
           "ChainExtension"
         ],
-        "type": 58
+        "type": 59
       },
       "hash": {
         "displayName": [
           "Hash"
         ],
-        "type": 57
+        "type": 58
       },
       "maxEventTopics": 4,
       "timestamp": {
@@ -215,7 +215,7 @@
               "displayName": [
                 "Vec"
               ],
-              "type": 56
+              "type": 57
             }
           }
         ],
@@ -1273,6 +1273,32 @@
           "type": 53
         },
         "selector": "0x8ef8d345"
+      },
+      {
+        "args": [
+          {
+            "label": "pool_key",
+            "type": {
+              "displayName": [
+                "PoolKey"
+              ],
+              "type": 13
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "InvariantTrait::get_liquidity_ticks_amount",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 56
+        },
+        "selector": "0xf360dea7"
       }
     ]
   },
@@ -3723,6 +3749,48 @@
       "id": 56,
       "type": {
         "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 5
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 16
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 5
+          },
+          {
+            "name": "E",
+            "type": 16
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 57,
+      "type": {
+        "def": {
           "sequence": {
             "type": 7
           }
@@ -3730,7 +3798,7 @@
       }
     },
     {
-      "id": 57,
+      "id": 58,
       "type": {
         "def": {
           "composite": {
@@ -3750,7 +3818,7 @@
       }
     },
     {
-      "id": 58,
+      "id": 59,
       "type": {
         "def": {
           "variant": {}

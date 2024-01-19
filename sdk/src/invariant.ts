@@ -578,4 +578,15 @@ export class Invariant {
       [pool_key, offset]
     )
   }
+
+  async getLiquidityTicksAmount(account: IKeyringPair, poolKey: PoolKey): Promise<bigint> {
+    return sendQuery(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      account,
+      InvariantQuery.getLiquidityTicksAmount,
+      [poolKey]
+    )
+  }
 }

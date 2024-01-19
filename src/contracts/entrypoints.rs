@@ -357,4 +357,11 @@ pub trait InvariantTrait {
     /// - `offset`: The offset from which ticks will be retrieved.
     #[ink(message)]
     fn get_liquidity_ticks(&self, pool_key: PoolKey, offset: u16) -> Vec<LiquidityTick>;
+
+    /// Retrieves the amount of liquidity ticks for a specified pool.
+    ///
+    /// # Parameters
+    /// - `pool_key`: A unique key that identifies the specified pool.
+    #[ink(message)]
+    fn get_liquidity_ticks_amount(&self, pool_key: PoolKey) -> u16;
 }

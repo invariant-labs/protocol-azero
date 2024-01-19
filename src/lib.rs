@@ -990,6 +990,28 @@ pub mod invariant {
 
             ticks
         }
+
+        #[ink(message)]
+        fn get_liquidity_ticks_amount(&self, pool_key: PoolKey) -> u16 {
+            let tick_spacing = pool_key.fee_tier.tick_spacing;
+
+            let chunk_limit = MAX_CHUNKS / tick_spacing;
+            let mut amount = 0;
+
+            for i in 0..=chunk_limit {
+                let chunk = self.tickmap.bitmap.get((i, pool_key)).unwrap_or(0);
+
+                if chunk != 0 {
+                    for j in 0..=CHUNK_SIZE - 1 {
+                        if (chunk >> j) & 1 == 1 {
+                            amount += 1;
+                        }
+                    }
+                }
+            }
+
+            amount
+        }
     }
 
     #[cfg(test)]
