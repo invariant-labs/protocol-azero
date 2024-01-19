@@ -11,41 +11,36 @@ const keyring = new Keyring({ type: 'sr25519' })
 const account = await keyring.addFromUri('//Alice')
 
 let invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
-let token0 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
-let token1 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
+let token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
+let token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
+const psp22 = await PSP22.load(api, Network.Local, token0Address)
 
 const feeTier = newFeeTier({ v: 10000000000n }, 1n)
-let poolKey = newPoolKey(
-  token0.contract.address.toString(),
-  token1.contract.address.toString(),
-  feeTier
-)
+let poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
 describe('get liquidity ticks', async () => {
   beforeEach(async () => {
     invariant = await Invariant.deploy(api, Network.Local, account, { v: 10000000000n })
-    token0 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
-    token1 = await PSP22.deploy(api, Network.Local, account, 1000000000n, 'Coin', 'COIN', 0n)
+    token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
+    token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
 
-    poolKey = newPoolKey(
-      token0.contract.address.toString(),
-      token1.contract.address.toString(),
-      feeTier
-    )
+    poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
     await invariant.addFeeTier(account, feeTier)
 
     await invariant.createPool(
       account,
-      token0.contract.address.toString(),
-      token1.contract.address.toString(),
+      token0Address,
+      token1Address,
       feeTier,
       { v: 1000000000000000000000000n },
       0n
     )
 
-    await token0.approve(account, invariant.contract.address.toString(), 10000000000n)
-    await token1.approve(account, invariant.contract.address.toString(), 10000000000n)
+    await psp22.setContractAddress(token0Address)
+    await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
+    await psp22.setContractAddress(token1Address)
+    await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
   })
 
   it('should get liquidity ticks', async () => {
