@@ -37,7 +37,7 @@ pub enum InvariantError {
 }
 #[ink::contract]
 pub mod invariant {
-    use crate::contracts::tickmap::{tick_to_position, CHUNK_SIZE, MAX_TICKMAP_QUERY_SIZE};
+    use crate::contracts::tickmap::{get_max_chunk, tick_to_position, MAX_TICKMAP_QUERY_SIZE};
     use crate::contracts::{
         FeeTier, FeeTiers, InvariantConfig, InvariantTrait, Pool, PoolKey, PoolKeys, Pools,
         Position, Positions, Tick, Tickmap, Ticks,
@@ -46,7 +46,7 @@ pub mod invariant {
     use crate::math::check_tick;
     use crate::math::log::get_tick_at_sqrt_price;
     use crate::math::percentage::Percentage;
-    use crate::math::sqrt_price::{get_max_tick, SqrtPrice};
+    use crate::math::sqrt_price::SqrtPrice;
     use crate::math::token_amount::TokenAmount;
     use crate::math::types::liquidity::Liquidity;
 
@@ -947,9 +947,8 @@ pub mod invariant {
         #[ink(message)]
         fn get_tickmap(&self, pool_key: PoolKey, center_tick: i32) -> Vec<(u16, u64)> {
             let tick_spacing = pool_key.fee_tier.tick_spacing;
-            let max_tick = get_max_tick(tick_spacing);
-            let max_chunk_index = ((max_tick * 2 + CHUNK_SIZE) / CHUNK_SIZE - 1) as u16;
 
+            let max_chunk_index = get_max_chunk(tick_spacing);
             let mut tickmap_slice: Vec<(u16, u64)> = vec![];
 
             let (current_chunk_index, _) = tick_to_position(center_tick, tick_spacing);
@@ -964,12 +963,15 @@ pub mod invariant {
 
             for step in 1..=max_chunk_index {
                 for &offset in &[step as i16, -(step as i16)] {
-                    if tickmap_slice.len() == MAX_TICKMAP_QUERY_SIZE as usize {
+                    if tickmap_slice.len() == MAX_TICKMAP_QUERY_SIZE {
                         return tickmap_slice;
                     }
-                    if (current_chunk_index as i16 + offset) < 0 {
+                    if (current_chunk_index as i16 + offset) < 0
+                        || (current_chunk_index as i16 + offset) > max_chunk_index as i16
+                    {
                         continue;
                     }
+
                     let target_index = (current_chunk_index as i16 + offset) as u16;
 
                     if target_index <= max_chunk_index {

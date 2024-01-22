@@ -1,5 +1,6 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
+import { getMaxChunk } from 'math/math.js'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
@@ -60,7 +61,7 @@ describe('tickmap', async () => {
     assert.deepEqual(tickmap[3465], 9223372036854775809n)
     for (const [chunkIndex, value] of tickmap.entries()) {
       if (chunkIndex === 3465) {
-        assert.deepEqual(value, 9223372036854775809n)
+        assert.deepEqual(value, 0b1000000000000000000000000000000000000000000000000000000000000001n)
       } else {
         assert.deepEqual(value, 0n)
       }
@@ -88,13 +89,16 @@ describe('tickmap', async () => {
     )
 
     const tickmap = await invariant.getTickmap(account, poolKey, pool.currentTickIndex)
-    assert.deepEqual(tickmap[0], 3n)
-    assert.deepEqual(tickmap[6931], 6755399441055744n)
+    assert.deepEqual(tickmap[0], 0b11n)
+    assert.deepEqual(
+      tickmap[getMaxChunk(feeTier.tickSpacing)],
+      0b11000000000000000000000000000000000000000000000000000n
+    )
   })
   it('get tickmap more chunks above', async () => {
     const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
 
-    for (let i = 6n; i < 10048n; i += 64n) {
+    for (let i = 6n; i < 52500n; i += 64n) {
       await invariant.createPosition(
         account,
         poolKey,
@@ -108,16 +112,17 @@ describe('tickmap', async () => {
 
     const tickmap = await invariant.getTickmap(account, poolKey, pool.currentTickIndex)
 
-    const initializedChunks = 10048n / 64n
+    const initializedChunks = 52500n / 64n
     for (let i = 0n; i < initializedChunks; i++) {
       const current = 3466n + i
-      assert.deepEqual(tickmap[integerSafeCast(current)], 3n)
+      assert.deepEqual(tickmap[integerSafeCast(current)], 0b11n)
     }
   })
   it('get tickmap more chunks below', async () => {
     const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
 
-    for (let i = -10048n; i < 6; i += 64n) {
+    // 51328
+    for (let i = -52544n; i < 6n; i += 64n) {
       await invariant.createPosition(
         account,
         poolKey,
@@ -130,10 +135,13 @@ describe('tickmap', async () => {
     }
 
     const tickmap = await invariant.getTickmap(account, poolKey, pool.currentTickIndex)
-    const initializedChunks = 10048n / 64n
+    const initializedChunks = 52544n / 64n
     for (let i = 0n; i < initializedChunks; i++) {
-      const current = 3308n + i
-      assert.deepEqual(tickmap[integerSafeCast(current)], 864691128455135232n)
+      const current = 2644n + i
+      assert.deepEqual(
+        tickmap[integerSafeCast(current)],
+        0b110000000000000000000000000000000000000000000000000000000000n
+      )
     }
   })
   it('get tickmap max chunks returned', async () => {

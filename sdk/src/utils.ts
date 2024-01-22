@@ -25,8 +25,8 @@ import {
 import { Network } from './network.js'
 import { Query, Tx, TxResult } from './schema.js'
 
-export const DEFAULT_REF_TIME = 1000000000000
-export const DEFAULT_PROOF_SIZE = 1000000000000
+export const DEFAULT_REF_TIME = 1250000000000
+export const DEFAULT_PROOF_SIZE = 1250000000000
 
 export const initPolkadotApi = async (network: Network): Promise<ApiPromise> => {
   if (network === Network.Local) {
