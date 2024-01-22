@@ -299,3 +299,11 @@ const isArray = (value: any): boolean => {
 const isObject = (value: any): boolean => {
   return typeof value === 'object' && value !== null
 }
+
+export const sqrtPriceToPrice = (sqrtPrice: SqrtPrice): bigint => {
+  return (sqrtPrice * sqrtPrice) / getSqrtPriceDenominator()
+}
+
+export const priceToSqrtPrice = (price: bigint): SqrtPrice => {
+  return sqrt(price * getSqrtPriceDenominator())
+}
