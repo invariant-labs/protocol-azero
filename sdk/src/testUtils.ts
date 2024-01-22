@@ -1,7 +1,14 @@
 import { Keyring } from '@polkadot/api'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { assert } from 'chai'
-import { CreatePositionEvent, InvariantError, Position, RemovePositionEvent } from 'math/math.js'
+import {
+  CreatePositionEvent,
+  InvariantError,
+  LiquidityTick,
+  Position,
+  RemovePositionEvent,
+  Tick
+} from 'math/math.js'
 import { InvariantTx } from './schema.js'
 
 export const positionEquals = async (recievedPosition: Position, expectedPosition: Position) => {
@@ -75,4 +82,14 @@ export const removePositionEventEquals = (
   assert.deepEqual(removePositionEvent.lowerTick, expectedRemovePositionEvent.lowerTick)
   assert.deepEqual(removePositionEvent.pool, expectedRemovePositionEvent.pool)
   assert.deepEqual(removePositionEvent.upperTick, expectedRemovePositionEvent.upperTick)
+}
+
+export const liquidityTickEquals = (
+  liquidityTick: Tick | LiquidityTick,
+  expectedLiquidityTick: Tick | LiquidityTick
+) => {
+  assert.deepEqual(liquidityTick.index, expectedLiquidityTick.index)
+  assert.deepEqual(liquidityTick.feeGrowthOutsideX, expectedLiquidityTick.feeGrowthOutsideX)
+  assert.deepEqual(liquidityTick.feeGrowthOutsideY, expectedLiquidityTick.feeGrowthOutsideY)
+  assert.deepEqual(liquidityTick.secondsOutside, expectedLiquidityTick.secondsOutside)
 }

@@ -11,6 +11,7 @@ import {
   Pool,
   PoolKey,
   Position,
+  Price,
   SqrtPrice,
   Tick,
   TokenAmounts,
@@ -317,4 +318,12 @@ export const constructTickmap = (initializedChunks: bigint[][], tickSpacing: big
     tickmap[integerSafeCast(chunkIndex)] = value
   }
   return tickmap
+}
+
+export const sqrtPriceToPrice = (sqrtPrice: SqrtPrice): Price => {
+  return (sqrtPrice * sqrtPrice) / getSqrtPriceDenominator()
+}
+
+export const priceToSqrtPrice = (price: Price): SqrtPrice => {
+  return sqrt(price * getSqrtPriceDenominator())
 }

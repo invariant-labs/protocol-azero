@@ -496,3 +496,27 @@ macro_rules! get_fee_tiers {
             .return_value()
     }};
 }
+
+#[macro_export]
+macro_rules! get_liquidity_ticks {
+    ($client:ident, $dex:ty, $dex_address:expr, $pool_key:expr, $offset:expr) => {{
+        let message = build_message::<$dex>($dex_address.clone())
+            .call(|contract| contract.get_liquidity_ticks($pool_key, $offset));
+        $client
+            .call_dry_run(&ink_e2e::alice(), &message, 0, None)
+            .await
+            .return_value()
+    }};
+}
+
+#[macro_export]
+macro_rules! get_liquidity_ticks_amount {
+    ($client:ident, $dex:ty, $dex_address:expr, $pool_key:expr) => {{
+        let message = build_message::<$dex>($dex_address.clone())
+            .call(|contract| contract.get_liquidity_ticks_amount($pool_key));
+        $client
+            .call_dry_run(&ink_e2e::alice(), &message, 0, None)
+            .await
+            .return_value()
+    }};
+}
