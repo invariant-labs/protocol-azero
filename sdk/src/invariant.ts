@@ -10,6 +10,7 @@ import {
   FeeTier,
   InvariantError,
   Liquidity,
+  LiquidityTick,
   Percentage,
   Pool,
   PoolKey,
@@ -561,5 +562,31 @@ export class Invariant {
       this.waitForFinalization,
       block
     ) as Promise<SwapRouteTxResult>
+  }
+
+  async getLiquidityTicks(
+    account: IKeyringPair,
+    pool_key: PoolKey,
+    offset: bigint
+  ): Promise<LiquidityTick[]> {
+    return sendQuery(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      account,
+      InvariantQuery.getLiquidityTicks,
+      [pool_key, offset]
+    )
+  }
+
+  async getLiquidityTicksAmount(account: IKeyringPair, poolKey: PoolKey): Promise<bigint> {
+    return sendQuery(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      account,
+      InvariantQuery.getLiquidityTicksAmount,
+      [poolKey]
+    )
   }
 }
