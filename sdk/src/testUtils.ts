@@ -4,6 +4,7 @@ import { assert } from 'chai'
 import {
   CreatePositionEvent,
   InvariantError,
+  LiquidityTick,
   Position,
   PositionTick,
   RemovePositionEvent,
@@ -91,4 +92,14 @@ export const positionTickEquals = (
   assert.deepEqual(positionTick.index, expectedPositionTick.index)
   assert.deepEqual(positionTick.liquidityChange, expectedPositionTick.liquidityChange)
   assert.deepEqual(positionTick.sign, expectedPositionTick.sign)
+}
+
+export const liquidityTickEquals = (
+  liquidityTick: Tick | LiquidityTick,
+  expectedLiquidityTick: Tick | LiquidityTick
+) => {
+  assert.deepEqual(liquidityTick.index, expectedLiquidityTick.index)
+  assert.deepEqual(liquidityTick.feeGrowthOutsideX, expectedLiquidityTick.feeGrowthOutsideX)
+  assert.deepEqual(liquidityTick.feeGrowthOutsideY, expectedLiquidityTick.feeGrowthOutsideY)
+  assert.deepEqual(liquidityTick.secondsOutside, expectedLiquidityTick.secondsOutside)
 }

@@ -10,6 +10,7 @@ import {
   FeeTier,
   InvariantError,
   Liquidity,
+  LiquidityTick,
   Percentage,
   Pool,
   PoolKey,
@@ -579,6 +580,21 @@ export class Invariant {
     )
   }
 
+  async getLiquidityTicks(
+    account: IKeyringPair,
+    poolKey: PoolKey,
+    offset: bigint
+  ): Promise<LiquidityTick[]> {
+    return sendQuery(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      account,
+      InvariantQuery.getLiquidityTicks,
+      [poolKey, offset]
+    )
+  }
+
   async getUserPositionAmount(account: IKeyringPair, owner: string): Promise<bigint> {
     return sendQuery(
       this.contract,
@@ -587,6 +603,17 @@ export class Invariant {
       account,
       InvariantQuery.getUserPositionAmount,
       [owner]
+    )
+  }
+
+  async getLiquidityTicksAmount(account: IKeyringPair, poolKey: PoolKey): Promise<bigint> {
+    return sendQuery(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      account,
+      InvariantQuery.getLiquidityTicksAmount,
+      [poolKey]
     )
   }
 }

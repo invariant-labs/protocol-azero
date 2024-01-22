@@ -952,3 +952,13 @@ macro_rules! position_tick_equals {
         assert_eq!($a.sign, $b.sign);
     }};
 }
+
+#[macro_export]
+macro_rules! liquidity_tick_equals {
+    ($a:expr, $b:expr) => {{
+        assert_eq!($a.index, $b.index);
+        assert_eq!($a.fee_growth_outside_x, $b.fee_growth_outside_x);
+        assert_eq!($a.fee_growth_outside_y, $b.fee_growth_outside_y);
+        assert_eq!($a.seconds_outside, $b.seconds_outside);
+    }};
+}
