@@ -7,7 +7,6 @@ use ink::storage::Mapping;
 
 pub const TICK_SEARCH_RANGE: i32 = 256;
 pub const CHUNK_SIZE: i32 = 64;
-pub const MAX_CHUNKS: u16 = ((MAX_TICK * 2 + 1) / CHUNK_SIZE) as u16;
 
 #[derive(Debug)]
 #[ink::storage_item]
@@ -44,7 +43,13 @@ pub fn tick_to_position(tick: i32, tick_spacing: u16) -> (u16, u8) {
     (chunk, bit)
 }
 
-fn get_bit_at_position(value: u64, position: u8) -> u64 {
+pub fn position_to_tick(chunk: u16, bit: u8, tick_spacing: u16) -> i32 {
+    let tick_range_limit = MAX_TICK - MAX_TICK % tick_spacing as i32;
+    (chunk as i32 * CHUNK_SIZE * tick_spacing as i32 + bit as i32 * tick_spacing as i32)
+        - tick_range_limit
+}
+
+pub fn get_bit_at_position(value: u64, position: u8) -> u64 {
     (value >> position) & 1
 }
 

@@ -3,6 +3,7 @@ import { assert } from 'chai'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
+import { liquidityTickEquals } from '../src/testUtils'
 import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
 
 const api = await initPolkadotApi(Network.Local)
@@ -56,6 +57,12 @@ describe('get liquidity ticks', async () => {
 
     const result = await invariant.getLiquidityTicks(account, poolKey, 0n)
     assert.equal(result.length, 2)
+
+    const lowerTick = await invariant.getTick(account, poolKey, -10n)
+    const upperTick = await invariant.getTick(account, poolKey, 10n)
+
+    liquidityTickEquals(result[0], lowerTick)
+    liquidityTickEquals(result[1], upperTick)
   })
 
   it('should get liquidity ticks limit', async function () {

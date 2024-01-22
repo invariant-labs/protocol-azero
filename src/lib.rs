@@ -37,10 +37,10 @@ pub enum InvariantError {
 }
 #[ink::contract]
 pub mod invariant {
-    use crate::contracts::MAX_CHUNKS;
     use crate::contracts::{
-        FeeTier, FeeTiers, InvariantConfig, InvariantTrait, LiquidityTick, Pool, PoolKey, PoolKeys,
-        Pools, Position, Positions, Tick, Tickmap, Ticks, CHUNK_SIZE, LIQUIDITY_TICK_LIMIT,
+        get_bit_at_position, position_to_tick, tick_to_position, FeeTier, FeeTiers,
+        InvariantConfig, InvariantTrait, LiquidityTick, Pool, PoolKey, PoolKeys, Pools, Position,
+        Positions, Tick, Tickmap, Ticks, CHUNK_SIZE, LIQUIDITY_TICK_LIMIT,
     };
     use crate::math::calculate_min_amount_out;
     use crate::math::check_tick;
@@ -51,8 +51,8 @@ pub mod invariant {
     use crate::math::types::liquidity::Liquidity;
     use crate::math::MAX_TICK;
     use crate::math::{compute_swap_step, MAX_SQRT_PRICE, MIN_SQRT_PRICE};
-    use crate::InvariantError;
-    //
+    use crate::InvariantError; // Add this line
+                               //
     use decimal::*;
     use ink::contract_ref;
     use ink::prelude::vec;
@@ -948,28 +948,33 @@ pub mod invariant {
         fn get_liquidity_ticks(&self, pool_key: PoolKey, offset: u16) -> Vec<LiquidityTick> {
             let mut ticks = vec![];
             let tick_spacing = pool_key.fee_tier.tick_spacing;
-            let tick_range_limit = MAX_TICK - MAX_TICK % tick_spacing as i32;
 
-            let chunk_limit = MAX_CHUNKS / tick_spacing;
+            let max_tick = MAX_TICK - MAX_TICK % tick_spacing as i32;
+            let (chunk_limit, bit_limit) = tick_to_position(max_tick, tick_spacing);
+
             let mut skipped_ticks = 0;
 
-            'outer: for i in 0..=chunk_limit {
+            for i in 0..=chunk_limit {
                 let chunk = self.tickmap.bitmap.get((i, pool_key)).unwrap_or(0);
 
                 if chunk != 0 {
-                    for j in 0..=CHUNK_SIZE - 1 {
-                        if (chunk >> j) & 1 == 1 {
+                    let end = if chunk as u16 == chunk_limit {
+                        bit_limit
+                    } else {
+                        (CHUNK_SIZE - 1) as u8
+                    };
+
+                    for j in 0..=end {
+                        if get_bit_at_position(chunk, j) == 1 {
                             if skipped_ticks < offset {
                                 skipped_ticks += 1;
                                 continue;
                             }
 
+                            let tick_index = position_to_tick(i, j, tick_spacing);
+
                             self.ticks
-                                .get(
-                                    pool_key,
-                                    (i as i32 * 64 * tick_spacing as i32 + j * tick_spacing as i32)
-                                        - tick_range_limit,
-                                )
+                                .get(pool_key, tick_index)
                                 .map(|tick| {
                                     ticks.push(LiquidityTick {
                                         index: tick.index,
@@ -981,7 +986,7 @@ pub mod invariant {
                                 .ok();
 
                             if ticks.len() >= LIQUIDITY_TICK_LIMIT {
-                                break 'outer;
+                                return ticks;
                             }
                         }
                     }
@@ -992,22 +997,18 @@ pub mod invariant {
         }
 
         #[ink(message)]
-        fn get_liquidity_ticks_amount(&self, pool_key: PoolKey) -> u16 {
+        fn get_liquidity_ticks_amount(&self, pool_key: PoolKey) -> u32 {
             let tick_spacing = pool_key.fee_tier.tick_spacing;
 
-            let chunk_limit = MAX_CHUNKS / tick_spacing;
+            let max_tick = MAX_TICK - MAX_TICK % tick_spacing as i32;
+            let (chunk_limit, _) = tick_to_position(max_tick, tick_spacing);
+
             let mut amount = 0;
 
             for i in 0..=chunk_limit {
                 let chunk = self.tickmap.bitmap.get((i, pool_key)).unwrap_or(0);
 
-                if chunk != 0 {
-                    for j in 0..=CHUNK_SIZE - 1 {
-                        if (chunk >> j) & 1 == 1 {
-                            amount += 1;
-                        }
-                    }
-                }
+                amount += chunk.count_ones();
             }
 
             amount

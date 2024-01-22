@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x5621ba19b53c72d2787e220490e6a03738c2a845551145174311601e5b68b1c1",
+    "hash": "0x758f55d578b5a6e973af400dfeeb8a1e8bbbfc577d1c56905a543fca64e7cd7e",
     "language": "ink! 4.3.0",
     "compiler": "rustc 1.72.1",
     "build_info": {
@@ -3754,7 +3754,7 @@
               {
                 "fields": [
                   {
-                    "type": 5
+                    "type": 0
                   }
                 ],
                 "index": 0,
@@ -3775,7 +3775,7 @@
         "params": [
           {
             "name": "T",
-            "type": 5
+            "type": 0
           },
           {
             "name": "E",

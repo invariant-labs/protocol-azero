@@ -363,5 +363,5 @@ pub trait InvariantTrait {
     /// # Parameters
     /// - `pool_key`: A unique key that identifies the specified pool.
     #[ink(message)]
-    fn get_liquidity_ticks_amount(&self, pool_key: PoolKey) -> u16;
+    fn get_liquidity_ticks_amount(&self, pool_key: PoolKey) -> u32;
 }

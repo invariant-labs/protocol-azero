@@ -13,7 +13,7 @@ pub mod e2e_tests {
     use ink_e2e::build_message;
     use test_helpers::{
         add_fee_tier, approve, create_dex, create_pool, create_position, create_tokens,
-        get_liquidity_ticks,
+        get_liquidity_ticks, get_liquidity_ticks_amount, get_tick, liquidity_tick_equals,
     };
     use token::{TokenRef, PSP22};
 
@@ -64,8 +64,16 @@ pub mod e2e_tests {
         )
         .unwrap();
 
+        let result = get_liquidity_ticks_amount!(client, InvariantRef, dex, pool_key);
+        assert_eq!(result, 2);
         let result = get_liquidity_ticks!(client, InvariantRef, dex, pool_key, 0);
         assert_eq!(result.len(), 2);
+
+        let lower_tick = get_tick!(client, InvariantRef, dex, pool_key, -10).unwrap();
+        let upper_tick = get_tick!(client, InvariantRef, dex, pool_key, 10).unwrap();
+
+        liquidity_tick_equals!(lower_tick, result[0]);
+        liquidity_tick_equals!(upper_tick, result[1]);
 
         Ok(())
     }
@@ -149,9 +157,13 @@ pub mod e2e_tests {
         )
         .unwrap();
 
+        let result = get_liquidity_ticks_amount!(client, InvariantRef, dex, pool_key_1);
+        assert_eq!(result, 2);
         let result = get_liquidity_ticks!(client, InvariantRef, dex, pool_key_1, 0);
         assert_eq!(result.len(), 2);
 
+        let result = get_liquidity_ticks_amount!(client, InvariantRef, dex, pool_key_2);
+        assert_eq!(result, 2);
         let result = get_liquidity_ticks!(client, InvariantRef, dex, pool_key_2, 0);
         assert_eq!(result.len(), 2);
 
@@ -205,6 +217,8 @@ pub mod e2e_tests {
             .unwrap();
         }
 
+        let result = get_liquidity_ticks_amount!(client, InvariantRef, dex, pool_key);
+        assert_eq!(result, LIQUIDITY_TICK_LIMIT as u32);
         let result = get_liquidity_ticks!(client, InvariantRef, dex, pool_key, 0);
         assert_eq!(result.len(), LIQUIDITY_TICK_LIMIT);
 
@@ -263,6 +277,8 @@ pub mod e2e_tests {
             .unwrap();
         }
 
+        let result = get_liquidity_ticks_amount!(client, InvariantRef, dex, pool_key);
+        assert_eq!(result, LIQUIDITY_TICK_LIMIT as u32);
         let result = get_liquidity_ticks!(client, InvariantRef, dex, pool_key, 0);
         assert_eq!(result.len(), LIQUIDITY_TICK_LIMIT);
 
@@ -315,6 +331,9 @@ pub mod e2e_tests {
             alice
         )
         .unwrap();
+
+        let result = get_liquidity_ticks_amount!(client, InvariantRef, dex, pool_key);
+        assert_eq!(result, 2);
 
         let result_1 = get_liquidity_ticks!(client, InvariantRef, dex, pool_key, 0);
         assert_eq!(result_1.len(), 2);
