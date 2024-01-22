@@ -18,6 +18,8 @@ import {
   getLiquidityByX,
   getLiquidityByY,
   getLiquidityScale,
+  getMaxSqrtPrice,
+  getMaxTick,
   getPercentageScale,
   getSqrtPriceScale,
   getTokenAmountScale
@@ -97,7 +99,12 @@ const main = async () => {
     console.log('y = ', y)
     console.log('updateLiquidity = ', updateLiquidity)
   }
-
+  {
+    const maxTick: bigint = BigInt(getMaxTick())
+    console.log(maxTick)
+    const maxSqrtPrice = getMaxSqrtPrice()
+    console.log(maxSqrtPrice)
+  }
   {
     const feeTier: FeeTier = newFeeTier({ v: 10n }, 55n)
     console.log(feeTier)

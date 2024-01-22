@@ -30,7 +30,26 @@ pub fn process_params(input: &syn::ItemFn) -> Vec<TokenStream> {
 pub fn process_return_type(
     return_ty: proc_macro2::TokenStream,
     camel_case_string: String,
-) -> (Ident, Vec<proc_macro2::TokenStream>) {
+) -> (Ident, Vec<proc_macro2::TokenStream>, bool) {
+    match return_ty
+        .clone()
+        .into_iter()
+        .next()
+        .unwrap()
+        .to_string()
+        .as_str()
+    {
+        "TrackableResult" => {}
+        "Result" => {}
+        _ => {
+            return (
+                Ident::new("unknown", proc_macro2::Span::call_site()),
+                Vec::new(),
+                true,
+            )
+        }
+    }
+
     let mut idents: Vec<String> = Vec::new();
 
     for token in return_ty.clone().into_iter() {
@@ -49,6 +68,13 @@ pub fn process_return_type(
         }
     }
 
+    if idents.len() == 0 {
+        return (
+            Ident::new("unknown", proc_macro2::Span::call_site()),
+            Vec::new(),
+            false,
+        );
+    }
     let tuple_struct_name = Ident::new(
         &format!("{}{}", camel_case_string, "Result"),
         proc_macro2::Span::call_site(),
@@ -61,7 +87,7 @@ pub fn process_return_type(
         })
         .collect();
 
-    (tuple_struct_name, tuple_struct_fields)
+    (tuple_struct_name, tuple_struct_fields, false)
 }
 
 pub fn requires_special_casting(ty: &Type) -> (bool, syn::Ident) {

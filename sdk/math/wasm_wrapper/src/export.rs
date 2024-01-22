@@ -11,11 +11,21 @@ pub fn generate_exported_function(
     conversion_code: Vec<TokenStream>,
     converted_params: Vec<TokenStream>,
     original_function_name: &Ident,
+    result_not_wrapped: bool,
 ) -> TokenStream {
     if tuple_struct_fields.len() > 0 {
         tuple_exported_function(
             &tuple_struct_name,
             tuple_struct_fields,
+            &camel_case_string,
+            &generated_function_ident,
+            params.clone(),
+            conversion_code.clone(),
+            converted_params.clone(),
+            &original_function_name,
+        )
+    } else if result_not_wrapped {
+        value_exproted_function(
             &camel_case_string,
             &generated_function_ident,
             params.clone(),
@@ -32,6 +42,26 @@ pub fn generate_exported_function(
             converted_params.clone(),
             &original_function_name,
         )
+    }
+}
+
+pub fn value_exproted_function(
+    camel_case_string: &str,
+    generated_function_ident: &Ident,
+    params: Vec<TokenStream>,
+    conversion_code: Vec<TokenStream>,
+    converted_params: Vec<TokenStream>,
+    original_function_name: &Ident,
+) -> TokenStream {
+    quote! {
+        #[wasm_bindgen(js_name = #camel_case_string)]
+        pub fn #generated_function_ident(#(#params),*) -> Result<JsValue,JsValue> {
+            #(#conversion_code)*
+
+            let result = #original_function_name(#(#converted_params),*);
+            // TODO - add parsing to BigInt when the value is < 2^53 -1
+            Ok(serde_wasm_bindgen::to_value(&result)?)
+        }
     }
 }
 

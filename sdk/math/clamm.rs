@@ -354,12 +354,10 @@ pub fn is_enough_amount_to_change_price(
 }
 
 #[wasm_wrapper]
-pub fn calculate_max_liquidity_per_tick(tick_spacing: u16) -> TrackableResult<Liquidity> {
+pub fn calculate_max_liquidity_per_tick(tick_spacing: u16) -> Liquidity {
     const MAX_TICKS_AMOUNT_SQRT_PRICE_LIMITED: u128 = 2 * MAX_TICK as u128 + 1;
     let ticks_amount_spacing_limited = MAX_TICKS_AMOUNT_SQRT_PRICE_LIMITED / tick_spacing as u128;
-    Ok(Liquidity::new(
-        Liquidity::max_instance().get() / ticks_amount_spacing_limited,
-    ))
+    Liquidity::new(Liquidity::max_instance().get() / ticks_amount_spacing_limited)
 }
 
 #[wasm_wrapper]
@@ -391,8 +389,8 @@ pub fn check_tick(tick_index: i32, tick_spacing: u16) -> TrackableResult<()> {
 pub fn calculate_min_amount_out(
     expected_amount_out: TokenAmount,
     slippage: Percentage,
-) -> TrackableResult<TokenAmount> {
-    Ok(expected_amount_out.big_mul_up(Percentage::from_integer(1u8) - slippage))
+) -> TokenAmount {
+    expected_amount_out.big_mul_up(Percentage::from_integer(1u8) - slippage)
 }
 
 #[cfg(test)]
