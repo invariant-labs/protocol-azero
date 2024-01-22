@@ -11,6 +11,7 @@ import {
   Pool,
   PoolKey,
   Position,
+  Price,
   SqrtPrice,
   Tick,
   TokenAmounts,
@@ -298,4 +299,12 @@ const isArray = (value: any): boolean => {
 
 const isObject = (value: any): boolean => {
   return typeof value === 'object' && value !== null
+}
+
+export const sqrtPriceToPrice = (sqrtPrice: SqrtPrice): Price => {
+  return (sqrtPrice * sqrtPrice) / getSqrtPriceDenominator()
+}
+
+export const priceToSqrtPrice = (price: Price): SqrtPrice => {
+  return sqrt(price * getSqrtPriceDenominator())
 }

@@ -10,7 +10,9 @@ import {
   initPolkadotApi,
   newFeeTier,
   newPoolKey,
-  simulateUnclaimedFees
+  priceToSqrtPrice,
+  simulateUnclaimedFees,
+  sqrtPriceToPrice
 } from '../src/utils'
 
 const api = await initPolkadotApi(Network.Local)
@@ -229,6 +231,56 @@ describe('utils', () => {
       const limitSqrt = calculateSqrtPriceAfterSlippage(sqrtPrice, slippage, false)
 
       assert.deepEqual(limitSqrt, expected)
+    })
+  })
+
+  describe('sqrt price and price conversion', () => {
+    it('price of 1.00', () => {
+      // 1.00 = sqrt(1.00)
+      const sqrtPrice = priceToSqrtPrice(1000000000000000000000000n)
+      const expectedSqrtPrice = 1000000000000000000000000n
+
+      assert.deepEqual(sqrtPrice, expectedSqrtPrice)
+    })
+
+    it('price of 2.00', () => {
+      // 1.414213562373095048801688... = sqrt(2.00)
+      const sqrtPrice = priceToSqrtPrice(2000000000000000000000000n)
+      const expectedSqrtPrice = 1414213562373095048801688n
+
+      assert.deepEqual(sqrtPrice, expectedSqrtPrice)
+    })
+
+    it('price of 0.25', () => {
+      // 0.5 = sqrt(0.25)
+      const sqrtPrice = priceToSqrtPrice(250000000000000000000000n)
+      const expectedSqrtPrice = 500000000000000000000000n
+
+      assert.deepEqual(sqrtPrice, expectedSqrtPrice)
+    })
+
+    it('sqrt price of 1.00', () => {
+      // sqrt(1.00) = 1.00
+      const price = sqrtPriceToPrice(1000000000000000000000000n)
+      const expectedSqrtPrice = 1000000000000000000000000n
+
+      assert.deepEqual(price, expectedSqrtPrice)
+    })
+
+    it('sqrt price of 2.00', () => {
+      // sqrt(1.414213562373095048801688...) = 2.00
+      const price = sqrtPriceToPrice(1414213562373095048801688n)
+      const expectedSqrtPrice = 1999999999999999999999997n
+
+      assert.deepEqual(price, expectedSqrtPrice)
+    })
+
+    it('sqrt price of 0.25', () => {
+      // sqrt(0.25) = 0.5
+      const price = sqrtPriceToPrice(500000000000000000000000n)
+      const expectedSqrtPrice = 250000000000000000000000n
+
+      assert.deepEqual(price, expectedSqrtPrice)
     })
   })
 })
