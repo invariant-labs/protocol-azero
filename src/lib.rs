@@ -46,10 +46,10 @@ pub mod invariant {
     use crate::math::check_tick;
     use crate::math::log::get_tick_at_sqrt_price;
     use crate::math::percentage::Percentage;
+    use crate::math::sqrt_price::get_max_tick;
     use crate::math::sqrt_price::SqrtPrice;
     use crate::math::token_amount::TokenAmount;
     use crate::math::types::liquidity::Liquidity;
-    use crate::math::MAX_TICK;
     use crate::math::{compute_swap_step, MAX_SQRT_PRICE, MIN_SQRT_PRICE};
     use crate::InvariantError; // Add this line
                                //
@@ -949,7 +949,7 @@ pub mod invariant {
             let mut ticks = vec![];
             let tick_spacing = pool_key.fee_tier.tick_spacing;
 
-            let max_tick = MAX_TICK - MAX_TICK % tick_spacing as i32;
+            let max_tick = get_max_tick(tick_spacing);
             let (chunk_limit, bit_limit) = tick_to_position(max_tick, tick_spacing);
 
             let mut skipped_ticks = 0;
@@ -964,14 +964,14 @@ pub mod invariant {
                         (CHUNK_SIZE - 1) as u8
                     };
 
-                    for j in 0..=end {
-                        if get_bit_at_position(chunk, j) == 1 {
+                    for bit in 0..=end {
+                        if get_bit_at_position(chunk, bit) == 1 {
                             if skipped_ticks < offset {
                                 skipped_ticks += 1;
                                 continue;
                             }
 
-                            let tick_index = position_to_tick(i, j, tick_spacing);
+                            let tick_index = position_to_tick(i, bit, tick_spacing);
 
                             self.ticks
                                 .get(pool_key, tick_index)
@@ -1000,7 +1000,7 @@ pub mod invariant {
         fn get_liquidity_ticks_amount(&self, pool_key: PoolKey) -> u32 {
             let tick_spacing = pool_key.fee_tier.tick_spacing;
 
-            let max_tick = MAX_TICK - MAX_TICK % tick_spacing as i32;
+            let max_tick = get_max_tick(tick_spacing);
             let (chunk_limit, _) = tick_to_position(max_tick, tick_spacing);
 
             let mut amount = 0;

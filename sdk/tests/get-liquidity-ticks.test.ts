@@ -81,8 +81,15 @@ describe('get liquidity ticks', async () => {
     }
 
     const result = await invariant.getLiquidityTicks(account, poolKey, 0n)
-
     assert.equal(result.length, 372)
+
+    for (let i = 1n; i <= 372n; i++) {
+      const lowerTick = await invariant.getTick(account, poolKey, -i)
+      const upperTick = await invariant.getTick(account, poolKey, i)
+
+      liquidityTickEquals(result[Number(i) * 2 - 2], lowerTick)
+      liquidityTickEquals(result[Number(i) * 2 - 1], upperTick)
+    }
   })
 
   it('should get liquidity ticks with offset', async () => {
@@ -102,7 +109,7 @@ describe('get liquidity ticks', async () => {
     const result2 = await invariant.getLiquidityTicks(account, poolKey, 1n)
     assert.equal(result2.length, 1)
 
-    assert.equal(result1[1].toString(), result2[0].toString())
+    liquidityTickEquals(result1[1], result2[0])
   })
 
   it('should get position ticks with multiple queries', async function () {
