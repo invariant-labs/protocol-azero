@@ -1,6 +1,6 @@
+use js_sys::BigInt;
 use wasm_bindgen::prelude::*;
 use wasm_wrapper::wasm_wrapper;
-
 pub const MAX_TICK: i32 = 221_818;
 pub const MIN_TICK: i32 = -MAX_TICK;
 

@@ -81,8 +81,8 @@ const main = async () => {
   }
   {
     const currentTickIndex = 2n
-    const currentSqrtPrice: SqrtPrice = { v: 1000140000000000000000000n }
-    const liquidity: Liquidity = { v: 5000000000000n }
+    const currentSqrtPrice: SqrtPrice = 1000140000000000000000000n
+    const liquidity: Liquidity = 5000000000000n
     const liquiditySign = true
     const upperTick = 3n
     const lowerTick = 0n

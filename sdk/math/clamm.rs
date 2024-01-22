@@ -2,6 +2,7 @@ use crate::consts::*;
 use crate::types::{liquidity::*, percentage::*, sqrt_price::*, token_amount::*};
 use core::convert::TryInto;
 use decimal::*;
+use js_sys::BigInt;
 use serde::{Deserialize, Serialize};
 use traceable_result::*;
 use tsify::Tsify;

@@ -59,7 +59,7 @@ pub fn value_exproted_function(
             #(#conversion_code)*
 
             let result = #original_function_name(#(#converted_params),*);
-            // TODO - add parsing to BigInt when the value is < 2^53 -1
+            // TODO - add parsing to BigInt when the value is < 2^53 - 1
             Ok(serde_wasm_bindgen::to_value(&result)?)
         }
     }
