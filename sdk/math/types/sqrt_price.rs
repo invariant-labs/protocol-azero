@@ -12,10 +12,7 @@ use wasm_bindgen::prelude::*;
 #[decimal(24)]
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
-pub struct SqrtPrice {
-    #[tsify(type = "bigint")]
-    pub v: u128,
-}
+pub struct SqrtPrice(#[tsify(type = "bigint")] pub u128);
 
 decimal_ops!(SqrtPrice);
 

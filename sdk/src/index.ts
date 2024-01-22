@@ -37,11 +37,10 @@ const main = async () => {
     console.log(getLiquidityScale())
   }
   {
-    const sqrtPriceA: SqrtPrice = {
-      v: 234878324943782000000000000n
-    }
-    const sqrtPriceB: SqrtPrice = { v: 87854456421658000000000000n }
-    const liquidity: Liquidity = { v: 983983249092n }
+    const sqrtPriceA: SqrtPrice = 234878324943782000000000000n
+
+    const sqrtPriceB: SqrtPrice = 87854456421658000000000000n
+    const liquidity: Liquidity = 983983249092n
 
     const deltaYUp = getDeltaY(sqrtPriceA, sqrtPriceB, liquidity, true)
     const deltaYDown = getDeltaY(sqrtPriceA, sqrtPriceB, liquidity, false)
@@ -50,7 +49,7 @@ const main = async () => {
   }
   {
     const providedAmount: TokenAmount = 47600000000n
-    const poolSqrtPrice: SqrtPrice = { v: 1000000000000000000000000000n }
+    const poolSqrtPrice: SqrtPrice = 1000000000000000000000000000n
     const lowerTickIndex = -22000n
     const upperTickIndex = -21000n
 
@@ -66,7 +65,7 @@ const main = async () => {
   }
   {
     const providedAmount = 430000n
-    const initSqrtPrice: SqrtPrice = { v: 1005012269622000000000000n }
+    const initSqrtPrice: SqrtPrice = 1005012269622000000000000n
     const lowerTickIndex = 80n
     const upperTickIndex = 120n
 
@@ -106,7 +105,7 @@ const main = async () => {
     console.log(maxSqrtPrice)
   }
   {
-    const feeTier: FeeTier = newFeeTier({ v: 10n }, 55n)
+    const feeTier: FeeTier = newFeeTier(10n, 55n)
     console.log(feeTier)
     const poolKey: PoolKey = newPoolKey(
       '5H79vf7qQKdpefChp4sGh8j4BNq8JoL5x8nez8RsEebPJu9D',
@@ -129,7 +128,7 @@ const main = async () => {
   await printBalance(api, testAccount)
 
   // deploy invariant
-  const initFee = { v: 10n }
+  const initFee = 10n
   const invariant = await Invariant.deploy(api, network, account, initFee)
 
   invariant.on(InvariantEvent.CreatePositionEvent, (event: CreatePositionEvent) => {
@@ -137,44 +136,37 @@ const main = async () => {
   })
 
   // deploy token
-  const token0 = await PSP22.deploy(api, network, account, 1000n, 'Coin', 'COIN', 12n)
-  const token1 = await PSP22.deploy(api, network, account, 1000n, 'Coin', 'COIN', 12n)
+  const token0Address = await PSP22.deploy(api, account, 1000n, 'Coin', 'COIN', 12n)
+  const token1Address = await PSP22.deploy(api, account, 1000n, 'Coin', 'COIN', 12n)
+  const psp22 = await PSP22.load(api, network, token0Address)
+  const feeTier = newFeeTier(6000000000n, 10n)
 
-  const feeTier = newFeeTier({ v: 6000000000n }, 10n)
-
-  const poolKey = await newPoolKey(
-    token0.contract.address.toString(),
-    token1.contract.address.toString(),
-    feeTier
-  )
+  const poolKey = await newPoolKey(token0Address, token1Address, feeTier)
 
   await invariant.addFeeTier(account, feeTier)
 
   await invariant.createPool(
     account,
-    token0.contract.address.toString(),
-    token1.contract.address.toString(),
+    token0Address,
+    token1Address,
     feeTier,
-    { v: 1000000000000000000000000n },
+    1000000000000000000000000n,
     0n
   )
 
-  await token0.approve(account, invariant.contract.address.toString(), 10000000000n)
-  await token1.approve(account, invariant.contract.address.toString(), 10000000000n)
+  await psp22.setContractAddress(token0Address)
+  await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
+  await psp22.setContractAddress(token1Address)
+  await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
 
-  const pool = await invariant.getPool(
-    account,
-    token0.contract.address.toString(),
-    token1.contract.address.toString(),
-    feeTier
-  )
+  const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
 
   await invariant.createPosition(
     account,
     poolKey,
     -10n,
     10n,
-    { v: 1000000000000n },
+    1000000000000n,
     pool.sqrtPrice,
     pool.sqrtPrice
   )
@@ -189,9 +181,10 @@ const main = async () => {
     (await getBalance(api, testAccount.address)).balanceFormatted
   )
 
+  await psp22.setContractAddress(token0Address)
   const results = await Promise.all([
     invariant.getFeeTiers(account),
-    token0.totalSupply(account),
+    psp22.totalSupply(account),
     wazero.balanceOf(account, account.address)
   ])
 

@@ -60,7 +60,7 @@ pub fn get_liquidity_by_x_sqrt_price(
             (lower_sqrt_price.big_mul(upper_sqrt_price)).big_div(SqrtPrice::from_integer(1));
         let denominator = upper_sqrt_price - lower_sqrt_price;
         let liquidity = Liquidity::new(
-            (U256::from(x.0)
+            (U256::from(x.get())
                 * U256::from(nominator.get())
                 * U256::from(Liquidity::from_integer(1).get())
                 / U256::from(denominator.get()))
@@ -78,7 +78,7 @@ pub fn get_liquidity_by_x_sqrt_price(
         .big_div(SqrtPrice::from_integer(1));
     let denominator = upper_sqrt_price - current_sqrt_price;
     let liquidity = Liquidity::new(
-        (U256::from(x.0)
+        (U256::from(x.get())
             * U256::from(nominator.get())
             * U256::from(Liquidity::from_integer(1).get())
             / U256::from(denominator.get()))
@@ -133,7 +133,7 @@ pub fn get_liquidity_by_y_sqrt_price(
     if upper_sqrt_price <= current_sqrt_price {
         let sqrt_price_diff = upper_sqrt_price - lower_sqrt_price;
         let liquidity = Liquidity::new(
-            (U256::from(y.0)
+            (U256::from(y.get())
                 * U256::from(SqrtPrice::from_integer(1).get())
                 * U256::from(Liquidity::from_integer(1).get())
                 / U256::from(sqrt_price_diff.get()))
@@ -148,7 +148,7 @@ pub fn get_liquidity_by_y_sqrt_price(
 
     let sqrt_price_diff = current_sqrt_price - lower_sqrt_price;
     let liquidity = Liquidity::new(
-        (U256::from(y.0)
+        (U256::from(y.get())
             * U256::from(SqrtPrice::from_integer(1).get())
             * U256::from(Liquidity::from_integer(1).get())
             / U256::from(sqrt_price_diff.get()))
