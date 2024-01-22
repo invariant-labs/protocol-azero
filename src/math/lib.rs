@@ -1,8 +1,5 @@
 #![no_std]
 extern crate alloc;
-#[allow(unused_imports)]
-// #[cfg(not(feature = "std"))]
-use wasm_bindgen::prelude::*;
 
 pub mod clamm;
 pub mod consts;

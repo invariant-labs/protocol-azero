@@ -1,25 +1,37 @@
-use crate::alloc::string::ToString;
 use crate::liquidity::*;
 use crate::token_amount::TokenAmount;
 use core::convert::{TryFrom, TryInto};
 use decimal::*;
-use serde::{Deserialize, Serialize};
 use traceable_result::*;
+
+#[cfg(feature = "wasm")]
+use crate::alloc::string::ToString;
+#[cfg(feature = "wasm")]
+use serde::{Deserialize, Serialize};
+#[cfg(feature = "wasm")]
 use tsify::Tsify;
+#[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
+
 #[decimal(28)]
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Serialize, Deserialize, Tsify)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, scale::Decode, scale::Encode)]
 #[cfg_attr(
     feature = "std",
     derive(
         scale_info::TypeInfo,
-        scale::Decode,
-        scale::Encode,
+        // scale::Decode,
+        // scale::Encode,
         ink::storage::traits::StorageLayout
     )
 )]
-#[tsify(into_wasm_abi, from_wasm_abi)]
+#[cfg_attr(
+    feature = "wasm",
+    derive(Serialize, Deserialize, Tsify),
+    tsify(into_wasm_abi, from_wasm_abi)
+)]
+
 pub struct FeeGrowth {
+    #[cfg_attr(feature = "wasm", tsify(type = "bigint"))]
     pub v: u128,
 }
 

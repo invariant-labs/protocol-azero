@@ -1,24 +1,26 @@
 use super::sqrt_price::SqrtPrice;
+#[cfg(feature = "wasm")]
 use crate::alloc::string::ToString;
 use core::convert::{TryFrom, TryInto};
 use decimal::*;
-use serde::{Deserialize, Serialize};
 use traceable_result::*;
-use tsify::Tsify;
 
 #[decimal(0)]
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Serialize, Deserialize, Tsify)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, scale::Decode, scale::Encode)]
 #[cfg_attr(
     feature = "std",
     derive(
         scale_info::TypeInfo,
-        scale::Decode,
-        scale::Encode,
+        // scale::Decode,
+        // scale::Encode,
         ink::storage::traits::StorageLayout
     )
 )]
-#[tsify(into_wasm_abi, from_wasm_abi)]
-
+#[cfg_attr(
+    feature = "wasm",
+    derive(serde::Serialize, serde::Deserialize, tsify::Tsify),
+    tsify(into_wasm_abi, from_wasm_abi)
+)]
 pub struct TokenAmount(pub u128);
 
 impl TokenAmount {
