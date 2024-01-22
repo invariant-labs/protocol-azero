@@ -14,7 +14,9 @@ use tsify::Tsify;
 use wasm_bindgen::prelude::*;
 
 #[decimal(28)]
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, scale::Decode, scale::Encode)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
+#[cfg(not(feature = "wasm"))]
+#[derive(scale::Decode, scale::Encode)]
 #[cfg_attr(
     feature = "std",
     derive(
