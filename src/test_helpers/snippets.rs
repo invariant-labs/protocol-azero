@@ -943,3 +943,12 @@ macro_rules! positions_equals {
         assert_eq!($a.tokens_owed_y, $b.tokens_owed_y);
     }};
 }
+
+#[macro_export]
+macro_rules! position_tick_equals {
+    ($a:expr, $b:expr) => {{
+        assert_eq!($a.index, $b.index);
+        assert_eq!($a.liquidity_change, $b.liquidity_change);
+        assert_eq!($a.sign, $b.sign);
+    }};
+}

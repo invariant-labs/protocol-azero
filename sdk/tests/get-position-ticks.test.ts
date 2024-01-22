@@ -3,6 +3,7 @@ import { assert } from 'chai'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
+import { positionTickEquals } from '../src/testUtils'
 import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
 
 const api = await initPolkadotApi(Network.Local)
@@ -56,6 +57,12 @@ describe('get liquidity ticks', async () => {
 
     const result = await invariant.getPositionTicks(account, account.address, 0n)
     assert.equal(result.length, 2)
+
+    const lowerTick = await invariant.getTick(account, poolKey, -10n)
+    const upperTick = await invariant.getTick(account, poolKey, 10n)
+
+    positionTickEquals(result[0], lowerTick)
+    positionTickEquals(result[1], upperTick)
   })
 
   it('should get position ticks limit', async function () {
@@ -74,8 +81,15 @@ describe('get liquidity ticks', async () => {
     }
 
     const result = await invariant.getPositionTicks(account, account.address, 0n)
-
     assert.equal(result.length, 780)
+
+    for (let i = 1n; i <= 390n; i++) {
+      const lowerTick = await invariant.getTick(account, poolKey, -i)
+      const upperTick = await invariant.getTick(account, poolKey, i)
+
+      positionTickEquals(result[Number(i) * 2 - 2], lowerTick)
+      positionTickEquals(result[Number(i) * 2 - 1], upperTick)
+    }
   })
 
   it('should get liquidity ticks with offset', async () => {
@@ -124,7 +138,7 @@ describe('get liquidity ticks', async () => {
       )
     }
 
-    const positionAmount = await invariant.getPositionAmount(account, account.address)
+    const positionAmount = await invariant.getUserPositionAmount(account, account.address)
 
     const promises = []
 

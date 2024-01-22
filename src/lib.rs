@@ -943,44 +943,35 @@ pub mod invariant {
         }
 
         #[ink(message)]
-        fn get_position_ticks(&self, owner: AccountId, offset: u16) -> Vec<PositionTick> {
-            let positions = self.positions.get_all(owner);
+        fn get_position_ticks(&self, owner: AccountId, offset: u32) -> Vec<PositionTick> {
+            let positions_length = self.positions.get_length(owner);
             let mut ticks = vec![];
 
-            let mut skipped_positions = 0;
+            for i in offset..positions_length {
+                self.positions
+                    .get(owner, i)
+                    .map(|position| {
+                        self.ticks
+                            .get(position.pool_key, position.lower_tick_index)
+                            .map(|tick| {
+                                ticks.push(PositionTick {
+                                    index: tick.index,
+                                    liquidity_change: tick.liquidity_change,
+                                    sign: tick.sign,
+                                })
+                            })
+                            .ok();
 
-            for position in positions.iter() {
-                if skipped_positions < offset {
-                    skipped_positions += 1;
-                    continue;
-                }
-
-                let Position {
-                    pool_key,
-                    lower_tick_index,
-                    upper_tick_index,
-                    ..
-                } = position;
-
-                self.ticks
-                    .get(*pool_key, *lower_tick_index)
-                    .map(|tick| {
-                        ticks.push(PositionTick {
-                            index: tick.index,
-                            liquidity_change: tick.liquidity_change,
-                            sign: tick.sign,
-                        })
-                    })
-                    .ok();
-
-                self.ticks
-                    .get(*pool_key, *upper_tick_index)
-                    .map(|tick| {
-                        ticks.push(PositionTick {
-                            index: tick.index,
-                            liquidity_change: tick.liquidity_change,
-                            sign: tick.sign,
-                        })
+                        self.ticks
+                            .get(position.pool_key, position.upper_tick_index)
+                            .map(|tick| {
+                                ticks.push(PositionTick {
+                                    index: tick.index,
+                                    liquidity_change: tick.liquidity_change,
+                                    sign: tick.sign,
+                                })
+                            })
+                            .ok();
                     })
                     .ok();
 
@@ -993,9 +984,8 @@ pub mod invariant {
         }
 
         #[ink(message)]
-        fn get_position_amount(&self, owner: AccountId) -> u16 {
-            let positions = self.positions.get_all(owner);
-            positions.len() as u16
+        fn get_user_position_amount(&self, owner: AccountId) -> u32 {
+            self.positions.get_length(owner)
         }
     }
 

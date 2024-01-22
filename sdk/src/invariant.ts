@@ -579,13 +579,13 @@ export class Invariant {
     )
   }
 
-  async getPositionAmount(account: IKeyringPair, owner: string): Promise<bigint> {
+  async getUserPositionAmount(account: IKeyringPair, owner: string): Promise<bigint> {
     return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       account,
-      InvariantQuery.getPositionAmount,
+      InvariantQuery.getUserPositionAmount,
       [owner]
     )
   }

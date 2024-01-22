@@ -13,7 +13,7 @@ pub mod e2e_tests {
     use ink_e2e::build_message;
     use test_helpers::{
         add_fee_tier, address_of, approve, create_dex, create_pool, create_position, create_tokens,
-        get_position_ticks,
+        get_position_ticks, get_tick, position_tick_equals,
     };
     use token::{TokenRef, PSP22};
 
@@ -67,6 +67,12 @@ pub mod e2e_tests {
         let result = get_position_ticks!(client, InvariantRef, dex, address_of!(Alice), 0);
         assert_eq!(result.len(), 2);
 
+        let lower_tick = get_tick!(client, InvariantRef, dex, pool_key, -10).unwrap();
+        let upper_tick = get_tick!(client, InvariantRef, dex, pool_key, 10).unwrap();
+
+        position_tick_equals!(result[0], lower_tick);
+        position_tick_equals!(result[1], upper_tick);
+
         Ok(())
     }
 
@@ -119,6 +125,14 @@ pub mod e2e_tests {
 
         let result = get_position_ticks!(client, InvariantRef, dex, address_of!(Alice), 0);
         assert_eq!(result.len(), POSITION_TICK_LIMIT);
+
+        for i in 1..=POSITION_TICK_LIMIT / 2 {
+            let lower_tick = get_tick!(client, InvariantRef, dex, pool_key, -(i as i32)).unwrap();
+            let upper_tick = get_tick!(client, InvariantRef, dex, pool_key, i as i32).unwrap();
+
+            position_tick_equals!(result[i * 2 - 2], lower_tick);
+            position_tick_equals!(result[i * 2 - 1], upper_tick);
+        }
 
         Ok(())
     }

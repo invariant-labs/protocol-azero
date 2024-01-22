@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0xf6da970d4abc36561de60bdcadda5229756f1e889732f4803075d5cfa03bfaf1",
+    "hash": "0x0441ecb186dfe2dac70d306a71c1a023686010aab934e3f42a5fc9ac89cf90d7",
     "language": "ink! 4.3.0",
     "compiler": "rustc 1.72.1",
     "build_info": {
@@ -1254,9 +1254,9 @@
             "label": "offset",
             "type": {
               "displayName": [
-                "u16"
+                "u32"
               ],
-              "type": 5
+              "type": 0
             }
           }
         ],
@@ -1288,7 +1288,7 @@
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::get_position_amount",
+        "label": "InvariantTrait::get_user_position_amount",
         "mutates": false,
         "payable": false,
         "returnType": {
@@ -1298,7 +1298,7 @@
           ],
           "type": 56
         },
-        "selector": "0xb82f46ff"
+        "selector": "0xd842f034"
       }
     ]
   },
@@ -3749,7 +3749,7 @@
               {
                 "fields": [
                   {
-                    "type": 5
+                    "type": 0
                   }
                 ],
                 "index": 0,
@@ -3770,7 +3770,7 @@
         "params": [
           {
             "name": "T",
-            "type": 5
+            "type": 0
           },
           {
             "name": "E",
