@@ -350,10 +350,9 @@ pub trait InvariantTrait {
     #[ink(message)]
     fn get_fee_tiers(&self) -> Vec<FeeTier>;
 
-    /// Retrieves all ticks in a specified range.
+    /// Retrieves list of lower and upper ticks of user positions.
     ///
     /// # Parameters
-    /// - `key`: A unique key that identifies the specified pool.
     /// - `owner`: An `AccountId` identifying the user who owns the position.
     /// - `offset`: The offset from the current position index.
     #[ink(message)]
@@ -365,6 +364,7 @@ pub trait InvariantTrait {
     /// - `owner`: An `AccountId` identifying the user who owns the position.
     #[ink(message)]
     fn get_user_position_amount(&self, owner: AccountId) -> u32;
+
     /// Retrieves tickmap chunks
     ///
     /// # Parameters
@@ -373,7 +373,7 @@ pub trait InvariantTrait {
     #[ink(message)]
     fn get_tickmap(&self, pool_key: PoolKey, center_tick: i32) -> Vec<(u16, u64)>;
 
-    /// Retrieves ticks for a specified pool.
+    /// Retrieves ticks of a specified pool.
     ///
     /// # Parameters
     /// - `pool_key`: A unique key that identifies the specified pool.
@@ -381,7 +381,7 @@ pub trait InvariantTrait {
     #[ink(message)]
     fn get_liquidity_ticks(&self, pool_key: PoolKey, offset: u16) -> Vec<LiquidityTick>;
 
-    /// Retrieves the amount of liquidity ticks for a specified pool.
+    /// Retrieves the amount of liquidity ticks of a specified pool.
     ///
     /// # Parameters
     /// - `pool_key`: A unique key that identifies the specified pool.
