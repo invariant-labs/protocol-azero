@@ -12,6 +12,7 @@ pub fn generate_exported_function(
     converted_params: Vec<TokenStream>,
     original_function_name: &Ident,
     result_not_wrapped: bool,
+    return_type: String,
 ) -> TokenStream {
     if tuple_struct_fields.len() > 0 {
         tuple_exported_function(
@@ -32,6 +33,7 @@ pub fn generate_exported_function(
             conversion_code.clone(),
             converted_params.clone(),
             &original_function_name,
+            return_type,
         )
     } else {
         struct_exported_function(
@@ -52,15 +54,36 @@ pub fn value_exproted_function(
     conversion_code: Vec<TokenStream>,
     converted_params: Vec<TokenStream>,
     original_function_name: &Ident,
+    return_type: String,
 ) -> TokenStream {
-    quote! {
-        #[wasm_bindgen(js_name = #camel_case_string)]
-        pub fn #generated_function_ident(#(#params),*) -> Result<JsValue,JsValue> {
-            #(#conversion_code)*
+    match return_type.as_str() {
+        "Liquidity"
+        | "SqrtPrice"
+        | "TokenAmount"
+        | "FeeGrowth"
+        | "FixedPoint"
+        | "Percentage"
+        | "SecondsPerLiquidity" => {
+            quote! {
+                #[wasm_bindgen(js_name = #camel_case_string)]
+                pub fn #generated_function_ident(#(#params),*) -> Result<BigInt, JsValue> {
+                    #(#conversion_code)*
 
-            let result = #original_function_name(#(#converted_params),*);
-            // TODO - add parsing to BigInt when the value is < 2^53 - 1
-            Ok(serde_wasm_bindgen::to_value(&result)?)
+                    let result = #original_function_name(#(#converted_params),*);
+                    Ok(BigInt::from(result.get()))
+                }
+            }
+        }
+        _ => {
+            quote! {
+                #[wasm_bindgen(js_name = #camel_case_string)]
+                pub fn #generated_function_ident(#(#params),*) -> Result<BigInt, JsValue> {
+                    #(#conversion_code)*
+
+                    let result = #original_function_name(#(#converted_params),*);
+                    Ok(BigInt::from(result))
+                }
+            }
         }
     }
 }
