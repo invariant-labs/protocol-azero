@@ -13,14 +13,6 @@ pub const MIN_SQRT_PRICE: u128 = 15258932000000000000;
 pub const TICK_SEARCH_RANGE: i32 = 256;
 pub const CHUNK_SIZE: i32 = 64;
 
-pub fn max_tick() -> TrackableResult<i32> {
-    Ok(MAX_TICK)
-}
-
-pub fn min_tick() -> TrackableResult<i32> {
-    Ok(MIN_TICK)
-}
-
 #[wasm_wrapper("getMaxTick")]
 pub fn exported_get_max_tick(tick_spacing: u16) -> TrackableResult<i32> {
     Ok(get_max_tick(tick_spacing))
