@@ -1,4 +1,5 @@
 use super::sqrt_price::SqrtPrice;
+#[allow(unused_imports)]
 use crate::alloc::string::ToString;
 use core::convert::{TryFrom, TryInto};
 use decimal::*;
@@ -16,7 +17,7 @@ use traceable_result::*;
     derive(serde::Serialize, serde::Deserialize, tsify::Tsify),
     tsify(into_wasm_abi, from_wasm_abi)
 )]
-pub struct TokenAmount(pub u128);
+pub struct TokenAmount(#[cfg_attr(feature = "wasm", tsify(type = "bigint"))] pub u128);
 
 impl TokenAmount {
     pub fn from_big_sqrt_price(value: U256) -> TrackableResult<TokenAmount> {

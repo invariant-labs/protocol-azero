@@ -1,3 +1,4 @@
+#[allow(unused_imports)]
 use crate::alloc::string::ToString;
 use crate::liquidity::Liquidity;
 use core::convert::{TryFrom, TryInto};
@@ -16,9 +17,7 @@ use traceable_result::*;
     derive(serde::Serialize, serde::Deserialize, tsify::Tsify),
     tsify(into_wasm_abi, from_wasm_abi)
 )]
-pub struct SecondsPerLiquidity {
-    pub v: u128,
-}
+pub struct SecondsPerLiquidity(#[cfg_attr(feature = "wasm", tsify(type = "bigint"))] pub u128);
 
 impl SecondsPerLiquidity {
     pub fn unchecked_add(self, other: SecondsPerLiquidity) -> SecondsPerLiquidity {

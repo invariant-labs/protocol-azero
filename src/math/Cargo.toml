@@ -2,11 +2,10 @@
 name = "math"
 version = "0.1.0"
 authors = ["Invariant Labs"]
-edition = "2018"
+edition = "2021"
 
 [lib]
 path = "lib.rs"
-
 
 [dependencies]
 wasm-bindgen = {version = "0.2.89", optional = true}
@@ -21,18 +20,18 @@ decimal = { path= "../decimal" }
 traceable_result = { path = "../traceable_result" }
 
 # ink
-ink = { version = "4.2.0", default-features = false, optional = true}
+ink = { version = "4.3", default-features = false}
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = [
-  "derive",
-]}
-scale-info = { version = "2.6", default-features = false, features = [
-  "derive",
+    "derive",
+] }
+scale-info = { version = "2.9", default-features = false, features = [
+    "derive",
 ], optional = true }
 
 
 [features]
-default = [] # "std"
+default = ["std"] # "std"
 std = ["ink/std", "scale/std", "scale-info/std"] #
-contract = ["scale/std"]
+contract = []
 ink-as-dependency = []
 wasm = ["wasm-bindgen", "serde-wasm-bindgen", "serde", "tsify", "paste", "js-sys"]

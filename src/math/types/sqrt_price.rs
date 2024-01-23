@@ -1,3 +1,4 @@
+#[allow(unused_imports)]
 use crate::alloc::string::ToString;
 use crate::consts::*;
 use crate::types::{fixed_point::FixedPoint, token_amount::TokenAmount};
@@ -17,9 +18,7 @@ use traceable_result::*;
     derive(serde::Serialize, serde::Deserialize, tsify::Tsify),
     tsify(into_wasm_abi, from_wasm_abi)
 )]
-pub struct SqrtPrice {
-    pub v: u128,
-}
+pub struct SqrtPrice(#[cfg_attr(feature = "wasm", tsify(type = "bigint"))] pub u128);
 
 impl SqrtPrice {
     pub fn from_tick(i: i32) -> TrackableResult<Self> {

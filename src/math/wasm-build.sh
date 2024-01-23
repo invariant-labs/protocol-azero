@@ -1,4 +1,4 @@
-#!/bin/bash
+ #!/bin/bash
 
 # Check if Cargo.toml exists
 if [ ! -f "Cargo.toml" ]; then

@@ -1,4 +1,4 @@
-// pub mod add_fee_tier;
+pub mod add_fee_tier;
 // pub mod change_fee_receiver;
 // pub mod change_protocol_fee;
 // pub mod claim;
@@ -6,6 +6,9 @@
 // pub mod create_pool;
 // pub mod cross;
 // pub mod cross_both_side;
+// pub mod get_liquidity_ticks;
+// pub mod get_position_ticks;
+// pub mod get_tickmap;
 // pub mod interaction_with_pool_on_removed_fee_tier;
 // pub mod limits;
 // pub mod liquidity_gap;

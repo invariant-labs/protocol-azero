@@ -1,3 +1,4 @@
+#[allow(unused_imports)]
 use crate::alloc::string::ToString;
 use core::convert::{TryFrom, TryInto};
 use decimal::*;
@@ -13,7 +14,4 @@ use decimal::*;
     derive(serde::Serialize, serde::Deserialize, tsify::Tsify),
     tsify(into_wasm_abi, from_wasm_abi)
 )]
-pub struct Percentage {
-    #[cfg_attr(feature = "wasm", tsify(type = "bigint"))]
-    pub v: u64,
-}
+pub struct Percentage(#[cfg_attr(feature = "wasm", tsify(type = "bigint"))] pub u64);

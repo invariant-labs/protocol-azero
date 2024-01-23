@@ -7,16 +7,20 @@ import { getBalance, initPolkadotJs as initApi } from '@scio-labs/use-inkathon/h
 import { readFile } from 'fs/promises'
 import {
   FeeTier,
+  Liquidity,
+  LiquidityTick,
   Percentage,
   Pool,
   PoolKey,
   Position,
+  Price,
   SqrtPrice,
   Tick,
   TokenAmounts,
   _newFeeTier,
   _newPoolKey,
   _simulateUnclaimedFees,
+  getMaxChunk,
   getPercentageDenominator,
   getSqrtPriceDenominator,
   wrappedCalculateTokenAmounts
@@ -24,8 +28,8 @@ import {
 import { Network } from './network.js'
 import { Query, Tx, TxResult } from './schema.js'
 
-export const DEFAULT_REF_TIME = 100000000000
-export const DEFAULT_PROOF_SIZE = 100000000000
+export const DEFAULT_REF_TIME = 1250000000000
+export const DEFAULT_PROOF_SIZE = 1250000000000
 
 export const initPolkadotApi = async (network: Network): Promise<ApiPromise> => {
   if (network === Network.Local) {
@@ -134,11 +138,13 @@ export const printBalance = async (api: ApiPromise, account: IKeyringPair) => {
 }
 
 export const newPoolKey = (token0: string, token1: string, feeTier: FeeTier): PoolKey => {
-  return parse(_newPoolKey(token0, token1, _newFeeTier(feeTier.fee, Number(feeTier.tickSpacing))))
+  return parse(
+    _newPoolKey(token0, token1, _newFeeTier(feeTier.fee, integerSafeCast(feeTier.tickSpacing)))
+  )
 }
 
 export const newFeeTier = (fee: Percentage, tickSpacing: bigint): FeeTier => {
-  return parse(_newFeeTier(fee, Number(tickSpacing)))
+  return parse(_newFeeTier(fee, integerSafeCast(tickSpacing)))
 }
 
 export const getEnvAccount = async (keyring: Keyring): Promise<IKeyringPair> => {
@@ -205,33 +211,30 @@ export const calculateSqrtPriceAfterSlippage = (
   slippage: Percentage,
   up: boolean
 ): SqrtPrice => {
-  const multiplier = getPercentageDenominator() + (up ? slippage.v : -slippage.v)
+  const multiplier = getPercentageDenominator() + (up ? slippage : -slippage)
 
-  return {
-    v:
-      sqrt(
-        ((sqrtPrice.v * sqrtPrice.v) / getSqrtPriceDenominator()) *
-          multiplier *
-          getSqrtPriceDenominator() *
-          getPercentageDenominator()
-      ) / getPercentageDenominator()
-  }
+  return (
+    sqrt(
+      ((sqrtPrice * sqrtPrice) / getSqrtPriceDenominator()) *
+        multiplier *
+        getSqrtPriceDenominator() *
+        getPercentageDenominator()
+    ) / getPercentageDenominator()
+  )
 }
 
 export const calculatePriceImpact = (
   startingSqrtPrice: SqrtPrice,
   endingSqrtPrice: SqrtPrice
 ): Percentage => {
-  const startingPrice = startingSqrtPrice.v * startingSqrtPrice.v
-  const endingPrice = endingSqrtPrice.v * endingSqrtPrice.v
+  const startingPrice = startingSqrtPrice * startingSqrtPrice
+  const endingPrice = endingSqrtPrice * endingSqrtPrice
   const diff = startingPrice - endingPrice
 
   const nominator = diff > 0n ? diff : -diff
   const denominator = startingPrice > endingPrice ? startingPrice : endingPrice
 
-  return {
-    v: (nominator * getPercentageDenominator()) / denominator
-  }
+  return (nominator * getPercentageDenominator()) / denominator
 }
 
 export const simulateUnclaimedFees = (
@@ -242,17 +245,17 @@ export const simulateUnclaimedFees = (
 ): TokenAmounts => {
   return _simulateUnclaimedFees(
     lowerTick.index,
-    lowerTick.feeGrowthOutsideX.v,
-    lowerTick.feeGrowthOutsideY.v,
+    lowerTick.feeGrowthOutsideX,
+    lowerTick.feeGrowthOutsideY,
     upperTick.index,
-    upperTick.feeGrowthOutsideX.v,
-    upperTick.feeGrowthOutsideY.v,
+    upperTick.feeGrowthOutsideX,
+    upperTick.feeGrowthOutsideY,
     pool.currentTickIndex,
-    pool.feeGrowthGlobalX.v,
-    pool.feeGrowthGlobalY.v,
-    position.feeGrowthInsideX.v,
-    position.feeGrowthInsideY.v,
-    position.liquidity.v
+    pool.feeGrowthGlobalX,
+    pool.feeGrowthGlobalY,
+    position.feeGrowthInsideX,
+    position.feeGrowthInsideY,
+    position.liquidity
   )
 }
 export const calculateTokenAmounts = (pool: Pool, position: Position): TokenAmounts => {
@@ -301,4 +304,47 @@ const isArray = (value: any): boolean => {
 
 const isObject = (value: any): boolean => {
   return typeof value === 'object' && value !== null
+}
+
+export const integerSafeCast = (value: bigint): number => {
+  if (value > BigInt(Number.MAX_SAFE_INTEGER) || value < BigInt(Number.MIN_SAFE_INTEGER)) {
+    throw new Error('Integer value is outside the safe range for Numbers')
+  }
+  return Number(value)
+}
+
+export const constructTickmap = (initializedChunks: bigint[][], tickSpacing: bigint): bigint[] => {
+  const maxChunk = getMaxChunk(tickSpacing)
+  const tickmap = new Array<bigint>(maxChunk + 1).fill(0n)
+  for (const [chunkIndex, value] of initializedChunks) {
+    tickmap[integerSafeCast(chunkIndex)] = value
+  }
+  return tickmap
+}
+
+export const sqrtPriceToPrice = (sqrtPrice: SqrtPrice): Price => {
+  return (sqrtPrice * sqrtPrice) / getSqrtPriceDenominator()
+}
+
+export const priceToSqrtPrice = (price: Price): SqrtPrice => {
+  return sqrt(price * getSqrtPriceDenominator())
+}
+
+interface LiquidityBreakPoint {
+  liquidity: Liquidity
+  index: bigint
+}
+
+export const calculateLiquidityBreakpoints = (
+  ticks: (Tick | LiquidityTick)[]
+): LiquidityBreakPoint[] => {
+  let currentLiquidity = 0n
+
+  return ticks.map(tick => {
+    currentLiquidity = currentLiquidity + tick.liquidityChange * (tick.sign ? 1n : -1n)
+    return {
+      liquidity: currentLiquidity,
+      index: tick.index
+    }
+  })
 }

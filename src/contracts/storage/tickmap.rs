@@ -1,5 +1,6 @@
 use crate::contracts::PoolKey;
 use ink::storage::Mapping;
+use math::sqrt_price::get_max_tick;
 use math::{
     types::sqrt_price::{calculate_sqrt_price, SqrtPrice},
     MAX_TICK,
@@ -7,6 +8,8 @@ use math::{
 
 pub const TICK_SEARCH_RANGE: i32 = 256;
 pub const CHUNK_SIZE: i32 = 64;
+pub const MAX_RESULT_SIZE: usize = 16 * 1024 * 8;
+pub const MAX_TICKMAP_QUERY_SIZE: usize = MAX_RESULT_SIZE / (16 + 64);
 
 #[derive(Debug)]
 #[ink::storage_item]
@@ -19,6 +22,13 @@ impl Default for Tickmap {
         let bitmap = Mapping::default();
         Tickmap { bitmap }
     }
+}
+
+pub fn get_max_chunk(tick_spacing: u16) -> u16 {
+    let max_tick = get_max_tick(tick_spacing);
+    let max_bitmap_index = (max_tick + MAX_TICK) / tick_spacing as i32;
+    let max_chunk_index = max_bitmap_index / CHUNK_SIZE;
+    max_chunk_index as u16
 }
 
 pub fn tick_to_position(tick: i32, tick_spacing: u16) -> (u16, u8) {
@@ -43,7 +53,13 @@ pub fn tick_to_position(tick: i32, tick_spacing: u16) -> (u16, u8) {
     (chunk, bit)
 }
 
-fn get_bit_at_position(value: u64, position: u8) -> u64 {
+pub fn position_to_tick(chunk: u16, bit: u8, tick_spacing: u16) -> i32 {
+    let tick_range_limit = MAX_TICK - MAX_TICK % tick_spacing as i32;
+    (chunk as i32 * CHUNK_SIZE * tick_spacing as i32 + bit as i32 * tick_spacing as i32)
+        - tick_range_limit
+}
+
+pub fn get_bit_at_position(value: u64, position: u8) -> u64 {
     (value >> position) & 1
 }
 

@@ -9,6 +9,9 @@ edition = "2021"
 decimal = { path = "src/decimal" }
 traceable_result = { path = "src/traceable_result" }
 math = { path = "src/math", default-features = false, features = ["ink-as-dependency"]}
+token = { path = "src/token", default-features = false, features = [
+  "ink-as-dependency",
+] }
 
 # ink
 ink = { version = "4.2.0", default-features = false }
@@ -18,9 +21,6 @@ scale = { package = "parity-scale-codec", version = "3", default-features = fals
 scale-info = { version = "2.6", default-features = false, features = [
   "derive",
 ], optional = true }
-token = { path = "src/token", default-features = false, features = [
-  "ink-as-dependency",
-] }
 
 
 [dev-dependencies]

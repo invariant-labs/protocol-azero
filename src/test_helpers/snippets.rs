@@ -943,3 +943,22 @@ macro_rules! positions_equals {
         assert_eq!($a.tokens_owed_y, $b.tokens_owed_y);
     }};
 }
+
+#[macro_export]
+macro_rules! position_tick_equals {
+    ($a:expr, $b:expr) => {{
+        assert_eq!($a.index, $b.index);
+        assert_eq!($a.fee_growth_outside_x, $b.fee_growth_outside_x);
+        assert_eq!($a.fee_growth_outside_y, $b.fee_growth_outside_y);
+        assert_eq!($a.seconds_outside, $b.seconds_outside);
+    }};
+}
+
+#[macro_export]
+macro_rules! liquidity_tick_equals {
+    ($a:expr, $b:expr) => {{
+        assert_eq!($a.index, $b.index);
+        assert_eq!($a.liquidity_change, $b.liquidity_change);
+        assert_eq!($a.sign, $b.sign);
+    }};
+}

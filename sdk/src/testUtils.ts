@@ -1,16 +1,24 @@
 import { Keyring } from '@polkadot/api'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { assert } from 'chai'
-import { CreatePositionEvent, InvariantError, Position, RemovePositionEvent } from 'math/math.js'
+import {
+  CreatePositionEvent,
+  InvariantError,
+  LiquidityTick,
+  Position,
+  PositionTick,
+  RemovePositionEvent,
+  Tick
+} from 'math/math.js'
 import { InvariantTx } from './schema.js'
 
 export const positionEquals = async (recievedPosition: Position, expectedPosition: Position) => {
   assert.deepEqual(recievedPosition.poolKey, expectedPosition.poolKey)
-  assert.deepEqual(recievedPosition.liquidity.v, expectedPosition.liquidity.v)
+  assert.deepEqual(recievedPosition.liquidity, expectedPosition.liquidity)
   assert.deepEqual(recievedPosition.lowerTickIndex, expectedPosition.lowerTickIndex)
   assert.deepEqual(recievedPosition.upperTickIndex, expectedPosition.upperTickIndex)
-  assert.deepEqual(recievedPosition.feeGrowthInsideX.v, expectedPosition.feeGrowthInsideX.v)
-  assert.deepEqual(recievedPosition.feeGrowthInsideY.v, expectedPosition.feeGrowthInsideY.v)
+  assert.deepEqual(recievedPosition.feeGrowthInsideX, expectedPosition.feeGrowthInsideX)
+  assert.deepEqual(recievedPosition.feeGrowthInsideY, expectedPosition.feeGrowthInsideY)
   assert.deepEqual(recievedPosition.tokensOwedX, expectedPosition.tokensOwedX)
   assert.deepEqual(recievedPosition.tokensOwedY, expectedPosition.tokensOwedY)
 }
@@ -75,4 +83,23 @@ export const removePositionEventEquals = (
   assert.deepEqual(removePositionEvent.lowerTick, expectedRemovePositionEvent.lowerTick)
   assert.deepEqual(removePositionEvent.pool, expectedRemovePositionEvent.pool)
   assert.deepEqual(removePositionEvent.upperTick, expectedRemovePositionEvent.upperTick)
+}
+
+export const positionTickEquals = (
+  positionTick: Tick | PositionTick,
+  expectedPositionTick: Tick | PositionTick
+) => {
+  assert.deepEqual(positionTick.index, expectedPositionTick.index)
+  assert.deepEqual(positionTick.feeGrowthOutsideX, expectedPositionTick.feeGrowthOutsideX)
+  assert.deepEqual(positionTick.feeGrowthOutsideY, expectedPositionTick.feeGrowthOutsideY)
+  assert.deepEqual(positionTick.secondsOutside, expectedPositionTick.secondsOutside)
+}
+
+export const liquidityTickEquals = (
+  liquidityTick: Tick | LiquidityTick,
+  expectedLiquidityTick: Tick | LiquidityTick
+) => {
+  assert.deepEqual(liquidityTick.index, expectedLiquidityTick.index)
+  assert.deepEqual(liquidityTick.liquidityChange, expectedLiquidityTick.liquidityChange)
+  assert.deepEqual(liquidityTick.sign, expectedLiquidityTick.sign)
 }

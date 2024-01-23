@@ -13,10 +13,7 @@ use wasm_bindgen::prelude::*;
 #[decimal(28)]
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
-pub struct FeeGrowth {
-    #[tsify(type = "bigint")]
-    pub v: u128,
-}
+pub struct FeeGrowth(#[tsify(type = "bigint")] pub u128);
 
 decimal_ops!(FeeGrowth);
 
@@ -118,7 +115,7 @@ mod tests {
     #[test]
     fn test_unchecked_add() {
         let max = FeeGrowth::max_instance();
-        let almost_max = FeeGrowth::max_instance() - FeeGrowth { v: 1 };
+        let almost_max = FeeGrowth::max_instance() - FeeGrowth::new(1);
         {
             let result = max.unchecked_add(almost_max);
             assert_eq!(
@@ -127,7 +124,7 @@ mod tests {
             )
         }
         {
-            let addend = FeeGrowth::max_instance() - FeeGrowth { v: 6 };
+            let addend = FeeGrowth::max_instance() - FeeGrowth::new(6);
             let result = max.unchecked_add(addend);
             assert_eq!(
                 result,
@@ -135,7 +132,7 @@ mod tests {
             )
         }
         {
-            let addend = FeeGrowth::max_instance() - FeeGrowth { v: 20 };
+            let addend = FeeGrowth::max_instance() - FeeGrowth::new(20);
             let result = max.unchecked_add(addend);
             assert_eq!(
                 result,
@@ -143,7 +140,7 @@ mod tests {
             )
         }
         {
-            let addend = FeeGrowth::max_instance() - FeeGrowth { v: 50 };
+            let addend = FeeGrowth::max_instance() - FeeGrowth::new(50);
             let result = max.unchecked_add(addend);
             assert_eq!(
                 result,
@@ -151,8 +148,8 @@ mod tests {
             )
         }
         {
-            let num = FeeGrowth { v: 11 };
-            let addend = FeeGrowth { v: 1100 };
+            let num = FeeGrowth::new(11);
+            let addend = FeeGrowth::new(1100);
             let result = num.unchecked_add(addend);
             assert_eq!(result, FeeGrowth::new(1111));
         }
