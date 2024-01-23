@@ -4,7 +4,7 @@ import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
 import { liquidityTickEquals } from '../src/testUtils'
-import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
+import { initPolkadotApi, integerSafeCast, newFeeTier, newPoolKey } from '../src/utils'
 
 const api = await initPolkadotApi(Network.Local)
 
@@ -88,9 +88,9 @@ describe('get liquidity ticks', async () => {
         const tick = await invariant.getTick(account, poolKey, i)
 
         if (i > 0n) {
-          liquidityTickEquals(result[Number(i) + 390 - 1], tick)
+          liquidityTickEquals(result[integerSafeCast(i) + 390 - 1], tick)
         } else {
-          liquidityTickEquals(result[Number(i) + 390], tick)
+          liquidityTickEquals(result[integerSafeCast(i) + 390], tick)
         }
       }
     }
