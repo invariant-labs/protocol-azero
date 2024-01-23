@@ -319,7 +319,7 @@ export const integerSafeCast = (value: bigint): number => {
 
 export const constructTickmap = (initializedChunks: bigint[][], tickSpacing: bigint): bigint[] => {
   const maxChunk = getMaxChunk(tickSpacing)
-  const tickmap = new Array<bigint>(maxChunk + 1).fill(0n)
+  const tickmap = new Array<bigint>(maxChunk + 1n).fill(0n)
   for (const [chunkIndex, value] of initializedChunks) {
     tickmap[integerSafeCast(chunkIndex)] = value
   }
