@@ -18,6 +18,7 @@ import {
   _newFeeTier,
   _newPoolKey,
   _simulateUnclaimedFees,
+  getMaxChunk,
   getPercentageDenominator,
   getSqrtPriceDenominator,
   wrappedCalculateTokenAmounts
@@ -25,8 +26,8 @@ import {
 import { Network } from './network.js'
 import { Query, Tx, TxResult } from './schema.js'
 
-export const DEFAULT_REF_TIME = 1000000000000
-export const DEFAULT_PROOF_SIZE = 1000000000000
+export const DEFAULT_REF_TIME = 1250000000000
+export const DEFAULT_PROOF_SIZE = 1250000000000
 
 export const initPolkadotApi = async (network: Network): Promise<ApiPromise> => {
   if (network === Network.Local) {
@@ -135,11 +136,13 @@ export const printBalance = async (api: ApiPromise, account: IKeyringPair) => {
 }
 
 export const newPoolKey = (token0: string, token1: string, feeTier: FeeTier): PoolKey => {
-  return parse(_newPoolKey(token0, token1, _newFeeTier(feeTier.fee, Number(feeTier.tickSpacing))))
+  return parse(
+    _newPoolKey(token0, token1, _newFeeTier(feeTier.fee, integerSafeCast(feeTier.tickSpacing)))
+  )
 }
 
 export const newFeeTier = (fee: Percentage, tickSpacing: bigint): FeeTier => {
-  return parse(_newFeeTier(fee, Number(tickSpacing)))
+  return parse(_newFeeTier(fee, integerSafeCast(tickSpacing)))
 }
 
 export const getEnvAccount = async (keyring: Keyring): Promise<IKeyringPair> => {
@@ -299,6 +302,22 @@ const isArray = (value: any): boolean => {
 
 const isObject = (value: any): boolean => {
   return typeof value === 'object' && value !== null
+}
+
+export const integerSafeCast = (value: bigint): number => {
+  if (value > BigInt(Number.MAX_SAFE_INTEGER) || value < BigInt(Number.MIN_SAFE_INTEGER)) {
+    throw new Error('Integer value is outside the safe range for Numbers')
+  }
+  return Number(value)
+}
+
+export const constructTickmap = (initializedChunks: bigint[][], tickSpacing: bigint): bigint[] => {
+  const maxChunk = getMaxChunk(tickSpacing)
+  const tickmap = new Array<bigint>(maxChunk + 1).fill(0n)
+  for (const [chunkIndex, value] of initializedChunks) {
+    tickmap[integerSafeCast(chunkIndex)] = value
+  }
+  return tickmap
 }
 
 export const sqrtPriceToPrice = (sqrtPrice: SqrtPrice): Price => {

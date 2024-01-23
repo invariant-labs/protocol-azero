@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x758f55d578b5a6e973af400dfeeb8a1e8bbbfc577d1c56905a543fca64e7cd7e",
+    "hash": "0x12efc47ea3b465f9cb1e5c60bc8a78fbd51eca16d2a7ae82b260ab1a70ec5dcb",
     "language": "ink! 4.3.0",
     "compiler": "rustc 1.72.1",
     "build_info": {
@@ -72,13 +72,13 @@
         "displayName": [
           "ChainExtension"
         ],
-        "type": 59
+        "type": 62
       },
       "hash": {
         "displayName": [
           "Hash"
         ],
-        "type": 58
+        "type": 61
       },
       "maxEventTopics": 4,
       "timestamp": {
@@ -215,7 +215,7 @@
               "displayName": [
                 "Vec"
               ],
-              "type": 57
+              "type": 60
             }
           }
         ],
@@ -1251,6 +1251,41 @@
             }
           },
           {
+            "label": "center_tick",
+            "type": {
+              "displayName": [
+                "i32"
+              ],
+              "type": 7
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "InvariantTrait::get_tickmap",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 53
+        },
+        "selector": "0x3b83b256"
+      },
+      {
+        "args": [
+          {
+            "label": "pool_key",
+            "type": {
+              "displayName": [
+                "PoolKey"
+              ],
+              "type": 13
+            }
+          },
+          {
             "label": "offset",
             "type": {
               "displayName": [
@@ -1270,7 +1305,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 53
+          "type": 56
         },
         "selector": "0x8ef8d345"
       },
@@ -1296,7 +1331,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 56
+          "type": 59
         },
         "selector": "0xf360dea7"
       }
@@ -3711,6 +3746,69 @@
       "id": 55,
       "type": {
         "def": {
+          "tuple": [
+            5,
+            4
+          ]
+        }
+      }
+    },
+    {
+      "id": 56,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 57
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 16
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 57
+          },
+          {
+            "name": "E",
+            "type": 16
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 57,
+      "type": {
+        "def": {
+          "sequence": {
+            "type": 58
+          }
+        }
+      }
+    },
+    {
+      "id": 58,
+      "type": {
+        "def": {
           "composite": {
             "fields": [
               {
@@ -3746,7 +3844,7 @@
       }
     },
     {
-      "id": 56,
+      "id": 59,
       "type": {
         "def": {
           "variant": {
@@ -3788,7 +3886,7 @@
       }
     },
     {
-      "id": 57,
+      "id": 60,
       "type": {
         "def": {
           "sequence": {
@@ -3798,7 +3896,7 @@
       }
     },
     {
-      "id": 58,
+      "id": 61,
       "type": {
         "def": {
           "composite": {
@@ -3818,7 +3916,7 @@
       }
     },
     {
-      "id": 59,
+      "id": 62,
       "type": {
         "def": {
           "variant": {}

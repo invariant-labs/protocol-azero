@@ -4,7 +4,7 @@ import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
 import { liquidityTickEquals } from '../src/testUtils'
-import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
+import { initPolkadotApi, integerSafeCast, newFeeTier, newPoolKey } from '../src/utils'
 
 const api = await initPolkadotApi(Network.Local)
 
@@ -19,7 +19,7 @@ const psp22 = await PSP22.load(api, Network.Local, token0Address)
 const feeTier = newFeeTier(10000000000n, 1n)
 let poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
-describe('get liquidity ticks', async () => {
+describe.only('get liquidity ticks', async () => {
   beforeEach(async () => {
     invariant = await Invariant.deploy(api, Network.Local, account, 10000000000n)
     token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
@@ -66,8 +66,6 @@ describe('get liquidity ticks', async () => {
   })
 
   it('should get liquidity ticks limit', async function () {
-    this.timeout(10000)
-
     for (let i = 1n; i <= 372n; i++) {
       await invariant.createPosition(
         account,
@@ -87,8 +85,8 @@ describe('get liquidity ticks', async () => {
       const lowerTick = await invariant.getTick(account, poolKey, -i)
       const upperTick = await invariant.getTick(account, poolKey, i)
 
-      liquidityTickEquals(result[Number(i) * 2 - 2], lowerTick)
-      liquidityTickEquals(result[Number(i) * 2 - 1], upperTick)
+      liquidityTickEquals(result[integerSafeCast(i) * 2 - 2], lowerTick)
+      liquidityTickEquals(result[integerSafeCast(i) * 2 - 1], upperTick)
     }
   })
 

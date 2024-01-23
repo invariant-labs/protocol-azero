@@ -37,6 +37,7 @@ import {
 import {
   DEFAULT_PROOF_SIZE,
   DEFAULT_REF_TIME,
+  constructTickmap,
   getDeploymentData,
   parse,
   sendQuery,
@@ -562,6 +563,22 @@ export class Invariant {
       this.waitForFinalization,
       block
     ) as Promise<SwapRouteTxResult>
+  }
+
+  async getTickmap(
+    account: IKeyringPair,
+    poolKey: PoolKey,
+    currentTickIndex: bigint
+  ): Promise<bigint[]> {
+    const result = await sendQuery(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      account,
+      InvariantQuery.GetTickmap,
+      [poolKey, currentTickIndex]
+    )
+    return constructTickmap(result, poolKey.feeTier.tickSpacing)
   }
 
   async getLiquidityTicks(
