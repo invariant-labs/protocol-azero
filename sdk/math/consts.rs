@@ -3,7 +3,7 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
 use wasm_wrapper::wasm_wrapper;
 
-use crate::types::sqrt_price::get_max_tick;
+use crate::types::sqrt_price::{get_max_tick, get_min_tick};
 pub const MAX_TICK: i32 = 221_818;
 pub const MIN_TICK: i32 = -MAX_TICK;
 
@@ -14,13 +14,13 @@ pub const TICK_SEARCH_RANGE: i32 = 256;
 pub const CHUNK_SIZE: i32 = 64;
 
 #[wasm_wrapper("getMaxTick")]
-pub fn exported_get_max_tick() -> TrackableResult<i32> {
-    Ok(MAX_TICK)
+pub fn exported_get_max_tick(tick_spacing: u16) -> TrackableResult<i32> {
+    Ok(get_max_tick(tick_spacing))
 }
 
 #[wasm_wrapper("getMinTick")]
-pub fn exported_get_min_tick() -> TrackableResult<i32> {
-    Ok(MIN_TICK)
+pub fn exported_get_min_tick(tick_spacing: u16) -> TrackableResult<i32> {
+    Ok(get_min_tick(tick_spacing))
 }
 
 #[wasm_wrapper]
