@@ -22,8 +22,25 @@ pub struct Tick {
     pub seconds_outside: u64,
 }
 
+pub const MAX_RESULT_SIZE: usize = 16 * 1024 * 8;
+
+// 131072 / (32 + 128 + 8) > 780
+pub const LIQUIDITY_TICK_LIMIT: usize = MAX_RESULT_SIZE / (32 + 128 + 8);
+
 // 131072 / (32 + 128 + 128 + 64) > 372
-pub const LIQUIDITY_TICK_LIMIT: usize = 372;
+pub const POSITION_TICK_LIMIT: usize = MAX_RESULT_SIZE / (32 + 128 + 128 + 64);
+
+#[derive(Debug, Copy, Clone, scale::Decode, scale::Encode, PartialEq)]
+#[cfg_attr(
+    feature = "std",
+    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+)]
+pub struct PositionTick {
+    pub index: i32,
+    pub fee_growth_outside_x: FeeGrowth,
+    pub fee_growth_outside_y: FeeGrowth,
+    pub seconds_outside: u64,
+}
 
 #[derive(Debug, Copy, Clone, scale::Decode, scale::Encode, PartialEq)]
 #[cfg_attr(
@@ -32,9 +49,8 @@ pub const LIQUIDITY_TICK_LIMIT: usize = 372;
 )]
 pub struct LiquidityTick {
     pub index: i32,
-    pub fee_growth_outside_x: FeeGrowth,
-    pub fee_growth_outside_y: FeeGrowth,
-    pub seconds_outside: u64,
+    pub liquidity_change: Liquidity,
+    pub sign: bool,
 }
 
 impl Default for Tick {
