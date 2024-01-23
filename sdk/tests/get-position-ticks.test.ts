@@ -119,8 +119,8 @@ describe('get liquidity ticks', async () => {
     const result2 = await invariant.getPositionTicks(account, account.address, 1n)
     assert.equal(result2.length, 2)
 
-    assert.equal!(result1[2].toString(), result2[0].toString())
-    assert.equal!(result1[3].toString(), result2[1].toString())
+    positionTickEquals(result1[2], result2[0])
+    positionTickEquals(result1[3], result2[1])
   })
 
   it('should get position ticks with multiple queries', async function () {

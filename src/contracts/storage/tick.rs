@@ -22,11 +22,13 @@ pub struct Tick {
     pub seconds_outside: u64,
 }
 
+pub const MAX_RESULT_SIZE: usize = 16 * 1024 * 8;
+
 // 131072 / (32 + 128 + 8) > 780
-pub const POSITION_TICK_LIMIT: usize = 780;
+pub const POSITION_TICK_LIMIT: usize = MAX_RESULT_SIZE / (32 + 128 + 8);
 
 // 131072 / (32 + 128 + 128 + 64) > 372
-pub const LIQUIDITY_TICK_LIMIT: usize = 372;
+pub const LIQUIDITY_TICK_LIMIT: usize = MAX_RESULT_SIZE / (32 + 128 + 128 + 64);
 
 #[derive(Debug, Copy, Clone, scale::Decode, scale::Encode, PartialEq)]
 #[cfg_attr(

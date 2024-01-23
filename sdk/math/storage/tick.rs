@@ -26,6 +26,7 @@ pub struct Tick {
 #[tsify(into_wasm_abi, from_wasm_abi)]
 #[serde(rename_all = "camelCase")]
 pub struct PositionTick {
+    #[tsify(type = "bigint")]
     pub index: i32,
     pub liquidity_change: Liquidity,
     pub sign: bool,
