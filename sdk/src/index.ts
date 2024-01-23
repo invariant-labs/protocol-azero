@@ -17,6 +17,8 @@ import {
   getLiquidityByX,
   getLiquidityByY,
   getLiquidityScale,
+  getMaxTick,
+  getMinTick,
   getPercentageScale,
   getSqrtPriceScale,
   getTokenAmountScale
@@ -27,6 +29,9 @@ import { InvariantEvent } from './schema.js'
 import { getEnvTestAccount } from './testUtils.js'
 
 const main = async () => {
+  {
+    console.log(getMinTick(1), getMaxTick(5))
+  }
   {
     console.log(getSqrtPriceScale())
     console.log(getTokenAmountScale())
