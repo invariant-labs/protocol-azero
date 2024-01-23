@@ -10,6 +10,7 @@ import {
   FeeTier,
   InvariantError,
   Liquidity,
+  LiquidityTick,
   Percentage,
   Pool,
   PoolKey,
@@ -36,6 +37,7 @@ import {
 import {
   DEFAULT_PROOF_SIZE,
   DEFAULT_REF_TIME,
+  constructTickmap,
   getDeploymentData,
   parse,
   sendQuery,
@@ -561,5 +563,47 @@ export class Invariant {
       this.waitForFinalization,
       block
     ) as Promise<SwapRouteTxResult>
+  }
+
+  async getTickmap(
+    account: IKeyringPair,
+    poolKey: PoolKey,
+    currentTickIndex: bigint
+  ): Promise<bigint[]> {
+    const result = await sendQuery(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      account,
+      InvariantQuery.GetTickmap,
+      [poolKey, currentTickIndex]
+    )
+    return constructTickmap(result, poolKey.feeTier.tickSpacing)
+  }
+
+  async getLiquidityTicks(
+    account: IKeyringPair,
+    pool_key: PoolKey,
+    offset: bigint
+  ): Promise<LiquidityTick[]> {
+    return sendQuery(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      account,
+      InvariantQuery.getLiquidityTicks,
+      [pool_key, offset]
+    )
+  }
+
+  async getLiquidityTicksAmount(account: IKeyringPair, poolKey: PoolKey): Promise<bigint> {
+    return sendQuery(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      account,
+      InvariantQuery.getLiquidityTicksAmount,
+      [poolKey]
+    )
   }
 }
