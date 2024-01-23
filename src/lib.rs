@@ -37,11 +37,11 @@ pub enum InvariantError {
 }
 #[ink::contract]
 pub mod invariant {
-    use crate::contracts::tickmap::{get_max_chunk, tick_to_position, MAX_TICKMAP_QUERY_SIZE};
     use crate::contracts::{
-        get_bit_at_position, position_to_tick, FeeTier, FeeTiers, InvariantConfig, InvariantTrait,
-        LiquidityTick, Pool, PoolKey, PoolKeys, Pools, Position, Positions, Tick, Tickmap, Ticks,
-        CHUNK_SIZE, LIQUIDITY_TICK_LIMIT,
+        get_bit_at_position, get_max_chunk, position_to_tick, tick_to_position, FeeTier, FeeTiers,
+        InvariantConfig, InvariantTrait, LiquidityTick, Pool, PoolKey, PoolKeys, Pools, Position,
+        PositionTick, Positions, Tick, Tickmap, Ticks, CHUNK_SIZE, LIQUIDITY_TICK_LIMIT,
+        MAX_TICKMAP_QUERY_SIZE, POSITION_TICK_LIMIT,
     };
     use crate::math::calculate_min_amount_out;
     use crate::math::check_tick;
@@ -946,6 +946,49 @@ pub mod invariant {
         }
 
         #[ink(message)]
+        fn get_position_ticks(&self, owner: AccountId, offset: u32) -> Vec<PositionTick> {
+            let positions_length = self.positions.get_length(owner);
+            let mut ticks = vec![];
+
+            for i in offset..positions_length {
+                self.positions
+                    .get(owner, i)
+                    .map(|position| {
+                        self.ticks
+                            .get(position.pool_key, position.lower_tick_index)
+                            .map(|tick| {
+                                ticks.push(PositionTick {
+                                    index: tick.index,
+                                    fee_growth_outside_x: tick.fee_growth_outside_x,
+                                    fee_growth_outside_y: tick.fee_growth_outside_y,
+                                    seconds_outside: tick.seconds_outside,
+                                })
+                            })
+                            .ok();
+
+                        self.ticks
+                            .get(position.pool_key, position.upper_tick_index)
+                            .map(|tick| {
+                                ticks.push(PositionTick {
+                                    index: tick.index,
+                                    fee_growth_outside_x: tick.fee_growth_outside_x,
+                                    fee_growth_outside_y: tick.fee_growth_outside_y,
+                                    seconds_outside: tick.seconds_outside,
+                                })
+                            })
+                            .ok();
+                    })
+                    .ok();
+
+                if ticks.len() >= POSITION_TICK_LIMIT {
+                    break;
+                }
+            }
+
+            ticks
+        }
+
+        #[ink(message)]
         fn get_tickmap(&self, pool_key: PoolKey, center_tick: i32) -> Vec<(u16, u64)> {
             let tick_spacing = pool_key.fee_tier.tick_spacing;
 
@@ -1029,9 +1072,8 @@ pub mod invariant {
                                 .map(|tick| {
                                     ticks.push(LiquidityTick {
                                         index: tick.index,
-                                        fee_growth_outside_x: tick.fee_growth_outside_x,
-                                        fee_growth_outside_y: tick.fee_growth_outside_y,
-                                        seconds_outside: tick.seconds_outside,
+                                        liquidity_change: tick.liquidity_change,
+                                        sign: tick.sign,
                                     })
                                 })
                                 .ok();
@@ -1045,6 +1087,11 @@ pub mod invariant {
             }
 
             ticks
+        }
+
+        #[ink(message)]
+        fn get_user_position_amount(&self, owner: AccountId) -> u32 {
+            self.positions.get_length(owner)
         }
 
         #[ink(message)]

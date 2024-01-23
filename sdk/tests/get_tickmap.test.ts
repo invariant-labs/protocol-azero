@@ -21,7 +21,9 @@ describe('tickmap', async () => {
   const feeTier = newFeeTier(10000000000n, 1n)
   const ticks = [-221818n, -221817n, -58n, 5n, 221817n, 221818n]
   let poolKey = newPoolKey(token0Address, token1Address, feeTier)
-  beforeEach(async () => {
+  beforeEach(async function () {
+    this.timeout(5000)
+
     invariant = await Invariant.deploy(api, Network.Local, account, 10000000000n)
     token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
     token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
@@ -95,7 +97,9 @@ describe('tickmap', async () => {
       0b11000000000000000000000000000000000000000000000000000n
     )
   })
-  it('get tickmap more chunks above', async () => {
+  it('get tickmap more chunks above', async function () {
+    this.timeout(30000)
+
     const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
 
     for (let i = 6n; i < 52500n; i += 64n) {
@@ -118,7 +122,9 @@ describe('tickmap', async () => {
       assert.deepEqual(tickmap[integerSafeCast(current)], 0b11n)
     }
   })
-  it('get tickmap more chunks below', async () => {
+  it('get tickmap more chunks below', async function () {
+    this.timeout(30000)
+
     const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
 
     // 51328
@@ -144,7 +150,9 @@ describe('tickmap', async () => {
       )
     }
   })
-  it('get tickmap max chunks returned', async () => {
+  it('get tickmap max chunks returned', async function () {
+    this.timeout(60000)
+
     const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
 
     for (let i = 0n; i < 104832n; i += 64n) {
@@ -161,7 +169,9 @@ describe('tickmap', async () => {
 
     await invariant.getTickmap(account, poolKey, pool.currentTickIndex)
   })
-  it('get tickmap max chunks + 1 returned', async () => {
+  it('get tickmap max chunks + 1 returned', async function () {
+    this.timeout(60000)
+
     const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
 
     for (let i = 0n; i < 104896n; i += 64n) {
