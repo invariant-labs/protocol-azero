@@ -6,7 +6,6 @@ edition = "2018"
 
 [lib]
 path = "lib.rs"
-crate-type = ["cdylib", "rlib"]
 
 
 [dependencies]
@@ -37,4 +36,3 @@ std = ["ink/std", "scale/std", "scale-info/std"] #
 contract = ["scale/std"]
 ink-as-dependency = []
 wasm = ["wasm-bindgen", "serde-wasm-bindgen", "serde", "tsify", "paste", "js-sys"]
-

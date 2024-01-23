@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0xa650e5b2ccac74a63426f0505941b3124b5144b78806ff0a8cc4b4f4511431a0",
+    "hash": "0xb1f497cf2563adeb8e361f250fd22654c1c6a2ebeac40357f192951fedb15af2",
     "language": "ink! 4.3.0",
     "compiler": "rustc 1.72.1",
     "build_info": {
@@ -2043,7 +2043,6 @@
           }
         },
         "path": [
-          "invariant",
           "math",
           "types",
           "percentage",
@@ -2423,7 +2422,6 @@
           }
         },
         "path": [
-          "invariant",
           "math",
           "types",
           "liquidity",
@@ -2446,7 +2444,6 @@
           }
         },
         "path": [
-          "invariant",
           "math",
           "types",
           "sqrt_price",
@@ -2616,7 +2613,6 @@
           }
         },
         "path": [
-          "invariant",
           "math",
           "types",
           "fee_growth",
@@ -2638,7 +2634,6 @@
           }
         },
         "path": [
-          "invariant",
           "math",
           "types",
           "token_amount",

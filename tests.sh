@@ -17,7 +17,15 @@ cd ..
 cd decimal
 cargo test
 cd decimal_core
-cd ../../..
+cd ../..
+
+# build wasm and test math
+cd math
+chmod +x wasm-build.sh
+./wasm-build.sh
+cargo test
+
+cd ../..
 
 cargo fmt --all -- --check
 cargo clippy --all-targets -- --no-deps -D warnings
