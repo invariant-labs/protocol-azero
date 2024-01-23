@@ -28,8 +28,10 @@ pub struct Tick {
 pub struct PositionTick {
     #[tsify(type = "bigint")]
     pub index: i32,
-    pub liquidity_change: Liquidity,
-    pub sign: bool,
+    pub fee_growth_outside_x: FeeGrowth,
+    pub fee_growth_outside_y: FeeGrowth,
+    #[tsify(type = "bigint")]
+    pub seconds_outside: u64,
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, Tsify)]
@@ -38,10 +40,8 @@ pub struct PositionTick {
 pub struct LiquidityTick {
     #[tsify(type = "bigint")]
     pub index: i32,
-    pub fee_growth_outside_x: FeeGrowth,
-    pub fee_growth_outside_y: FeeGrowth,
-    #[tsify(type = "bigint")]
-    pub seconds_outside: u64,
+    pub liquidity_change: Liquidity,
+    pub sign: bool,
 }
 
 impl Default for Tick {

@@ -959,8 +959,9 @@ pub mod invariant {
                             .map(|tick| {
                                 ticks.push(PositionTick {
                                     index: tick.index,
-                                    liquidity_change: tick.liquidity_change,
-                                    sign: tick.sign,
+                                    fee_growth_outside_x: tick.fee_growth_outside_x,
+                                    fee_growth_outside_y: tick.fee_growth_outside_y,
+                                    seconds_outside: tick.seconds_outside,
                                 })
                             })
                             .ok();
@@ -970,8 +971,9 @@ pub mod invariant {
                             .map(|tick| {
                                 ticks.push(PositionTick {
                                     index: tick.index,
-                                    liquidity_change: tick.liquidity_change,
-                                    sign: tick.sign,
+                                    fee_growth_outside_x: tick.fee_growth_outside_x,
+                                    fee_growth_outside_y: tick.fee_growth_outside_y,
+                                    seconds_outside: tick.seconds_outside,
                                 })
                             })
                             .ok();
@@ -1020,9 +1022,8 @@ pub mod invariant {
                                 .map(|tick| {
                                     ticks.push(LiquidityTick {
                                         index: tick.index,
-                                        fee_growth_outside_x: tick.fee_growth_outside_x,
-                                        fee_growth_outside_y: tick.fee_growth_outside_y,
-                                        seconds_outside: tick.seconds_outside,
+                                        liquidity_change: tick.liquidity_change,
+                                        sign: tick.sign,
                                     })
                                 })
                                 .ok();

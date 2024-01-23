@@ -66,9 +66,9 @@ describe('get liquidity ticks', async () => {
   })
 
   it('should get liquidity ticks limit', async function () {
-    this.timeout(10000)
+    this.timeout(15000)
 
-    for (let i = 1n; i <= 186n; i++) {
+    for (let i = 1n; i <= 390n; i++) {
       await invariant.createPosition(
         account,
         poolKey,
@@ -81,16 +81,16 @@ describe('get liquidity ticks', async () => {
     }
 
     const result = await invariant.getLiquidityTicks(account, poolKey, 0n)
-    assert.equal(result.length, 372)
+    assert.equal(result.length, 780)
 
-    for (let i = -186n; i <= 186n; i++) {
+    for (let i = -390n; i <= 390n; i++) {
       if (i !== 0n) {
         const tick = await invariant.getTick(account, poolKey, i)
 
         if (i > 0n) {
-          liquidityTickEquals(result[Number(i) + 186 - 1], tick)
+          liquidityTickEquals(result[Number(i) + 390 - 1], tick)
         } else {
-          liquidityTickEquals(result[Number(i) + 186], tick)
+          liquidityTickEquals(result[Number(i) + 390], tick)
         }
       }
     }
@@ -135,7 +135,7 @@ describe('get liquidity ticks', async () => {
 
     const promises = []
 
-    for (let i = 0n; i < liquidityTicks; i += 372n) {
+    for (let i = 0n; i < liquidityTicks; i += 780n) {
       promises.push(invariant.getLiquidityTicks(account, poolKey, i))
     }
 

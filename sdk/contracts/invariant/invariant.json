@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x4da8288bc0f7234104a29a37d8f00a9aa69f4f6bb419d39b63862067ecf57e1c",
+    "hash": "0x12836b629f2dfce34176ac07635f1513ce8b838808f0833778fa57c16f7a1e8f",
     "language": "ink! 4.3.0",
     "compiler": "rustc 1.72.1",
     "build_info": {
@@ -3780,14 +3780,19 @@
                 "typeName": "i32"
               },
               {
-                "name": "liquidity_change",
-                "type": 21,
-                "typeName": "Liquidity"
+                "name": "fee_growth_outside_x",
+                "type": 26,
+                "typeName": "FeeGrowth"
               },
               {
-                "name": "sign",
-                "type": 8,
-                "typeName": "bool"
+                "name": "fee_growth_outside_y",
+                "type": 26,
+                "typeName": "FeeGrowth"
+              },
+              {
+                "name": "seconds_outside",
+                "type": 4,
+                "typeName": "u64"
               }
             ]
           }
@@ -3865,19 +3870,14 @@
                 "typeName": "i32"
               },
               {
-                "name": "fee_growth_outside_x",
-                "type": 26,
-                "typeName": "FeeGrowth"
+                "name": "liquidity_change",
+                "type": 21,
+                "typeName": "Liquidity"
               },
               {
-                "name": "fee_growth_outside_y",
-                "type": 26,
-                "typeName": "FeeGrowth"
-              },
-              {
-                "name": "seconds_outside",
-                "type": 4,
-                "typeName": "u64"
+                "name": "sign",
+                "type": 8,
+                "typeName": "bool"
               }
             ]
           }
