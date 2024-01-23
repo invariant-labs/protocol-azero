@@ -365,6 +365,14 @@ pub trait InvariantTrait {
     /// - `owner`: An `AccountId` identifying the user who owns the position.
     #[ink(message)]
     fn get_user_position_amount(&self, owner: AccountId) -> u32;
+    /// Retrieves tickmap chunks
+    ///
+    /// # Parameters
+    /// - `pool_key`: A unique key that identifies the specified pool.
+    /// - `center_tick`: Center tick index.
+    #[ink(message)]
+    fn get_tickmap(&self, pool_key: PoolKey, center_tick: i32) -> Vec<(u16, u64)>;
+
     /// Retrieves ticks for a specified pool.
     ///
     /// # Parameters

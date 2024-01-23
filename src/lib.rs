@@ -38,10 +38,10 @@ pub enum InvariantError {
 #[ink::contract]
 pub mod invariant {
     use crate::contracts::{
-        get_bit_at_position, position_to_tick, tick_to_position, FeeTier, FeeTiers,
+        get_bit_at_position, get_max_chunk, position_to_tick, tick_to_position, FeeTier, FeeTiers,
         InvariantConfig, InvariantTrait, LiquidityTick, Pool, PoolKey, PoolKeys, Pools, Position,
         PositionTick, Positions, Tick, Tickmap, Ticks, CHUNK_SIZE, LIQUIDITY_TICK_LIMIT,
-        POSITION_TICK_LIMIT,
+        MAX_TICKMAP_QUERY_SIZE, POSITION_TICK_LIMIT,
     };
     use crate::math::calculate_min_amount_out;
     use crate::math::check_tick;
@@ -51,9 +51,9 @@ pub mod invariant {
     use crate::math::sqrt_price::SqrtPrice;
     use crate::math::token_amount::TokenAmount;
     use crate::math::types::liquidity::Liquidity;
+
     use crate::math::{compute_swap_step, MAX_SQRT_PRICE, MIN_SQRT_PRICE};
-    use crate::InvariantError; // Add this line
-                               //
+    use crate::InvariantError;
     use decimal::*;
     use ink::contract_ref;
     use ink::prelude::vec;
@@ -986,6 +986,56 @@ pub mod invariant {
             }
 
             ticks
+        }
+
+        #[ink(message)]
+        fn get_tickmap(&self, pool_key: PoolKey, center_tick: i32) -> Vec<(u16, u64)> {
+            let tick_spacing = pool_key.fee_tier.tick_spacing;
+
+            let max_chunk_index = get_max_chunk(tick_spacing);
+            let mut tickmap_slice: Vec<(u16, u64)> = vec![];
+
+            let (current_chunk_index, _) = tick_to_position(center_tick, tick_spacing);
+            let current_chunk = self
+                .tickmap
+                .bitmap
+                .get((current_chunk_index, pool_key))
+                .unwrap_or(0);
+            if current_chunk != 0 {
+                tickmap_slice.push((current_chunk_index, current_chunk));
+            }
+
+            for step in 1..=max_chunk_index {
+                for &offset in &[step as i16, -(step as i16)] {
+                    if tickmap_slice.len() == MAX_TICKMAP_QUERY_SIZE {
+                        return tickmap_slice;
+                    }
+                    if (current_chunk_index as i16 + offset) < 0
+                        || (current_chunk_index as i16 + offset) > max_chunk_index as i16
+                    {
+                        continue;
+                    }
+
+                    let target_index = (current_chunk_index as i16 + offset) as u16;
+
+                    if target_index <= max_chunk_index {
+                        let chunk = self
+                            .tickmap
+                            .bitmap
+                            .get((target_index, pool_key))
+                            .unwrap_or(0);
+                        if chunk != 0 {
+                            if offset > 0 {
+                                tickmap_slice.push((target_index, chunk));
+                            } else {
+                                tickmap_slice.insert(0, (target_index, chunk));
+                            }
+                        }
+                    }
+                }
+            }
+
+            tickmap_slice
         }
 
         #[ink(message)]

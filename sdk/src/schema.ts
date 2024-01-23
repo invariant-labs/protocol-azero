@@ -14,6 +14,7 @@ export enum InvariantQuery {
   QuoteRoute = 'invariantTrait::quoteRoute',
   getPositionTicks = 'invariantTrait::getPositionTicks',
   getUserPositionAmount = 'invariantTrait::getUserPositionAmount',
+  GetTickmap = 'invariantTrait::getTickmap',
   getLiquidityTicks = 'invariantTrait::getLiquidityTicks',
   getLiquidityTicksAmount = 'invariantTrait::getLiquidityTicksAmount'
 }

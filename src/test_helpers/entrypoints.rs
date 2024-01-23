@@ -1,4 +1,16 @@
 #[macro_export]
+macro_rules! get_tickmap {
+    ($client:ident, $dex:ty, $dex_address:expr, $pool_key:expr,$current_tick_index:expr, $caller:ident) => {{
+        let message = build_message::<$dex>($dex_address.clone())
+            .call(|contract| contract.get_tickmap($pool_key, $current_tick_index));
+        $client
+            .call_dry_run(&$caller, &message, 0, None)
+            .await
+            .return_value()
+    }};
+}
+
+#[macro_export]
 macro_rules! get_protocol_fee {
     ($client:ident, $dex:ty, $dex_address:expr) => {{
         let message = build_message::<$dex>($dex_address.clone())

@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x12836b629f2dfce34176ac07635f1513ce8b838808f0833778fa57c16f7a1e8f",
+    "hash": "0x8e4b96f4dd20f4e01eb47d01ead5d6b6f13de6b2761f067b0be4b692981eb8ce",
     "language": "ink! 4.3.0",
     "compiler": "rustc 1.72.1",
     "build_info": {
@@ -72,13 +72,13 @@
         "displayName": [
           "ChainExtension"
         ],
-        "type": 62
+        "type": 65
       },
       "hash": {
         "displayName": [
           "Hash"
         ],
-        "type": 61
+        "type": 64
       },
       "maxEventTopics": 4,
       "timestamp": {
@@ -215,7 +215,7 @@
               "displayName": [
                 "Vec"
               ],
-              "type": 60
+              "type": 63
             }
           }
         ],
@@ -1286,6 +1286,41 @@
             }
           },
           {
+            "label": "center_tick",
+            "type": {
+              "displayName": [
+                "i32"
+              ],
+              "type": 7
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "InvariantTrait::get_tickmap",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 56
+        },
+        "selector": "0x3b83b256"
+      },
+      {
+        "args": [
+          {
+            "label": "pool_key",
+            "type": {
+              "displayName": [
+                "PoolKey"
+              ],
+              "type": 13
+            }
+          },
+          {
             "label": "offset",
             "type": {
               "displayName": [
@@ -1305,7 +1340,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 56
+          "type": 59
         },
         "selector": "0x8ef8d345"
       },
@@ -1331,7 +1366,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 59
+          "type": 62
         },
         "selector": "0xd842f034"
       },
@@ -1357,7 +1392,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 59
+          "type": 62
         },
         "selector": "0xf360dea7"
       }
@@ -3862,6 +3897,69 @@
       "id": 58,
       "type": {
         "def": {
+          "tuple": [
+            5,
+            4
+          ]
+        }
+      }
+    },
+    {
+      "id": 59,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 60
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 16
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 60
+          },
+          {
+            "name": "E",
+            "type": 16
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 60,
+      "type": {
+        "def": {
+          "sequence": {
+            "type": 61
+          }
+        }
+      }
+    },
+    {
+      "id": 61,
+      "type": {
+        "def": {
           "composite": {
             "fields": [
               {
@@ -3892,7 +3990,7 @@
       }
     },
     {
-      "id": 59,
+      "id": 62,
       "type": {
         "def": {
           "variant": {
@@ -3934,7 +4032,7 @@
       }
     },
     {
-      "id": 60,
+      "id": 63,
       "type": {
         "def": {
           "sequence": {
@@ -3944,7 +4042,7 @@
       }
     },
     {
-      "id": 61,
+      "id": 64,
       "type": {
         "def": {
           "composite": {
@@ -3964,7 +4062,7 @@
       }
     },
     {
-      "id": 62,
+      "id": 65,
       "type": {
         "def": {
           "variant": {}
