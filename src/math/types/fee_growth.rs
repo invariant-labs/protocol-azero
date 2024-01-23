@@ -1,13 +1,11 @@
+use crate::alloc::string::ToString;
 use crate::liquidity::*;
 use crate::token_amount::TokenAmount;
 use core::convert::{TryFrom, TryInto};
 use decimal::*;
-use traceable_result::*;
-
-#[cfg(feature = "wasm")]
-use crate::alloc::string::ToString;
 #[cfg(feature = "wasm")]
 use serde::{Deserialize, Serialize};
+use traceable_result::*;
 #[cfg(feature = "wasm")]
 use tsify::Tsify;
 #[cfg(feature = "wasm")]
@@ -15,16 +13,10 @@ use wasm_bindgen::prelude::*;
 
 #[decimal(28)]
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
-#[cfg(not(feature = "wasm"))]
-#[derive(scale::Decode, scale::Encode)]
+#[cfg_attr(not(feature = "wasm"), derive(scale::Encode, scale::Decode))]
 #[cfg_attr(
     feature = "std",
-    derive(
-        scale_info::TypeInfo,
-        // scale::Decode,
-        // scale::Encode,
-        ink::storage::traits::StorageLayout
-    )
+    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
 )]
 #[cfg_attr(
     feature = "wasm",

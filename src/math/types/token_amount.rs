@@ -1,5 +1,4 @@
 use super::sqrt_price::SqrtPrice;
-#[cfg(feature = "wasm")]
 use crate::alloc::string::ToString;
 use core::convert::{TryFrom, TryInto};
 use decimal::*;
@@ -7,16 +6,10 @@ use traceable_result::*;
 
 #[decimal(0)]
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
-#[cfg(not(feature = "wasm"))]
-#[derive(scale::Decode, scale::Encode)]
+#[cfg_attr(not(feature = "wasm"), derive(scale::Encode, scale::Decode))]
 #[cfg_attr(
     feature = "std",
-    derive(
-        scale_info::TypeInfo,
-        // scale::Decode,
-        // scale::Encode,
-        ink::storage::traits::StorageLayout
-    )
+    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
 )]
 #[cfg_attr(
     feature = "wasm",

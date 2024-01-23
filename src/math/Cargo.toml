@@ -6,7 +6,8 @@ edition = "2018"
 
 [lib]
 path = "lib.rs"
-# crate-type = ["cdylib", "rlib"]
+crate-type = ["cdylib", "rlib"]
+
 
 [dependencies]
 wasm-bindgen = {version = "0.2.89", optional = true}
@@ -21,7 +22,7 @@ decimal = { path= "../decimal" }
 traceable_result = { path = "../traceable_result" }
 
 # ink
-ink = { version = "4.2.0", default-features = false}
+ink = { version = "4.2.0", default-features = false, optional = true}
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = [
   "derive",
 ]}
@@ -31,8 +32,9 @@ scale-info = { version = "2.6", default-features = false, features = [
 
 
 [features]
-default = ["std"] # "std"
+default = [] # "std"
 std = ["ink/std", "scale/std", "scale-info/std"] #
 contract = ["scale/std"]
 ink-as-dependency = []
 wasm = ["wasm-bindgen", "serde-wasm-bindgen", "serde", "tsify", "paste", "js-sys"]
+
