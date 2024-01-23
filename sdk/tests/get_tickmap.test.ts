@@ -59,6 +59,7 @@ describe('tickmap', async () => {
 
     const tickmap = await invariant.getTickmap(account, poolKey, pool.currentTickIndex)
     assert.deepEqual(tickmap[3465], 9223372036854775809n)
+
     for (const [chunkIndex, value] of tickmap.entries()) {
       if (chunkIndex === 3465) {
         assert.deepEqual(value, 0b1000000000000000000000000000000000000000000000000000000000000001n)
@@ -91,7 +92,7 @@ describe('tickmap', async () => {
     const tickmap = await invariant.getTickmap(account, poolKey, pool.currentTickIndex)
     assert.deepEqual(tickmap[0], 0b11n)
     assert.deepEqual(
-      tickmap[getMaxChunk(feeTier.tickSpacing)],
+      tickmap[integerSafeCast(getMaxChunk(feeTier.tickSpacing))],
       0b11000000000000000000000000000000000000000000000000000n
     )
   })
