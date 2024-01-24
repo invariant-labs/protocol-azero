@@ -4,11 +4,11 @@ pub mod e2e_tests {
     use crate::{
         contracts::{entrypoints::InvariantTrait, FeeTier, PoolKey},
         invariant::InvariantRef,
-        math::types::percentage::Percentage,
-        math::types::sqrt_price::calculate_sqrt_price,
     };
     use decimal::*;
     use ink_e2e::build_message;
+    use math::types::percentage::Percentage;
+    use math::types::sqrt_price::calculate_sqrt_price;
     use test_helpers::{
         add_fee_tier, address_of, change_fee_receiver, create_dex, create_pool, create_tokens,
         get_pool,

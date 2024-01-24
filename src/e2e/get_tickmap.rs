@@ -4,13 +4,13 @@ pub mod e2e_tests {
         contracts::tickmap::get_max_chunk,
         contracts::{entrypoints::InvariantTrait, FeeTier, PoolKey},
         invariant::InvariantRef,
-        math::consts::{MAX_TICK, MIN_TICK},
-        math::types::liquidity::Liquidity,
-        math::types::percentage::Percentage,
-        math::types::sqrt_price::{calculate_sqrt_price, get_max_tick, get_min_tick, SqrtPrice},
     };
     use decimal::*;
     use ink_e2e::build_message;
+    use math::consts::{MAX_TICK, MIN_TICK};
+    use math::types::liquidity::Liquidity;
+    use math::types::percentage::Percentage;
+    use math::types::sqrt_price::{calculate_sqrt_price, get_max_tick, get_min_tick, SqrtPrice};
     use test_helpers::{
         add_fee_tier, approve, create_dex, create_pool, create_position, create_tokens, get_pool,
         get_tickmap,

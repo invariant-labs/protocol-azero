@@ -164,6 +164,9 @@ pub mod invariant {
             }
         }
 
+        #[ink(message)]
+        pub fn test(&self) {}
+
         fn create_tick(&mut self, pool_key: PoolKey, index: i32) -> Result<Tick, InvariantError> {
             let current_timestamp = self.env().block_timestamp();
 

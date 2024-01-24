@@ -18,11 +18,18 @@ fi
 # Add the crate-type line after [lib]
 sed -i "${lib_line_number}a crate-type = [\"cdylib\",\"rlib\"]" Cargo.toml
 
+# Modify default value in Cargo.toml
+sed -i 's/default = \["std"\]/default = \[\]/' Cargo.toml
+
+
 # Run wasm-pack build command
 wasm-pack build --features wasm
 
 # Remove the crate-type line
 sed -i "/crate-type = \[\"cdylib\",\"rlib\"\]/d" Cargo.toml
+
+# Restore default value in Cargo.toml
+sed -i 's/default = \[\]/default = \["std"\]/' Cargo.toml
 
 # Change directory to /pkg
 cd pkg

@@ -1,8 +1,9 @@
 #[cfg(test)]
 pub mod e2e_tests {
-    use crate::{invariant::InvariantRef, math::types::percentage::Percentage};
+    use crate::invariant::InvariantRef;
     use decimal::*;
     use ink::primitives::AccountId;
+    use math::types::percentage::Percentage;
     use token::TokenRef;
 
     type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;

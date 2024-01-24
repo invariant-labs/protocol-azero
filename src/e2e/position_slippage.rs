@@ -3,15 +3,15 @@ pub mod e2e_tests {
     use crate::{
         contracts::{entrypoints::InvariantTrait, FeeTier, PoolKey},
         invariant::InvariantRef,
-        math::types::{
-            liquidity::Liquidity,
-            percentage::Percentage,
-            sqrt_price::{calculate_sqrt_price, SqrtPrice},
-        },
         InvariantError,
     };
     use decimal::*;
     use ink_e2e::build_message;
+    use math::types::{
+        liquidity::Liquidity,
+        percentage::Percentage,
+        sqrt_price::{calculate_sqrt_price, SqrtPrice},
+    };
     use test_helpers::{
         add_fee_tier, approve, create_dex, create_pool, create_position, create_tokens, get_pool,
         init_slippage_dex_and_tokens, init_slippage_pool_with_liquidity,

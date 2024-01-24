@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x3595ef2fe7b53b7debadc9e283eb2e03b1fe5eb4aba32e47a1c3feed4170ec6a",
+    "hash": "0x21d1a8036344548614a07890015fe5c404812e0366803514db1a3fade8795587",
     "language": "ink! 4.3.0",
     "compiler": "rustc 1.72.1",
     "build_info": {
@@ -419,6 +419,22 @@
       "type": 16
     },
     "messages": [
+      {
+        "args": [],
+        "default": false,
+        "docs": [],
+        "label": "test",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 14
+        },
+        "selector": "0x928b2036"
+      },
       {
         "args": [],
         "default": false,

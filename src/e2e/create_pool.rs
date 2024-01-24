@@ -3,12 +3,12 @@ pub mod e2e_tests {
     use crate::{
         contracts::{entrypoints::InvariantTrait, FeeTier},
         invariant::InvariantRef,
-        math::types::percentage::Percentage,
-        math::types::sqrt_price::{calculate_sqrt_price, SqrtPrice},
         InvariantError,
     };
     use decimal::*;
     use ink_e2e::build_message;
+    use math::types::percentage::Percentage;
+    use math::types::sqrt_price::{calculate_sqrt_price, SqrtPrice};
     use test_helpers::{add_fee_tier, create_dex, create_pool, create_tokens, get_pool};
     use token::TokenRef;
 

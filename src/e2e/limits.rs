@@ -5,19 +5,19 @@ pub mod e2e_tests {
             entrypoints::InvariantTrait, get_liquidity_by_x, get_liquidity_by_y, FeeTier, PoolKey,
         },
         invariant::InvariantRef,
-        math::{
-            clamm::get_delta_y,
-            liquidity::Liquidity,
-            types::{
-                percentage::Percentage,
-                sqrt_price::{calculate_sqrt_price, get_max_tick, SqrtPrice},
-                token_amount::TokenAmount,
-            },
-            MAX_SQRT_PRICE, MAX_TICK, MIN_SQRT_PRICE,
-        },
     };
     use decimal::*;
     use ink_e2e::build_message;
+    use math::{
+        clamm::get_delta_y,
+        liquidity::Liquidity,
+        types::{
+            percentage::Percentage,
+            sqrt_price::{calculate_sqrt_price, get_max_tick, SqrtPrice},
+            token_amount::TokenAmount,
+        },
+        MAX_SQRT_PRICE, MAX_TICK, MIN_SQRT_PRICE,
+    };
     use test_helpers::{
         add_fee_tier, address_of, approve, balance_of, big_deposit_and_swap, create_dex,
         create_pool, create_position, create_tokens, get_pool, init_dex_and_tokens_max_mint_amount,
