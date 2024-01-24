@@ -23,8 +23,8 @@ sed -i 's/default = \["std"\]/default = \[\]/' Cargo.toml
 
 
 # Run wasm-pack build command
-wasm-pack build --features wasm 
-# --out-name index --out-dir ../../sdk/clamm
+wasm-pack build --out-name index --out-dir ../../sdk/clamm --features wasm 
+
 # Remove the crate-type line
 sed -i "/crate-type = \[\"cdylib\",\"rlib\"\]/d" Cargo.toml
 

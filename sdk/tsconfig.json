@@ -12,7 +12,7 @@
     "baseUrl": "./",
     "paths": {
       "math": ["./math/pkg/math"],
-      "clamm": ["../src/math/pkg/math"]
+      "clamm": ["./clamm"]
     },
 
     "types": ["mocha", "chai"]

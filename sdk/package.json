@@ -21,9 +21,9 @@
     "@polkadot/api": "^10.11.2",
     "@polkadot/api-contract": "^10.11.2",
     "@scio-labs/use-inkathon": "^0.6.3",
+    "math": "file:./math/pkg",
     "dotenv": "^16.3.1",
-    "math": "file:math/pkg",
-    "clamm": "file:../src/math/pkg",
+    "clamm": "file:clamm",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   },

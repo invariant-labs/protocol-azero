@@ -6,7 +6,6 @@ edition = "2021"
 
 [lib]
 path = "lib.rs"
-# crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 wasm-bindgen = {version = "0.2.89", optional = true}
@@ -22,7 +21,7 @@ decimal = { path= "../decimal" }
 traceable_result = { path = "../traceable_result" }
 
 # ink
-ink = { version = "4.3", default-features = false, optional = true}
+ink = { version = "4.3", default-features = false}
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = [
     "derive",
 ]}
