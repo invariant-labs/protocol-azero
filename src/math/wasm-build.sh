@@ -31,8 +31,8 @@ sed -i "/crate-type = \[\"cdylib\",\"rlib\"\]/d" Cargo.toml
 # Restore default value in Cargo.toml
 sed -i 's/default = \[\]/default = \["std"\]/' Cargo.toml
 
-# # Change directory to /clamm
-# cd ../../sdk/clamm
+# Change directory to /clamm
+cd ../../sdk/clamm
 
-# # Run npm pkg set type='module'
-# npm pkg set type='module'
+# Run npm pkg set type='module'
+npm pkg set type='module'
