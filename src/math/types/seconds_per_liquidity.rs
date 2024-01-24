@@ -3,7 +3,13 @@ use crate::alloc::string::ToString;
 use crate::liquidity::Liquidity;
 use core::convert::{TryFrom, TryInto};
 use decimal::*;
+#[cfg(feature = "wasm")]
+use serde::{Deserialize, Serialize};
 use traceable_result::*;
+#[cfg(feature = "wasm")]
+use tsify::Tsify;
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::*;
 
 #[decimal(24)]
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
@@ -14,7 +20,7 @@ use traceable_result::*;
 )]
 #[cfg_attr(
     feature = "wasm",
-    derive(serde::Serialize, serde::Deserialize, tsify::Tsify),
+    derive(Serialize, Deserialize, Tsify),
     tsify(into_wasm_abi, from_wasm_abi)
 )]
 pub struct SecondsPerLiquidity(#[cfg_attr(feature = "wasm", tsify(type = "bigint"))] pub u128);

@@ -23,16 +23,16 @@ sed -i 's/default = \["std"\]/default = \[\]/' Cargo.toml
 
 
 # Run wasm-pack build command
-wasm-pack build --features wasm
-
+wasm-pack build --features wasm 
+# --out-name index --out-dir ../../sdk/clamm
 # Remove the crate-type line
 sed -i "/crate-type = \[\"cdylib\",\"rlib\"\]/d" Cargo.toml
 
 # Restore default value in Cargo.toml
 sed -i 's/default = \[\]/default = \["std"\]/' Cargo.toml
 
-# Change directory to /pkg
-cd pkg
+# # Change directory to /clamm
+# cd ../../sdk/clamm
 
-# Run npm pkg set type='module'
-npm pkg set type='module'
+# # Run npm pkg set type='module'
+# npm pkg set type='module'
