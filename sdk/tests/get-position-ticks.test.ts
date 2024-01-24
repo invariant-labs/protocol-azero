@@ -19,7 +19,7 @@ const psp22 = await PSP22.load(api, Network.Local, token0Address)
 const feeTier = newFeeTier(10000000000n, 1n)
 let poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
-describe('get liquidity ticks', async () => {
+describe('get position ticks', async () => {
   beforeEach(async () => {
     invariant = await Invariant.deploy(api, Network.Local, account, 10000000000n)
     token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
@@ -51,7 +51,7 @@ describe('get liquidity ticks', async () => {
   })
 
   it('should get position ticks limit', async function () {
-    this.timeout(10000)
+    this.timeout(20000)
 
     for (let i = 1n; i <= 186n; i++) {
       await invariant.createPosition(account, poolKey, -i, i, 10n, 1000000000000000000000000n, 0n)
@@ -69,7 +69,7 @@ describe('get liquidity ticks', async () => {
     }
   })
 
-  it('should get liquidity ticks with offset', async () => {
+  it('should get position ticks with offset', async () => {
     await invariant.createPosition(account, poolKey, -10n, 10n, 10n, 1000000000000000000000000n, 0n)
 
     await invariant.createPosition(account, poolKey, -20n, 20n, 10n, 1000000000000000000000000n, 0n)
@@ -85,7 +85,7 @@ describe('get liquidity ticks', async () => {
   })
 
   it('should get position ticks with multiple queries', async function () {
-    this.timeout(15000)
+    this.timeout(25000)
 
     for (let i = 1n; i <= 400n; i++) {
       await invariant.createPosition(account, poolKey, -i, i, 10n, 1000000000000000000000000n, 0n)

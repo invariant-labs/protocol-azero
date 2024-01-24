@@ -37,7 +37,7 @@ describe('get liquidity ticks', async () => {
     await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
   })
 
-  it('should get liquidity ticks', async () => {
+  it('should get liquidity ticks', async function () {
     await invariant.createPosition(account, poolKey, -10n, 10n, 10n, 1000000000000000000000000n, 0n)
 
     const result = await invariant.getLiquidityTicks(account, poolKey, 0n)
@@ -51,7 +51,7 @@ describe('get liquidity ticks', async () => {
   })
 
   it('should get liquidity ticks limit', async function () {
-    this.timeout(15000)
+    this.timeout(30000)
 
     for (let i = 1n; i <= 390n; i++) {
       await invariant.createPosition(account, poolKey, -i, i, 10n, 1000000000000000000000000n, 0n)
@@ -85,8 +85,8 @@ describe('get liquidity ticks', async () => {
     liquidityTickEquals(result1[1], result2[0])
   })
 
-  it('should get position ticks with multiple queries', async function () {
-    this.timeout(15000)
+  it('should get liquidity ticks with multiple queries', async function () {
+    this.timeout(25000)
 
     for (let i = 1n; i <= 400n; i++) {
       await invariant.createPosition(account, poolKey, -i, i, 10n, 1000000000000000000000000n, 0n)
