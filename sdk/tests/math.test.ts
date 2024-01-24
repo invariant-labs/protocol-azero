@@ -47,7 +47,7 @@ describe('check get liquidity by x', async () => {
     await invariant.addFeeTier(account, feeTier)
 
     const initSqrtPrice: SqrtPrice = 1005012269622000000000000n
-    await invariant.createPool(account, poolKey, initSqrtPrice, 100n)
+    await invariant.createPool(account, poolKey, initSqrtPrice)
 
     await psp22.setContractAddress(token0Address)
     await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
@@ -190,7 +190,7 @@ describe('check get liquidity by y', async () => {
 
     const initSqrtPrice: SqrtPrice = 367897834491000000000000n
 
-    await invariant.createPool(account, poolKey, initSqrtPrice, -20000n)
+    await invariant.createPool(account, poolKey, initSqrtPrice)
 
     await psp22.setContractAddress(token0Address)
     await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)

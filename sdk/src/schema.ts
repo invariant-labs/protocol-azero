@@ -101,3 +101,8 @@ export type ContractOptions = {
   refTime: number
   proofSize: number
 }
+
+export interface Result<T, E> {
+  ok?: T
+  err?: E
+}

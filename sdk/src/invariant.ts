@@ -21,7 +21,7 @@ import {
   SwapHop,
   Tick,
   TokenAmount,
-  checkTickToSqrtPriceRelationship
+  calculateTick
 } from 'math/math.js'
 import { Network } from './network.js'
 import {
@@ -31,6 +31,7 @@ import {
   InvariantQuery,
   InvariantTx,
   RemovePositionTxResult,
+  Result,
   SwapRouteTxResult,
   SwapTxResult,
   TxResult
@@ -474,18 +475,9 @@ export class Invariant {
     account: IKeyringPair,
     poolKey: PoolKey,
     initSqrtPrice: SqrtPrice,
-    initTick: bigint,
     block: boolean = true
   ): Promise<TxResult> {
-    const isInRelationship = checkTickToSqrtPriceRelationship(
-      initTick,
-      poolKey.feeTier.tickSpacing,
-      initSqrtPrice
-    )
-
-    if (!isInRelationship) {
-      throw new Error(InvariantError[24])
-    }
+    const initTick = calculateTick(initSqrtPrice, poolKey.feeTier.tickSpacing)
 
     return sendTx(
       this.contract,
@@ -507,7 +499,7 @@ export class Invariant {
     amount: TokenAmount,
     byAmountIn: boolean,
     sqrtPriceLimit: SqrtPrice
-  ): Promise<QuoteResult> {
+  ): Promise<Result<QuoteResult, InvariantError>> {
     return sendQuery(
       this.contract,
       this.gasLimit,

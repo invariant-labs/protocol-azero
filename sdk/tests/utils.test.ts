@@ -58,7 +58,7 @@ describe('utils', () => {
 
       const poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
-      await invariant.createPool(account, poolKey, 1000000000000000000000000n, 0n)
+      await invariant.createPool(account, poolKey, 1000000000000000000000000n)
 
       await psp22.setContractAddress(token0Address)
       await psp22.approve(account, invariant.contract.address.toString(), 10000000000000n)
