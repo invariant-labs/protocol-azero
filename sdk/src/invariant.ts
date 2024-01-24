@@ -38,6 +38,7 @@ import {
 import {
   DEFAULT_PROOF_SIZE,
   DEFAULT_REF_TIME,
+  calculateSqrtPriceAfterSlippage,
   constructTickmap,
   getDeploymentData,
   parse,
@@ -329,10 +330,21 @@ export class Invariant {
     lowerTick: bigint,
     upperTick: bigint,
     liquidityDelta: Liquidity,
-    slippageLimitLower: SqrtPrice,
-    slippageLimitUpper: SqrtPrice,
+    spotSqrtPrice: SqrtPrice,
+    slippageTolerance: Percentage,
     block: boolean = true
   ): Promise<CreatePositionTxResult> {
+    const slippageLimitLower = calculateSqrtPriceAfterSlippage(
+      spotSqrtPrice,
+      slippageTolerance,
+      true
+    )
+    const slippageLimitUpper = calculateSqrtPriceAfterSlippage(
+      spotSqrtPrice,
+      slippageTolerance,
+      false
+    )
+
     return sendTx(
       this.contract,
       this.gasLimit,

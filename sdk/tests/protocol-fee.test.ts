@@ -44,7 +44,7 @@ describe('protocol fee', async () => {
       10n,
       10000000000000n,
       1000000000000000000000000n,
-      1000000000000000000000000n
+      0n
     )
 
     await psp22.setContractAddress(token0Address)

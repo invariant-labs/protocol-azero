@@ -17,9 +17,9 @@ import {
   SqrtPrice,
   Tick,
   TokenAmounts,
+  _calculateFee,
   _newFeeTier,
   _newPoolKey,
-  _simulateUnclaimedFees,
   getMaxChunk,
   getPercentageDenominator,
   getSqrtPriceDenominator,
@@ -237,13 +237,13 @@ export const calculatePriceImpact = (
   return (nominator * getPercentageDenominator()) / denominator
 }
 
-export const simulateUnclaimedFees = (
+export const calculateFee = (
   pool: Pool,
   position: Position,
   lowerTick: Tick,
   upperTick: Tick
 ): TokenAmounts => {
-  return _simulateUnclaimedFees(
+  return _calculateFee(
     lowerTick.index,
     lowerTick.feeGrowthOutsideX,
     lowerTick.feeGrowthOutsideY,

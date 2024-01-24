@@ -97,7 +97,7 @@ describe('check get liquidity by x', async () => {
         upperTickIndex,
         l,
         pool.sqrtPrice,
-        pool.sqrtPrice
+        0n
       )
 
       const position = await invariant.getPosition(positionOwner, positionOwner.address, 0n)
@@ -142,7 +142,7 @@ describe('check get liquidity by x', async () => {
         upperTickIndex,
         l,
         pool.sqrtPrice,
-        pool.sqrtPrice
+        0n
       )
 
       const position = await invariant.getPosition(positionOwner, positionOwner.address, 1n)
@@ -226,7 +226,7 @@ describe('check get liquidity by y', async () => {
         upperTickIndex,
         l,
         pool.sqrtPrice,
-        pool.sqrtPrice
+        0n
       )
 
       const position = await invariant.getPosition(positionOwner, positionOwner.address, 0n)
@@ -272,7 +272,7 @@ describe('check get liquidity by y', async () => {
         upperTickIndex,
         l,
         pool.sqrtPrice,
-        pool.sqrtPrice
+        0n
       )
 
       const position = await invariant.getPosition(positionOwner, positionOwner.address, 1n)

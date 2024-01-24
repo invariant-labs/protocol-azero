@@ -62,7 +62,7 @@ describe('position', async () => {
       upperTickIndex,
       1000000000000n,
       pool.sqrtPrice,
-      pool.sqrtPrice
+      0n
     )
 
     const expectedCreatePositionEvent: CreatePositionEvent = {

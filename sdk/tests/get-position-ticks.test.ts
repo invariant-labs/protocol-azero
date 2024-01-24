@@ -38,15 +38,7 @@ describe('get liquidity ticks', async () => {
   })
 
   it('should get position ticks', async () => {
-    await invariant.createPosition(
-      account,
-      poolKey,
-      -10n,
-      10n,
-      10n,
-      1000000000000000000000000n,
-      1000000000000000000000000n
-    )
+    await invariant.createPosition(account, poolKey, -10n, 10n, 10n, 1000000000000000000000000n, 0n)
 
     const result = await invariant.getPositionTicks(account, account.address, 0n)
     assert.equal(result.length, 2)
@@ -62,15 +54,7 @@ describe('get liquidity ticks', async () => {
     this.timeout(10000)
 
     for (let i = 1n; i <= 186n; i++) {
-      await invariant.createPosition(
-        account,
-        poolKey,
-        -i,
-        i,
-        10n,
-        1000000000000000000000000n,
-        1000000000000000000000000n
-      )
+      await invariant.createPosition(account, poolKey, -i, i, 10n, 1000000000000000000000000n, 0n)
     }
 
     const result = await invariant.getPositionTicks(account, account.address, 0n)
@@ -86,25 +70,9 @@ describe('get liquidity ticks', async () => {
   })
 
   it('should get liquidity ticks with offset', async () => {
-    await invariant.createPosition(
-      account,
-      poolKey,
-      -10n,
-      10n,
-      10n,
-      1000000000000000000000000n,
-      1000000000000000000000000n
-    )
+    await invariant.createPosition(account, poolKey, -10n, 10n, 10n, 1000000000000000000000000n, 0n)
 
-    await invariant.createPosition(
-      account,
-      poolKey,
-      -20n,
-      20n,
-      10n,
-      1000000000000000000000000n,
-      1000000000000000000000000n
-    )
+    await invariant.createPosition(account, poolKey, -20n, 20n, 10n, 1000000000000000000000000n, 0n)
 
     const result1 = await invariant.getPositionTicks(account, account.address, 0n)
     assert.equal(result1.length, 4)
@@ -120,15 +88,7 @@ describe('get liquidity ticks', async () => {
     this.timeout(15000)
 
     for (let i = 1n; i <= 400n; i++) {
-      await invariant.createPosition(
-        account,
-        poolKey,
-        -i,
-        i,
-        10n,
-        1000000000000000000000000n,
-        1000000000000000000000000n
-      )
+      await invariant.createPosition(account, poolKey, -i, i, 10n, 1000000000000000000000000n, 0n)
     }
 
     const positionAmount = await invariant.getUserPositionAmount(account, account.address)

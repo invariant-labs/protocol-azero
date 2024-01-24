@@ -98,15 +98,7 @@ describe('invariant', async () => {
     await psp22.approve(account, invariant.contract.address.toString(), 1000000000n)
 
     const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
-    await invariant.createPosition(
-      account,
-      poolKey,
-      -10n,
-      10n,
-      1000000n,
-      pool.sqrtPrice,
-      pool.sqrtPrice
-    )
+    await invariant.createPosition(account, poolKey, -10n, 10n, 1000000n, pool.sqrtPrice, 0n)
 
     const lowerTick = await invariant.getTick(account, poolKey, -10n)
     assert.deepEqual(lowerTick, {
