@@ -259,6 +259,13 @@ export const simulateUnclaimedFees = (
 }
 export const calculateTokenAmounts = (
   pool: Pool,
+  position: Position
+): calculateAmountDeltaResult => {
+  return _calculateTokenAmounts(pool, position, false)
+}
+
+export const _calculateTokenAmounts = (
+  pool: Pool,
   position: Position,
   sign: boolean
 ): calculateAmountDeltaResult => {

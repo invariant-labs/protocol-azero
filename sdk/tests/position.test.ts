@@ -113,7 +113,7 @@ describe('position', async () => {
       false
     )
 
-    const [x, y] = calculateTokenAmounts(pool, position, false)
+    const [x, y] = calculateTokenAmounts(pool, position)
     // 1n diffrence in result comes from rounding in `getLiquidityByX`
     assert.deepEqual(x, providedAmount - 1n)
     assert.deepEqual(y, expectedYAmount)

@@ -1,4 +1,4 @@
-use crate::helpers::requires_special_casting;
+use crate::helpers::requires_bits_expansion;
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::spanned::Spanned;
@@ -16,7 +16,7 @@ pub fn convert_params(input: &syn::ItemFn) -> (Vec<TokenStream>, Vec<TokenStream
                         syn::Ident::new(&format!("js_{}", param_name), ident.span());
                     let param_ty = &pat_type.ty;
 
-                    let (require_cast, intermediate_cast) = requires_special_casting(param_ty);
+                    let (require_cast, intermediate_cast) = requires_bits_expansion(param_ty);
                     let intermediate_cast = if require_cast {
                         Some(intermediate_cast)
                     } else {

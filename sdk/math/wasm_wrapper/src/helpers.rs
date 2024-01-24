@@ -90,7 +90,7 @@ pub fn process_return_type(
     (tuple_struct_name, tuple_struct_fields, false)
 }
 
-pub fn requires_special_casting(ty: &Type) -> (bool, syn::Ident) {
+pub fn requires_bits_expansion(ty: &Type) -> (bool, syn::Ident) {
     if let Type::Path(path) = ty {
         if let Some(segment) = path.path.segments.last() {
             match segment.ident.to_string().as_str() {
@@ -108,24 +108,27 @@ pub fn requires_special_casting(ty: &Type) -> (bool, syn::Ident) {
 }
 
 pub fn construct_camel_case(args: Vec<&str>, original_function_name: String) -> String {
-    let camel_case_string = if args.len() == 1 && args[0] != "" {
+    let camel_case_string = if args.len() == 1 && !args[0].is_empty() {
         let trimmed_string = args[0].trim_matches(|c| c == '"' || c == '\\');
         trimmed_string.to_string()
     } else {
-        let mut camel_case = String::new();
-        let mut capitalize_next = false;
-        for c in original_function_name.chars() {
-            if c == '_' {
-                capitalize_next = true;
-            } else {
-                if capitalize_next {
-                    camel_case.push(c.to_ascii_uppercase());
-                    capitalize_next = false;
+        let camel_case: String = original_function_name
+            .chars()
+            .scan(false, |capitalize, ch| {
+                if ch == '_' {
+                    *capitalize = true;
+                    Some(None)
                 } else {
-                    camel_case.push(c);
+                    if *capitalize {
+                        *capitalize = false;
+                        Some(Some(ch.to_ascii_uppercase()))
+                    } else {
+                        Some(Some(ch))
+                    }
                 }
-            }
-        }
+            })
+            .flatten()
+            .collect();
         camel_case
     };
     camel_case_string
