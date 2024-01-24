@@ -37,15 +37,15 @@ pub mod e2e_tests {
 
         add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
 
+        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+
         let init_tick = -23028;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
         create_pool!(
             client,
             InvariantRef,
             dex,
-            token_x,
-            token_y,
-            fee_tier,
+            pool_key,
             init_sqrt_price,
             init_tick,
             alice
@@ -71,13 +71,13 @@ pub mod e2e_tests {
 
         add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
 
+        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+
         create_pool!(
             client,
             InvariantRef,
             dex,
-            token_x,
-            token_y,
-            fee_tier,
+            pool_key,
             init_sqrt_price,
             init_tick,
             alice
@@ -87,7 +87,6 @@ pub mod e2e_tests {
         approve!(client, TokenRef, token_x, dex, initial_balance, alice).unwrap();
         approve!(client, TokenRef, token_y, dex, initial_balance, alice).unwrap();
 
-        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
         let tick_indexes = [-9780, -42, 0, 9, 276, 32343, -50001];
         let liquidity_delta = Liquidity::from_integer(1_000_000);
         let pool_state = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
@@ -275,13 +274,13 @@ pub mod e2e_tests {
 
         add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
 
+        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+
         create_pool!(
             client,
             InvariantRef,
             dex,
-            token_x,
-            token_y,
-            fee_tier,
+            pool_key,
             init_sqrt_price,
             init_tick,
             alice
@@ -291,7 +290,6 @@ pub mod e2e_tests {
         approve!(client, TokenRef, token_x, dex, initial_balance, alice).unwrap();
         approve!(client, TokenRef, token_y, dex, initial_balance, alice).unwrap();
 
-        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
         let tick_indexes = [-9780, -42, 0, 9, 276, 32343, -50001];
         let liquidity_delta = Liquidity::from_integer(1_000_000);
         let pool_state = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
@@ -442,13 +440,13 @@ pub mod e2e_tests {
 
         add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
 
+        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+
         create_pool!(
             client,
             InvariantRef,
             dex,
-            token_x,
-            token_y,
-            fee_tier,
+            pool_key,
             init_sqrt_price,
             init_tick,
             alice
@@ -458,7 +456,6 @@ pub mod e2e_tests {
         approve!(client, TokenRef, token_x, dex, initial_balance, alice).unwrap();
         approve!(client, TokenRef, token_y, dex, initial_balance, alice).unwrap();
 
-        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
         let tick_indexes = [-9780, -42, 0, 9, 276, 32343, -50001];
         let liquidity_delta = Liquidity::from_integer(1_000_000);
         let pool_state = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
@@ -701,13 +698,13 @@ pub mod e2e_tests {
 
         add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
 
+        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+
         create_pool!(
             client,
             InvariantRef,
             dex,
-            token_x,
-            token_y,
-            fee_tier,
+            pool_key,
             init_sqrt_price,
             init_tick,
             alice
@@ -717,7 +714,6 @@ pub mod e2e_tests {
         approve!(client, TokenRef, token_x, dex, initial_balance, alice).unwrap();
         approve!(client, TokenRef, token_y, dex, initial_balance, alice).unwrap();
 
-        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
         let tick_indexes = [-9780, -42, 0, 9, 276, 32343, -50001];
         let liquidity_delta = Liquidity::from_integer(1_000_000);
         let pool_state = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
@@ -816,13 +812,13 @@ pub mod e2e_tests {
 
         add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
 
+        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+
         create_pool!(
             client,
             InvariantRef,
             dex,
-            token_x,
-            token_y,
-            fee_tier,
+            pool_key,
             init_sqrt_price,
             init_tick,
             alice

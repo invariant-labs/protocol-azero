@@ -196,15 +196,15 @@ macro_rules! init_basic_pool {
         let alice = ink_e2e::alice();
         add_fee_tier!($client, $dex, $dex_address, fee_tier, alice).unwrap();
 
+        let pool_key = PoolKey::new($token_x_address, $token_y_address, fee_tier).unwrap();
+
         let init_tick = 0;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
         create_pool!(
             $client,
             $dex,
             $dex_address,
-            $token_x_address,
-            $token_y_address,
-            fee_tier,
+            pool_key,
             init_sqrt_price,
             init_tick,
             alice
@@ -223,15 +223,15 @@ macro_rules! init_slippage_pool_with_liquidity {
         let alice = ink_e2e::alice();
         add_fee_tier!($client, $dex, $dex_address, fee_tier, alice).unwrap();
 
+        let pool_key = PoolKey::new($token_x_address, $token_y_address, fee_tier).unwrap();
+
         let init_tick = 0;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
         create_pool!(
             $client,
             $dex,
             $dex_address,
-            $token_x_address,
-            $token_y_address,
-            fee_tier,
+            pool_key,
             init_sqrt_price,
             init_tick,
             alice
@@ -686,15 +686,15 @@ macro_rules! big_deposit_and_swap {
         };
         add_fee_tier!($client, $dex, dex, fee_tier, alice).unwrap();
 
+        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+
         let init_tick = 0;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
         create_pool!(
             $client,
             $dex,
             dex,
-            token_x,
-            token_y,
-            fee_tier,
+            pool_key,
             init_sqrt_price,
             init_tick,
             alice
@@ -805,15 +805,15 @@ macro_rules! multiple_swap {
         let alice = ink_e2e::alice();
         add_fee_tier!($client, $dex, dex, fee_tier, alice).unwrap();
 
+        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+
         let init_tick = 0;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
         create_pool!(
             $client,
             $dex,
             dex,
-            token_x,
-            token_y,
-            fee_tier,
+            pool_key,
             init_sqrt_price,
             init_tick,
             alice

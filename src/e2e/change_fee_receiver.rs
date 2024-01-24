@@ -30,13 +30,13 @@ pub mod e2e_tests {
 
         add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
 
+        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+
         let result = create_pool!(
             client,
             InvariantRef,
             dex,
-            token_x,
-            token_y,
-            fee_tier,
+            pool_key,
             init_sqrt_price,
             init_tick,
             alice
@@ -45,7 +45,6 @@ pub mod e2e_tests {
 
         let admin = ink_e2e::alice();
         let alice = address_of!(Alice);
-        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
         change_fee_receiver!(client, InvariantRef, dex, pool_key, alice, admin).unwrap();
         let pool = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
         assert_eq!(pool.fee_receiver, alice);
@@ -68,13 +67,13 @@ pub mod e2e_tests {
 
         add_fee_tier!(client, InvariantRef, dex, fee_tier, admin).unwrap();
 
+        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+
         let result = create_pool!(
             client,
             InvariantRef,
             dex,
-            token_x,
-            token_y,
-            fee_tier,
+            pool_key,
             init_sqrt_price,
             init_tick,
             admin
@@ -83,7 +82,6 @@ pub mod e2e_tests {
 
         let user = ink_e2e::bob();
         let bob = address_of!(Bob);
-        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
         let result = change_fee_receiver!(client, InvariantRef, dex, pool_key, bob, user);
         assert_eq!(result, Err(InvariantError::NotAdmin));
         Ok(())

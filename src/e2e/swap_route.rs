@@ -39,38 +39,34 @@ pub mod e2e_tests {
 
         add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
 
-        let init_tick = 0;
-        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
-        create_pool!(
-            client,
-            InvariantRef,
-            dex,
-            token_x,
-            token_y,
-            fee_tier,
-            init_sqrt_price,
-            init_tick,
-            alice
-        )
-        .unwrap();
-
-        let init_tick = 0;
-        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
-        create_pool!(
-            client,
-            InvariantRef,
-            dex,
-            token_y,
-            token_z,
-            fee_tier,
-            init_sqrt_price,
-            init_tick,
-            alice
-        )
-        .unwrap();
-
         let pool_key_1 = PoolKey::new(token_x, token_y, fee_tier).unwrap();
         let pool_key_2 = PoolKey::new(token_y, token_z, fee_tier).unwrap();
+
+        let init_tick = 0;
+        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
+        create_pool!(
+            client,
+            InvariantRef,
+            dex,
+            pool_key_1,
+            init_sqrt_price,
+            init_tick,
+            alice
+        )
+        .unwrap();
+
+        let init_tick = 0;
+        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
+        create_pool!(
+            client,
+            InvariantRef,
+            dex,
+            pool_key_2,
+            init_sqrt_price,
+            init_tick,
+            alice
+        )
+        .unwrap();
 
         let liquidity_delta = Liquidity::new(2u128.pow(63) - 1);
 

@@ -284,24 +284,18 @@ pub trait InvariantTrait {
     /// The choice is deterministic.
     ///
     /// # Parameters
-    /// - `token_0`: The address of the first token.
-    /// - `token_1`: The address of the second token.
-    /// - `fee_tier`: A struct identifying the pool fee and tick spacing.
     /// - `init_sqrt_price`: The square root of the price for the initial pool related to `init_tick`.
     /// - `init_tick`: The initial tick at which the pool will be created.
     ///
     /// # Errors
     /// - Fails if the specified fee tier cannot be found.
-    /// - Fails if the user attempts to create a pool for the same tokens.
-    /// - Fails if Pool with same tokens and fee tier already exist.
+    /// - Fails if the pool with specified pool key already exists.
     /// - Fails if the init tick is not divisible by the tick spacing.
     /// - Fails if the init sqrt price is not related to the init tick.
     #[ink(message)]
     fn create_pool(
         &mut self,
-        token_0: AccountId,
-        token_1: AccountId,
-        fee_tier: FeeTier,
+        pool_key: PoolKey,
         init_sqrt_price: SqrtPrice,
         init_tick: i32,
     ) -> Result<(), InvariantError>;

@@ -880,22 +880,19 @@ pub mod invariant {
         #[ink(message)]
         fn create_pool(
             &mut self,
-            token_0: AccountId,
-            token_1: AccountId,
-            fee_tier: FeeTier,
+            pool_key: PoolKey,
             init_sqrt_price: SqrtPrice,
             init_tick: i32,
         ) -> Result<(), InvariantError> {
             let current_timestamp = self.env().block_timestamp();
 
-            if !self.fee_tiers.contains(fee_tier) {
+            if !self.fee_tiers.contains(pool_key.fee_tier) {
                 return Err(InvariantError::FeeTierNotFound);
             };
 
-            check_tick(init_tick, fee_tier.tick_spacing)
+            check_tick(init_tick, pool_key.fee_tier.tick_spacing)
                 .map_err(|_| InvariantError::InvalidInitTick)?;
 
-            let pool_key = PoolKey::new(token_0, token_1, fee_tier)?;
             if self.pools.get(pool_key).is_ok() {
                 return Err(InvariantError::PoolAlreadyExist);
             };
@@ -903,7 +900,7 @@ pub mod invariant {
                 init_sqrt_price,
                 init_tick,
                 current_timestamp,
-                fee_tier.tick_spacing,
+                pool_key.fee_tier.tick_spacing,
                 self.config.admin,
             )?;
             self.pools.add(pool_key, &pool)?;
@@ -1141,27 +1138,15 @@ pub mod invariant {
 
             contract.add_fee_tier(fee_tier).unwrap();
 
-            let result = contract.create_pool(
-                token_0,
-                token_1,
-                FeeTier {
-                    fee: Percentage::new(1),
-                    tick_spacing: 1,
-                },
-                init_sqrt_price,
-                0,
-            );
+            let pool_key = PoolKey {
+                token_x: token_0,
+                token_y: token_1,
+                fee_tier,
+            };
+
+            let result = contract.create_pool(pool_key, init_sqrt_price, 0);
             assert!(result.is_ok());
-            let result = contract.create_pool(
-                token_1,
-                token_0,
-                FeeTier {
-                    fee: Percentage::new(1),
-                    tick_spacing: 1,
-                },
-                init_sqrt_price,
-                0,
-            );
+            let result = contract.create_pool(pool_key, init_sqrt_price, 0);
             assert_eq!(result, Err(InvariantError::PoolAlreadyExist));
         }
 
@@ -1188,7 +1173,9 @@ pub mod invariant {
 
             contract.add_fee_tier(fee_tier).unwrap();
 
-            let result = contract.create_pool(token_0, token_1, fee_tier, init_sqrt_price, 0);
+            let pool_key = PoolKey::new(token_0, token_1, fee_tier).unwrap();
+
+            let result = contract.create_pool(pool_key, init_sqrt_price, 0);
             assert!(result.is_ok());
             let result = contract.get_pool(
                 token_1,
@@ -1220,13 +1207,7 @@ pub mod invariant {
             assert_eq!(result, Err(InvariantError::PoolNotFound));
 
             contract.add_fee_tier(fee_tier).unwrap();
-            let _ = contract.create_pool(
-                pool_key.token_x,
-                pool_key.token_y,
-                pool_key.fee_tier,
-                init_sqrt_price,
-                0,
-            );
+            let _ = contract.create_pool(pool_key, init_sqrt_price, 0);
             let result = contract.create_tick(pool_key, 0);
             assert!(result.is_ok());
         }

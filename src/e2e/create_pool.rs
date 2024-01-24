@@ -1,7 +1,7 @@
 #[cfg(test)]
 pub mod e2e_tests {
     use crate::{
-        contracts::{entrypoints::InvariantTrait, FeeTier},
+        contracts::{entrypoints::InvariantTrait, FeeTier, PoolKey},
         invariant::InvariantRef,
         math::types::percentage::Percentage,
         math::types::sqrt_price::{calculate_sqrt_price, SqrtPrice},
@@ -27,13 +27,13 @@ pub mod e2e_tests {
 
         add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
 
+        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+
         let result = create_pool!(
             client,
             InvariantRef,
             dex,
-            token_x,
-            token_y,
-            fee_tier,
+            pool_key,
             init_sqrt_price,
             init_tick,
             alice
@@ -58,13 +58,13 @@ pub mod e2e_tests {
 
         add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
 
+        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+
         create_pool!(
             client,
             InvariantRef,
             dex,
-            token_x,
-            token_y,
-            fee_tier,
+            pool_key,
             init_sqrt_price,
             init_tick,
             alice
@@ -77,9 +77,7 @@ pub mod e2e_tests {
             client,
             InvariantRef,
             dex,
-            token_y,
-            token_x,
-            fee_tier,
+            pool_key,
             init_sqrt_price,
             init_tick,
             alice
@@ -95,25 +93,12 @@ pub mod e2e_tests {
         let (token_x, _) = create_tokens!(client, TokenRef, 500, 500);
 
         let fee_tier = FeeTier::new(Percentage::from_scale(5, 1), 100).unwrap();
-        let init_tick = 0;
-        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
         let alice = ink_e2e::alice();
 
         add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
 
-        let result = create_pool!(
-            client,
-            InvariantRef,
-            dex,
-            token_x,
-            token_x,
-            fee_tier,
-            init_sqrt_price,
-            init_tick,
-            alice
-        );
-
-        assert_eq!(result, Err(InvariantError::TokensAreSame));
+        let pool_key = PoolKey::new(token_x, token_x, fee_tier);
+        assert_eq!(pool_key, Err(InvariantError::TokensAreSame));
 
         Ok(())
     }
@@ -131,13 +116,13 @@ pub mod e2e_tests {
 
         let alice = ink_e2e::alice();
 
+        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+
         let result = create_pool!(
             client,
             InvariantRef,
             dex,
-            token_x,
-            token_y,
-            fee_tier,
+            pool_key,
             init_sqrt_price,
             init_tick,
             alice
@@ -161,13 +146,13 @@ pub mod e2e_tests {
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
         add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
 
+        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+
         let result = create_pool!(
             client,
             InvariantRef,
             dex,
-            token_x,
-            token_y,
-            fee_tier,
+            pool_key,
             init_sqrt_price,
             init_tick,
             alice
@@ -191,13 +176,13 @@ pub mod e2e_tests {
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap() + SqrtPrice::new(1);
         add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
 
+        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+
         create_pool!(
             client,
             InvariantRef,
             dex,
-            token_x,
-            token_y,
-            fee_tier,
+            pool_key,
             init_sqrt_price,
             init_tick,
             alice
@@ -226,13 +211,13 @@ pub mod e2e_tests {
         let init_sqrt_price = SqrtPrice::new(1000175003749000000000000);
         add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
 
+        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+
         let result = create_pool!(
             client,
             InvariantRef,
             dex,
-            token_x,
-            token_y,
-            fee_tier,
+            pool_key,
             init_sqrt_price,
             init_tick,
             alice
@@ -243,9 +228,7 @@ pub mod e2e_tests {
             client,
             InvariantRef,
             dex,
-            token_x,
-            token_y,
-            fee_tier,
+            pool_key,
             init_sqrt_price,
             correct_init_tick,
             alice
@@ -274,13 +257,13 @@ pub mod e2e_tests {
         let init_sqrt_price = SqrtPrice::new(1000225003749000000000000);
         add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
 
+        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+
         let result = create_pool!(
             client,
             InvariantRef,
             dex,
-            token_x,
-            token_y,
-            fee_tier,
+            pool_key,
             init_sqrt_price,
             init_tick,
             alice
@@ -292,9 +275,7 @@ pub mod e2e_tests {
             client,
             InvariantRef,
             dex,
-            token_x,
-            token_y,
-            fee_tier,
+            pool_key,
             init_sqrt_price,
             correct_init_tick,
             alice

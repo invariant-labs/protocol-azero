@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x8e4b96f4dd20f4e01eb47d01ead5d6b6f13de6b2761f067b0be4b692981eb8ce",
+    "hash": "0x989a848b7105659693d0f7444d58f633790731da9c1c5d18dc9d2c3b5f9347c2",
     "language": "ink! 4.3.0",
     "compiler": "rustc 1.72.1",
     "build_info": {
@@ -1034,30 +1034,12 @@
       {
         "args": [
           {
-            "label": "token_0",
+            "label": "pool_key",
             "type": {
               "displayName": [
-                "AccountId"
+                "PoolKey"
               ],
-              "type": 1
-            }
-          },
-          {
-            "label": "token_1",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 1
-            }
-          },
-          {
-            "label": "fee_tier",
-            "type": {
-              "displayName": [
-                "FeeTier"
-              ],
-              "type": 10
+              "type": 13
             }
           },
           {

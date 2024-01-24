@@ -45,6 +45,7 @@ pub mod e2e_tests {
             assert!(!exist);
         }
         // Attempt to create same pool again
+
         {
             let init_tick = 0;
             let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
@@ -52,9 +53,7 @@ pub mod e2e_tests {
                 client,
                 InvariantRef,
                 dex,
-                token_x,
-                token_y,
-                fee_tier,
+                pool_key,
                 init_sqrt_price,
                 init_tick,
                 deployer
@@ -151,9 +150,7 @@ pub mod e2e_tests {
                 client,
                 InvariantRef,
                 dex,
-                token_x,
-                token_y,
-                fee_tier,
+                pool_key,
                 init_sqrt_price,
                 init_tick,
                 deployer
