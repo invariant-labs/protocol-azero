@@ -88,21 +88,14 @@ describe('invariant', async () => {
   it('should get tick and check if it is initialized', async () => {
     await invariant.addFeeTier(account, feeTier)
 
-    await invariant.createPool(
-      account,
-      token0Address,
-      token1Address,
-      feeTier,
-      1000000000000000000000000n,
-      0n
-    )
+    const poolKey = newPoolKey(token0Address, token1Address, feeTier)
+
+    await invariant.createPool(account, poolKey, 1000000000000000000000000n, 0n)
 
     await psp22.setContractAddress(token0Address)
     await psp22.approve(account, invariant.contract.address.toString(), 1000000000n)
     await psp22.setContractAddress(token1Address)
     await psp22.approve(account, invariant.contract.address.toString(), 1000000000n)
-
-    const poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
     const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
     await invariant.createPosition(
@@ -155,14 +148,9 @@ describe('invariant', async () => {
     const initSqrtPrice: SqrtPrice = 1000000000000000000000000n
     const initTick = 0n
 
-    await invariant.createPool(
-      account,
-      token0Address,
-      token1Address,
-      feeTier,
-      initSqrtPrice,
-      initTick
-    )
+    const poolKey = newPoolKey(token0Address, token1Address, feeTier)
+
+    await invariant.createPool(account, poolKey, initSqrtPrice, initTick)
     const pools = await invariant.getPools(account)
     assert.deepEqual(pools.length, 1)
     const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
@@ -188,8 +176,10 @@ describe('invariant', async () => {
     const initSqrtPrice: SqrtPrice = 1000175003749000000000000n
     const initTick = 2n
 
+    const poolKey = newPoolKey(token0Address, token1Address, feeTier)
+
     assertThrowsAsync(
-      invariant.createPool(account, token0Address, token1Address, feeTier, initSqrtPrice, initTick),
+      invariant.createPool(account, poolKey, initSqrtPrice, initTick),
       InvariantError.InvalidInitTick
     )
   })
@@ -203,14 +193,9 @@ describe('invariant', async () => {
     const initTick = 0n
 
     {
-      await invariant.createPool(
-        account,
-        token0Address,
-        token1Address,
-        feeTier,
-        initSqrtPrice,
-        initTick
-      )
+      const poolKey = newPoolKey(token0Address, token1Address, feeTier)
+
+      await invariant.createPool(account, poolKey, initSqrtPrice, initTick)
 
       const pools = await invariant.getPools(account)
       assert.deepEqual(pools.length, 1)
@@ -229,15 +214,10 @@ describe('invariant', async () => {
       })
     }
     {
+      const poolKey = newPoolKey(token0Address, token1Address, feeTier)
+
       await assertThrowsAsync(
-        invariant.createPool(
-          account,
-          token1Address,
-          token0Address,
-          feeTier,
-          initSqrtPrice,
-          initTick
-        ),
+        invariant.createPool(account, poolKey, initSqrtPrice, initTick),
         InvariantTx.CreatePool
       )
     }

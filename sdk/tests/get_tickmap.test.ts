@@ -32,14 +32,7 @@ describe('tickmap', async () => {
 
     await invariant.addFeeTier(account, feeTier)
 
-    await invariant.createPool(
-      account,
-      token0Address,
-      token1Address,
-      feeTier,
-      1000000000000000000000000n,
-      0n
-    )
+    await invariant.createPool(account, poolKey, 1000000000000000000000000n, 0n)
 
     psp22.setContractAddress(token0Address)
     await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)

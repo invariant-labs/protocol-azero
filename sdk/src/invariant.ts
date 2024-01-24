@@ -460,16 +460,14 @@ export class Invariant {
 
   async createPool(
     account: IKeyringPair,
-    token0: string,
-    token1: string,
-    feeTier: FeeTier,
+    poolKey: PoolKey,
     initSqrtPrice: SqrtPrice,
     initTick: bigint,
     block: boolean = true
   ): Promise<TxResult> {
     const isInRelationship = checkTickToSqrtPriceRelationship(
       initTick,
-      feeTier.tickSpacing,
+      poolKey.feeTier.tickSpacing,
       initSqrtPrice
     )
 
@@ -484,7 +482,7 @@ export class Invariant {
       0n,
       account,
       InvariantTx.CreatePool,
-      [token0, token1, feeTier, initSqrtPrice, initTick],
+      [poolKey.tokenX, poolKey.tokenY, poolKey.feeTier, initSqrtPrice, initTick],
       this.waitForFinalization,
       block
     )

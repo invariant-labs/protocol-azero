@@ -28,21 +28,14 @@ describe('protocol fee', async () => {
 
     await invariant.addFeeTier(account, feeTier)
 
-    await invariant.createPool(
-      account,
-      token0Address,
-      token1Address,
-      feeTier,
-      1000000000000000000000000n,
-      0n
-    )
+    const poolKey = newPoolKey(token0Address, token1Address, feeTier)
+
+    await invariant.createPool(account, poolKey, 1000000000000000000000000n, 0n)
 
     await psp22.setContractAddress(token0Address)
     await psp22.approve(account, invariant.contract.address.toString(), 10000000000000n)
     await psp22.setContractAddress(token1Address)
     await psp22.approve(account, invariant.contract.address.toString(), 10000000000000n)
-
-    const poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
     await invariant.createPosition(
       account,
