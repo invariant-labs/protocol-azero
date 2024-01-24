@@ -23,6 +23,7 @@
     "@scio-labs/use-inkathon": "^0.6.3",
     "dotenv": "^16.3.1",
     "math": "file:math/pkg",
+    "clamm": "file:../src/math/pkg",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   },

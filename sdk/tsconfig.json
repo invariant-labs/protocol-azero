@@ -11,8 +11,10 @@
     "moduleResolution": "bundler",
     "baseUrl": "./",
     "paths": {
-      "math": ["./math/pkg/math"]
+      "math": ["./math/pkg/math"],
+      "clamm": ["../src/math/pkg/math"]
     },
+
     "types": ["mocha", "chai"]
   }
 }

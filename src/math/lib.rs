@@ -18,6 +18,7 @@ pub use types::*;
 #[cfg(not(feature = "wasm"))]
 pub mod contract {
     #[ink(storage)]
+    #[derive(Default)]
     pub struct Contract {}
 
     impl Contract {
