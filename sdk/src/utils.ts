@@ -7,6 +7,8 @@ import { getBalance, initPolkadotJs as initApi } from '@scio-labs/use-inkathon/h
 import { readFile } from 'fs/promises'
 import {
   FeeTier,
+  Liquidity,
+  LiquidityTick,
   Percentage,
   Pool,
   PoolKey,
@@ -15,9 +17,9 @@ import {
   SqrtPrice,
   Tick,
   TokenAmounts,
+  _calculateFee,
   _newFeeTier,
   _newPoolKey,
-  _simulateUnclaimedFees,
   calculateAmountDelta,
   calculateAmountDeltaResult,
   getMaxChunk,
@@ -236,13 +238,13 @@ export const calculatePriceImpact = (
   return (nominator * getPercentageDenominator()) / denominator
 }
 
-export const simulateUnclaimedFees = (
+export const calculateFee = (
   pool: Pool,
   position: Position,
   lowerTick: Tick,
   upperTick: Tick
 ): TokenAmounts => {
-  return _simulateUnclaimedFees(
+  return _calculateFee(
     lowerTick.index,
     lowerTick.feeGrowthOutsideX,
     lowerTick.feeGrowthOutsideY,
@@ -340,4 +342,23 @@ export const sqrtPriceToPrice = (sqrtPrice: SqrtPrice): Price => {
 
 export const priceToSqrtPrice = (price: Price): SqrtPrice => {
   return sqrt(price * getSqrtPriceDenominator())
+}
+
+interface LiquidityBreakPoint {
+  liquidity: Liquidity
+  index: bigint
+}
+
+export const calculateLiquidityBreakpoints = (
+  ticks: (Tick | LiquidityTick)[]
+): LiquidityBreakPoint[] => {
+  let currentLiquidity = 0n
+
+  return ticks.map(tick => {
+    currentLiquidity = currentLiquidity + tick.liquidityChange * (tick.sign ? 1n : -1n)
+    return {
+      liquidity: currentLiquidity,
+      index: tick.index
+    }
+  })
 }

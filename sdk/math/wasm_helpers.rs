@@ -106,8 +106,8 @@ macro_rules! resolve {
     }};
 }
 
-#[wasm_bindgen(js_name = "_simulateUnclaimedFees")]
-pub fn simulate_unclaimed_fees(
+#[wasm_bindgen(js_name = "_calculateFee")]
+pub fn calculate_fee(
     js_lower_tick_index: JsValue,
     js_lower_tick_fee_growth_outside_x: JsValue,
     js_lower_tick_fee_growth_outside_y: JsValue,

@@ -15,6 +15,7 @@ import {
   Pool,
   PoolKey,
   Position,
+  PositionTick,
   QuoteResult,
   SqrtPrice,
   SwapHop,
@@ -37,6 +38,7 @@ import {
 import {
   DEFAULT_PROOF_SIZE,
   DEFAULT_REF_TIME,
+  calculateSqrtPriceAfterSlippage,
   constructTickmap,
   getDeploymentData,
   parse,
@@ -328,10 +330,21 @@ export class Invariant {
     lowerTick: bigint,
     upperTick: bigint,
     liquidityDelta: Liquidity,
-    slippageLimitLower: SqrtPrice,
-    slippageLimitUpper: SqrtPrice,
+    spotSqrtPrice: SqrtPrice,
+    slippageTolerance: Percentage,
     block: boolean = true
   ): Promise<CreatePositionTxResult> {
+    const slippageLimitLower = calculateSqrtPriceAfterSlippage(
+      spotSqrtPrice,
+      slippageTolerance,
+      true
+    )
+    const slippageLimitUpper = calculateSqrtPriceAfterSlippage(
+      spotSqrtPrice,
+      slippageTolerance,
+      false
+    )
+
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -459,16 +472,14 @@ export class Invariant {
 
   async createPool(
     account: IKeyringPair,
-    token0: string,
-    token1: string,
-    feeTier: FeeTier,
+    poolKey: PoolKey,
     initSqrtPrice: SqrtPrice,
     initTick: bigint,
     block: boolean = true
   ): Promise<TxResult> {
     const isInRelationship = checkTickToSqrtPriceRelationship(
       initTick,
-      feeTier.tickSpacing,
+      poolKey.feeTier.tickSpacing,
       initSqrtPrice
     )
 
@@ -483,7 +494,7 @@ export class Invariant {
       0n,
       account,
       InvariantTx.CreatePool,
-      [token0, token1, feeTier, initSqrtPrice, initTick],
+      [poolKey.tokenX, poolKey.tokenY, poolKey.feeTier, initSqrtPrice, initTick],
       this.waitForFinalization,
       block
     )
@@ -565,6 +576,21 @@ export class Invariant {
     ) as Promise<SwapRouteTxResult>
   }
 
+  async getPositionTicks(
+    account: IKeyringPair,
+    owner: string,
+    offset: bigint
+  ): Promise<PositionTick[]> {
+    return sendQuery(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      account,
+      InvariantQuery.getPositionTicks,
+      [owner, offset]
+    )
+  }
+
   async getTickmap(
     account: IKeyringPair,
     poolKey: PoolKey,
@@ -583,7 +609,7 @@ export class Invariant {
 
   async getLiquidityTicks(
     account: IKeyringPair,
-    pool_key: PoolKey,
+    poolKey: PoolKey,
     offset: bigint
   ): Promise<LiquidityTick[]> {
     return sendQuery(
@@ -592,7 +618,18 @@ export class Invariant {
       this.storageDepositLimit,
       account,
       InvariantQuery.getLiquidityTicks,
-      [pool_key, offset]
+      [poolKey, offset]
+    )
+  }
+
+  async getUserPositionAmount(account: IKeyringPair, owner: string): Promise<bigint> {
+    return sendQuery(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      account,
+      InvariantQuery.getUserPositionAmount,
+      [owner]
     )
   }
 

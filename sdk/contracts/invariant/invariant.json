@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x12efc47ea3b465f9cb1e5c60bc8a78fbd51eca16d2a7ae82b260ab1a70ec5dcb",
+    "hash": "0x8e4b96f4dd20f4e01eb47d01ead5d6b6f13de6b2761f067b0be4b692981eb8ce",
     "language": "ink! 4.3.0",
     "compiler": "rustc 1.72.1",
     "build_info": {
@@ -72,13 +72,13 @@
         "displayName": [
           "ChainExtension"
         ],
-        "type": 62
+        "type": 65
       },
       "hash": {
         "displayName": [
           "Hash"
         ],
-        "type": 61
+        "type": 64
       },
       "maxEventTopics": 4,
       "timestamp": {
@@ -215,7 +215,7 @@
               "displayName": [
                 "Vec"
               ],
-              "type": 60
+              "type": 63
             }
           }
         ],
@@ -1242,6 +1242,41 @@
       {
         "args": [
           {
+            "label": "owner",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 1
+            }
+          },
+          {
+            "label": "offset",
+            "type": {
+              "displayName": [
+                "u32"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "InvariantTrait::get_position_ticks",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 53
+        },
+        "selector": "0xcc9476e7"
+      },
+      {
+        "args": [
+          {
             "label": "pool_key",
             "type": {
               "displayName": [
@@ -1270,7 +1305,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 53
+          "type": 56
         },
         "selector": "0x3b83b256"
       },
@@ -1305,9 +1340,35 @@
             "ink",
             "MessageResult"
           ],
-          "type": 56
+          "type": 59
         },
         "selector": "0x8ef8d345"
+      },
+      {
+        "args": [
+          {
+            "label": "owner",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 1
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "InvariantTrait::get_user_position_amount",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 62
+        },
+        "selector": "0xd842f034"
       },
       {
         "args": [
@@ -1331,7 +1392,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 59
+          "type": 62
         },
         "selector": "0xf360dea7"
       }
@@ -3746,11 +3807,38 @@
       "id": 55,
       "type": {
         "def": {
-          "tuple": [
-            5,
-            4
-          ]
-        }
+          "composite": {
+            "fields": [
+              {
+                "name": "index",
+                "type": 7,
+                "typeName": "i32"
+              },
+              {
+                "name": "fee_growth_outside_x",
+                "type": 26,
+                "typeName": "FeeGrowth"
+              },
+              {
+                "name": "fee_growth_outside_y",
+                "type": 26,
+                "typeName": "FeeGrowth"
+              },
+              {
+                "name": "seconds_outside",
+                "type": 4,
+                "typeName": "u64"
+              }
+            ]
+          }
+        },
+        "path": [
+          "invariant",
+          "contracts",
+          "storage",
+          "tick",
+          "PositionTick"
+        ]
       }
     },
     {
@@ -3809,6 +3897,69 @@
       "id": 58,
       "type": {
         "def": {
+          "tuple": [
+            5,
+            4
+          ]
+        }
+      }
+    },
+    {
+      "id": 59,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 60
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 16
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 60
+          },
+          {
+            "name": "E",
+            "type": 16
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 60,
+      "type": {
+        "def": {
+          "sequence": {
+            "type": 61
+          }
+        }
+      }
+    },
+    {
+      "id": 61,
+      "type": {
+        "def": {
           "composite": {
             "fields": [
               {
@@ -3817,19 +3968,14 @@
                 "typeName": "i32"
               },
               {
-                "name": "fee_growth_outside_x",
-                "type": 26,
-                "typeName": "FeeGrowth"
+                "name": "liquidity_change",
+                "type": 21,
+                "typeName": "Liquidity"
               },
               {
-                "name": "fee_growth_outside_y",
-                "type": 26,
-                "typeName": "FeeGrowth"
-              },
-              {
-                "name": "seconds_outside",
-                "type": 4,
-                "typeName": "u64"
+                "name": "sign",
+                "type": 8,
+                "typeName": "bool"
               }
             ]
           }
@@ -3844,7 +3990,7 @@
       }
     },
     {
-      "id": 59,
+      "id": 62,
       "type": {
         "def": {
           "variant": {
@@ -3886,7 +4032,7 @@
       }
     },
     {
-      "id": 60,
+      "id": 63,
       "type": {
         "def": {
           "sequence": {
@@ -3896,7 +4042,7 @@
       }
     },
     {
-      "id": 61,
+      "id": 64,
       "type": {
         "def": {
           "composite": {
@@ -3916,7 +4062,7 @@
       }
     },
     {
-      "id": 62,
+      "id": 65,
       "type": {
         "def": {
           "variant": {}

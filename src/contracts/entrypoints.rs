@@ -1,5 +1,5 @@
 use crate::{
-    contracts::{FeeTier, LiquidityTick, Pool, PoolKey, Position, Tick},
+    contracts::{FeeTier, LiquidityTick, Pool, PoolKey, Position, PositionTick, Tick},
     invariant::{CalculateSwapResult, QuoteResult, SwapHop},
     math::{
         liquidity::Liquidity, percentage::Percentage, sqrt_price::SqrtPrice,
@@ -350,6 +350,21 @@ pub trait InvariantTrait {
     #[ink(message)]
     fn get_fee_tiers(&self) -> Vec<FeeTier>;
 
+    /// Retrieves list of lower and upper ticks of user positions.
+    ///
+    /// # Parameters
+    /// - `owner`: An `AccountId` identifying the user who owns the position.
+    /// - `offset`: The offset from the current position index.
+    #[ink(message)]
+    fn get_position_ticks(&self, owner: AccountId, offset: u32) -> Vec<PositionTick>;
+
+    /// Retrieves the amount of positions held by the user.
+    ///
+    /// # Parameters
+    /// - `owner`: An `AccountId` identifying the user who owns the position.
+    #[ink(message)]
+    fn get_user_position_amount(&self, owner: AccountId) -> u32;
+
     /// Retrieves tickmap chunks
     ///
     /// # Parameters
@@ -358,7 +373,7 @@ pub trait InvariantTrait {
     #[ink(message)]
     fn get_tickmap(&self, pool_key: PoolKey, center_tick: i32) -> Vec<(u16, u64)>;
 
-    /// Retrieves ticks for a specified pool.
+    /// Retrieves ticks of a specified pool.
     ///
     /// # Parameters
     /// - `pool_key`: A unique key that identifies the specified pool.
@@ -366,7 +381,7 @@ pub trait InvariantTrait {
     #[ink(message)]
     fn get_liquidity_ticks(&self, pool_key: PoolKey, offset: u16) -> Vec<LiquidityTick>;
 
-    /// Retrieves the amount of liquidity ticks for a specified pool.
+    /// Retrieves the amount of liquidity ticks of a specified pool.
     ///
     /// # Parameters
     /// - `pool_key`: A unique key that identifies the specified pool.

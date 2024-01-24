@@ -26,8 +26,6 @@ pub fn wasm_wrapper(attr: TokenStream, input: TokenStream) -> TokenStream {
 
     let return_type = return_ty.clone().into_iter().next().unwrap().to_string();
 
-    println!("return_ty: {:?}", return_type);
-
     let args_str = attr.to_string();
     let args: Vec<&str> = args_str.split(',').collect();
 

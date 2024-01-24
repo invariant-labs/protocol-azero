@@ -6,6 +6,7 @@ import {
   InvariantError,
   LiquidityTick,
   Position,
+  PositionTick,
   RemovePositionEvent,
   Tick
 } from 'math/math.js'
@@ -84,12 +85,21 @@ export const removePositionEventEquals = (
   assert.deepEqual(removePositionEvent.upperTick, expectedRemovePositionEvent.upperTick)
 }
 
+export const positionTickEquals = (
+  positionTick: Tick | PositionTick,
+  expectedPositionTick: Tick | PositionTick
+) => {
+  assert.deepEqual(positionTick.index, expectedPositionTick.index)
+  assert.deepEqual(positionTick.feeGrowthOutsideX, expectedPositionTick.feeGrowthOutsideX)
+  assert.deepEqual(positionTick.feeGrowthOutsideY, expectedPositionTick.feeGrowthOutsideY)
+  assert.deepEqual(positionTick.secondsOutside, expectedPositionTick.secondsOutside)
+}
+
 export const liquidityTickEquals = (
   liquidityTick: Tick | LiquidityTick,
   expectedLiquidityTick: Tick | LiquidityTick
 ) => {
   assert.deepEqual(liquidityTick.index, expectedLiquidityTick.index)
-  assert.deepEqual(liquidityTick.feeGrowthOutsideX, expectedLiquidityTick.feeGrowthOutsideX)
-  assert.deepEqual(liquidityTick.feeGrowthOutsideY, expectedLiquidityTick.feeGrowthOutsideY)
-  assert.deepEqual(liquidityTick.secondsOutside, expectedLiquidityTick.secondsOutside)
+  assert.deepEqual(liquidityTick.liquidityChange, expectedLiquidityTick.liquidityChange)
+  assert.deepEqual(liquidityTick.sign, expectedLiquidityTick.sign)
 }
