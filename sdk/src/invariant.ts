@@ -21,7 +21,9 @@ import {
   SwapHop,
   Tick,
   TokenAmount,
-  calculateTick
+  calculateTick,
+  getMaxSqrtPrice,
+  getMinSqrtPrice
 } from 'math/math.js'
 import { Network } from './network.js'
 import {
@@ -31,7 +33,6 @@ import {
   InvariantQuery,
   InvariantTx,
   RemovePositionTxResult,
-  Result,
   SwapRouteTxResult,
   SwapTxResult,
   TxResult
@@ -497,17 +498,32 @@ export class Invariant {
     poolKey: PoolKey,
     xToY: boolean,
     amount: TokenAmount,
-    byAmountIn: boolean,
-    sqrtPriceLimit: SqrtPrice
-  ): Promise<Result<QuoteResult, InvariantError>> {
-    return sendQuery(
-      this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
-      account,
-      InvariantQuery.Quote,
-      [poolKey, xToY, amount, byAmountIn, sqrtPriceLimit]
-    )
+    byAmountIn: boolean
+  ): Promise<QuoteResult> {
+    let sqrtPriceLimit
+
+    if (xToY) {
+      sqrtPriceLimit = getMinSqrtPrice()
+    } else {
+      sqrtPriceLimit = getMaxSqrtPrice()
+    }
+
+    const result = (
+      await sendQuery(
+        this.contract,
+        this.gasLimit,
+        this.storageDepositLimit,
+        account,
+        InvariantQuery.Quote,
+        [poolKey, xToY, amount, byAmountIn, sqrtPriceLimit]
+      )
+    ).ok
+
+    if (result.ok) {
+      return parse(result.ok)
+    } else {
+      throw new Error(InvariantError[result.err])
+    }
   }
 
   async quoteRoute(
