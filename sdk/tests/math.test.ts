@@ -55,6 +55,7 @@ describe('check get liquidity by x', async () => {
     await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
   })
   it('check get liquidity by x', async () => {
+    assert.isTrue(false)
     // below range
     {
       const lowerTickIndex = 80n
