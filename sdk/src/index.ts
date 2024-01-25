@@ -15,6 +15,7 @@ import {
   TokenAmount,
   calculateAmountDelta,
   getDeltaY,
+  getGlobalMaxSqrtPrice,
   getLiquidityByX,
   getLiquidityByY,
   getLiquidityScale,
@@ -103,9 +104,11 @@ const main = async () => {
     console.log('updateLiquidity = ', updateLiquidity)
   }
   {
-    const maxTick: bigint = BigInt(getMaxTick())
+    const maxTick: bigint = getMaxTick(1n)
     console.log(maxTick)
-    const maxSqrtPrice = getMaxSqrtPrice()
+    const globalMaxSqrtPrice = getGlobalMaxSqrtPrice()
+    const maxSqrtPrice = getMaxSqrtPrice(1)
+    console.log(globalMaxSqrtPrice)
     console.log(maxSqrtPrice)
   }
   {

@@ -11,23 +11,13 @@ pub const MIN_SQRT_PRICE: u128 = 15258932000000000000;
 pub const TICK_SEARCH_RANGE: i32 = 256;
 pub const CHUNK_SIZE: i32 = 64;
 
-#[wasm_wrapper("getMaxTick")]
-pub fn exported_get_max_tick(tick_spacing: u16) -> i32 {
-    get_max_tick(tick_spacing)
-}
-
-#[wasm_wrapper("getMinTick")]
-pub fn exported_get_min_tick(tick_spacing: u16) -> i32 {
-    get_min_tick(tick_spacing)
-}
-
 #[wasm_wrapper]
-pub fn get_max_sqrt_price() -> u128 {
+pub fn get_global_max_sqrt_price() -> u128 {
     MAX_SQRT_PRICE
 }
 
 #[wasm_wrapper]
-pub fn get_min_sqrt_price() -> u128 {
+pub fn get_global_min_sqrt_price() -> u128 {
     MIN_SQRT_PRICE
 }
 

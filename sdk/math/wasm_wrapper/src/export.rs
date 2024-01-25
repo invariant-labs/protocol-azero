@@ -26,7 +26,7 @@ pub fn generate_exported_function(
             &original_function_name,
         )
     } else if result_not_wrapped {
-        value_exproted_function(
+        value_exported_function(
             &camel_case_string,
             &generated_function_ident,
             params.clone(),
@@ -47,7 +47,7 @@ pub fn generate_exported_function(
     }
 }
 
-pub fn value_exproted_function(
+pub fn value_exported_function(
     camel_case_string: &str,
     generated_function_ident: &Ident,
     params: Vec<TokenStream>,
