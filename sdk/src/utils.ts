@@ -25,7 +25,16 @@ import {
   wrappedCalculateTokenAmounts
 } from 'math/math.js'
 import { Network } from './network.js'
-import { LiquidityBreakPoint, Query, Tx, TxResult } from './schema.js'
+import {
+  CreatePositionTxResult,
+  LiquidityBreakPoint,
+  Query,
+  RemovePositionTxResult,
+  SwapRouteTxResult,
+  SwapTxResult,
+  Tx,
+  TxResult
+} from './schema.js'
 
 export const initPolkadotApi = async (network: Network): Promise<ApiPromise> => {
   if (network === Network.Local) {
@@ -94,7 +103,9 @@ export async function sendTx(
     ...data
   )
 
-  return new Promise<TxResult>(async (resolve, reject) => {
+  return new Promise<
+    TxResult | CreatePositionTxResult | RemovePositionTxResult | SwapRouteTxResult | SwapTxResult
+  >(async (resolve, reject) => {
     await call.signAndSend(signer, result => {
       if (!block) {
         resolve({

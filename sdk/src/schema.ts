@@ -79,7 +79,6 @@ export type InvariantEventType =
 
 export interface TxResult {
   hash: string
-  events: InvariantEventType[]
 }
 
 export type CreatePositionTxResult = {
