@@ -166,7 +166,7 @@ pub fn is_token_x(token_candidate: String, token_to_compare: String) -> Trackabl
     Ok(token_candidate < token_to_compare)
 }
 
-#[wasm_wrapper]
+#[wasm_wrapper("isValidTick")]
 pub fn check_tick_to_sqrt_price_relationship(
     tick_index: i32,
     tick_spacing: u16,

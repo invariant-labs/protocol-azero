@@ -1,13 +1,21 @@
 import { Keyring } from '@polkadot/api'
 import dotenv from 'dotenv'
+import { getLiquidityByY, toPercentage, toPrice } from 'math/math.js'
+import { Invariant } from './invariant.js'
 import { Network } from './network.js'
-import { getEnvAccount, initPolkadotApi, newFeeTier, newPoolKey, printBalance } from './utils.js'
-import { WrappedAZERO } from './wrapped-azero.js'
+import { PSP22 } from './psp22.js'
+import {
+  calculateFee,
+  calculateSqrtPriceAfterSlippage,
+  initPolkadotApi,
+  newFeeTier,
+  newPoolKey,
+  priceToSqrtPrice
+} from './utils.js'
+
 dotenv.config()
 
-import { getBalance, transferBalance } from '@scio-labs/use-inkathon'
 import {
-  CreatePositionEvent,
   FeeTier,
   Liquidity,
   PoolKey,
@@ -17,7 +25,6 @@ import {
   getDeltaY,
   getGlobalMaxSqrtPrice,
   getLiquidityByX,
-  getLiquidityByY,
   getLiquidityScale,
   getMaxSqrtPrice,
   getMaxTick,
@@ -26,10 +33,6 @@ import {
   getSqrtPriceScale,
   getTokenAmountScale
 } from 'math/math.js'
-import { Invariant } from './invariant.js'
-import { PSP22 } from './psp22.js'
-import { InvariantEvent } from './schema.js'
-import { getEnvTestAccount } from './testUtils.js'
 
 const main = async () => {
   {
@@ -127,78 +130,141 @@ const main = async () => {
 
   const api = await initPolkadotApi(network)
 
+  // initialize account, you can use your own wallet by pasting mnemonic phase
   const keyring = new Keyring({ type: 'sr25519' })
-  const account = await getEnvAccount(keyring)
-  const testAccount = await getEnvTestAccount(keyring)
+  const account = keyring.addFromUri('//Alice')
 
-  await printBalance(api, account)
-  await printBalance(api, testAccount)
+  // ###
+  const INVARIANT_ADDRESS = (
+    await Invariant.deploy(api, Network.Local, account, 0n)
+  ).contract.address.toString()
 
-  // deploy invariant
-  const initFee = 10n
-  const invariant = await Invariant.deploy(api, network, account, initFee)
+  const TOKEN0_ADDRESS = await PSP22.deploy(api, account, 1000000000000000000000000000000n)
+  const TOKEN1_ADDRESS = await PSP22.deploy(api, account, 1000000000000000000000000000000n)
+  // ###
 
-  invariant.on(InvariantEvent.CreatePositionEvent, (event: CreatePositionEvent) => {
-    console.log(event)
-  })
+  // load invariant contract
+  const invariant = await Invariant.load(api, Network.Local, INVARIANT_ADDRESS)
 
-  // deploy token
-  const token0Address = await PSP22.deploy(api, account, 1000n, 'Coin', 'COIN', 12n)
-  const token1Address = await PSP22.deploy(api, account, 1000n, 'Coin', 'COIN', 12n)
-  const psp22 = await PSP22.load(api, network, token0Address)
-  const feeTier = newFeeTier(6000000000n, 10n)
+  // load token contract
+  const psp22 = await PSP22.load(api, Network.Local, TOKEN0_ADDRESS)
 
-  const poolKey = await newPoolKey(token0Address, token1Address, feeTier)
+  // set fee tier, make sure that fee tier with specified parameters exists
+  const feeTier = newFeeTier(toPercentage(1n, 2n), 1n) // fee: 0.01 = 1%, tick spacing: 1
 
+  // ###
   await invariant.addFeeTier(account, feeTier)
+  // ###
 
-  await invariant.createPool(account, poolKey, 1000000000000000000000000n, 0n)
+  // set initial price of the pool, we set it to 1.00
+  // all endpoints only accept sqrt price so we need to convert it before passing it
+  const price = toPrice(1n, 0n)
+  const initSqrtPrice = priceToSqrtPrice(price)
 
-  await psp22.setContractAddress(token0Address)
-  await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
-  await psp22.setContractAddress(token1Address)
-  await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
+  // set pool key, make sure that pool with specified parameters does not exists
+  const poolKey = newPoolKey(TOKEN0_ADDRESS, TOKEN1_ADDRESS, feeTier)
 
-  const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
+  const createPoolResult = await invariant.createPool(account, poolKey, initSqrtPrice)
+  console.log(createPoolResult.hash) // print transaction hash
 
-  await invariant.createPosition(
+  // token y has 12 decimals and we want to add 8 actual tokens to our position
+  const tokenYAmount = 8n * 10n ** 12n
+
+  // set lower and upper tick, we want to create position in range [-10, 10]
+  const lowerTick = -10n
+  const upperTick = 10n
+
+  // calculate amount of token x we need to give to open position
+  const { amount: tokenXAmount, l: positionLiquidity } = getLiquidityByY(
+    tokenYAmount,
+    lowerTick,
+    upperTick,
+    initSqrtPrice,
+    true
+  )
+
+  // print amount of token x and y we need to give to open position based on parameteres we passed
+  console.log(tokenXAmount, tokenYAmount)
+
+  // approve transfers of both tokens
+  await psp22.setContractAddress(poolKey.tokenX)
+  await psp22.approve(account, invariant.contract.address.toString(), tokenXAmount)
+  await psp22.setContractAddress(poolKey.tokenY)
+  await psp22.approve(account, invariant.contract.address.toString(), tokenYAmount)
+
+  // open up position
+  const createPositionResult = await invariant.createPosition(
     account,
     poolKey,
-    -10n,
-    10n,
-    1000000000000n,
-    pool.sqrtPrice,
-    pool.sqrtPrice
+    lowerTick,
+    upperTick,
+    positionLiquidity,
+    initSqrtPrice,
+    0n
+  )
+  console.log(createPositionResult.hash) // print transaction hash
+
+  // here we want to swap 6 token0
+  // token0 has 12 decimals so we need to multiply it by 10^12
+  const amount = 6n * 10n ** 12n
+
+  // approve token x transfer
+  await psp22.setContractAddress(poolKey.tokenX)
+  await psp22.approve(account, invariant.contract.address.toString(), amount)
+
+  // get estimated result of swap
+  const quoteResult = await invariant.quote(account, poolKey, true, amount, true)
+
+  // slippage is a price change you are willing to accept,
+  // for examples if current price is 1 and your slippage is 1%, then price limit will be 1.01
+  const allowedSlippage = toPercentage(1n, 3n) // 0.001 = 0.1%
+
+  // calculate sqrt price limit based on slippage
+  const sqrtPriceLimit = calculateSqrtPriceAfterSlippage(
+    quoteResult.targetSqrtPrice,
+    allowedSlippage,
+    false
   )
 
-  // deploy wrapped azero
-  const wazero = await WrappedAZERO.deploy(api, network, account)
+  const swapResult = await invariant.swap(account, poolKey, true, amount, true, sqrtPriceLimit)
+  console.log(swapResult.hash) // print transaction hash
 
-  await transferBalance(api, account, testAccount.address, 1000000000000)
-  console.log('account balance: ', (await getBalance(api, account.address)).balanceFormatted)
-  console.log(
-    'test account balance: ',
-    (await getBalance(api, testAccount.address)).balanceFormatted
-  )
+  // query state
+  const poolAfter = await invariant.getPool(account, TOKEN0_ADDRESS, TOKEN1_ADDRESS, feeTier)
+  // last parameter here is position id, positions are indexed from 0
+  const positionAfter = await invariant.getPosition(account, account.address, 0n)
+  const lowerTickAfter = await invariant.getTick(account, poolKey, positionAfter.lowerTickIndex)
+  const upperTickAfter = await invariant.getTick(account, poolKey, positionAfter.upperTickIndex)
 
-  await psp22.setContractAddress(token0Address)
-  const results = await Promise.all([
-    invariant.getFeeTiers(account),
-    psp22.totalSupply(account),
-    wazero.balanceOf(account, account.address)
-  ])
+  // pools, ticks and positions have many fee growth fields that are used to calculate fees,
+  // by doing that off chain we can save gas fees,
+  // so in order to see how many tokens you can claim from fees you need to use calculate fee function
+  const fees = calculateFee(poolAfter, positionAfter, lowerTickAfter, upperTickAfter)
 
-  console.log(results)
+  // print amount of unclaimed x and y token
+  console.log(fees)
 
-  // get events from past 3 blocks
-  const blockNumber = await api.query.system.number()
-  for (let i = 0; i < 3; i++) {
-    const previousBlockNumber = (blockNumber as unknown as number) - 1 - i
-    const previousBlockHash = await api.query.system.blockHash(previousBlockNumber)
-    const apiAt = await api.at(previousBlockHash.toString())
-    const events = await apiAt.query.system.events()
-    console.log((events as any).length)
-  }
+  // claim fees
+  // specify position id, positions are indexed from 0
+  const positionId = 0n
+  const claimFeeResult = await invariant.claimFee(account, positionId)
+  console.log(claimFeeResult.hash) // print transaction hash
+
+  // get balance of a specific token after claiming position fees and print it
+  const accountBalance = await psp22.balanceOf(account, account.address)
+  console.log(accountBalance)
+
+  // remove position
+  const removePositionResult = await invariant.removePosition(account, positionId)
+  console.log(removePositionResult.hash) // print transaction hash
+
+  // get balance of a specific token after removing position
+  const accountToken0Balance = await psp22.balanceOf(account, account.address)
+  await psp22.setContractAddress(TOKEN1_ADDRESS)
+  const accountToken1Balance = await psp22.balanceOf(account, account.address)
+
+  // print balances
+  console.log(accountToken0Balance, accountToken1Balance)
 
   process.exit(0)
 }
