@@ -90,7 +90,7 @@ describe('invariant', async () => {
 
     const poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
-    await invariant.createPool(account, poolKey, 1000000000000000000000000n, 0n)
+    await invariant.createPool(account, poolKey, 1000000000000000000000000n)
 
     await psp22.setContractAddress(token0Address)
     await psp22.approve(account, invariant.contract.address.toString(), 1000000000n)
@@ -138,11 +138,10 @@ describe('invariant', async () => {
     assert.deepEqual(addedFeeTierExists, true)
 
     const initSqrtPrice: SqrtPrice = 1000000000000000000000000n
-    const initTick = 0n
 
     const poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
-    await invariant.createPool(account, poolKey, initSqrtPrice, initTick)
+    await invariant.createPool(account, poolKey, initSqrtPrice)
     const pools = await invariant.getPools(account)
     assert.deepEqual(pools.length, 1)
     const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
@@ -166,12 +165,11 @@ describe('invariant', async () => {
     assert.deepEqual(addedFeeTierExists, true)
 
     const initSqrtPrice: SqrtPrice = 1000175003749000000000000n
-    const initTick = 2n
 
     const poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
     assertThrowsAsync(
-      invariant.createPool(account, poolKey, initSqrtPrice, initTick),
+      invariant.createPool(account, poolKey, initSqrtPrice),
       InvariantError.InvalidInitTick
     )
   })
@@ -182,12 +180,11 @@ describe('invariant', async () => {
     assert.deepEqual(addedFeeTierExists, true)
 
     const initSqrtPrice: SqrtPrice = 1000000000000000000000000n
-    const initTick = 0n
 
     {
       const poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
-      await invariant.createPool(account, poolKey, initSqrtPrice, initTick)
+      await invariant.createPool(account, poolKey, initSqrtPrice)
 
       const pools = await invariant.getPools(account)
       assert.deepEqual(pools.length, 1)
@@ -209,7 +206,7 @@ describe('invariant', async () => {
       const poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
       await assertThrowsAsync(
-        invariant.createPool(account, poolKey, initSqrtPrice, initTick),
+        invariant.createPool(account, poolKey, initSqrtPrice),
         InvariantTx.CreatePool
       )
     }

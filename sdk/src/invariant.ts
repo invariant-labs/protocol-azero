@@ -21,7 +21,9 @@ import {
   SwapHop,
   Tick,
   TokenAmount,
-  checkTickToSqrtPriceRelationship
+  calculateTick,
+  getMaxSqrtPrice,
+  getMinSqrtPrice
 } from 'math/math.js'
 import { Network } from './network.js'
 import {
@@ -474,18 +476,9 @@ export class Invariant {
     account: IKeyringPair,
     poolKey: PoolKey,
     initSqrtPrice: SqrtPrice,
-    initTick: bigint,
     block: boolean = true
   ): Promise<TxResult> {
-    const isInRelationship = checkTickToSqrtPriceRelationship(
-      initTick,
-      poolKey.feeTier.tickSpacing,
-      initSqrtPrice
-    )
-
-    if (!isInRelationship) {
-      throw new Error(InvariantError[24])
-    }
+    const initTick = calculateTick(initSqrtPrice, poolKey.feeTier.tickSpacing)
 
     return sendTx(
       this.contract,
@@ -505,17 +498,32 @@ export class Invariant {
     poolKey: PoolKey,
     xToY: boolean,
     amount: TokenAmount,
-    byAmountIn: boolean,
-    sqrtPriceLimit: SqrtPrice
+    byAmountIn: boolean
   ): Promise<QuoteResult> {
-    return sendQuery(
-      this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
-      account,
-      InvariantQuery.Quote,
-      [poolKey, xToY, amount, byAmountIn, sqrtPriceLimit]
-    )
+    let sqrtPriceLimit
+
+    if (xToY) {
+      sqrtPriceLimit = getMinSqrtPrice()
+    } else {
+      sqrtPriceLimit = getMaxSqrtPrice()
+    }
+
+    const result = (
+      await sendQuery(
+        this.contract,
+        this.gasLimit,
+        this.storageDepositLimit,
+        account,
+        InvariantQuery.Quote,
+        [poolKey, xToY, amount, byAmountIn, sqrtPriceLimit]
+      )
+    ).ok
+
+    if (result.ok) {
+      return parse(result.ok)
+    } else {
+      throw new Error(InvariantError[result.err])
+    }
   }
 
   async quoteRoute(
