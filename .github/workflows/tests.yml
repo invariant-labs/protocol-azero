@@ -154,10 +154,6 @@ jobs:
           command: install
           args: --locked wasm-bindgen-cli
 
-      - name: Install jq json precessor
-        run: |
-          sudo apt install -y jq
-
       - name: Install SDK packages
         working-directory: ./sdk
         run: |
