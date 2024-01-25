@@ -27,9 +27,6 @@ import {
 import { Network } from './network.js'
 import { LiquidityBreakPoint, Query, Tx, TxResult } from './schema.js'
 
-export const DEFAULT_REF_TIME = 1250000000000
-export const DEFAULT_PROOF_SIZE = 1250000000000
-
 export const initPolkadotApi = async (network: Network): Promise<ApiPromise> => {
   if (network === Network.Local) {
     const wsProvider = new WsProvider(process.env.LOCAL)
@@ -159,12 +156,9 @@ export const getEnvAccount = async (keyring: Keyring): Promise<IKeyringPair> => 
 export const parseEvent = (event: { [key: string]: any }) => {
   const eventObj: { [key: string]: any } = {}
 
-  for (let i = 0; i < event.args.length; i++) {
-    eventObj[event.event.args[i].name] = event.args[i].toPrimitive()
+  for (const [i, e] of event.args.entries()) {
+    eventObj[event.event.args[i].name] = e.toPrimitive()
   }
-  // for (const [i, e] of event.args.entries()) {
-  //   eventObj[event.event.args[i].name] = e.toPrimitive()
-  // }
 
   return parse(eventObj)
 }
