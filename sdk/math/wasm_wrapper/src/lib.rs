@@ -5,7 +5,9 @@ mod export;
 mod helpers;
 use crate::conversion::convert_params;
 use crate::export::generate_exported_function;
-use crate::helpers::{construct_camel_case, process_params, process_return_type};
+use crate::helpers::{
+    construct_camel_case, construct_fn_ident, process_params, process_return_type,
+};
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, ItemFn, ReturnType};
@@ -13,27 +15,20 @@ use syn::{parse_macro_input, ItemFn, ReturnType};
 #[proc_macro_attribute]
 pub fn wasm_wrapper(attr: TokenStream, input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as ItemFn);
-    let original_function_name = &input.sig.ident;
+    let args_str = attr.to_string();
+    let args: Vec<&str> = args_str.split(',').collect();
 
-    let generated_function_name = format!("wrapped_{}", original_function_name);
-    let generated_function_ident =
-        syn::Ident::new(&generated_function_name, original_function_name.span());
+    let original_function_name = &input.sig.ident;
+    let camel_case_function_name = construct_camel_case(&args, original_function_name.to_string());
+    let generated_function_ident = construct_fn_ident(original_function_name);
 
     let return_ty = match &input.sig.output {
         ReturnType::Default => quote! { () },
         ReturnType::Type(_, ty) => quote! { #ty },
     };
-
-    let return_type = return_ty.clone().into_iter().next().unwrap().to_string();
-
-    let args_str = attr.to_string();
-    let args: Vec<&str> = args_str.split(',').collect();
-
-    let camel_case_function_name =
-        construct_camel_case(args.clone(), original_function_name.to_string());
-
+    let return_type_name = return_ty.clone().into_iter().next().unwrap().to_string();
     let (tuple_struct_name, tuple_struct_fields, result_not_wrapped) =
-        process_return_type(return_ty.clone(), camel_case_function_name.clone());
+        process_return_type(&return_ty, &camel_case_function_name);
 
     let params: Vec<_> = process_params(&input);
 
@@ -44,12 +39,12 @@ pub fn wasm_wrapper(attr: TokenStream, input: TokenStream) -> TokenStream {
         tuple_struct_fields,
         &camel_case_function_name,
         &generated_function_ident,
-        params.clone(),
-        conversion_code.clone(),
-        converted_params.clone(),
+        &params,
+        &conversion_code,
+        &converted_params,
         &original_function_name,
         result_not_wrapped,
-        return_type,
+        return_type_name,
     );
 
     let result = quote! {

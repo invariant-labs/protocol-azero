@@ -7,9 +7,9 @@ pub fn generate_exported_function(
     tuple_struct_fields: Vec<TokenStream>,
     camel_case_function_name: &str,
     generated_function_ident: &Ident,
-    params: Vec<TokenStream>,
-    conversion_code: Vec<TokenStream>,
-    converted_params: Vec<TokenStream>,
+    params: &Vec<TokenStream>,
+    conversion_code: &Vec<TokenStream>,
+    converted_params: &Vec<TokenStream>,
     original_function_name: &Ident,
     result_not_wrapped: bool,
     return_type: String,
@@ -20,18 +20,18 @@ pub fn generate_exported_function(
             tuple_struct_fields,
             &camel_case_function_name,
             &generated_function_ident,
-            params.clone(),
-            conversion_code.clone(),
-            converted_params.clone(),
+            &params,
+            &conversion_code,
+            &converted_params,
             &original_function_name,
         )
     } else if result_not_wrapped {
         value_exported_function(
             &camel_case_function_name,
             &generated_function_ident,
-            params.clone(),
-            conversion_code.clone(),
-            converted_params.clone(),
+            &params,
+            &conversion_code,
+            &converted_params,
             &original_function_name,
             return_type,
         )
@@ -39,9 +39,9 @@ pub fn generate_exported_function(
         struct_exported_function(
             &camel_case_function_name,
             &generated_function_ident,
-            params.clone(),
-            conversion_code.clone(),
-            converted_params.clone(),
+            &params,
+            &conversion_code,
+            &converted_params,
             &original_function_name,
         )
     }
@@ -50,9 +50,9 @@ pub fn generate_exported_function(
 pub fn value_exported_function(
     camel_case_function_name: &str,
     generated_function_ident: &Ident,
-    params: Vec<TokenStream>,
-    conversion_code: Vec<TokenStream>,
-    converted_params: Vec<TokenStream>,
+    params: &Vec<TokenStream>,
+    conversion_code: &Vec<TokenStream>,
+    converted_params: &Vec<TokenStream>,
     original_function_name: &Ident,
     return_type: String,
 ) -> TokenStream {
@@ -87,9 +87,9 @@ pub fn tuple_exported_function(
     tuple_struct_fields: Vec<TokenStream>,
     camel_case_function_name: &str,
     generated_function_ident: &Ident,
-    params: Vec<TokenStream>,
-    conversion_code: Vec<TokenStream>,
-    converted_params: Vec<TokenStream>,
+    params: &Vec<TokenStream>,
+    conversion_code: &Vec<TokenStream>,
+    converted_params: &Vec<TokenStream>,
     original_function_name: &Ident,
 ) -> TokenStream {
     let tuple_struct_instance = {
@@ -133,9 +133,9 @@ pub fn tuple_exported_function(
 pub fn struct_exported_function(
     camel_case_function_name: &str,
     generated_function_ident: &Ident,
-    params: Vec<TokenStream>,
-    conversion_code: Vec<TokenStream>,
-    converted_params: Vec<TokenStream>,
+    params: &Vec<TokenStream>,
+    conversion_code: &Vec<TokenStream>,
+    converted_params: &Vec<TokenStream>,
     original_function_name: &Ident,
 ) -> TokenStream {
     quote! {
