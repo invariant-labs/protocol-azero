@@ -25,16 +25,7 @@ import {
   wrappedCalculateTokenAmounts
 } from 'math/math.js'
 import { Network } from './network.js'
-import {
-  CreatePositionTxResult,
-  LiquidityBreakPoint,
-  Query,
-  RemovePositionTxResult,
-  SwapRouteTxResult,
-  SwapTxResult,
-  Tx,
-  TxResult
-} from './schema.js'
+import { LiquidityBreakPoint, Query, Tx, TxResult } from './schema.js'
 
 export const initPolkadotApi = async (network: Network): Promise<ApiPromise> => {
   if (network === Network.Local) {
@@ -90,9 +81,7 @@ export async function sendTx(
   hasEvents: boolean = false,
   waitForFinalization: boolean = true,
   block: boolean = true
-): Promise<
-  TxResult | CreatePositionTxResult | RemovePositionTxResult | SwapTxResult | SwapRouteTxResult
-> {
+): Promise<TxResult> {
   if (!contract) {
     throw new Error('contract not loaded')
   }
@@ -106,9 +95,7 @@ export async function sendTx(
     ...data
   )
 
-  return new Promise<
-    TxResult | CreatePositionTxResult | RemovePositionTxResult | SwapTxResult | SwapRouteTxResult
-  >(async (resolve, reject) => {
+  return new Promise<TxResult>(async (resolve, reject) => {
     await call.signAndSend(signer, result => {
       if (!block) {
         resolve({
@@ -170,9 +157,6 @@ export const getEnvAccount = async (keyring: Keyring): Promise<IKeyringPair> => 
 export const parseEvent = (event: { [key: string]: any }) => {
   const eventObj: { [key: string]: any } = {}
 
-  // for (let i = 0; i < event.args.length; i++) {
-  //   eventObj[event.event.args[i].name] = event.args[i].toPrimitive()
-  // }
   for (const [i, e] of event.args.entries()) {
     eventObj[event.event.args[i].name] = e.toPrimitive()
   }
@@ -181,7 +165,8 @@ export const parseEvent = (event: { [key: string]: any }) => {
 }
 
 export const parseEvents = (events: { [key: string]: any }[]) => {
-  return events.map(event => parseEvent(event))
+  // return events.map(event => parseEvent(event))
+  return []
 }
 
 export const getDeploymentData = async (

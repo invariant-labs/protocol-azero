@@ -109,7 +109,6 @@ macro_rules! resolve {
     }};
 }
 
-// #[wasm_bindgen(js_name = "_calculateFee")]
 #[wasm_wrapper("_calculateFee")]
 pub fn calculate_fee(
     lower_tick_index: i32,
@@ -147,11 +146,6 @@ pub fn calculate_fee(
         x: tokens_owed_x,
         y: tokens_owed_y,
     })
-
-    // Ok(serde_wasm_bindgen::to_value(&TokenAmounts {
-    //     x: tokens_owed_x,
-    //     y: tokens_owed_y,
-    // })?)
 }
 
 #[wasm_bindgen(js_name = "wrappedCalculateTokenAmounts")]

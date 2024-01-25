@@ -10,7 +10,7 @@
     "start:testnet": "npx tsc && node --experimental-wasm-modules target/src/index.js testnet",
     "start:local": "npx tsc && node --experimental-wasm-modules target/src/index.js local",
     "lint": "eslint . --ext .ts",
-    "test": "ts-mocha",
+    "test": "ts-mocha ./tests/utils.test.ts",
     "wasm:build": "cd math && wasm-pack build && npm run wasm:package",
     "wasm:package": "cd math/pkg && npm pkg set type='module'",
     "node:start": "substrate-contracts-node purge-chain -y && substrate-contracts-node --rpc-port 9944 --dev",
