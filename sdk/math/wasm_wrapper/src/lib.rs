@@ -29,10 +29,11 @@ pub fn wasm_wrapper(attr: TokenStream, input: TokenStream) -> TokenStream {
     let args_str = attr.to_string();
     let args: Vec<&str> = args_str.split(',').collect();
 
-    let camel_case_string = construct_camel_case(args.clone(), original_function_name.to_string());
+    let camel_case_function_name =
+        construct_camel_case(args.clone(), original_function_name.to_string());
 
     let (tuple_struct_name, tuple_struct_fields, result_not_wrapped) =
-        process_return_type(return_ty.clone(), camel_case_string.clone());
+        process_return_type(return_ty.clone(), camel_case_function_name.clone());
 
     let params: Vec<_> = process_params(&input);
 
@@ -41,7 +42,7 @@ pub fn wasm_wrapper(attr: TokenStream, input: TokenStream) -> TokenStream {
     let exported_function = generate_exported_function(
         &tuple_struct_name,
         tuple_struct_fields,
-        &camel_case_string,
+        &camel_case_function_name,
         &generated_function_ident,
         params.clone(),
         conversion_code.clone(),

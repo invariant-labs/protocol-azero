@@ -1,4 +1,4 @@
-use crate::types::sqrt_price::{get_max_tick, get_min_tick};
+use crate::types::sqrt_price::get_max_tick;
 use js_sys::BigInt;
 use wasm_bindgen::prelude::*;
 use wasm_wrapper::wasm_wrapper;

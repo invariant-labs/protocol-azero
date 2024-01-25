@@ -50,7 +50,7 @@ pub fn process_return_type(
         }
     }
 
-    let mut idents: Vec<String> = Vec::new();
+    let mut field_names: Vec<String> = Vec::new();
 
     for token in return_ty.clone().into_iter() {
         match token {
@@ -58,7 +58,7 @@ pub fn process_return_type(
                 for inner_token in group.stream() {
                     match inner_token {
                         TokenTree::Ident(ident) => {
-                            idents.push(ident.to_string());
+                            field_names.push(ident.to_string());
                         }
                         _ => {}
                     }
@@ -68,7 +68,7 @@ pub fn process_return_type(
         }
     }
 
-    if idents.len() == 0 {
+    if field_names.len() == 0 {
         return (
             Ident::new("unknown", proc_macro2::Span::call_site()),
             Vec::new(),
@@ -79,7 +79,7 @@ pub fn process_return_type(
         &format!("{}{}", camel_case_string, "Result"),
         proc_macro2::Span::call_site(),
     );
-    let tuple_struct_fields: Vec<proc_macro2::TokenStream> = idents
+    let tuple_struct_fields: Vec<proc_macro2::TokenStream> = field_names
         .iter()
         .map(|ident| {
             let field_ident = Ident::new(ident, proc_macro2::Span::call_site());
