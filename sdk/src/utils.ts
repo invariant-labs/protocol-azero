@@ -27,6 +27,9 @@ import {
 import { Network } from './network.js'
 import { LiquidityBreakPoint, Query, Tx, TxResult } from './schema.js'
 
+export const DEFAULT_REF_TIME = 1250000000000
+export const DEFAULT_PROOF_SIZE = 1250000000000
+
 export const initPolkadotApi = async (network: Network): Promise<ApiPromise> => {
   if (network === Network.Local) {
     const wsProvider = new WsProvider(process.env.LOCAL)

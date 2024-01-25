@@ -25,7 +25,6 @@ import {
   getMaxSqrtPrice,
   getMinSqrtPrice
 } from 'math/math.js'
-import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME } from './consts.js'
 import { Network } from './network.js'
 import {
   ContractOptions,
@@ -39,6 +38,8 @@ import {
   TxResult
 } from './schema.js'
 import {
+  DEFAULT_PROOF_SIZE,
+  DEFAULT_REF_TIME,
   calculateSqrtPriceAfterSlippage,
   constructTickmap,
   getDeploymentData,

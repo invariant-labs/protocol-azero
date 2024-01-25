@@ -4,10 +4,15 @@ import { Bytes } from '@polkadot/types'
 import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types'
 import { deployContract } from '@scio-labs/use-inkathon/helpers'
-import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME } from './consts.js'
 import { Network } from './network.js'
 import { ContractOptions, PSP22Query, PSP22Tx, TxResult } from './schema.js'
-import { getDeploymentData, sendQuery, sendTx } from './utils.js'
+import {
+  DEFAULT_PROOF_SIZE,
+  DEFAULT_REF_TIME,
+  getDeploymentData,
+  sendQuery,
+  sendTx
+} from './utils.js'
 
 export class PSP22 {
   contract: ContractPromise
