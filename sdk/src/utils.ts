@@ -165,8 +165,7 @@ export const parseEvent = (event: { [key: string]: any }) => {
 }
 
 export const parseEvents = (events: { [key: string]: any }[]) => {
-  // return events.map(event => parseEvent(event))
-  return []
+  return events.map(event => parseEvent(event))
 }
 
 export const getDeploymentData = async (
