@@ -10,12 +10,9 @@ use crate::types::{
     token_amount::TokenAmount,
 };
 use crate::MAX_TICK;
-use decimal::Decimal;
 use traceable_result::TrackableResult;
 use traceable_result::{function, location, ok_or_mark_trace, trace};
 use wasm_wrapper::wasm_wrapper;
-
-// use paste::paste;
 
 extern crate paste;
 
@@ -112,59 +109,49 @@ macro_rules! resolve {
     }};
 }
 
-#[wasm_bindgen(js_name = "_calculateFee")]
+// #[wasm_bindgen(js_name = "_calculateFee")]
+#[wasm_wrapper("_calculateFee")]
 pub fn calculate_fee(
-    js_lower_tick_index: JsValue,
-    js_lower_tick_fee_growth_outside_x: JsValue,
-    js_lower_tick_fee_growth_outside_y: JsValue,
-    js_upper_tick_index: JsValue,
-    js_upper_tick_fee_growth_outside_x: JsValue,
-    js_upper_tick_fee_growth_outside_y: JsValue,
-    js_pool_current_tick_index: JsValue,
-    js_pool_fee_growth_global_x: JsValue,
-    js_pool_fee_growth_global_y: JsValue,
-    js_position_fee_growth_inside_x: JsValue,
-    js_position_fee_growth_inside_y: JsValue,
-    js_position_liquidity: JsValue,
-) -> Result<JsValue, JsValue> {
-    let lower_tick_index: i64 = convert!(js_lower_tick_index)?;
-    let lower_tick_fee_growth_outside_x: u128 = convert!(js_lower_tick_fee_growth_outside_x)?;
-    let lower_tick_fee_growth_outside_y: u128 = convert!(js_lower_tick_fee_growth_outside_y)?;
-    let upper_tick_index: i64 = convert!(js_upper_tick_index)?;
-    let upper_tick_fee_growth_outside_x: u128 = convert!(js_upper_tick_fee_growth_outside_x)?;
-    let upper_tick_fee_growth_outside_y: u128 = convert!(js_upper_tick_fee_growth_outside_y)?;
-    let pool_current_tick_index: i64 = convert!(js_pool_current_tick_index)?;
-    let pool_fee_growth_global_x: u128 = convert!(js_pool_fee_growth_global_x)?;
-    let pool_fee_growth_global_y: u128 = convert!(js_pool_fee_growth_global_y)?;
-    let position_fee_growth_inside_x: u128 = convert!(js_position_fee_growth_inside_x)?;
-    let position_fee_growth_inside_y: u128 = convert!(js_position_fee_growth_inside_y)?;
-    let position_liquidity: u128 = convert!(js_position_liquidity)?;
-
+    lower_tick_index: i32,
+    lower_tick_fee_growth_outside_x: FeeGrowth,
+    lower_tick_fee_growth_outside_y: FeeGrowth,
+    upper_tick_index: i32,
+    upper_tick_fee_growth_outside_x: FeeGrowth,
+    upper_tick_fee_growth_outside_y: FeeGrowth,
+    pool_current_tick_index: i32,
+    pool_fee_growth_global_x: FeeGrowth,
+    pool_fee_growth_global_y: FeeGrowth,
+    position_fee_growth_inside_x: FeeGrowth,
+    position_fee_growth_inside_y: FeeGrowth,
+    position_liquidity: Liquidity,
+) -> TrackableResult<TokenAmounts> {
     let (fee_growth_inside_x, fee_growth_inside_y) = calculate_fee_growth_inside(
         lower_tick_index as i32,
-        FeeGrowth::new(lower_tick_fee_growth_outside_x),
-        FeeGrowth::new(lower_tick_fee_growth_outside_y),
+        lower_tick_fee_growth_outside_x,
+        lower_tick_fee_growth_outside_y,
         upper_tick_index as i32,
-        FeeGrowth::new(upper_tick_fee_growth_outside_x),
-        FeeGrowth::new(upper_tick_fee_growth_outside_y),
+        upper_tick_fee_growth_outside_x,
+        upper_tick_fee_growth_outside_y,
         pool_current_tick_index as i32,
-        FeeGrowth::new(pool_fee_growth_global_x),
-        FeeGrowth::new(pool_fee_growth_global_y),
+        pool_fee_growth_global_x,
+        pool_fee_growth_global_y,
     );
 
     let tokens_owed_x = ok_or_mark_trace!(fee_growth_inside_x
-        .unchecked_sub(FeeGrowth::new(position_fee_growth_inside_x))
-        .to_fee(Liquidity::new(position_liquidity)))
-    .map_err(|e| e.to_string())?;
+        .unchecked_sub(position_fee_growth_inside_x)
+        .to_fee(position_liquidity))?;
     let tokens_owed_y = ok_or_mark_trace!(fee_growth_inside_y
-        .unchecked_sub(FeeGrowth::new(position_fee_growth_inside_y))
-        .to_fee(Liquidity::new(position_liquidity)))
-    .map_err(|e| e.to_string())?;
-
-    Ok(serde_wasm_bindgen::to_value(&TokenAmounts {
+        .unchecked_sub(position_fee_growth_inside_y)
+        .to_fee(position_liquidity))?;
+    Ok(TokenAmounts {
         x: tokens_owed_x,
         y: tokens_owed_y,
-    })?)
+    })
+
+    // Ok(serde_wasm_bindgen::to_value(&TokenAmounts {
+    //     x: tokens_owed_x,
+    //     y: tokens_owed_y,
+    // })?)
 }
 
 #[wasm_bindgen(js_name = "wrappedCalculateTokenAmounts")]

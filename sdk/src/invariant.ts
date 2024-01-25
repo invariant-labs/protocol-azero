@@ -25,6 +25,7 @@ import {
   getMaxSqrtPrice,
   getMinSqrtPrice
 } from 'math/math.js'
+import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME } from './consts.js'
 import { Network } from './network.js'
 import {
   ContractOptions,
@@ -38,8 +39,6 @@ import {
   TxResult
 } from './schema.js'
 import {
-  DEFAULT_PROOF_SIZE,
-  DEFAULT_REF_TIME,
   calculateSqrtPriceAfterSlippage,
   constructTickmap,
   getDeploymentData,
@@ -500,13 +499,7 @@ export class Invariant {
     amount: TokenAmount,
     byAmountIn: boolean
   ): Promise<QuoteResult> {
-    let sqrtPriceLimit
-
-    if (xToY) {
-      sqrtPriceLimit = getMinSqrtPrice()
-    } else {
-      sqrtPriceLimit = getMaxSqrtPrice()
-    }
+    const sqrtPriceLimit = xToY ? getMinSqrtPrice() : getMaxSqrtPrice()
 
     const result = (
       await sendQuery(

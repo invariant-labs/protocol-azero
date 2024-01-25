@@ -1,4 +1,10 @@
-import { CreatePositionEvent, CrossTickEvent, RemovePositionEvent, SwapEvent } from 'math'
+import {
+  CreatePositionEvent,
+  CrossTickEvent,
+  Liquidity,
+  RemovePositionEvent,
+  SwapEvent
+} from 'math'
 
 export enum InvariantQuery {
   ProtocolFee = 'invariantTrait::getProtocolFee',
@@ -73,22 +79,22 @@ export type InvariantEventType =
 
 export interface TxResult {
   hash: string
-  events: InvariantEventType[]
+  // events: InvariantEventType[]
 }
 
 export type CreatePositionTxResult = {
   hash: string
-  events: [CreatePositionEvent]
+  events: CreatePositionEvent[]
 }
 
 export type RemovePositionTxResult = {
   hash: string
-  events: [RemovePositionEvent]
+  events: RemovePositionEvent[]
 }
 
 export type SwapTxResult = {
   hash: string
-  events: [CrossTickEvent, SwapEvent]
+  events: (CrossTickEvent | SwapEvent)[]
 }
 
 export type SwapRouteTxResult = {
@@ -100,4 +106,9 @@ export type ContractOptions = {
   storageDepositLimit: number | null
   refTime: number
   proofSize: number
+}
+
+export interface LiquidityBreakPoint {
+  liquidity: Liquidity
+  index: bigint
 }

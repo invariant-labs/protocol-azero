@@ -7,7 +7,6 @@ import { getBalance, initPolkadotJs as initApi } from '@scio-labs/use-inkathon/h
 import { readFile } from 'fs/promises'
 import {
   FeeTier,
-  Liquidity,
   LiquidityTick,
   Percentage,
   Pool,
@@ -26,10 +25,16 @@ import {
   wrappedCalculateTokenAmounts
 } from 'math/math.js'
 import { Network } from './network.js'
-import { Query, Tx, TxResult } from './schema.js'
-
-export const DEFAULT_REF_TIME = 1250000000000
-export const DEFAULT_PROOF_SIZE = 1250000000000
+import {
+  CreatePositionTxResult,
+  LiquidityBreakPoint,
+  Query,
+  RemovePositionTxResult,
+  SwapRouteTxResult,
+  SwapTxResult,
+  Tx,
+  TxResult
+} from './schema.js'
 
 export const initPolkadotApi = async (network: Network): Promise<ApiPromise> => {
   if (network === Network.Local) {
@@ -82,9 +87,12 @@ export async function sendTx(
   signer: IKeyringPair,
   message: Tx,
   data: any[],
+  hasEvents: boolean = false,
   waitForFinalization: boolean = true,
   block: boolean = true
-): Promise<TxResult> {
+): Promise<
+  TxResult | CreatePositionTxResult | RemovePositionTxResult | SwapTxResult | SwapRouteTxResult
+> {
   if (!contract) {
     throw new Error('contract not loaded')
   }
@@ -98,7 +106,9 @@ export async function sendTx(
     ...data
   )
 
-  return new Promise<TxResult>(async (resolve, reject) => {
+  return new Promise<
+    TxResult | CreatePositionTxResult | RemovePositionTxResult | SwapTxResult | SwapRouteTxResult
+  >(async (resolve, reject) => {
     await call.signAndSend(signer, result => {
       if (!block) {
         resolve({
@@ -160,8 +170,11 @@ export const getEnvAccount = async (keyring: Keyring): Promise<IKeyringPair> => 
 export const parseEvent = (event: { [key: string]: any }) => {
   const eventObj: { [key: string]: any } = {}
 
-  for (let i = 0; i < event.args.length; i++) {
-    eventObj[event.event.args[i].name] = event.args[i].toPrimitive()
+  // for (let i = 0; i < event.args.length; i++) {
+  //   eventObj[event.event.args[i].name] = event.args[i].toPrimitive()
+  // }
+  for (const [i, e] of event.args.entries()) {
+    eventObj[event.event.args[i].name] = e.toPrimitive()
   }
 
   return parse(eventObj)
@@ -212,15 +225,11 @@ export const calculateSqrtPriceAfterSlippage = (
   up: boolean
 ): SqrtPrice => {
   const multiplier = getPercentageDenominator() + (up ? slippage : -slippage)
-
-  return (
-    sqrt(
-      ((sqrtPrice * sqrtPrice) / getSqrtPriceDenominator()) *
-        multiplier *
-        getSqrtPriceDenominator() *
-        getPercentageDenominator()
-    ) / getPercentageDenominator()
-  )
+  const price = sqrtPriceToPrice(sqrtPrice)
+  const slippagePercentage =
+    price * multiplier * getSqrtPriceDenominator() * getPercentageDenominator()
+  const slippageSqrtPrice = sqrt(slippagePercentage) / getPercentageDenominator()
+  return slippageSqrtPrice
 }
 
 export const calculatePriceImpact = (
@@ -328,11 +337,6 @@ export const sqrtPriceToPrice = (sqrtPrice: SqrtPrice): Price => {
 
 export const priceToSqrtPrice = (price: Price): SqrtPrice => {
   return sqrt(price * getSqrtPriceDenominator())
-}
-
-interface LiquidityBreakPoint {
-  liquidity: Liquidity
-  index: bigint
 }
 
 export const calculateLiquidityBreakpoints = (
