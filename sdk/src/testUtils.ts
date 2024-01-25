@@ -3,11 +3,13 @@ import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { assert } from 'chai'
 import {
   CreatePositionEvent,
+  CrossTickEvent,
   InvariantError,
   LiquidityTick,
   Position,
   PositionTick,
   RemovePositionEvent,
+  SwapEvent,
   Tick
 } from 'math/math.js'
 import { InvariantTx } from './schema.js'
@@ -68,6 +70,26 @@ export const createPositionEventEquals = (
   assert.deepEqual(createPositionEvent.lowerTick, expectedCreatePositionEvent.lowerTick)
   assert.deepEqual(createPositionEvent.pool, expectedCreatePositionEvent.pool)
   assert.deepEqual(createPositionEvent.upperTick, expectedCreatePositionEvent.upperTick)
+}
+
+export const crossTickEventEquals = (
+  crossTickEvent: CrossTickEvent,
+  expectedCrossTickEvent: CrossTickEvent
+) => {
+  assert.deepEqual(crossTickEvent.address, expectedCrossTickEvent.address)
+  assert.deepEqual(crossTickEvent.pool, expectedCrossTickEvent.pool)
+  assert.deepEqual(crossTickEvent.indexes, expectedCrossTickEvent.indexes)
+}
+
+export const swapEventEquals = (swapEvent: SwapEvent, expectedSwapEvent: SwapEvent) => {
+  assert.deepEqual(swapEvent.address, expectedSwapEvent.address)
+  assert.deepEqual(swapEvent.pool, expectedSwapEvent.pool)
+  assert.deepEqual(swapEvent.amountIn, expectedSwapEvent.amountIn)
+  assert.deepEqual(swapEvent.amountOut, expectedSwapEvent.amountOut)
+  assert.deepEqual(swapEvent.fee, expectedSwapEvent.fee)
+  assert.deepEqual(swapEvent.startSqrtPrice, expectedSwapEvent.startSqrtPrice)
+  assert.deepEqual(swapEvent.targetSqrtPrice, expectedSwapEvent.targetSqrtPrice)
+  assert.deepEqual(swapEvent.xToY, expectedSwapEvent.xToY)
 }
 
 export const removePositionEventEquals = (

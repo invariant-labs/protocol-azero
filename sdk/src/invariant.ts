@@ -56,6 +56,7 @@ export class Invariant {
   waitForFinalization: boolean
   abi: Abi
   eventListeners: { identifier: InvariantEvent; listener: (event: any) => void }[] = []
+  eventListenerApiStarted: boolean = false
 
   private constructor(
     api: ApiPromise,
@@ -125,7 +126,9 @@ export class Invariant {
   }
 
   on(identifier: InvariantEvent, listener: (event: any) => void): void {
-    if (this.eventListeners.length === 0) {
+    if (!this.eventListenerApiStarted) {
+      this.eventListenerApiStarted = true
+
       this.api.query.system.events((events: any) => {
         events.forEach((record: any) => {
           const { event } = record
