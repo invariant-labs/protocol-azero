@@ -81,7 +81,6 @@ export async function sendTx(
   signer: IKeyringPair,
   message: Tx,
   data: any[],
-  hasEvents: boolean = false,
   waitForFinalization: boolean = true,
   block: boolean = true
 ): Promise<TxResult> {
@@ -160,9 +159,12 @@ export const getEnvAccount = async (keyring: Keyring): Promise<IKeyringPair> => 
 export const parseEvent = (event: { [key: string]: any }) => {
   const eventObj: { [key: string]: any } = {}
 
-  for (const [i, e] of event.args.entries()) {
-    eventObj[event.event.args[i].name] = e.toPrimitive()
+  for (let i = 0; i < event.args.length; i++) {
+    eventObj[event.event.args[i].name] = event.args[i].toPrimitive()
   }
+  // for (const [i, e] of event.args.entries()) {
+  //   eventObj[event.event.args[i].name] = e.toPrimitive()
+  // }
 
   return parse(eventObj)
 }
