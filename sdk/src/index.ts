@@ -15,8 +15,120 @@ import {
 
 dotenv.config()
 
+import {
+  FeeTier,
+  Liquidity,
+  PoolKey,
+  SqrtPrice,
+  TokenAmount,
+  calculateAmountDelta,
+  getDeltaY,
+  getGlobalMaxSqrtPrice,
+  getLiquidityByX,
+  getLiquidityScale,
+  getMaxSqrtPrice,
+  getMaxTick,
+  getMinTick,
+  getPercentageScale,
+  getSqrtPriceScale,
+  getTokenAmountScale
+} from 'math/math.js'
+
 const main = async () => {
-  const api = await initPolkadotApi(Network.Local) // initialize api, use enum to specify the network
+  {
+    console.log(getMinTick(1), getMaxTick(5))
+  }
+  {
+    console.log(getSqrtPriceScale())
+    console.log(getTokenAmountScale())
+    console.log(getPercentageScale())
+    console.log(getLiquidityScale())
+  }
+  {
+    const sqrtPriceA: SqrtPrice = 234878324943782000000000000n
+
+    const sqrtPriceB: SqrtPrice = 87854456421658000000000000n
+    const liquidity: Liquidity = 983983249092n
+
+    const deltaYUp = getDeltaY(sqrtPriceA, sqrtPriceB, liquidity, true)
+    const deltaYDown = getDeltaY(sqrtPriceA, sqrtPriceB, liquidity, false)
+    console.log(deltaYUp)
+    console.log(deltaYDown)
+  }
+  {
+    const providedAmount: TokenAmount = 47600000000n
+    const poolSqrtPrice: SqrtPrice = 1000000000000000000000000000n
+    const lowerTickIndex = -22000n
+    const upperTickIndex = -21000n
+
+    const { l, amount } = getLiquidityByY(
+      providedAmount,
+      lowerTickIndex,
+      upperTickIndex,
+      poolSqrtPrice,
+      true
+    )
+    console.log('Liquidity = ', l)
+    console.log('Amount = ', amount)
+  }
+  {
+    const providedAmount = 430000n
+    const initSqrtPrice: SqrtPrice = 1005012269622000000000000n
+    const lowerTickIndex = 80n
+    const upperTickIndex = 120n
+
+    const { l, amount } = getLiquidityByX(
+      providedAmount,
+      lowerTickIndex,
+      upperTickIndex,
+      initSqrtPrice,
+      true
+    )
+    console.log('Liquidity = ', l)
+    console.log('Amount = ', amount)
+  }
+  {
+    const currentTickIndex = 2n
+    const currentSqrtPrice: SqrtPrice = 1000140000000000000000000n
+    const liquidity: Liquidity = 5000000000000n
+    const liquiditySign = true
+    const upperTick = 3n
+    const lowerTick = 0n
+    const [x, y, updateLiquidity] = calculateAmountDelta(
+      currentTickIndex,
+      currentSqrtPrice,
+      liquidity,
+      liquiditySign,
+      upperTick,
+      lowerTick
+    )
+    console.log('x = ', x)
+    console.log('y = ', y)
+    console.log('updateLiquidity = ', updateLiquidity)
+  }
+  {
+    const maxTick: bigint = getMaxTick(1n)
+    console.log(maxTick)
+    const globalMaxSqrtPrice = getGlobalMaxSqrtPrice()
+    const maxSqrtPrice = getMaxSqrtPrice(1)
+    console.log(globalMaxSqrtPrice)
+    console.log(maxSqrtPrice)
+  }
+  {
+    const feeTier: FeeTier = newFeeTier(10n, 55n)
+    console.log(feeTier)
+    const poolKey: PoolKey = newPoolKey(
+      '5H79vf7qQKdpefChp4sGh8j4BNq8JoL5x8nez8RsEebPJu9D',
+      '5DxazQgoKEPMLqyUBRpqgAV7JnGv3w6i4EACTU8RDJxPHisH',
+      feeTier
+    )
+    console.log(poolKey)
+  }
+
+  const network = Network.getFromEnv()
+  console.log(`using ${network}`)
+
+  const api = await initPolkadotApi(network)
 
   // initialize account, you can use your own wallet by pasting mnemonic phase
   const keyring = new Keyring({ type: 'sr25519' })

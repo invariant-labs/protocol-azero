@@ -2,6 +2,7 @@ use crate::consts::*;
 use crate::types::{liquidity::*, percentage::*, sqrt_price::*, token_amount::*};
 use core::convert::TryInto;
 use decimal::*;
+use js_sys::BigInt;
 use serde::{Deserialize, Serialize};
 use traceable_result::*;
 use tsify::Tsify;
@@ -289,7 +290,7 @@ pub fn calculate_amount_delta(
     liquidity_sign: bool,
     upper_tick: i32,
     lower_tick: i32,
-) -> TrackableResult<AmountDeltaResult> {
+) -> TrackableResult<(TokenAmount, TokenAmount, bool)> {
     if upper_tick < lower_tick {
         return Err(err!("upper_tick is not greater than lower_tick"));
     }
@@ -327,11 +328,7 @@ pub fn calculate_amount_delta(
         ))?;
     }
 
-    Ok(AmountDeltaResult {
-        x: amount_x,
-        y: amount_y,
-        update_liquidity,
-    })
+    Ok((amount_x, amount_y, update_liquidity))
 }
 
 #[wasm_wrapper]
@@ -358,12 +355,10 @@ pub fn is_enough_amount_to_change_price(
 }
 
 #[wasm_wrapper]
-pub fn calculate_max_liquidity_per_tick(tick_spacing: u16) -> TrackableResult<Liquidity> {
+pub fn calculate_max_liquidity_per_tick(tick_spacing: u16) -> Liquidity {
     const MAX_TICKS_AMOUNT_SQRT_PRICE_LIMITED: u128 = 2 * MAX_TICK as u128 + 1;
     let ticks_amount_spacing_limited = MAX_TICKS_AMOUNT_SQRT_PRICE_LIMITED / tick_spacing as u128;
-    Ok(Liquidity::new(
-        Liquidity::max_instance().get() / ticks_amount_spacing_limited,
-    ))
+    Liquidity::new(Liquidity::max_instance().get() / ticks_amount_spacing_limited)
 }
 
 #[wasm_wrapper]
@@ -395,8 +390,8 @@ pub fn check_tick(tick_index: i32, tick_spacing: u16) -> TrackableResult<()> {
 pub fn calculate_min_amount_out(
     expected_amount_out: TokenAmount,
     slippage: Percentage,
-) -> TrackableResult<TokenAmount> {
-    Ok(expected_amount_out.big_mul_up(Percentage::from_integer(1u8) - slippage))
+) -> TokenAmount {
+    expected_amount_out.big_mul_up(Percentage::from_integer(1u8) - slippage)
 }
 
 #[cfg(test)]

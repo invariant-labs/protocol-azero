@@ -22,8 +22,8 @@ import {
   Tick,
   TokenAmount,
   calculateTick,
-  getMaxSqrtPrice,
-  getMinSqrtPrice
+  getGlobalMaxSqrtPrice,
+  getGlobalMinSqrtPrice
 } from 'math/math.js'
 import { Network } from './network.js'
 import {
@@ -500,13 +500,7 @@ export class Invariant {
     amount: TokenAmount,
     byAmountIn: boolean
   ): Promise<QuoteResult> {
-    let sqrtPriceLimit
-
-    if (xToY) {
-      sqrtPriceLimit = getMinSqrtPrice()
-    } else {
-      sqrtPriceLimit = getMaxSqrtPrice()
-    }
+    const sqrtPriceLimit: SqrtPrice = xToY ? getGlobalMinSqrtPrice() : getGlobalMaxSqrtPrice()
 
     const result = (
       await sendQuery(
