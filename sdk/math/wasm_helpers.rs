@@ -1,5 +1,4 @@
-use crate::clamm::calculate_amount_delta;
-use crate::convert;
+extern crate paste;
 use crate::storage::pool_key::PoolKey;
 use crate::storage::tick::Tick;
 use crate::types::{
@@ -11,17 +10,12 @@ use crate::types::{
 };
 use crate::MAX_TICK;
 use decimal::Decimal;
+use serde::{Deserialize, Serialize};
 use traceable_result::TrackableResult;
 use traceable_result::{function, location, ok_or_mark_trace, trace};
-use wasm_wrapper::wasm_wrapper;
-
-// use paste::paste;
-
-extern crate paste;
-
-use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;
+use wasm_wrapper::wasm_wrapper;
 
 #[derive(PartialEq, Debug, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
@@ -164,36 +158,6 @@ pub fn calculate_fee(
     Ok(serde_wasm_bindgen::to_value(&TokenAmounts {
         x: tokens_owed_x,
         y: tokens_owed_y,
-    })?)
-}
-
-#[wasm_bindgen(js_name = "wrappedCalculateTokenAmounts")]
-pub fn calculate_token_amounts(
-    js_current_tick_index: JsValue,
-    js_current_sqrt_price: JsValue,
-    js_liquidity: JsValue,
-    js_upper_tick_index: JsValue,
-    js_lower_tick_index: JsValue,
-) -> Result<JsValue, JsValue> {
-    let current_tick_index: i64 = convert!(js_current_tick_index)?;
-    let current_sqrt_price: SqrtPrice = convert!(js_current_sqrt_price)?;
-    let liquidity: Liquidity = convert!(js_liquidity)?;
-    let upper_tick_index: i64 = convert!(js_upper_tick_index)?;
-    let lower_tick_index: i64 = convert!(js_lower_tick_index)?;
-
-    let result = calculate_amount_delta(
-        current_tick_index as i32,
-        current_sqrt_price,
-        liquidity,
-        false,
-        upper_tick_index as i32,
-        lower_tick_index as i32,
-    )
-    .map_err(|e| JsValue::from_str(&e.to_string()))?;
-
-    Ok(serde_wasm_bindgen::to_value(&TokenAmounts {
-        x: result.x,
-        y: result.y,
     })?)
 }
 
