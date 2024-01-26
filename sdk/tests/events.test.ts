@@ -5,7 +5,7 @@ import {
   CrossTickEvent,
   RemovePositionEvent,
   SwapEvent,
-  getMinSqrtPrice,
+  getGlobalMinSqrtPrice,
   toPercentage,
   toSqrtPrice
 } from 'math/math'
@@ -164,7 +164,14 @@ describe('events', async () => {
     await psp22.setContractAddress(token1Address)
     await psp22.approve(account, invariant.contract.address.toString(), 1000000000000n)
 
-    const result = await invariant.swap(account, poolKey, true, 2500n, true, getMinSqrtPrice())
+    const result = await invariant.swap(
+      account,
+      poolKey,
+      true,
+      2500n,
+      true,
+      getGlobalMinSqrtPrice()
+    )
 
     assert.deepEqual(result.events.length, 2)
     crossTickEventEquals(result.events[0] as CrossTickEvent, expectedCrossTickEvent)
