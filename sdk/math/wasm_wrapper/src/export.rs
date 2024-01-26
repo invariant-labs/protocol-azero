@@ -56,28 +56,25 @@ pub fn value_exported_function(
     original_function_name: &Ident,
     return_type: String,
 ) -> TokenStream {
-    match return_type.as_str() {
+    let result_conversion = match return_type.as_str() {
         "u8" | "u16" | "u32" | "u64" | "u128" | "i8" | "i16" | "i32" | "i64" | "i128" | "bool" => {
             quote! {
-                #[wasm_bindgen(js_name = #camel_case_function_name)]
-                pub fn #generated_function_ident(#(#params),*) -> Result<BigInt, JsValue> {
-                    #(#conversion_code)*
-
-                    let result = #original_function_name(#(#converted_params),*);
-                    Ok(BigInt::from(result))
-                }
+                BigInt::from(result)
             }
         }
         _ => {
             quote! {
-                #[wasm_bindgen(js_name = #camel_case_function_name)]
-                pub fn #generated_function_ident(#(#params),*) -> Result<BigInt, JsValue> {
-                    #(#conversion_code)*
-
-                    let result = #original_function_name(#(#converted_params),*);
-                    Ok(BigInt::from(result.get()))
-                }
+                BigInt::from(result.get())
             }
+        }
+    };
+    quote! {
+        #[wasm_bindgen(js_name = #camel_case_function_name)]
+        pub fn #generated_function_ident(#(#params),*) -> Result<BigInt, JsValue> {
+            #(#conversion_code)*
+
+            let result = #original_function_name(#(#converted_params),*);
+            Ok(#result_conversion)
         }
     }
 }
