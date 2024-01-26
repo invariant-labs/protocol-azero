@@ -502,16 +502,14 @@ export class Invariant {
   ): Promise<QuoteResult> {
     const sqrtPriceLimit: SqrtPrice = xToY ? getGlobalMinSqrtPrice() : getGlobalMaxSqrtPrice()
 
-    const result = (
-      await sendQuery(
-        this.contract,
-        this.gasLimit,
-        this.storageDepositLimit,
-        account,
-        InvariantQuery.Quote,
-        [poolKey, xToY, amount, byAmountIn, sqrtPriceLimit]
-      )
-    ).ok
+    const result = await sendQuery(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      account,
+      InvariantQuery.Quote,
+      [poolKey, xToY, amount, byAmountIn, sqrtPriceLimit]
+    )
 
     if (result.ok) {
       return parse(result.ok)
