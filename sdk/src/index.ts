@@ -149,12 +149,12 @@ const main = async () => {
   // load token contract
   const psp22 = await PSP22.load(api, Network.Local, TOKEN0_ADDRESS)
 
-  // set fee tier, make sure that fee tier with specified parameters exists
+  // // set fee tier, make sure that fee tier with specified parameters exists
   const feeTier = newFeeTier(toPercentage(1n, 2n), 1n) // fee: 0.01 = 1%, tick spacing: 1
 
-  // ###
+  // // ###
   await invariant.addFeeTier(account, feeTier)
-  // ###
+  // // ###
 
   // set initial price of the pool, we set it to 1.00
   // all endpoints only accept sqrt price so we need to convert it before passing it
