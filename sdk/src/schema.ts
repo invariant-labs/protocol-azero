@@ -88,12 +88,12 @@ export type RemovePositionTxResult = {
 
 export type SwapTxResult = {
   hash: string
-  events: (CrossTickEvent | SwapEvent)[]
+  events: [CrossTickEvent, SwapEvent] | [SwapEvent]
 }
 
 export type SwapRouteTxResult = {
   hash: string
-  events: [CrossTickEvent, SwapEvent] | [SwapEvent]
+  events: (CrossTickEvent | SwapEvent)[]
 }
 
 export type ContractOptions = {
