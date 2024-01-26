@@ -98,7 +98,7 @@ export type RemovePositionTxResult = {
 
 export type SwapTxResult = {
   hash: string
-  events: [CrossTickEvent, SwapEvent]
+  events: [CrossTickEvent, SwapEvent] | [SwapEvent]
 }
 
 export type SwapRouteTxResult = {

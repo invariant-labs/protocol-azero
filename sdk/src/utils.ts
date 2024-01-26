@@ -19,10 +19,11 @@ import {
   _calculateFee,
   _newFeeTier,
   _newPoolKey,
+  calculateAmountDelta,
+  calculateAmountDeltaResult,
   getMaxChunk,
   getPercentageDenominator,
-  getSqrtPriceDenominator,
-  wrappedCalculateTokenAmounts
+  getSqrtPriceDenominator
 } from 'math/math.js'
 import { Network } from './network.js'
 import { InvtTxResult, LiquidityBreakpoint, Query, Tx, TxResult } from './schema.js'
@@ -250,11 +251,23 @@ export const calculateFee = (
     position.liquidity
   )
 }
-export const calculateTokenAmounts = (pool: Pool, position: Position): TokenAmounts => {
-  return wrappedCalculateTokenAmounts(
+export const calculateTokenAmounts = (
+  pool: Pool,
+  position: Position
+): calculateAmountDeltaResult => {
+  return _calculateTokenAmounts(pool, position, false)
+}
+
+export const _calculateTokenAmounts = (
+  pool: Pool,
+  position: Position,
+  sign: boolean
+): calculateAmountDeltaResult => {
+  return calculateAmountDelta(
     pool.currentTickIndex,
     pool.sqrtPrice,
     position.liquidity,
+    sign,
     position.upperTickIndex,
     position.lowerTickIndex
   )
@@ -307,7 +320,8 @@ export const integerSafeCast = (value: bigint): number => {
 
 export const constructTickmap = (initializedChunks: bigint[][], tickSpacing: bigint): bigint[] => {
   const maxChunk = getMaxChunk(tickSpacing)
-  const tickmap = new Array<bigint>(maxChunk + 1).fill(0n)
+  const tickmap = new Array<bigint>(integerSafeCast(maxChunk + 1n)).fill(0n)
+
   for (const [chunkIndex, value] of initializedChunks) {
     tickmap[integerSafeCast(chunkIndex)] = value
   }

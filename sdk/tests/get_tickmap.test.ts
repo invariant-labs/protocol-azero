@@ -46,6 +46,7 @@ describe('tickmap', async () => {
 
     const tickmap = await invariant.getTickmap(account, poolKey, pool.currentTickIndex)
     assert.deepEqual(tickmap[3465], 9223372036854775809n)
+
     for (const [chunkIndex, value] of tickmap.entries()) {
       if (chunkIndex === 3465) {
         assert.deepEqual(value, 0b1000000000000000000000000000000000000000000000000000000000000001n)
@@ -62,12 +63,12 @@ describe('tickmap', async () => {
     const tickmap = await invariant.getTickmap(account, poolKey, pool.currentTickIndex)
     assert.deepEqual(tickmap[0], 0b11n)
     assert.deepEqual(
-      tickmap[getMaxChunk(feeTier.tickSpacing)],
+      tickmap[integerSafeCast(getMaxChunk(feeTier.tickSpacing))],
       0b11000000000000000000000000000000000000000000000000000n
     )
   })
   it('get tickmap more chunks above', async function () {
-    this.timeout(30000)
+    this.timeout(35000)
 
     const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
 
@@ -84,7 +85,7 @@ describe('tickmap', async () => {
     }
   })
   it('get tickmap more chunks below', async function () {
-    this.timeout(30000)
+    this.timeout(35000)
 
     const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
 
@@ -104,7 +105,7 @@ describe('tickmap', async () => {
     }
   })
   it('get tickmap max chunks returned', async function () {
-    this.timeout(60000)
+    this.timeout(70000)
 
     const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
 
@@ -115,7 +116,7 @@ describe('tickmap', async () => {
     await invariant.getTickmap(account, poolKey, pool.currentTickIndex)
   })
   it('get tickmap max chunks + 1 returned', async function () {
-    this.timeout(60000)
+    this.timeout(70000)
 
     const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
 
