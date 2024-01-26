@@ -1,4 +1,4 @@
-import { ApiPromise, Keyring, WsProvider } from '@polkadot/api'
+import { ApiPromise, WsProvider } from '@polkadot/api'
 import { ContractPromise } from '@polkadot/api-contract'
 import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
@@ -25,18 +25,18 @@ import {
   getPercentageDenominator,
   getSqrtPriceDenominator
 } from 'math/math.js'
+import { CHAIN, LOCAL } from './consts.js'
 import { Network } from './network.js'
 import { InvtTxResult, LiquidityBreakpoint, Query, Tx, TxResult } from './schema.js'
 
 export const initPolkadotApi = async (network: Network): Promise<ApiPromise> => {
   if (network === Network.Local) {
-    const wsProvider = new WsProvider(process.env.LOCAL)
+    const wsProvider = new WsProvider(LOCAL)
     const api = await ApiPromise.create({ provider: wsProvider })
     await api.isReady
     return api
   } else if (network === Network.Testnet) {
-    const chainId = process.env.CHAIN
-    const chain = getSubstrateChain(chainId)
+    const chain = getSubstrateChain(CHAIN)
     if (!chain) {
       throw new Error('chain not found')
     }
@@ -142,16 +142,6 @@ export const newPoolKey = (token0: string, token1: string, feeTier: FeeTier): Po
 
 export const newFeeTier = (fee: Percentage, tickSpacing: bigint): FeeTier => {
   return parse(_newFeeTier(fee, integerSafeCast(tickSpacing)))
-}
-
-export const getEnvAccount = async (keyring: Keyring): Promise<IKeyringPair> => {
-  const accountUri = process.env.ACCOUNT_URI
-
-  if (!accountUri) {
-    throw new Error('invalid account uri')
-  }
-
-  return keyring.addFromUri(accountUri)
 }
 
 export const parseEvent = (event: { [key: string]: any }) => {
