@@ -4,7 +4,6 @@ import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { getSubstrateChain } from '@scio-labs/use-inkathon/chains'
 import { getBalance, initPolkadotJs as initApi } from '@scio-labs/use-inkathon/helpers'
-import { TokenAmount } from 'clamm/index.js'
 import { readFile } from 'fs/promises'
 import {
   FeeTier,
@@ -16,6 +15,7 @@ import {
   Price,
   SqrtPrice,
   Tick,
+  TokenAmount,
   _calculateFee,
   _newFeeTier,
   _newPoolKey,
