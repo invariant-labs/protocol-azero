@@ -9,7 +9,6 @@ use crate::types::{
     token_amount::TokenAmount,
 };
 use crate::MAX_TICK;
-use decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use traceable_result::TrackableResult;
 use traceable_result::{function, location, ok_or_mark_trace, trace};
@@ -33,14 +32,6 @@ pub struct QuoteResult {
     pub amount_out: TokenAmount,
     pub target_sqrt_price: SqrtPrice,
     pub ticks: Vec<Tick>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Tsify)]
-#[tsify(into_wasm_abi, from_wasm_abi)]
-#[serde(rename_all = "camelCase")]
-pub struct TokenAmounts {
-    pub x: TokenAmount,
-    pub y: TokenAmount,
 }
 
 // Logging to typescript
@@ -120,7 +111,7 @@ pub fn calculate_fee(
     position_fee_growth_inside_x: FeeGrowth,
     position_fee_growth_inside_y: FeeGrowth,
     position_liquidity: Liquidity,
-) -> TrackableResult<TokenAmounts> {
+) -> TrackableResult<(TokenAmount, TokenAmount)> {
     let (fee_growth_inside_x, fee_growth_inside_y) = calculate_fee_growth_inside(
         lower_tick_index,
         lower_tick_fee_growth_outside_x,
@@ -139,10 +130,7 @@ pub fn calculate_fee(
     let tokens_owed_y = ok_or_mark_trace!(fee_growth_inside_y
         .unchecked_sub(position_fee_growth_inside_y)
         .to_fee(position_liquidity))?;
-    Ok(TokenAmounts {
-        x: tokens_owed_x,
-        y: tokens_owed_y,
-    })
+    Ok((tokens_owed_x, tokens_owed_y))
 }
 
 #[wasm_wrapper]

@@ -1,3 +1,4 @@
+export const MAX_REF_TIME = 259_058_343_000
 export const DEFAULT_REF_TIME = 1250000000000
 export const DEFAULT_PROOF_SIZE = 1250000000000
 export const CHAIN = 'alephzero - testnet'
