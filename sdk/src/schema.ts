@@ -93,7 +93,7 @@ export type SwapTxResult = {
 
 export type SwapRouteTxResult = {
   hash: string
-  events: (CrossTickEvent | SwapEvent)[]
+  events: [CrossTickEvent, SwapEvent] | [SwapEvent]
 }
 
 export type ContractOptions = {

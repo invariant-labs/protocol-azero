@@ -34,7 +34,7 @@ let poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
 const psp22 = await PSP22.load(api, Network.Local, token0Address)
 
-describe.only('events', async () => {
+describe('events', async () => {
   beforeEach(async () => {
     invariant = await Invariant.deploy(api, Network.Local, account, toPercentage(1n, 2n))
     token0Address = await PSP22.deploy(api, account, 1000000000000n, 'Coin', 'COIN', 0n)
