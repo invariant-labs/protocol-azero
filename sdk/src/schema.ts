@@ -81,19 +81,24 @@ export interface TxResult {
   hash: string
 }
 
+export interface InvtTxResult {
+  hash: string
+  events: InvariantEventType[]
+}
+
 export type CreatePositionTxResult = {
   hash: string
-  events: CreatePositionEvent[]
+  events: [CreatePositionEvent]
 }
 
 export type RemovePositionTxResult = {
   hash: string
-  events: RemovePositionEvent[]
+  events: [RemovePositionEvent]
 }
 
 export type SwapTxResult = {
   hash: string
-  events: (CrossTickEvent | SwapEvent)[]
+  events: [CrossTickEvent, SwapEvent]
 }
 
 export type SwapRouteTxResult = {
@@ -107,7 +112,7 @@ export type ContractOptions = {
   proofSize: number
 }
 
-export interface LiquidityBreakPoint {
+export interface LiquidityBreakpoint {
   liquidity: Liquidity
   index: bigint
 }

@@ -125,13 +125,13 @@ pub fn calculate_fee(
     position_liquidity: Liquidity,
 ) -> TrackableResult<TokenAmounts> {
     let (fee_growth_inside_x, fee_growth_inside_y) = calculate_fee_growth_inside(
-        lower_tick_index as i32,
+        lower_tick_index,
         lower_tick_fee_growth_outside_x,
         lower_tick_fee_growth_outside_y,
-        upper_tick_index as i32,
+        upper_tick_index,
         upper_tick_fee_growth_outside_x,
         upper_tick_fee_growth_outside_y,
-        pool_current_tick_index as i32,
+        pool_current_tick_index,
         pool_fee_growth_global_x,
         pool_fee_growth_global_y,
     );

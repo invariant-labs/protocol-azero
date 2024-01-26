@@ -25,16 +25,7 @@ import {
   wrappedCalculateTokenAmounts
 } from 'math/math.js'
 import { Network } from './network.js'
-import {
-  CreatePositionTxResult,
-  LiquidityBreakPoint,
-  Query,
-  RemovePositionTxResult,
-  SwapRouteTxResult,
-  SwapTxResult,
-  Tx,
-  TxResult
-} from './schema.js'
+import { InvtTxResult, LiquidityBreakpoint, Query, Tx, TxResult } from './schema.js'
 
 export const initPolkadotApi = async (network: Network): Promise<ApiPromise> => {
   if (network === Network.Local) {
@@ -89,7 +80,7 @@ export async function sendTx(
   data: any[],
   waitForFinalization: boolean = true,
   block: boolean = true
-): Promise<TxResult> {
+): Promise<TxResult | InvtTxResult> {
   if (!contract) {
     throw new Error('contract not loaded')
   }
@@ -103,9 +94,7 @@ export async function sendTx(
     ...data
   )
 
-  return new Promise<
-    TxResult | CreatePositionTxResult | RemovePositionTxResult | SwapRouteTxResult | SwapTxResult
-  >(async (resolve, reject) => {
+  return new Promise<TxResult | InvtTxResult>(async (resolve, reject) => {
     await call.signAndSend(signer, result => {
       if (!block) {
         resolve({
@@ -220,10 +209,10 @@ export const calculateSqrtPriceAfterSlippage = (
 ): SqrtPrice => {
   const multiplier = getPercentageDenominator() + (up ? slippage : -slippage)
   const price = sqrtPriceToPrice(sqrtPrice)
-  const slippagePercentage =
-    price * multiplier * getSqrtPriceDenominator() * getPercentageDenominator()
-  const slippageSqrtPrice = sqrt(slippagePercentage) / getPercentageDenominator()
-  return slippageSqrtPrice
+  const priceWithSlippage = price * multiplier * getPercentageDenominator()
+  const sqrtPriceWithSlippage = priceToSqrtPrice(priceWithSlippage) / getPercentageDenominator()
+
+  return sqrtPriceWithSlippage
 }
 
 export const calculatePriceImpact = (
@@ -335,7 +324,7 @@ export const priceToSqrtPrice = (price: Price): SqrtPrice => {
 
 export const calculateLiquidityBreakpoints = (
   ticks: (Tick | LiquidityTick)[]
-): LiquidityBreakPoint[] => {
+): LiquidityBreakpoint[] => {
   let currentLiquidity = 0n
 
   return ticks.map(tick => {
