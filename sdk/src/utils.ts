@@ -1,9 +1,10 @@
-import { ApiPromise, Keyring, WsProvider } from '@polkadot/api'
+/* eslint-disable no-case-declarations */
+import { ApiPromise, WsProvider } from '@polkadot/api'
 import { ContractPromise } from '@polkadot/api-contract'
 import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { getSubstrateChain } from '@scio-labs/use-inkathon/chains'
-import { getBalance, initPolkadotJs as initApi } from '@scio-labs/use-inkathon/helpers'
+import { initPolkadotJs as initApi } from '@scio-labs/use-inkathon/helpers'
 import { readFile } from 'fs/promises'
 import {
   FeeTier,
@@ -25,29 +26,39 @@ import {
   getMaxChunk,
   getPercentageDenominator,
   getSqrtPriceDenominator
-} from 'math/math.js'
+} from 'wasm/wasm.js'
 import { Network } from './network.js'
 import { Query, Tx, TxResult } from './schema.js'
 
 export const DEFAULT_REF_TIME = 1250000000000
 export const DEFAULT_PROOF_SIZE = 1250000000000
 
-export const initPolkadotApi = async (network: Network): Promise<ApiPromise> => {
+export const initPolkadotApi = async (network: Network, ws?: string): Promise<ApiPromise> => {
   if (network === Network.Local) {
-    const wsProvider = new WsProvider(process.env.LOCAL)
+    const wsProvider = new WsProvider(ws)
     const api = await ApiPromise.create({ provider: wsProvider })
     await api.isReady
     return api
   } else if (network === Network.Testnet) {
-    const chainId = process.env.CHAIN
-    const chain = getSubstrateChain(chainId)
+    const chain = getSubstrateChain('alephzero-testnet')
+
     if (!chain) {
       throw new Error('chain not found')
     }
+
+    const { api } = await initApi(chain, { noInitWarn: true })
+    return api
+  } else if (network === Network.Mainnet) {
+    const chain = getSubstrateChain('alephzero-mainnet')
+
+    if (!chain) {
+      throw new Error('chain not found')
+    }
+
     const { api } = await initApi(chain, { noInitWarn: true })
     return api
   } else {
-    throw new Error('Invalid network')
+    throw new Error('invalid network')
   }
 }
 
@@ -104,7 +115,7 @@ export async function sendTx(
       if (!block) {
         resolve({
           hash: result.txHash.toHex(),
-          events: parseEvents((result as any).contractEvents || [])
+          events: parseEvents((result as any).contractEvents || []) as []
         })
       }
 
@@ -115,27 +126,18 @@ export async function sendTx(
       if (result.isCompleted && !waitForFinalization) {
         resolve({
           hash: result.txHash.toHex(),
-          events: parseEvents((result as any).contractEvents || [])
+          events: parseEvents((result as any).contractEvents || []) as []
         })
       }
 
       if (result.isFinalized) {
         resolve({
           hash: result.txHash.toHex(),
-          events: parseEvents((result as any).contractEvents || [])
+          events: parseEvents((result as any).contractEvents || []) as []
         })
       }
     })
   })
-}
-
-export const printBalance = async (api: ApiPromise, account: IKeyringPair) => {
-  const network = (await api.rpc.system.chain())?.toString() || ''
-  const version = (await api.rpc.system.version())?.toString() || ''
-  const balance = await getBalance(api, account.address)
-
-  console.log(`network: ${network} (${version})`)
-  console.log(`account: ${account.address} (${balance.balanceFormatted})\n`)
 }
 
 export const newPoolKey = (token0: string, token1: string, feeTier: FeeTier): PoolKey => {
@@ -148,21 +150,11 @@ export const newFeeTier = (fee: Percentage, tickSpacing: bigint): FeeTier => {
   return parse(_newFeeTier(fee, integerSafeCast(tickSpacing)))
 }
 
-export const getEnvAccount = async (keyring: Keyring): Promise<IKeyringPair> => {
-  const accountUri = process.env.ACCOUNT_URI
-
-  if (!accountUri) {
-    throw new Error('invalid account uri')
-  }
-
-  return keyring.addFromUri(accountUri)
-}
-
 export const parseEvent = (event: { [key: string]: any }) => {
   const eventObj: { [key: string]: any } = {}
 
-  for (let i = 0; i < event.args.length; i++) {
-    eventObj[event.event.args[i].name] = event.args[i].toPrimitive()
+  for (const [index, arg] of event.args.entries()) {
+    eventObj[event.event.args[index].name] = arg.toPrimitive()
   }
 
   return parse(eventObj)

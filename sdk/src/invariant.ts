@@ -24,7 +24,7 @@ import {
   calculateTick,
   getGlobalMaxSqrtPrice,
   getGlobalMinSqrtPrice
-} from 'math/math.js'
+} from 'wasm/wasm.js'
 import { Network } from './network.js'
 import {
   ContractOptions,
@@ -44,6 +44,7 @@ import {
   constructTickmap,
   getDeploymentData,
   parse,
+  parseEvent,
   sendQuery,
   sendTx
 } from './utils.js'
@@ -150,15 +151,11 @@ export class Invariant {
               return
             }
 
-            const eventObj: { [key: string]: any } = {}
-
-            for (let i = 0; i < decoded.args.length; i++) {
-              eventObj[decoded.event.args[i].name] = decoded.args[i].toPrimitive()
-            }
+            const parsedEvent = parseEvent(decoded)
 
             this.eventListeners.map(eventListener => {
               if (eventListener.identifier === decoded.event.identifier) {
-                eventListener.listener(parse(eventObj))
+                eventListener.listener(parsedEvent)
               }
             })
           })
