@@ -508,14 +508,16 @@ export class Invariant {
       ? getMinSqrtPrice(poolKey.feeTier.tickSpacing)
       : getMaxSqrtPrice(poolKey.feeTier.tickSpacing)
 
-    const result = await sendQuery(
-      this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
-      account,
-      InvariantQuery.Quote,
-      [poolKey, xToY, amount, byAmountIn, sqrtPriceLimit]
-    )
+    const result = (
+      await sendQuery(
+        this.contract,
+        this.gasLimit,
+        this.storageDepositLimit,
+        account,
+        InvariantQuery.Quote,
+        [poolKey, xToY, amount, byAmountIn, sqrtPriceLimit]
+      )
+    ).ok
 
     if (result.ok) {
       return parse(result.ok)

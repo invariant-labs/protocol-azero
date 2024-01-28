@@ -1,3 +1,5 @@
+import { Keyring } from '@polkadot/api'
+import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { assert } from 'chai'
 import {
   CreatePositionEvent,
@@ -43,6 +45,16 @@ export const assertThrowsAsync = async (fn: Promise<any>, word?: InvariantError 
 
 export const sleep = async (ms: number) => {
   return await new Promise(resolve => setTimeout(resolve, ms))
+}
+
+export const getEnvTestAccount = async (keyring: Keyring): Promise<IKeyringPair> => {
+  const accountUri = process.env.TEST_ACCOUNT_URI
+
+  if (!accountUri) {
+    throw new Error('invalid account uri')
+  }
+
+  return keyring.addFromUri(accountUri)
 }
 
 export const createPositionEventEquals = (
