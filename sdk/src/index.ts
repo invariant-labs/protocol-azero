@@ -122,7 +122,7 @@ const main = async () => {
     console.log(poolKey)
   }
 
-  const network = Network.getFromCli()
+  const network = Network.getFromEnv()
   console.log(`using ${network}`)
 
   const api = await initPolkadotApi(network)
