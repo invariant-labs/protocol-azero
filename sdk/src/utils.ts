@@ -16,7 +16,7 @@ import {
   Price,
   SqrtPrice,
   Tick,
-  TokenAmounts,
+  TokenAmount,
   _calculateFee,
   _newFeeTier,
   _newPoolKey,
@@ -244,7 +244,7 @@ export const calculateFee = (
   position: Position,
   lowerTick: Tick,
   upperTick: Tick
-): TokenAmounts => {
+): [TokenAmount, TokenAmount] => {
   return _calculateFee(
     lowerTick.index,
     lowerTick.feeGrowthOutsideX,
