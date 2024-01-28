@@ -31,7 +31,7 @@ import { LiquidityBreakpoint, Query, Tx, TxResult } from './schema.js'
 
 export const initPolkadotApi = async (network: Network): Promise<ApiPromise> => {
   if (network === Network.Local) {
-    const wsProvider = new WsProvider('ws://localhost:9944')
+    const wsProvider = new WsProvider(process.env.LOCAL)
     const api = await ApiPromise.create({ provider: wsProvider })
     await api.isReady
     return api
