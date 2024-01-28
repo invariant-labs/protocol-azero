@@ -79,6 +79,10 @@ export type InvariantEventType =
 
 export interface TxResult {
   hash: string
+}
+
+export interface InvtTxResult {
+  hash: string
   events: InvariantEventType[]
 }
 

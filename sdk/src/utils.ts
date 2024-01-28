@@ -27,7 +27,7 @@ import {
 } from 'math/math.js'
 import { CHAIN } from './consts.js'
 import { Network } from './network.js'
-import { LiquidityBreakpoint, Query, Tx, TxResult } from './schema.js'
+import { InvtTxResult, LiquidityBreakpoint, Query, Tx, TxResult } from './schema.js'
 
 export const initPolkadotApi = async (network: Network): Promise<ApiPromise> => {
   if (network === Network.Local) {
@@ -82,7 +82,7 @@ export async function sendTx(
   data: any[],
   waitForFinalization: boolean = true,
   block: boolean = true
-): Promise<TxResult> {
+): Promise<TxResult | InvtTxResult> {
   if (!contract) {
     throw new Error('contract not loaded')
   }
@@ -96,7 +96,7 @@ export async function sendTx(
     ...data
   )
 
-  return new Promise<TxResult>(async (resolve, reject) => {
+  return new Promise<TxResult | InvtTxResult>(async (resolve, reject) => {
     await call.signAndSend(signer, result => {
       if (!block) {
         resolve({
@@ -148,8 +148,8 @@ export const newFeeTier = (fee: Percentage, tickSpacing: bigint): FeeTier => {
 export const parseEvent = (event: { [key: string]: any }) => {
   const eventObj: { [key: string]: any } = {}
 
-  for (let i = 0; i < event.args.length; i++) {
-    eventObj[event.event.args[i].name] = event.args[i].toPrimitive()
+  for (const [i, e] of event.args.entries()) {
+    eventObj[event.event.args[i].name] = e.toPrimitive()
   }
 
   return parse(eventObj)
@@ -200,15 +200,11 @@ export const calculateSqrtPriceAfterSlippage = (
   up: boolean
 ): SqrtPrice => {
   const multiplier = getPercentageDenominator() + (up ? slippage : -slippage)
+  const price = sqrtPriceToPrice(sqrtPrice)
+  const priceWithSlippage = price * multiplier * getPercentageDenominator()
+  const sqrtPriceWithSlippage = priceToSqrtPrice(priceWithSlippage) / getPercentageDenominator()
 
-  return (
-    sqrt(
-      ((sqrtPrice * sqrtPrice) / getSqrtPriceDenominator()) *
-        multiplier *
-        getSqrtPriceDenominator() *
-        getPercentageDenominator()
-    ) / getPercentageDenominator()
-  )
+  return sqrtPriceWithSlippage
 }
 
 export const calculatePriceImpact = (
