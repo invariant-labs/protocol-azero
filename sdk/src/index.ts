@@ -1,5 +1,4 @@
 import { Keyring } from '@polkadot/api'
-import dotenv from 'dotenv'
 import { getLiquidityByY, toPercentage, toPrice } from 'math/math.js'
 import { Invariant } from './invariant.js'
 import { Network } from './network.js'
@@ -12,8 +11,6 @@ import {
   newPoolKey,
   priceToSqrtPrice
 } from './utils.js'
-
-dotenv.config()
 
 import {
   FeeTier,
