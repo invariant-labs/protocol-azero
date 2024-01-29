@@ -1,5 +1,4 @@
 use crate::{
-    convert,
     storage::{pool_key::PoolKey, tick::Tick},
     types::{
         fee_growth::calculate_fee_growth_inside,
@@ -10,7 +9,6 @@ use crate::{
     },
     MAX_TICK,
 };
-use decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use traceable_result::{function, location, ok_or_mark_trace, trace, TrackableResult};
 use tsify::Tsify;
@@ -43,7 +41,7 @@ pub struct TokenAmounts {
     pub y: TokenAmount,
 }
 
-#[wasm_bindgen(js_name = "_calculateFee")]
+#[wasm_wrapper("_calculateFee")]
 pub fn calculate_fee(
     lower_tick_index: i32,
     lower_tick_fee_growth_outside_x: FeeGrowth,
