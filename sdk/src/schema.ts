@@ -70,16 +70,18 @@ export type InvariantEventType =
   | RemovePositionEvent
   | SwapEvent
 
-export interface TxResultInterface<T> {
+export type TxResult = {
   hash: string
+}
+
+export interface EventTxResult<T> extends TxResult {
   events: T
 }
 
-export type TxResult = TxResultInterface<InvariantEventType[]>
-export type CreatePositionTxResult = TxResultInterface<[CreatePositionEvent]>
-export type RemovePositionTxResult = TxResultInterface<[RemovePositionEvent]>
-export type SwapTxResult = TxResultInterface<[CrossTickEvent, SwapEvent] | [SwapEvent]>
-export type SwapRouteTxResult = TxResultInterface<(CrossTickEvent | SwapEvent)[]>
+export type CreatePositionTxResult = EventTxResult<[CreatePositionEvent]>
+export type RemovePositionTxResult = EventTxResult<[RemovePositionEvent]>
+export type SwapTxResult = EventTxResult<[CrossTickEvent, SwapEvent] | [SwapEvent]>
+export type SwapRouteTxResult = EventTxResult<(CrossTickEvent | SwapEvent)[]>
 
 export type ContractOptions = {
   storageDepositLimit: number | null

@@ -112,7 +112,7 @@ describe('check get liquidity by x', async () => {
         tokensOwedX: 0n,
         tokensOwedY: 0n
       }
-      console.log(expectedPosition, position)
+
       await objectEquals(position, expectedPosition, ['lastBlockNumber'])
     }
     // above range

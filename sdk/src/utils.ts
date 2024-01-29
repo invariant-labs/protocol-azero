@@ -1,4 +1,5 @@
 /* eslint-disable no-case-declarations */
+
 import { ApiPromise, WsProvider } from '@polkadot/api'
 import { ContractPromise } from '@polkadot/api-contract'
 import { WeightV2 } from '@polkadot/types/interfaces'
@@ -28,7 +29,7 @@ import {
   getSqrtPriceDenominator
 } from 'wasm/wasm.js'
 import { Network } from './network.js'
-import { Query, Tx, TxResult } from './schema.js'
+import { EventTxResult, Query, Tx } from './schema.js'
 
 export const DEFAULT_REF_TIME = 1250000000000
 export const DEFAULT_PROOF_SIZE = 1250000000000
@@ -96,7 +97,7 @@ export async function sendTx(
   data: any[],
   waitForFinalization: boolean = true,
   block: boolean = true
-): Promise<TxResult> {
+): Promise<EventTxResult<any>> {
   if (!contract) {
     throw new Error('contract not loaded')
   }
@@ -110,7 +111,7 @@ export async function sendTx(
     ...data
   )
 
-  return new Promise<TxResult>(async (resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     await call.signAndSend(signer, result => {
       if (!block) {
         resolve({
