@@ -43,7 +43,6 @@ const TOKEN1_ADDRESS = await PSP22.deploy(
 const WAZERO_ADDRESS = (
   await WrappedAZERO.deploy(api, Network.Local, account)
 ).contract.address.toString()
-const network = Network.Local
 
 describe('sdk guide snippets', async function () {
   it('sdk guide', async () => {
@@ -144,9 +143,7 @@ describe('sdk guide snippets', async function () {
     const lowerTick: Tick = await invariant.getTick(account, poolKey, position.lowerTickIndex)
     const upperTickAfter: Tick = await invariant.getTick(account, poolKey, position.upperTickIndex)
 
-    // pools, ticks and positions have many fee growth fields that are used to calculate fees,
-    // by doing that off chain we can save gas fees,
-    // so in order to see how many tokens you can claim from fees you need to use calculate fee function
+    // check amount of tokens is able to claim
     const fees = calculateFee(pool, position, lowerTick, upperTickAfter)
 
     // print amount of unclaimed x and y token
@@ -201,7 +198,7 @@ describe('sdk guide snippets', async function () {
   })
   it('sdk guide - using wrapped azero', async () => {
     // load wazero contract
-    const wazero = await WrappedAZERO.load(api, network, WAZERO_ADDRESS)
+    const wazero = await WrappedAZERO.load(api, Network.Local, WAZERO_ADDRESS)
 
     // get balance of account
     const accountBalanceBefore = await wazero.balanceOf(account, account.address)
