@@ -112,7 +112,7 @@ describe('sdk guide snippets', async function () {
     console.log(createPositionResult.hash) // print transaction hash
     console.log(createPositionResult.events)
 
-    // we want to swap 6 tokenX
+    // we want to swap 6 token0
     // token0 has 12 decimals so we need to multiply it by 10^12
     const amount = 6n * 10n ** 12n
 
@@ -139,28 +139,15 @@ describe('sdk guide snippets', async function () {
     console.log(swapResult.events)
 
     // query state
-    const poolAfter: Pool = await invariant.getPool(
-      account,
-      TOKEN0_ADDRESS,
-      TOKEN1_ADDRESS,
-      feeTier
-    )
-    const positionAfter: Position = await invariant.getPosition(account, account.address, 0n)
-    const lowerTickAfter: Tick = await invariant.getTick(
-      account,
-      poolKey,
-      positionAfter.lowerTickIndex
-    )
-    const upperTickAfter: Tick = await invariant.getTick(
-      account,
-      poolKey,
-      positionAfter.upperTickIndex
-    )
+    const pool: Pool = await invariant.getPool(account, TOKEN0_ADDRESS, TOKEN1_ADDRESS, feeTier)
+    const position: Position = await invariant.getPosition(account, account.address, 0n)
+    const lowerTick: Tick = await invariant.getTick(account, poolKey, position.lowerTickIndex)
+    const upperTickAfter: Tick = await invariant.getTick(account, poolKey, position.upperTickIndex)
 
     // pools, ticks and positions have many fee growth fields that are used to calculate fees,
     // by doing that off chain we can save gas fees,
     // so in order to see how many tokens you can claim from fees you need to use calculate fee function
-    const fees = calculateFee(poolAfter, positionAfter, lowerTickAfter, upperTickAfter)
+    const fees = calculateFee(pool, position, lowerTick, upperTickAfter)
 
     // print amount of unclaimed x and y token
     console.log(fees)
