@@ -22,9 +22,10 @@ import {
   Tick,
   TokenAmount,
   calculateTick,
-  getGlobalMaxSqrtPrice,
-  getGlobalMinSqrtPrice
+  getMaxSqrtPrice,
+  getMinSqrtPrice
 } from 'math/math.js'
+import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME } from './consts.js'
 import { Network } from './network.js'
 import {
   ContractOptions,
@@ -38,8 +39,6 @@ import {
   TxResult
 } from './schema.js'
 import {
-  DEFAULT_PROOF_SIZE,
-  DEFAULT_REF_TIME,
   calculateSqrtPriceAfterSlippage,
   constructTickmap,
   getDeploymentData,
@@ -56,6 +55,7 @@ export class Invariant {
   waitForFinalization: boolean
   abi: Abi
   eventListeners: { identifier: InvariantEvent; listener: (event: any) => void }[] = []
+  eventListenerApiStarted: boolean = false
 
   private constructor(
     api: ApiPromise,
@@ -125,39 +125,43 @@ export class Invariant {
   }
 
   on(identifier: InvariantEvent, listener: (event: any) => void): void {
-    if (this.eventListeners.length === 0) {
+    if (!this.eventListenerApiStarted) {
+      this.eventListenerApiStarted = true
+
       this.api.query.system.events((events: any) => {
-        events.forEach((record: any) => {
-          const { event } = record
+        if (this.eventListeners.length !== 0) {
+          events.forEach((record: any) => {
+            const { event } = record
 
-          if (!this.api.events.contracts.ContractEmitted.is(event)) {
-            return
-          }
-
-          const [account_id, contract_evt] = event.data
-
-          if (account_id.toString() !== this.contract?.address.toString()) {
-            return
-          }
-
-          const decoded = this.abi.decodeEvent(contract_evt as Bytes)
-
-          if (!decoded) {
-            return
-          }
-
-          const eventObj: { [key: string]: any } = {}
-
-          for (let i = 0; i < decoded.args.length; i++) {
-            eventObj[decoded.event.args[i].name] = decoded.args[i].toPrimitive()
-          }
-
-          this.eventListeners.map(eventListener => {
-            if (eventListener.identifier === decoded.event.identifier) {
-              eventListener.listener(parse(eventObj))
+            if (!this.api.events.contracts.ContractEmitted.is(event)) {
+              return
             }
+
+            const [account_id, contract_evt] = event.data
+
+            if (account_id.toString() !== this.contract?.address.toString()) {
+              return
+            }
+
+            const decoded = this.abi.decodeEvent(contract_evt as Bytes)
+
+            if (!decoded) {
+              return
+            }
+
+            const eventObj: { [key: string]: any } = {}
+
+            for (let i = 0; i < decoded.args.length; i++) {
+              eventObj[decoded.event.args[i].name] = decoded.args[i].toPrimitive()
+            }
+
+            this.eventListeners.map(eventListener => {
+              if (eventListener.identifier === decoded.event.identifier) {
+                eventListener.listener(parse(eventObj))
+              }
+            })
           })
-        })
+        }
       })
     }
 
@@ -500,7 +504,9 @@ export class Invariant {
     amount: TokenAmount,
     byAmountIn: boolean
   ): Promise<QuoteResult> {
-    const sqrtPriceLimit: SqrtPrice = xToY ? getGlobalMinSqrtPrice() : getGlobalMaxSqrtPrice()
+    const sqrtPriceLimit: SqrtPrice = xToY
+      ? getMinSqrtPrice(poolKey.feeTier.tickSpacing)
+      : getMaxSqrtPrice(poolKey.feeTier.tickSpacing)
 
     const result = await sendQuery(
       this.contract,

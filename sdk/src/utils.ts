@@ -1,4 +1,4 @@
-import { ApiPromise, Keyring, WsProvider } from '@polkadot/api'
+import { ApiPromise, WsProvider } from '@polkadot/api'
 import { ContractPromise } from '@polkadot/api-contract'
 import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
@@ -7,7 +7,6 @@ import { getBalance, initPolkadotJs as initApi } from '@scio-labs/use-inkathon/h
 import { readFile } from 'fs/promises'
 import {
   FeeTier,
-  Liquidity,
   LiquidityTick,
   Percentage,
   Pool,
@@ -16,7 +15,7 @@ import {
   Price,
   SqrtPrice,
   Tick,
-  TokenAmounts,
+  TokenAmount,
   _calculateFee,
   _newFeeTier,
   _newPoolKey,
@@ -26,20 +25,18 @@ import {
   getPercentageDenominator,
   getSqrtPriceDenominator
 } from 'math/math.js'
+import { CHAIN, LOCAL } from './consts.js'
 import { Network } from './network.js'
-import { Query, Tx, TxResult } from './schema.js'
-
-export const DEFAULT_REF_TIME = 1250000000000
-export const DEFAULT_PROOF_SIZE = 1250000000000
+import { InvtTxResult, LiquidityBreakpoint, Query, Tx, TxResult } from './schema.js'
 
 export const initPolkadotApi = async (network: Network): Promise<ApiPromise> => {
   if (network === Network.Local) {
-    const wsProvider = new WsProvider(process.env.LOCAL)
+    const wsProvider = new WsProvider(LOCAL)
     const api = await ApiPromise.create({ provider: wsProvider })
     await api.isReady
     return api
   } else if (network === Network.Testnet) {
-    const chainId = process.env.CHAIN
+    const chainId = CHAIN
     const chain = getSubstrateChain(chainId)
     if (!chain) {
       throw new Error('chain not found')
@@ -85,7 +82,7 @@ export async function sendTx(
   data: any[],
   waitForFinalization: boolean = true,
   block: boolean = true
-): Promise<TxResult> {
+): Promise<TxResult | InvtTxResult> {
   if (!contract) {
     throw new Error('contract not loaded')
   }
@@ -99,7 +96,7 @@ export async function sendTx(
     ...data
   )
 
-  return new Promise<TxResult>(async (resolve, reject) => {
+  return new Promise<TxResult | InvtTxResult>(async (resolve, reject) => {
     await call.signAndSend(signer, result => {
       if (!block) {
         resolve({
@@ -148,21 +145,11 @@ export const newFeeTier = (fee: Percentage, tickSpacing: bigint): FeeTier => {
   return parse(_newFeeTier(fee, integerSafeCast(tickSpacing)))
 }
 
-export const getEnvAccount = async (keyring: Keyring): Promise<IKeyringPair> => {
-  const accountUri = process.env.ACCOUNT_URI
-
-  if (!accountUri) {
-    throw new Error('invalid account uri')
-  }
-
-  return keyring.addFromUri(accountUri)
-}
-
 export const parseEvent = (event: { [key: string]: any }) => {
   const eventObj: { [key: string]: any } = {}
 
-  for (let i = 0; i < event.args.length; i++) {
-    eventObj[event.event.args[i].name] = event.args[i].toPrimitive()
+  for (const [i, e] of event.args.entries()) {
+    eventObj[event.event.args[i].name] = e.toPrimitive()
   }
 
   return parse(eventObj)
@@ -213,15 +200,11 @@ export const calculateSqrtPriceAfterSlippage = (
   up: boolean
 ): SqrtPrice => {
   const multiplier = getPercentageDenominator() + (up ? slippage : -slippage)
+  const price = sqrtPriceToPrice(sqrtPrice)
+  const priceWithSlippage = price * multiplier * getPercentageDenominator()
+  const sqrtPriceWithSlippage = priceToSqrtPrice(priceWithSlippage) / getPercentageDenominator()
 
-  return (
-    sqrt(
-      ((sqrtPrice * sqrtPrice) / getSqrtPriceDenominator()) *
-        multiplier *
-        getSqrtPriceDenominator() *
-        getPercentageDenominator()
-    ) / getPercentageDenominator()
-  )
+  return sqrtPriceWithSlippage
 }
 
 export const calculatePriceImpact = (
@@ -243,7 +226,7 @@ export const calculateFee = (
   position: Position,
   lowerTick: Tick,
   upperTick: Tick
-): TokenAmounts => {
+): [TokenAmount, TokenAmount] => {
   return _calculateFee(
     lowerTick.index,
     lowerTick.feeGrowthOutsideX,
@@ -344,14 +327,9 @@ export const priceToSqrtPrice = (price: Price): SqrtPrice => {
   return sqrt(price * getSqrtPriceDenominator())
 }
 
-interface LiquidityBreakPoint {
-  liquidity: Liquidity
-  index: bigint
-}
-
 export const calculateLiquidityBreakpoints = (
   ticks: (Tick | LiquidityTick)[]
-): LiquidityBreakPoint[] => {
+): LiquidityBreakpoint[] => {
   let currentLiquidity = 0n
 
   return ticks.map(tick => {

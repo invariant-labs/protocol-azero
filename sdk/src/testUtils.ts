@@ -1,13 +1,13 @@
-import { Keyring } from '@polkadot/api'
-import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { assert } from 'chai'
 import {
   CreatePositionEvent,
+  CrossTickEvent,
   InvariantError,
   LiquidityTick,
   Position,
   PositionTick,
   RemovePositionEvent,
+  SwapEvent,
   Tick
 } from 'math/math.js'
 import { InvariantTx } from './schema.js'
@@ -45,16 +45,6 @@ export const sleep = async (ms: number) => {
   return await new Promise(resolve => setTimeout(resolve, ms))
 }
 
-export const getEnvTestAccount = async (keyring: Keyring): Promise<IKeyringPair> => {
-  const accountUri = process.env.TEST_ACCOUNT_URI
-
-  if (!accountUri) {
-    throw new Error('invalid account uri')
-  }
-
-  return keyring.addFromUri(accountUri)
-}
-
 export const createPositionEventEquals = (
   createPositionEvent: CreatePositionEvent,
   expectedCreatePositionEvent: CreatePositionEvent
@@ -68,6 +58,26 @@ export const createPositionEventEquals = (
   assert.deepEqual(createPositionEvent.lowerTick, expectedCreatePositionEvent.lowerTick)
   assert.deepEqual(createPositionEvent.pool, expectedCreatePositionEvent.pool)
   assert.deepEqual(createPositionEvent.upperTick, expectedCreatePositionEvent.upperTick)
+}
+
+export const crossTickEventEquals = (
+  crossTickEvent: CrossTickEvent,
+  expectedCrossTickEvent: CrossTickEvent
+) => {
+  assert.deepEqual(crossTickEvent.address, expectedCrossTickEvent.address)
+  assert.deepEqual(crossTickEvent.pool, expectedCrossTickEvent.pool)
+  assert.deepEqual(crossTickEvent.indexes, expectedCrossTickEvent.indexes)
+}
+
+export const swapEventEquals = (swapEvent: SwapEvent, expectedSwapEvent: SwapEvent) => {
+  assert.deepEqual(swapEvent.address, expectedSwapEvent.address)
+  assert.deepEqual(swapEvent.pool, expectedSwapEvent.pool)
+  assert.deepEqual(swapEvent.amountIn, expectedSwapEvent.amountIn)
+  assert.deepEqual(swapEvent.amountOut, expectedSwapEvent.amountOut)
+  assert.deepEqual(swapEvent.fee, expectedSwapEvent.fee)
+  assert.deepEqual(swapEvent.startSqrtPrice, expectedSwapEvent.startSqrtPrice)
+  assert.deepEqual(swapEvent.targetSqrtPrice, expectedSwapEvent.targetSqrtPrice)
+  assert.deepEqual(swapEvent.xToY, expectedSwapEvent.xToY)
 }
 
 export const removePositionEventEquals = (
