@@ -3,7 +3,7 @@ import { assert } from 'chai'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
-import { liquidityTickEquals } from '../src/testUtils'
+import { objectEquals } from '../src/testUtils'
 import { initPolkadotApi, integerSafeCast, newFeeTier, newPoolKey } from '../src/utils'
 
 const api = await initPolkadotApi(Network.Local)
@@ -46,8 +46,8 @@ describe('get liquidity ticks', async () => {
     const lowerTick = await invariant.getTick(account, poolKey, -10n)
     const upperTick = await invariant.getTick(account, poolKey, 10n)
 
-    liquidityTickEquals(result[0], lowerTick)
-    liquidityTickEquals(result[1], upperTick)
+    objectEquals(result[0], lowerTick, [])
+    objectEquals(result[1], upperTick, [])
   })
 
   it('should get liquidity ticks limit', async function () {
@@ -65,9 +65,9 @@ describe('get liquidity ticks', async () => {
         const tick = await invariant.getTick(account, poolKey, i)
 
         if (i > 0n) {
-          liquidityTickEquals(result[integerSafeCast(i) + 390 - 1], tick)
+          objectEquals(result[integerSafeCast(i) + 390 - 1], tick, [])
         } else {
-          liquidityTickEquals(result[integerSafeCast(i) + 390], tick)
+          objectEquals(result[integerSafeCast(i) + 390], tick, [])
         }
       }
     }
@@ -82,7 +82,7 @@ describe('get liquidity ticks', async () => {
     const result2 = await invariant.getLiquidityTicks(account, poolKey, 1n)
     assert.equal(result2.length, 1)
 
-    liquidityTickEquals(result1[1], result2[0])
+    objectEquals(result1[1], result2[0], [])
   })
 
   it('should get liquidity ticks with multiple queries', async function () {

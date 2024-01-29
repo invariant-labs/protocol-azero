@@ -24,7 +24,7 @@ import {
   calculateTick,
   getMaxSqrtPrice,
   getMinSqrtPrice
-} from 'math/math.js'
+} from 'wasm/wasm.js'
 import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME } from './consts.js'
 import { Network } from './network.js'
 import {
@@ -43,6 +43,7 @@ import {
   constructTickmap,
   getDeploymentData,
   parse,
+  parseEvent,
   sendQuery,
   sendTx
 } from './utils.js'
@@ -149,15 +150,11 @@ export class Invariant {
               return
             }
 
-            const eventObj: { [key: string]: any } = {}
-
-            for (let i = 0; i < decoded.args.length; i++) {
-              eventObj[decoded.event.args[i].name] = decoded.args[i].toPrimitive()
-            }
+            const parsedEvent = parseEvent(decoded)
 
             this.eventListeners.map(eventListener => {
               if (eventListener.identifier === decoded.event.identifier) {
-                eventListener.listener(parse(eventObj))
+                eventListener.listener(parsedEvent)
               }
             })
           })
