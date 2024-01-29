@@ -125,12 +125,16 @@ const main = async () => {
 
   const network = Network.getFromCli()
   console.log(`using ${network}`)
-
+  // {
+  //   const keyring = new Keyring({ type: 'sr25519' })
+  //   const account = keyring.addFromUri('//Alice')
+  //   console.log(account)
+  // }
   const api = await initPolkadotApi(network)
 
   // initialize account, you can use your own wallet by pasting mnemonic phase
   const keyring = new Keyring({ type: 'sr25519' })
-  const account = keyring.addFromUri('//Alice')
+  const account = keyring.addFromUri('//Bob')
 
   // ###
   const INVARIANT_ADDRESS = (

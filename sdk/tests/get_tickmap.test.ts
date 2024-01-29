@@ -40,7 +40,7 @@ describe('tickmap', async () => {
     await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
   })
 
-  it('get tickmap', async () => {
+  it.only('get tickmap', async () => {
     const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
     await invariant.createPosition(account, poolKey, ticks[2], ticks[3], 10n, pool.sqrtPrice, 0n)
 
