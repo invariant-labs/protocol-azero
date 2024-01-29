@@ -27,8 +27,9 @@ import {
   getPercentageDenominator,
   getSqrtPriceDenominator
 } from 'wasm/wasm.js'
+import { MAINNET, TESTNET } from './consts.js'
 import { Network } from './network.js'
-import { EventTxResult, LiquidityBreakpoint, Query, Tx } from './schema.js'
+import { EventTxResult, LiquidityBreakpoint, Query, Tx, TxResult } from './schema.js'
 
 export const initPolkadotApi = async (network: Network, ws?: string): Promise<ApiPromise> => {
   if (network === Network.Local) {
@@ -37,7 +38,7 @@ export const initPolkadotApi = async (network: Network, ws?: string): Promise<Ap
     await api.isReady
     return api
   } else if (network === Network.Testnet) {
-    const chain = getSubstrateChain('alephzero-testnet')
+    const chain = getSubstrateChain(TESTNET)
 
     if (!chain) {
       throw new Error('chain not found')
@@ -46,7 +47,7 @@ export const initPolkadotApi = async (network: Network, ws?: string): Promise<Ap
     const { api } = await initApi(chain, { noInitWarn: true })
     return api
   } else if (network === Network.Mainnet) {
-    const chain = getSubstrateChain('alephzero-mainnet')
+    const chain = getSubstrateChain(MAINNET)
 
     if (!chain) {
       throw new Error('chain not found')
@@ -93,7 +94,7 @@ export async function sendTx(
   data: any[],
   waitForFinalization: boolean = true,
   block: boolean = true
-): Promise<EventTxResult<any>> {
+): Promise<EventTxResult<any> | TxResult> {
   if (!contract) {
     throw new Error('contract not loaded')
   }
