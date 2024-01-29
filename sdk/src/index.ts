@@ -1,6 +1,25 @@
 import { Keyring } from '@polkadot/api'
-import dotenv from 'dotenv'
-import { getLiquidityByY, toPercentage, toPrice } from 'math/math.js'
+import {
+  FeeTier,
+  Liquidity,
+  PoolKey,
+  SqrtPrice,
+  TokenAmount,
+  calculateAmountDelta,
+  getDeltaY,
+  getGlobalMaxSqrtPrice,
+  getLiquidityByX,
+  getLiquidityByY,
+  getLiquidityScale,
+  getMaxSqrtPrice,
+  getMaxTick,
+  getMinTick,
+  getPercentageScale,
+  getSqrtPriceScale,
+  getTokenAmountScale,
+  toPercentage,
+  toPrice
+} from 'math/math.js'
 import { Invariant } from './invariant.js'
 import { Network } from './network.js'
 import { PSP22 } from './psp22.js'
@@ -12,27 +31,6 @@ import {
   newPoolKey,
   priceToSqrtPrice
 } from './utils.js'
-
-dotenv.config()
-
-import {
-  FeeTier,
-  Liquidity,
-  PoolKey,
-  SqrtPrice,
-  TokenAmount,
-  calculateAmountDelta,
-  getDeltaY,
-  getGlobalMaxSqrtPrice,
-  getLiquidityByX,
-  getLiquidityScale,
-  getMaxSqrtPrice,
-  getMaxTick,
-  getMinTick,
-  getPercentageScale,
-  getSqrtPriceScale,
-  getTokenAmountScale
-} from 'math/math.js'
 
 const main = async () => {
   {
@@ -125,7 +123,7 @@ const main = async () => {
     console.log(poolKey)
   }
 
-  const network = Network.getFromEnv()
+  const network = Network.getFromCli()
   console.log(`using ${network}`)
 
   const api = await initPolkadotApi(network)
