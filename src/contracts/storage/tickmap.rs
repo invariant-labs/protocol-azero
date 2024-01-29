@@ -9,7 +9,8 @@ use ink::storage::Mapping;
 pub const TICK_SEARCH_RANGE: i32 = 256;
 pub const CHUNK_SIZE: i32 = 64;
 pub const MAX_RESULT_SIZE: usize = 16 * 1024 * 8;
-pub const MAX_TICKMAP_QUERY_SIZE: usize = MAX_RESULT_SIZE / (16 + 64);
+pub const MAX_TESTNET_RESULT_SIZE: usize = MAX_RESULT_SIZE / 1000;
+pub const MAX_TICKMAP_QUERY_SIZE: usize = MAX_TESTNET_RESULT_SIZE / (16 + 64);
 
 #[derive(Debug)]
 #[ink::storage_item]
