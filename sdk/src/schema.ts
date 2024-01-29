@@ -1,4 +1,4 @@
-import { CreatePositionEvent, CrossTickEvent, RemovePositionEvent, SwapEvent } from 'wasm/wasm.js'
+import { CreatePositionEvent, CrossTickEvent, Liquidity, RemovePositionEvent, SwapEvent } from 'wasm/wasm.js'
 
 export enum InvariantQuery {
   ProtocolFee = 'invariantTrait::getProtocolFee',
@@ -87,4 +87,9 @@ export type ContractOptions = {
   storageDepositLimit: number | null
   refTime: number
   proofSize: number
+}
+
+export interface LiquidityBreakpoint {
+  liquidity: Liquidity
+  index: bigint
 }

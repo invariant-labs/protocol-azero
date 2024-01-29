@@ -9,7 +9,6 @@ import { initPolkadotJs as initApi } from '@scio-labs/use-inkathon/helpers'
 import { readFile } from 'fs/promises'
 import {
   FeeTier,
-  Liquidity,
   LiquidityTick,
   Percentage,
   Pool,
@@ -18,7 +17,7 @@ import {
   Price,
   SqrtPrice,
   Tick,
-  TokenAmounts,
+  TokenAmount,
   _calculateFee,
   _newFeeTier,
   _newPoolKey,
@@ -29,10 +28,7 @@ import {
   getSqrtPriceDenominator
 } from 'wasm/wasm.js'
 import { Network } from './network.js'
-import { EventTxResult, Query, Tx } from './schema.js'
-
-export const DEFAULT_REF_TIME = 1250000000000
-export const DEFAULT_PROOF_SIZE = 1250000000000
+import { EventTxResult, LiquidityBreakpoint, Query, Tx } from './schema.js'
 
 export const initPolkadotApi = async (network: Network, ws?: string): Promise<ApiPromise> => {
   if (network === Network.Local) {
@@ -206,15 +202,11 @@ export const calculateSqrtPriceAfterSlippage = (
   up: boolean
 ): SqrtPrice => {
   const multiplier = getPercentageDenominator() + (up ? slippage : -slippage)
+  const price = sqrtPriceToPrice(sqrtPrice)
+  const priceWithSlippage = price * multiplier * getPercentageDenominator()
+  const sqrtPriceWithSlippage = priceToSqrtPrice(priceWithSlippage) / getPercentageDenominator()
 
-  return (
-    sqrt(
-      ((sqrtPrice * sqrtPrice) / getSqrtPriceDenominator()) *
-        multiplier *
-        getSqrtPriceDenominator() *
-        getPercentageDenominator()
-    ) / getPercentageDenominator()
-  )
+  return sqrtPriceWithSlippage
 }
 
 export const calculatePriceImpact = (
@@ -236,7 +228,7 @@ export const calculateFee = (
   position: Position,
   lowerTick: Tick,
   upperTick: Tick
-): TokenAmounts => {
+): [TokenAmount, TokenAmount] => {
   return _calculateFee(
     lowerTick.index,
     lowerTick.feeGrowthOutsideX,
@@ -337,14 +329,9 @@ export const priceToSqrtPrice = (price: Price): SqrtPrice => {
   return sqrt(price * getSqrtPriceDenominator())
 }
 
-interface LiquidityBreakPoint {
-  liquidity: Liquidity
-  index: bigint
-}
-
 export const calculateLiquidityBreakpoints = (
   ticks: (Tick | LiquidityTick)[]
-): LiquidityBreakPoint[] => {
+): LiquidityBreakpoint[] => {
   let currentLiquidity = 0n
 
   return ticks.map(tick => {

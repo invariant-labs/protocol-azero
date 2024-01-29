@@ -102,11 +102,11 @@ describe('utils', () => {
       const token1After = await psp22.balanceOf(account, account.address.toString())
 
       if (poolKey.tokenX === token0Address) {
-        assert.equal(token0Before + result.x, token0After)
+        assert.equal(token0Before + result[0], token0After)
         assert.equal(token1Before, token1After)
       } else {
         assert.equal(token0Before, token0After)
-        assert.equal(token1Before + result.x, token1After)
+        assert.equal(token1Before + result[0], token1After)
       }
     })
   })

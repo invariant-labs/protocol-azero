@@ -22,9 +22,10 @@ import {
   Tick,
   TokenAmount,
   calculateTick,
-  getGlobalMaxSqrtPrice,
-  getGlobalMinSqrtPrice
+  getMaxSqrtPrice,
+  getMinSqrtPrice
 } from 'wasm/wasm.js'
+import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME } from './consts.js'
 import { Network } from './network.js'
 import {
   ContractOptions,
@@ -38,8 +39,6 @@ import {
   TxResult
 } from './schema.js'
 import {
-  DEFAULT_PROOF_SIZE,
-  DEFAULT_REF_TIME,
   calculateSqrtPriceAfterSlippage,
   constructTickmap,
   getDeploymentData,
@@ -502,18 +501,18 @@ export class Invariant {
     amount: TokenAmount,
     byAmountIn: boolean
   ): Promise<QuoteResult> {
-    const sqrtPriceLimit: SqrtPrice = xToY ? getGlobalMinSqrtPrice() : getGlobalMaxSqrtPrice()
+    const sqrtPriceLimit: SqrtPrice = xToY
+      ? getMinSqrtPrice(poolKey.feeTier.tickSpacing)
+      : getMaxSqrtPrice(poolKey.feeTier.tickSpacing)
 
-    const result = (
-      await sendQuery(
-        this.contract,
-        this.gasLimit,
-        this.storageDepositLimit,
-        account,
-        InvariantQuery.Quote,
-        [poolKey, xToY, amount, byAmountIn, sqrtPriceLimit]
-      )
-    ).ok
+    const result = await sendQuery(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      account,
+      InvariantQuery.Quote,
+      [poolKey, xToY, amount, byAmountIn, sqrtPriceLimit]
+    )
 
     if (result.ok) {
       return parse(result.ok)
