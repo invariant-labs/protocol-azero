@@ -25,13 +25,13 @@ import {
   getPercentageDenominator,
   getSqrtPriceDenominator
 } from 'math/math.js'
-import { CHAIN } from './consts.js'
+import { CHAIN, LOCAL } from './consts.js'
 import { Network } from './network.js'
 import { InvtTxResult, LiquidityBreakpoint, Query, Tx, TxResult } from './schema.js'
 
 export const initPolkadotApi = async (network: Network): Promise<ApiPromise> => {
   if (network === Network.Local) {
-    const wsProvider = new WsProvider('ws://127.0.0.1:9944')
+    const wsProvider = new WsProvider(LOCAL)
     const api = await ApiPromise.create({ provider: wsProvider })
     await api.isReady
     return api
