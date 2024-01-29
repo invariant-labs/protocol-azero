@@ -1,5 +1,4 @@
 import { Keyring } from '@polkadot/api'
-import dotenv from 'dotenv'
 import {
   FeeTier,
   Liquidity,
@@ -32,8 +31,6 @@ import {
   newPoolKey,
   priceToSqrtPrice
 } from './utils.js'
-
-dotenv.config()
 
 const main = async () => {
   {
@@ -126,7 +123,7 @@ const main = async () => {
     console.log(poolKey)
   }
 
-  const network = Network.getFromEnv()
+  const network = Network.getFromCli()
   console.log(`using ${network}`)
 
   const api = await initPolkadotApi(network)
