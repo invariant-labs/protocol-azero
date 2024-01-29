@@ -1,9 +1,11 @@
+/* eslint-disable no-case-declarations */
+
 import { ApiPromise, WsProvider } from '@polkadot/api'
 import { ContractPromise } from '@polkadot/api-contract'
 import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { getSubstrateChain } from '@scio-labs/use-inkathon/chains'
-import { getBalance, initPolkadotJs as initApi } from '@scio-labs/use-inkathon/helpers'
+import { initPolkadotJs as initApi } from '@scio-labs/use-inkathon/helpers'
 import { readFile } from 'fs/promises'
 import {
   FeeTier,
@@ -24,27 +26,37 @@ import {
   getMaxChunk,
   getPercentageDenominator,
   getSqrtPriceDenominator
-} from 'math/math.js'
-import { CHAIN, LOCAL } from './consts.js'
+} from 'wasm/wasm.js'
+import { MAINNET, TESTNET } from './consts.js'
 import { Network } from './network.js'
-import { InvtTxResult, LiquidityBreakpoint, Query, Tx, TxResult } from './schema.js'
+import { EventTxResult, LiquidityBreakpoint, Query, Tx, TxResult } from './schema.js'
 
-export const initPolkadotApi = async (network: Network): Promise<ApiPromise> => {
+export const initPolkadotApi = async (network: Network, ws?: string): Promise<ApiPromise> => {
   if (network === Network.Local) {
-    const wsProvider = new WsProvider(LOCAL)
+    const wsProvider = new WsProvider(ws)
     const api = await ApiPromise.create({ provider: wsProvider })
     await api.isReady
     return api
   } else if (network === Network.Testnet) {
-    const chainId = CHAIN
-    const chain = getSubstrateChain(chainId)
+    const chain = getSubstrateChain(TESTNET)
+
     if (!chain) {
       throw new Error('chain not found')
     }
+
+    const { api } = await initApi(chain, { noInitWarn: true })
+    return api
+  } else if (network === Network.Mainnet) {
+    const chain = getSubstrateChain(MAINNET)
+
+    if (!chain) {
+      throw new Error('chain not found')
+    }
+
     const { api } = await initApi(chain, { noInitWarn: true })
     return api
   } else {
-    throw new Error('Invalid network')
+    throw new Error('invalid network')
   }
 }
 
@@ -82,7 +94,7 @@ export async function sendTx(
   data: any[],
   waitForFinalization: boolean = true,
   block: boolean = true
-): Promise<TxResult | InvtTxResult> {
+): Promise<EventTxResult<any> | TxResult> {
   if (!contract) {
     throw new Error('contract not loaded')
   }
@@ -96,12 +108,12 @@ export async function sendTx(
     ...data
   )
 
-  return new Promise<TxResult | InvtTxResult>(async (resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     await call.signAndSend(signer, result => {
       if (!block) {
         resolve({
           hash: result.txHash.toHex(),
-          events: parseEvents((result as any).contractEvents || [])
+          events: parseEvents((result as any).contractEvents || []) as []
         })
       }
 
@@ -112,27 +124,18 @@ export async function sendTx(
       if (result.isCompleted && !waitForFinalization) {
         resolve({
           hash: result.txHash.toHex(),
-          events: parseEvents((result as any).contractEvents || [])
+          events: parseEvents((result as any).contractEvents || []) as []
         })
       }
 
       if (result.isFinalized) {
         resolve({
           hash: result.txHash.toHex(),
-          events: parseEvents((result as any).contractEvents || [])
+          events: parseEvents((result as any).contractEvents || []) as []
         })
       }
     })
   })
-}
-
-export const printBalance = async (api: ApiPromise, account: IKeyringPair) => {
-  const network = (await api.rpc.system.chain())?.toString() || ''
-  const version = (await api.rpc.system.version())?.toString() || ''
-  const balance = await getBalance(api, account.address)
-
-  console.log(`network: ${network} (${version})`)
-  console.log(`account: ${account.address} (${balance.balanceFormatted})\n`)
 }
 
 export const newPoolKey = (token0: string, token1: string, feeTier: FeeTier): PoolKey => {
@@ -148,8 +151,8 @@ export const newFeeTier = (fee: Percentage, tickSpacing: bigint): FeeTier => {
 export const parseEvent = (event: { [key: string]: any }) => {
   const eventObj: { [key: string]: any } = {}
 
-  for (const [i, e] of event.args.entries()) {
-    eventObj[event.event.args[i].name] = e.toPrimitive()
+  for (const [index, arg] of event.args.entries()) {
+    eventObj[event.event.args[index].name] = arg.toPrimitive()
   }
 
   return parse(eventObj)

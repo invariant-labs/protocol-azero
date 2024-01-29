@@ -1,10 +1,4 @@
-import {
-  CreatePositionEvent,
-  CrossTickEvent,
-  Liquidity,
-  RemovePositionEvent,
-  SwapEvent
-} from 'math'
+import { CreatePositionEvent, CrossTickEvent, Liquidity, RemovePositionEvent, SwapEvent } from 'wasm/wasm.js'
 
 export enum InvariantQuery {
   ProtocolFee = 'invariantTrait::getProtocolFee',
@@ -61,7 +55,6 @@ export enum WrappedAZEROTx {
 }
 
 export type Tx = InvariantTx | PSP22Tx | WrappedAZEROTx
-
 export type Query = InvariantQuery | PSP22Query
 
 export enum InvariantEvent {
@@ -77,34 +70,18 @@ export type InvariantEventType =
   | RemovePositionEvent
   | SwapEvent
 
-export interface TxResult {
+export type TxResult = {
   hash: string
 }
 
-export interface InvtTxResult {
-  hash: string
-  events: InvariantEventType[]
+export interface EventTxResult<T> extends TxResult {
+  events: T
 }
 
-export type CreatePositionTxResult = {
-  hash: string
-  events: [CreatePositionEvent]
-}
-
-export type RemovePositionTxResult = {
-  hash: string
-  events: [RemovePositionEvent]
-}
-
-export type SwapTxResult = {
-  hash: string
-  events: [CrossTickEvent, SwapEvent] | [SwapEvent]
-}
-
-export type SwapRouteTxResult = {
-  hash: string
-  events: (CrossTickEvent | SwapEvent)[]
-}
+export type CreatePositionTxResult = EventTxResult<[CreatePositionEvent]>
+export type RemovePositionTxResult = EventTxResult<[RemovePositionEvent]>
+export type SwapTxResult = EventTxResult<[CrossTickEvent, SwapEvent] | [SwapEvent]>
+export type SwapRouteTxResult = EventTxResult<(CrossTickEvent | SwapEvent)[]>
 
 export type ContractOptions = {
   storageDepositLimit: number | null

@@ -1,6 +1,6 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import { InvariantError, Percentage, SqrtPrice } from 'math/math.js'
+import { InvariantError, Percentage, SqrtPrice } from 'wasm/wasm.js'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
