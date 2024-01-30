@@ -11,7 +11,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "a0-sdk": "file:../sdk"
+    "a0-sdk": "file:../sdk",
+    "typescript": "^5.3.3"
   },
   "type": "module"
 }
