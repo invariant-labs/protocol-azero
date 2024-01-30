@@ -13,6 +13,7 @@
     "paths": {
       "math": ["./math/pkg/math"]
     },
-    "types": ["mocha", "chai"]
+    "types": ["mocha", "chai"],
+    "declaration": true
   }
 }

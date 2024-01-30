@@ -1,9 +1,9 @@
 {
-  "name": "sdk",
+  "name": "a0-sdk",
   "version": "1.0.0",
   "description": "",
   "type": "module",
-  "main": "index.js",
+  "main": "target/src/index.js",
   "scripts": {
     "prebuild": "npm run contract:build && rm -rf target && cp ../target/ink/invariant.wasm ./contracts/invariant/ && cp ../target/ink/invariant.json ./contracts/invariant",
     "build": "npx tsc",

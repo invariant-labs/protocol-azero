@@ -1,11 +1,14 @@
 /* eslint-disable no-case-declarations */
 
-import { ApiPromise, WsProvider } from '@polkadot/api'
-import { ContractPromise } from '@polkadot/api-contract'
-import { WeightV2 } from '@polkadot/types/interfaces'
+import { ApiPromise, HttpProvider, WsProvider } from '@polkadot/api'
+import { CodePromise, ContractPromise } from '@polkadot/api-contract'
+import { ContractOptions } from '@polkadot/api-contract/types'
+import { ApiOptions } from '@polkadot/api/types'
+import { EventRecord, SignedBlock, WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
-import { getSubstrateChain } from '@scio-labs/use-inkathon/chains'
-import { initPolkadotJs as initApi } from '@scio-labs/use-inkathon/helpers'
+import { BN, bnToBn, stringCamelCase } from '@polkadot/util'
+import { cryptoWaitReady } from '@polkadot/util-crypto'
+import { getSubstrateChain } from '@scio-labs/use-inkathon'
 import { readFile } from 'fs/promises'
 import {
   FeeTier,
@@ -341,5 +344,134 @@ export const calculateLiquidityBreakpoints = (
       liquidity: currentLiquidity,
       index: tick.index
     }
+  })
+}
+
+export interface SubstrateChain {
+  network: string
+  name: string
+  rpcUrls: [string, ...string[]]
+  ss58Prefix?: number
+  explorerUrls?: Partial<Record<SubstrateExplorer, string>>
+  testnet?: boolean
+  faucetUrls?: string[]
+}
+
+export enum SubstrateExplorer {
+  Subscan = 'subscan',
+  PolkadotJs = 'polkadotjs'
+}
+
+export const initApi = async (
+  chain: SubstrateChain,
+  options?: Omit<ApiOptions, 'provider'>
+): Promise<{ api: ApiPromise; provider: WsProvider | HttpProvider }> => {
+  const rpcUrl = chain.rpcUrls[0]
+  if (!rpcUrl) {
+    throw new Error('Given chain has no RPC url defined')
+  }
+
+  // Wait for crypto to be ready to prevent initialization issues
+  await cryptoWaitReady()
+
+  const provider = rpcUrl.startsWith('http') ? new HttpProvider(rpcUrl) : new WsProvider(rpcUrl)
+  const api = await ApiPromise.create({
+    provider,
+    ...options
+  })
+
+  return { api, provider }
+}
+
+export const getGasLimit = (api: ApiPromise, _refTime: string | BN, _proofSize: string | BN) => {
+  const refTime = bnToBn(_refTime)
+  const proofSize = bnToBn(_proofSize)
+
+  return api.registry.createType('WeightV2', {
+    refTime,
+    proofSize
+  }) as WeightV2
+}
+
+export const getMaxGasLimit = (api: ApiPromise, reductionFactor = 0.8) => {
+  const blockWeights = api.consts.system.blockWeights.toPrimitive() as any
+  const maxExtrinsic = blockWeights?.perClass?.normal?.maxExtrinsic
+  const maxRefTime = maxExtrinsic?.refTime
+    ? bnToBn(maxExtrinsic.refTime)
+        .mul(new BN(reductionFactor * 100))
+        .div(new BN(100))
+    : new BN(0)
+  const maxProofSize = maxExtrinsic?.proofSize
+    ? bnToBn(maxExtrinsic.proofSize)
+        .mul(new BN(reductionFactor * 100))
+        .div(new BN(100))
+    : new BN(0)
+
+  return getGasLimit(api, maxRefTime, maxProofSize)
+}
+
+export interface DeployedContract {
+  address: string
+  hash: string
+  block: SignedBlock
+  blockNumber: number
+}
+
+export const deployContract = async (
+  api: ApiPromise,
+  account: IKeyringPair | string,
+  abi: any,
+  wasm: Uint8Array | string | Buffer,
+  constructorMethod = 'new',
+  args = [] as unknown[],
+  options = {} as ContractOptions
+): Promise<DeployedContract> => {
+  return new Promise<{
+    address: string
+    hash: string
+    block: SignedBlock
+    blockNumber: number
+  }>(async (resolve, reject) => {
+    const code = new CodePromise(api, abi, wasm)
+    const gasLimit = getMaxGasLimit(api)
+    const constructorFn = code.tx[stringCamelCase(constructorMethod)]
+    const unsub = await constructorFn({ gasLimit, ...options }, ...args).signAndSend(
+      account,
+      async ({ events, contract, status }: any) => {
+        if (status?.isInBlock) {
+          unsub?.()
+
+          const extrinsicFailedEvent = events.find(
+            ({ event: { method } }: any) => method === 'ExtrinsicFailed'
+          ) as EventRecord
+          if (!!extrinsicFailedEvent || !contract?.address) {
+            console.error(
+              `Contract '${abi?.contract.name}' could not be deployed`,
+              extrinsicFailedEvent?.event?.data?.toHuman()
+            )
+            return reject()
+          }
+
+          const hash = abi?.source.hash
+          const address = contract.address.toString()
+
+          // Determine block number
+          const blockHash = status.asInBlock.toHex()
+          const block = await api.rpc.chain.getBlock(blockHash)
+          const blockNumber = block.block.header.number.toNumber()
+
+          console.log(
+            `Contract '${abi?.contract.name}' deployed under ${address} at block #${blockNumber}`
+          )
+
+          return resolve({
+            address,
+            hash,
+            block,
+            blockNumber
+          })
+        }
+      }
+    )
   })
 }

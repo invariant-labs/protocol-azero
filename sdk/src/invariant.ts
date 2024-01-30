@@ -5,7 +5,6 @@ import { Abi, ContractPromise } from '@polkadot/api-contract'
 import { Bytes } from '@polkadot/types'
 import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
-import { deployContract } from '@scio-labs/use-inkathon/helpers'
 import {
   FeeTier,
   InvariantError,
@@ -41,6 +40,7 @@ import {
 import {
   calculateSqrtPriceAfterSlippage,
   constructTickmap,
+  deployContract,
   getDeploymentData,
   parse,
   parseEvent,
