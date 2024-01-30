@@ -15,5 +15,6 @@
     },
     "types": ["mocha", "chai"],
     "declaration": true
-  }
+  },
+  "exclude": ["tests"]
 }
