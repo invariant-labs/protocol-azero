@@ -1,3 +1,3 @@
-import { initPolkadotApi } from 'a0-sdk'
+import { Network, initPolkadotApi } from 'a0-sdk'
 
-initPolkadotApi()
+initPolkadotApi(Network.Local)
