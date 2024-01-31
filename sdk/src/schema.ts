@@ -1,4 +1,10 @@
-import { CreatePositionEvent, CrossTickEvent, Liquidity, RemovePositionEvent, SwapEvent } from 'wasm/wasm.js'
+import {
+  CreatePositionEvent,
+  CrossTickEvent,
+  Liquidity,
+  RemovePositionEvent,
+  SwapEvent
+} from 'wasm/wasm.js'
 
 export enum InvariantQuery {
   ProtocolFee = 'invariantTrait::getProtocolFee',
@@ -63,12 +69,6 @@ export enum InvariantEvent {
   RemovePositionEvent = 'RemovePositionEvent',
   SwapEvent = 'SwapEvent'
 }
-
-export type InvariantEventType =
-  | CreatePositionEvent
-  | CrossTickEvent
-  | RemovePositionEvent
-  | SwapEvent
 
 export type TxResult = {
   hash: string

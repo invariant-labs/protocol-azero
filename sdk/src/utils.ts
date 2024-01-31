@@ -4,8 +4,7 @@ import { ApiPromise, WsProvider } from '@polkadot/api'
 import { ContractPromise } from '@polkadot/api-contract'
 import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
-import { getSubstrateChain } from '@scio-labs/use-inkathon/chains'
-import { initPolkadotJs as initApi } from '@scio-labs/use-inkathon/helpers'
+import { getSubstrateChain, initPolkadotJs as initApi } from '@scio-labs/use-inkathon'
 import { readFile } from 'fs/promises'
 import {
   FeeTier,
