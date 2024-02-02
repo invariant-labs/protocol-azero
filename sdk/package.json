@@ -1,13 +1,13 @@
 {
   "name": "@invariant-labs/a0-sdk",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "collaborators": [
     "Invariant Labs"
   ],
   "description": "",
   "type": "module",
   "main": "target/src/index.js",
-  "keywords": [],
+  "keywords": ["Aleph Zero", "DEX", "SDK", "substrate", "ink"],
   "license": "ISC",
   "repository": {
     "type": "git",
@@ -25,7 +25,8 @@
     "wasm:package": "cd ../wasm && jq '. + {\"type\": \"module\"}' pkg/package.json > temp && mv temp pkg/package.json",
     "node:start": "substrate-contracts-node purge-chain -y && substrate-contracts-node --rpc-port 9944 --dev",
     "node:stop": "ps aux | grep substrate-contracts-node | tr -s ' ' | cut -d ' ' -f 2 | head -n 1 | xargs -r kill -9",
-    "contract:build": "cd .. && cargo contract build --release && cd sdk"
+    "contract:build": "cd .. && cargo contract build --release && cd sdk",
+    "docs:copy": "cp ../README.md README.md"
   },
   "dependencies": {
     "@polkadot/api": "^10.11.2",
