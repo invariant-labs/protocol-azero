@@ -1,10 +1,18 @@
 {
   "name": "@invariant-labs/a0-sdk",
-  "version": "0.1.1",
-  "author": "Invariant Labs",
+  "version": "0.1.2",
+  "collaborators": [
+    "Invariant Labs"
+  ],
   "description": "",
   "type": "module",
   "main": "target/src/index.js",
+  "keywords": [],
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/invariant-labs/protocol-a0"
+  },
   "scripts": {
     "prebuild": "npm run contract:build && rm -rf target && cp ../target/ink/invariant.wasm ./contracts/invariant/ && cp ../target/ink/invariant.json ./contracts/invariant",
     "build": "npx tsc",
@@ -26,8 +34,6 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   },
-  "keywords": [],
-  "license": "ISC",
   "devDependencies": {
     "@types/chai": "^4.3.11",
     "@types/mocha": "^10.0.6",
