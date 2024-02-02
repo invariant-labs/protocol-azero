@@ -54,3 +54,19 @@ cargo contract build
 ```bash
 cargo test --features e2e-tests
 ```
+
+### Typescript SDK
+
+Utilize the Invariant SDK from the npm registry by including it as a dependency. Alternatively, for a customized approach, build the SDK on your own using the commands provided below:
+
+To begin, navigate to the directory dedicated to the [SDK](https://github.com/invariant-labs/protocol/tree/master/sdk)
+
+- Build SDK
+```bash
+./build.sh
+```
+
+- Run e2e tests
+```bash
+./test.sh
+```
