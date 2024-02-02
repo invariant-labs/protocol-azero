@@ -24,7 +24,7 @@ import {
   calculateTick,
   getMaxSqrtPrice,
   getMinSqrtPrice
-} from 'wasm/wasm.js'
+} from 'invariant-a0-wasm/invariant_a0_wasm.js'
 import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME } from './consts.js'
 import { Network } from './network.js'
 import {

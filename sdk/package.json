@@ -1,6 +1,7 @@
 {
-  "name": "a0-sdk",
-  "version": "1.0.0",
+  "name": "@invariant-labs/a0-sdk",
+  "version": "0.1.1",
+  "author": "Invariant Labs",
   "description": "",
   "type": "module",
   "main": "target/src/index.js",
@@ -11,8 +12,8 @@
     "start:local": "npx tsc && node --experimental-wasm-modules target/src/index.js local",
     "lint": "eslint . --ext .ts",
     "test": "ts-mocha",
-    "wasm:build": "cd wasm && wasm-pack build && npm run wasm:package",
-    "wasm:package": "cd wasm/pkg && npm pkg set type='module'",
+    "wasm:build": "cd ../wasm && wasm-pack build",    
+    "wasm:package": "cd ../wasm && jq '. + {\"type\": \"module\"}' pkg/package.json > temp && mv temp pkg/package.json",
     "node:start": "substrate-contracts-node purge-chain -y && substrate-contracts-node --rpc-port 9944 --dev",
     "node:stop": "ps aux | grep substrate-contracts-node | tr -s ' ' | cut -d ' ' -f 2 | head -n 1 | xargs -r kill -9",
     "contract:build": "cd .. && cargo contract build --release && cd sdk"
@@ -21,12 +22,11 @@
     "@polkadot/api": "^10.11.2",
     "@polkadot/api-contract": "^10.11.2",
     "@scio-labs/use-inkathon": "^0.6.3",
-    "wasm": "file:wasm/pkg",
+    "invariant-a0-wasm": "0.1.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   },
   "keywords": [],
-  "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/chai": "^4.3.11",

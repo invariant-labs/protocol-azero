@@ -8,7 +8,7 @@ import {
   TokenAmount,
   getLiquidityByX,
   isTokenX
-} from 'wasm/wasm.js'
+} from 'invariant-a0-wasm/invariant_a0_wasm.js'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'

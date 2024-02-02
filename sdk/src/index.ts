@@ -39,7 +39,7 @@ export {
   toSecondsPerLiquidity,
   toSqrtPrice,
   toTokenAmount
-} from 'wasm/wasm.js'
+} from 'invariant-a0-wasm/invariant_a0_wasm.js'
 export {
   DEFAULT_LOCAL,
   DEFAULT_PROOF_SIZE,

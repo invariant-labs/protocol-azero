@@ -1,5 +1,5 @@
 import { assert } from 'chai'
-import { InvariantError } from 'wasm/wasm.js'
+import { InvariantError } from 'invariant-a0-wasm/invariant_a0_wasm.js'
 import { InvariantTx } from './schema.js'
 
 export const objectEquals = (
