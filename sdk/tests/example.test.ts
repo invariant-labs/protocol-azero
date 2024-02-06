@@ -1,6 +1,13 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import { Pool, Position, Tick, getLiquidityByY, toPercentage, toPrice } from 'invariant-a0-wasm/invariant_a0_wasm.js'
+import {
+  Pool,
+  Position,
+  Tick,
+  getLiquidityByY,
+  toPercentage,
+  toPrice
+} from 'invariant-a0-wasm/invariant_a0_wasm.js'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'

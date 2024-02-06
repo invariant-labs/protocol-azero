@@ -7,7 +7,13 @@
   "description": "",
   "type": "module",
   "main": "target/src/index.js",
-  "keywords": ["Aleph Zero", "DEX", "SDK", "substrate", "ink"],
+  "keywords": [
+    "Aleph Zero",
+    "DEX",
+    "SDK",
+    "substrate",
+    "ink"
+  ],
   "license": "ISC",
   "repository": {
     "type": "git",
@@ -21,7 +27,7 @@
     "start:local": "npx tsc && node --experimental-wasm-modules target/src/index.js local",
     "lint": "eslint . --ext .ts",
     "test": "ts-mocha",
-    "wasm:build": "cd ../wasm && wasm-pack build",    
+    "wasm:build": "cd ../wasm && wasm-pack build",
     "wasm:package": "cd ../wasm && jq '. + {\"type\": \"module\"}' pkg/package.json > temp && mv temp pkg/package.json",
     "node:start": "substrate-contracts-node purge-chain -y && substrate-contracts-node --rpc-port 9944 --dev",
     "node:stop": "ps aux | grep substrate-contracts-node | tr -s ' ' | cut -d ' ' -f 2 | head -n 1 | xargs -r kill -9",
@@ -43,6 +49,7 @@
     "@typescript-eslint/parser": "^6.16.0",
     "chai": "^5.0.0",
     "eslint": "^8.56.0",
+    "mocha": "^10.2.0",
     "ts-mocha": "^10.0.0",
     "wasm-pack": "^0.12.1"
   }

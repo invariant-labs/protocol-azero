@@ -1,10 +1,25 @@
+#[cfg(feature = "wasm")]
+use crate::alloc::string::ToString;
 use crate::consts::*;
 use crate::types::{liquidity::*, percentage::*, sqrt_price::*, token_amount::*};
 use core::convert::TryInto;
 use decimal::*;
+#[cfg(feature = "wasm")]
+use js_sys::BigInt;
 use traceable_result::*;
+#[cfg(feature = "wasm")]
+use tsify::Tsify;
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::*;
+#[cfg(feature = "wasm")]
+use wasm_bindgen::JsValue;
 
 #[derive(PartialEq, Debug, Copy, Clone)]
+#[cfg_attr(
+    feature = "wasm",
+    derive(serde::Serialize, serde::Deserialize, Tsify),
+    tsify(into_wasm_abi, from_wasm_abi)
+)]
 pub struct SwapResult {
     pub next_sqrt_price: SqrtPrice,
     pub amount_in: TokenAmount,
@@ -12,6 +27,7 @@ pub struct SwapResult {
     pub fee_amount: TokenAmount,
 }
 
+#[cfg_attr(feature = "wasm", wasm_wrapper::wasm_wrapper)]
 pub fn compute_swap_step(
     current_sqrt_price: SqrtPrice,
     target_sqrt_price: SqrtPrice,
@@ -128,6 +144,7 @@ pub fn compute_swap_step(
     })
 }
 
+#[cfg_attr(feature = "wasm", wasm_wrapper::wasm_wrapper)]
 pub fn get_delta_x(
     sqrt_price_a: SqrtPrice,
     sqrt_price_b: SqrtPrice,
@@ -153,6 +170,7 @@ pub fn get_delta_x(
     })
 }
 
+#[cfg_attr(feature = "wasm", wasm_wrapper::wasm_wrapper)]
 pub fn get_delta_y(
     sqrt_price_a: SqrtPrice,
     sqrt_price_b: SqrtPrice,
@@ -183,6 +201,7 @@ pub fn get_delta_y(
     })?))
 }
 
+#[cfg_attr(feature = "wasm", wasm_wrapper::wasm_wrapper)]
 fn get_next_sqrt_price_from_input(
     starting_sqrt_price: SqrtPrice,
     liquidity: Liquidity,
@@ -199,6 +218,7 @@ fn get_next_sqrt_price_from_input(
     ok_or_mark_trace!(result)
 }
 
+#[cfg_attr(feature = "wasm", wasm_wrapper::wasm_wrapper)]
 fn get_next_sqrt_price_from_output(
     starting_sqrt_price: SqrtPrice,
     liquidity: Liquidity,
@@ -215,6 +235,7 @@ fn get_next_sqrt_price_from_output(
     ok_or_mark_trace!(result)
 }
 
+#[cfg_attr(feature = "wasm", wasm_wrapper::wasm_wrapper)]
 pub fn get_next_sqrt_price_x_up(
     starting_sqrt_price: SqrtPrice,
     liquidity: Liquidity,
@@ -239,6 +260,7 @@ pub fn get_next_sqrt_price_x_up(
     ))
 }
 
+#[cfg_attr(feature = "wasm", wasm_wrapper::wasm_wrapper)]
 fn get_next_sqrt_price_y_down(
     starting_sqrt_price: SqrtPrice,
     liquidity: Liquidity,
@@ -261,6 +283,7 @@ fn get_next_sqrt_price_y_down(
     }
 }
 
+#[cfg_attr(feature = "wasm", wasm_wrapper::wasm_wrapper)]
 pub fn calculate_amount_delta(
     current_tick_index: i32,
     current_sqrt_price: SqrtPrice,
@@ -309,6 +332,7 @@ pub fn calculate_amount_delta(
     Ok((amount_x, amount_y, update_liquidity))
 }
 
+#[cfg_attr(feature = "wasm", wasm_wrapper::wasm_wrapper)]
 pub fn is_enough_amount_to_change_price(
     amount: TokenAmount,
     starting_sqrt_price: SqrtPrice,
@@ -331,12 +355,14 @@ pub fn is_enough_amount_to_change_price(
     Ok(starting_sqrt_price.ne(&next_sqrt_price))
 }
 
+#[cfg_attr(feature = "wasm", wasm_wrapper::wasm_wrapper)]
 pub fn calculate_max_liquidity_per_tick(tick_spacing: u16) -> Liquidity {
     const MAX_TICKS_AMOUNT_SQRT_PRICE_LIMITED: u128 = 2 * MAX_TICK as u128 + 1;
     let ticks_amount_spacing_limited = MAX_TICKS_AMOUNT_SQRT_PRICE_LIMITED / tick_spacing as u128;
     Liquidity::new(Liquidity::max_instance().get() / ticks_amount_spacing_limited)
 }
 
+#[cfg_attr(feature = "wasm", wasm_wrapper::wasm_wrapper)]
 pub fn check_ticks(tick_lower: i32, tick_upper: i32, tick_spacing: u16) -> TrackableResult<()> {
     if tick_lower > tick_upper {
         return Err(err!("tick_lower > tick_upper"));
@@ -347,6 +373,7 @@ pub fn check_ticks(tick_lower: i32, tick_upper: i32, tick_spacing: u16) -> Track
     Ok(())
 }
 
+#[cfg_attr(feature = "wasm", wasm_wrapper::wasm_wrapper)]
 pub fn check_tick(tick_index: i32, tick_spacing: u16) -> TrackableResult<()> {
     let (min_tick, max_tick) = (get_min_tick(tick_spacing), get_max_tick(tick_spacing));
     let tick_spacing = tick_spacing as i32;
@@ -360,6 +387,7 @@ pub fn check_tick(tick_index: i32, tick_spacing: u16) -> TrackableResult<()> {
     Ok(())
 }
 
+#[cfg_attr(feature = "wasm", wasm_wrapper::wasm_wrapper)]
 pub fn calculate_min_amount_out(
     expected_amount_out: TokenAmount,
     slippage: Percentage,

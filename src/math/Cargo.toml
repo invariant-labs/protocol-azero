@@ -15,10 +15,9 @@ tsify ={ version = "0.4.5",  optional = true}
 paste = { version = "1.0.14",  optional = true}
 js-sys = { version = "0.3.66", optional = true}
 
-
-
 decimal = { path= "../decimal" }
 traceable_result = { path = "../traceable_result" }
+wasm_wrapper = { path = "../wasm_wrapper"}
 
 # ink
 ink = { version = "4.3", default-features = false}

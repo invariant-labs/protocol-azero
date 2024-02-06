@@ -619,6 +619,7 @@ dependencies = [
  "traceable_result",
  "tsify",
  "wasm-bindgen",
+ "wasm_wrapper",
 ]
 
 [[package]]
@@ -1172,6 +1173,15 @@ name = "wasm-bindgen-shared"
 version = "0.2.90"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4d91413b1c31d7539ba5ef2451af3f0b833a005eb27a631cec32bc0635a8602b"
+
+[[package]]
+name = "wasm_wrapper"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.48",
+]
 
 [[package]]
 name = "web-sys"

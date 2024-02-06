@@ -2575,6 +2575,7 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "traceable_result",
+ "wasm_wrapper",
 ]
 
 [[package]]
@@ -5170,6 +5171,15 @@ dependencies = [
  "cc",
  "cxx",
  "cxx-build",
+]
+
+[[package]]
+name = "wasm_wrapper"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.48",
 ]
 
 [[package]]
