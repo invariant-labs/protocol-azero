@@ -18,7 +18,7 @@ import {
   getSqrtPriceScale,
   getTokenAmountDenominator,
   getTokenAmountScale
-} from 'invariant-a0-wasm'
+} from 'invariant-a0-wasm/invariant_a0_wasm.js'
 
 export const MAX_REF_TIME = 259058343000
 export const DEFAULT_REF_TIME = 1250000000000
