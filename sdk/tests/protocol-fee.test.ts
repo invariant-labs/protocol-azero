@@ -1,6 +1,6 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import { InvariantError } from 'math/math.js'
+import { InvariantError } from 'invariant-a0-wasm/invariant_a0_wasm.js'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
@@ -28,21 +28,14 @@ describe('protocol fee', async () => {
 
     await invariant.addFeeTier(account, feeTier)
 
-    await invariant.createPool(
-      account,
-      token0Address,
-      token1Address,
-      feeTier,
-      1000000000000000000000000n,
-      0n
-    )
+    const poolKey = newPoolKey(token0Address, token1Address, feeTier)
+
+    await invariant.createPool(account, poolKey, 1000000000000000000000000n)
 
     await psp22.setContractAddress(token0Address)
     await psp22.approve(account, invariant.contract.address.toString(), 10000000000000n)
     await psp22.setContractAddress(token1Address)
     await psp22.approve(account, invariant.contract.address.toString(), 10000000000000n)
-
-    const poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
     await invariant.createPosition(
       account,
@@ -51,7 +44,7 @@ describe('protocol fee', async () => {
       10n,
       10000000000000n,
       1000000000000000000000000n,
-      1000000000000000000000000n
+      0n
     )
 
     await psp22.setContractAddress(token0Address)

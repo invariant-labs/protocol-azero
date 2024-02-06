@@ -5,7 +5,7 @@ import { Abi, ContractPromise } from '@polkadot/api-contract'
 import { Bytes } from '@polkadot/types'
 import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
-import { deployContract } from '@scio-labs/use-inkathon/helpers'
+import { deployContract } from '@scio-labs/use-inkathon'
 import {
   FeeTier,
   InvariantError,
@@ -21,8 +21,11 @@ import {
   SwapHop,
   Tick,
   TokenAmount,
-  checkTickToSqrtPriceRelationship
-} from 'math/math.js'
+  calculateTick,
+  getMaxSqrtPrice,
+  getMinSqrtPrice
+} from 'invariant-a0-wasm/invariant_a0_wasm.js'
+import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME } from './consts.js'
 import { Network } from './network.js'
 import {
   ContractOptions,
@@ -36,11 +39,11 @@ import {
   TxResult
 } from './schema.js'
 import {
-  DEFAULT_PROOF_SIZE,
-  DEFAULT_REF_TIME,
+  calculateSqrtPriceAfterSlippage,
   constructTickmap,
   getDeploymentData,
   parse,
+  parseEvent,
   sendQuery,
   sendTx
 } from './utils.js'
@@ -53,6 +56,7 @@ export class Invariant {
   waitForFinalization: boolean
   abi: Abi
   eventListeners: { identifier: InvariantEvent; listener: (event: any) => void }[] = []
+  eventListenerApiStarted: boolean = false
 
   private constructor(
     api: ApiPromise,
@@ -122,39 +126,39 @@ export class Invariant {
   }
 
   on(identifier: InvariantEvent, listener: (event: any) => void): void {
-    if (this.eventListeners.length === 0) {
+    if (!this.eventListenerApiStarted) {
+      this.eventListenerApiStarted = true
+
       this.api.query.system.events((events: any) => {
-        events.forEach((record: any) => {
-          const { event } = record
+        if (this.eventListeners.length !== 0) {
+          events.forEach((record: any) => {
+            const { event } = record
 
-          if (!this.api.events.contracts.ContractEmitted.is(event)) {
-            return
-          }
-
-          const [account_id, contract_evt] = event.data
-
-          if (account_id.toString() !== this.contract?.address.toString()) {
-            return
-          }
-
-          const decoded = this.abi.decodeEvent(contract_evt as Bytes)
-
-          if (!decoded) {
-            return
-          }
-
-          const eventObj: { [key: string]: any } = {}
-
-          for (let i = 0; i < decoded.args.length; i++) {
-            eventObj[decoded.event.args[i].name] = decoded.args[i].toPrimitive()
-          }
-
-          this.eventListeners.map(eventListener => {
-            if (eventListener.identifier === decoded.event.identifier) {
-              eventListener.listener(parse(eventObj))
+            if (!this.api.events.contracts.ContractEmitted.is(event)) {
+              return
             }
+
+            const [account_id, contract_evt] = event.data
+
+            if (account_id.toString() !== this.contract?.address.toString()) {
+              return
+            }
+
+            const decoded = this.abi.decodeEvent(contract_evt as Bytes)
+
+            if (!decoded) {
+              return
+            }
+
+            const parsedEvent = parseEvent(decoded)
+
+            this.eventListeners.map(eventListener => {
+              if (eventListener.identifier === decoded.event.identifier) {
+                eventListener.listener(parsedEvent)
+              }
+            })
           })
-        })
+        }
       })
     }
 
@@ -329,10 +333,21 @@ export class Invariant {
     lowerTick: bigint,
     upperTick: bigint,
     liquidityDelta: Liquidity,
-    slippageLimitLower: SqrtPrice,
-    slippageLimitUpper: SqrtPrice,
+    spotSqrtPrice: SqrtPrice,
+    slippageTolerance: Percentage,
     block: boolean = true
   ): Promise<CreatePositionTxResult> {
+    const slippageLimitLower = calculateSqrtPriceAfterSlippage(
+      spotSqrtPrice,
+      slippageTolerance,
+      true
+    )
+    const slippageLimitUpper = calculateSqrtPriceAfterSlippage(
+      spotSqrtPrice,
+      slippageTolerance,
+      false
+    )
+
     return sendTx(
       this.contract,
       this.gasLimit,
@@ -460,22 +475,11 @@ export class Invariant {
 
   async createPool(
     account: IKeyringPair,
-    token0: string,
-    token1: string,
-    feeTier: FeeTier,
+    poolKey: PoolKey,
     initSqrtPrice: SqrtPrice,
-    initTick: bigint,
     block: boolean = true
   ): Promise<TxResult> {
-    const isInRelationship = checkTickToSqrtPriceRelationship(
-      initTick,
-      feeTier.tickSpacing,
-      initSqrtPrice
-    )
-
-    if (!isInRelationship) {
-      throw new Error(InvariantError[24])
-    }
+    const initTick = calculateTick(initSqrtPrice, poolKey.feeTier.tickSpacing)
 
     return sendTx(
       this.contract,
@@ -484,7 +488,7 @@ export class Invariant {
       0n,
       account,
       InvariantTx.CreatePool,
-      [token0, token1, feeTier, initSqrtPrice, initTick],
+      [poolKey.tokenX, poolKey.tokenY, poolKey.feeTier, initSqrtPrice, initTick],
       this.waitForFinalization,
       block
     )
@@ -495,10 +499,13 @@ export class Invariant {
     poolKey: PoolKey,
     xToY: boolean,
     amount: TokenAmount,
-    byAmountIn: boolean,
-    sqrtPriceLimit: SqrtPrice
+    byAmountIn: boolean
   ): Promise<QuoteResult> {
-    return sendQuery(
+    const sqrtPriceLimit: SqrtPrice = xToY
+      ? getMinSqrtPrice(poolKey.feeTier.tickSpacing)
+      : getMaxSqrtPrice(poolKey.feeTier.tickSpacing)
+
+    const result = await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -506,6 +513,12 @@ export class Invariant {
       InvariantQuery.Quote,
       [poolKey, xToY, amount, byAmountIn, sqrtPriceLimit]
     )
+
+    if (result.ok) {
+      return parse(result.ok)
+    } else {
+      throw new Error(InvariantError[result.err])
+    }
   }
 
   async quoteRoute(

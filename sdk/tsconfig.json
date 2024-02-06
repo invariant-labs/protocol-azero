@@ -10,11 +10,8 @@
     "outDir": "./target",
     "moduleResolution": "bundler",
     "baseUrl": "./",
-    "paths": {
-      "math": ["./math/pkg/math"],
-      "clamm": ["./clamm"]
-    },
-
-    "types": ["mocha", "chai"]
-  }
+    "types": ["mocha", "chai"],
+    "declaration": true
+  },
+  "exclude": ["tests", "target"]
 }

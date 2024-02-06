@@ -8,16 +8,11 @@ import {
   TokenAmount,
   getLiquidityByX,
   isTokenX
-} from 'math/math.js'
+} from 'invariant-a0-wasm/invariant_a0_wasm.js'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
-import {
-  assertThrowsAsync,
-  createPositionEventEquals,
-  positionEquals,
-  removePositionEventEquals
-} from '../src/testUtils'
+import { assertThrowsAsync, objectEquals } from '../src/testUtils'
 import { calculateTokenAmounts, initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
 
 const api = await initPolkadotApi(Network.Local)
@@ -46,14 +41,7 @@ describe('position', async () => {
 
     await invariant.addFeeTier(account, feeTier)
 
-    await invariant.createPool(
-      account,
-      token0Address,
-      token1Address,
-      feeTier,
-      1000000000000000000000000n,
-      0n
-    )
+    await invariant.createPool(account, poolKey, 1000000000000000000000000n)
 
     await psp22.setContractAddress(token0Address)
     await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
@@ -69,7 +57,7 @@ describe('position', async () => {
       upperTickIndex,
       1000000000000n,
       pool.sqrtPrice,
-      pool.sqrtPrice
+      0n
     )
 
     const expectedCreatePositionEvent: CreatePositionEvent = {
@@ -82,7 +70,7 @@ describe('position', async () => {
       timestamp: 0n
     }
 
-    createPositionEventEquals(result.events[0], expectedCreatePositionEvent)
+    objectEquals(result.events[0], expectedCreatePositionEvent, ['timestamp'])
   })
 
   it('create position', async () => {
@@ -98,7 +86,7 @@ describe('position', async () => {
       tokensOwedX: 0n,
       tokensOwedY: 0n
     }
-    await positionEquals(position, expectedPosition)
+    await objectEquals(position, expectedPosition, ['lastBlockNumber'])
   })
   it('calculate token amounts from position liquidity', async () => {
     const position = await invariant.getPosition(account, account.address, 0n)
@@ -113,7 +101,7 @@ describe('position', async () => {
       false
     )
 
-    const { x, y } = calculateTokenAmounts(pool, position)
+    const [x, y] = calculateTokenAmounts(pool, position)
     // 1n diffrence in result comes from rounding in `getLiquidityByX`
     assert.deepEqual(x, providedAmount - 1n)
     assert.deepEqual(y, expectedYAmount)
@@ -132,7 +120,7 @@ describe('position', async () => {
         timestamp: 0n
       }
 
-      removePositionEventEquals(result.events[0], expectedRemovePositionEvent)
+      objectEquals(result.events[0], expectedRemovePositionEvent, ['timestamp'])
 
       assertThrowsAsync(
         invariant.getPosition(account, account.address, 0n),
@@ -191,7 +179,7 @@ describe('position', async () => {
         tokensOwedX: 0n,
         tokensOwedY: 0n
       }
-      await positionEquals(position, expectedPosition)
+      await objectEquals(position, expectedPosition, ['lastBlockNumber'])
     }
   })
 

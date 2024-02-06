@@ -1,10 +1,10 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import { Position, SqrtPrice, getLiquidityByX, getLiquidityByY, isTokenX } from 'math/math.js'
+import { Position, SqrtPrice, getLiquidityByX, getLiquidityByY, isTokenX } from 'invariant-a0-wasm/invariant_a0_wasm.js'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
-import { assertThrowsAsync, positionEquals } from '../src/testUtils'
+import { assertThrowsAsync, objectEquals } from '../src/testUtils'
 import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
 
 const api = await initPolkadotApi(Network.Local)
@@ -47,7 +47,7 @@ describe('check get liquidity by x', async () => {
     await invariant.addFeeTier(account, feeTier)
 
     const initSqrtPrice: SqrtPrice = 1005012269622000000000000n
-    await invariant.createPool(account, token0Address, token1Address, feeTier, initSqrtPrice, 100n)
+    await invariant.createPool(account, poolKey, initSqrtPrice)
 
     await psp22.setContractAddress(token0Address)
     await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
@@ -97,7 +97,7 @@ describe('check get liquidity by x', async () => {
         upperTickIndex,
         l,
         pool.sqrtPrice,
-        pool.sqrtPrice
+        0n
       )
 
       const position = await invariant.getPosition(positionOwner, positionOwner.address, 0n)
@@ -112,7 +112,8 @@ describe('check get liquidity by x', async () => {
         tokensOwedX: 0n,
         tokensOwedY: 0n
       }
-      await positionEquals(position, expectedPosition)
+
+      await objectEquals(position, expectedPosition, ['lastBlockNumber'])
     }
     // above range
     {
@@ -142,7 +143,7 @@ describe('check get liquidity by x', async () => {
         upperTickIndex,
         l,
         pool.sqrtPrice,
-        pool.sqrtPrice
+        0n
       )
 
       const position = await invariant.getPosition(positionOwner, positionOwner.address, 1n)
@@ -157,7 +158,7 @@ describe('check get liquidity by x', async () => {
         tokensOwedX: 0n,
         tokensOwedY: 0n
       }
-      await positionEquals(position, expectedPosition)
+      await objectEquals(position, expectedPosition, ['lastBlockNumber'])
     }
   })
 })
@@ -189,14 +190,8 @@ describe('check get liquidity by y', async () => {
     await invariant.addFeeTier(account, feeTier)
 
     const initSqrtPrice: SqrtPrice = 367897834491000000000000n
-    await invariant.createPool(
-      account,
-      token0Address,
-      token1Address,
-      feeTier,
-      initSqrtPrice,
-      -20000n
-    )
+
+    await invariant.createPool(account, poolKey, initSqrtPrice)
 
     await psp22.setContractAddress(token0Address)
     await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
@@ -232,7 +227,7 @@ describe('check get liquidity by y', async () => {
         upperTickIndex,
         l,
         pool.sqrtPrice,
-        pool.sqrtPrice
+        0n
       )
 
       const position = await invariant.getPosition(positionOwner, positionOwner.address, 0n)
@@ -247,7 +242,7 @@ describe('check get liquidity by y', async () => {
         tokensOwedX: 0n,
         tokensOwedY: 0n
       }
-      await positionEquals(position, expectedPosition)
+      await objectEquals(position, expectedPosition, ['lastBlockNumber'])
     }
     // in range
     {
@@ -278,7 +273,7 @@ describe('check get liquidity by y', async () => {
         upperTickIndex,
         l,
         pool.sqrtPrice,
-        pool.sqrtPrice
+        0n
       )
 
       const position = await invariant.getPosition(positionOwner, positionOwner.address, 1n)
@@ -293,7 +288,7 @@ describe('check get liquidity by y', async () => {
         tokensOwedX: 0n,
         tokensOwedY: 0n
       }
-      await positionEquals(position, expectedPosition)
+      await objectEquals(position, expectedPosition, ['lastBlockNumber'])
     }
     // above range
     {

@@ -1,17 +1,17 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import { toPercentage, toSqrtPrice } from 'math/math.js'
+import { toPercentage, toSqrtPrice } from 'invariant-a0-wasm/invariant_a0_wasm.js'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
 import {
+  calculateFee,
   calculatePriceImpact,
   calculateSqrtPriceAfterSlippage,
   initPolkadotApi,
   newFeeTier,
   newPoolKey,
   priceToSqrtPrice,
-  simulateUnclaimedFees,
   sqrtPriceToPrice
 } from '../src/utils'
 
@@ -48,7 +48,7 @@ describe('utils', () => {
     })
   })
 
-  describe('test simulateUnclaimedFees', () => {
+  describe('test calculateFee', () => {
     beforeEach(async () => {
       token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
       token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
@@ -56,21 +56,14 @@ describe('utils', () => {
     it('should return correct price', async () => {
       await invariant.addFeeTier(account, feeTier)
 
-      await invariant.createPool(
-        account,
-        token0Address,
-        token1Address,
-        feeTier,
-        1000000000000000000000000n,
-        0n
-      )
+      const poolKey = newPoolKey(token0Address, token1Address, feeTier)
+
+      await invariant.createPool(account, poolKey, 1000000000000000000000000n)
 
       await psp22.setContractAddress(token0Address)
       await psp22.approve(account, invariant.contract.address.toString(), 10000000000000n)
       await psp22.setContractAddress(token1Address)
       await psp22.approve(account, invariant.contract.address.toString(), 10000000000000n)
-
-      const poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
       await invariant.createPosition(
         account,
@@ -79,7 +72,7 @@ describe('utils', () => {
         10n,
         10000000000000n,
         1000000000000000000000000n,
-        1000000000000000000000000n
+        0n
       )
 
       await psp22.setContractAddress(token0Address)
@@ -94,7 +87,7 @@ describe('utils', () => {
       const lowerTick = await invariant.getTick(account, poolKey, -10n)
       const upperTick = await invariant.getTick(account, poolKey, 10n)
 
-      const result = simulateUnclaimedFees(pool, position, lowerTick, upperTick)
+      const result = calculateFee(pool, position, lowerTick, upperTick)
 
       await psp22.setContractAddress(token0Address)
       const token0Before = await psp22.balanceOf(account, account.address.toString())
@@ -109,11 +102,11 @@ describe('utils', () => {
       const token1After = await psp22.balanceOf(account, account.address.toString())
 
       if (poolKey.tokenX === token0Address) {
-        assert.equal(token0Before + result.x, token0After)
+        assert.equal(token0Before + result[0], token0After)
         assert.equal(token1Before, token1After)
       } else {
         assert.equal(token0Before, token0After)
-        assert.equal(token1Before + result.x, token1After)
+        assert.equal(token1Before + result[0], token1After)
       }
     })
   })

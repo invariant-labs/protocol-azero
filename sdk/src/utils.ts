@@ -1,13 +1,13 @@
-import { ApiPromise, Keyring, WsProvider } from '@polkadot/api'
+/* eslint-disable no-case-declarations */
+
+import { ApiPromise, WsProvider } from '@polkadot/api'
 import { ContractPromise } from '@polkadot/api-contract'
 import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
-import { getSubstrateChain } from '@scio-labs/use-inkathon/chains'
-import { getBalance, initPolkadotJs as initApi } from '@scio-labs/use-inkathon/helpers'
+import { getSubstrateChain, initPolkadotJs as initApi } from '@scio-labs/use-inkathon'
 import { readFile } from 'fs/promises'
 import {
   FeeTier,
-  Liquidity,
   LiquidityTick,
   Percentage,
   Pool,
@@ -16,37 +16,46 @@ import {
   Price,
   SqrtPrice,
   Tick,
-  TokenAmounts,
+  TokenAmount,
+  _calculateFee,
   _newFeeTier,
   _newPoolKey,
-  _simulateUnclaimedFees,
+  calculateAmountDelta,
+  calculateAmountDeltaResult,
   getMaxChunk,
   getPercentageDenominator,
-  getSqrtPriceDenominator,
-  wrappedCalculateTokenAmounts
-} from 'math/math.js'
+  getSqrtPriceDenominator
+} from 'invariant-a0-wasm/invariant_a0_wasm.js'
+import { MAINNET, TESTNET } from './consts.js'
 import { Network } from './network.js'
-import { Query, Tx, TxResult } from './schema.js'
+import { EventTxResult, LiquidityBreakpoint, Query, Tx, TxResult } from './schema.js'
 
-export const DEFAULT_REF_TIME = 1250000000000
-export const DEFAULT_PROOF_SIZE = 1250000000000
-
-export const initPolkadotApi = async (network: Network): Promise<ApiPromise> => {
+export const initPolkadotApi = async (network: Network, ws?: string): Promise<ApiPromise> => {
   if (network === Network.Local) {
-    const wsProvider = new WsProvider(process.env.LOCAL)
+    const wsProvider = new WsProvider(ws)
     const api = await ApiPromise.create({ provider: wsProvider })
     await api.isReady
     return api
   } else if (network === Network.Testnet) {
-    const chainId = process.env.CHAIN
-    const chain = getSubstrateChain(chainId)
+    const chain = getSubstrateChain(TESTNET)
+
     if (!chain) {
       throw new Error('chain not found')
     }
+
+    const { api } = await initApi(chain, { noInitWarn: true })
+    return api
+  } else if (network === Network.Mainnet) {
+    const chain = getSubstrateChain(MAINNET)
+
+    if (!chain) {
+      throw new Error('chain not found')
+    }
+
     const { api } = await initApi(chain, { noInitWarn: true })
     return api
   } else {
-    throw new Error('Invalid network')
+    throw new Error('invalid network')
   }
 }
 
@@ -84,7 +93,7 @@ export async function sendTx(
   data: any[],
   waitForFinalization: boolean = true,
   block: boolean = true
-): Promise<TxResult> {
+): Promise<EventTxResult<any> | TxResult> {
   if (!contract) {
     throw new Error('contract not loaded')
   }
@@ -98,12 +107,12 @@ export async function sendTx(
     ...data
   )
 
-  return new Promise<TxResult>(async (resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     await call.signAndSend(signer, result => {
       if (!block) {
         resolve({
           hash: result.txHash.toHex(),
-          events: parseEvents((result as any).contractEvents || [])
+          events: parseEvents((result as any).contractEvents || []) as []
         })
       }
 
@@ -114,27 +123,18 @@ export async function sendTx(
       if (result.isCompleted && !waitForFinalization) {
         resolve({
           hash: result.txHash.toHex(),
-          events: parseEvents((result as any).contractEvents || [])
+          events: parseEvents((result as any).contractEvents || []) as []
         })
       }
 
       if (result.isFinalized) {
         resolve({
           hash: result.txHash.toHex(),
-          events: parseEvents((result as any).contractEvents || [])
+          events: parseEvents((result as any).contractEvents || []) as []
         })
       }
     })
   })
-}
-
-export const printBalance = async (api: ApiPromise, account: IKeyringPair) => {
-  const network = (await api.rpc.system.chain())?.toString() || ''
-  const version = (await api.rpc.system.version())?.toString() || ''
-  const balance = await getBalance(api, account.address)
-
-  console.log(`network: ${network} (${version})`)
-  console.log(`account: ${account.address} (${balance.balanceFormatted})\n`)
 }
 
 export const newPoolKey = (token0: string, token1: string, feeTier: FeeTier): PoolKey => {
@@ -147,21 +147,11 @@ export const newFeeTier = (fee: Percentage, tickSpacing: bigint): FeeTier => {
   return parse(_newFeeTier(fee, integerSafeCast(tickSpacing)))
 }
 
-export const getEnvAccount = async (keyring: Keyring): Promise<IKeyringPair> => {
-  const accountUri = process.env.ACCOUNT_URI
-
-  if (!accountUri) {
-    throw new Error('invalid account uri')
-  }
-
-  return keyring.addFromUri(accountUri)
-}
-
 export const parseEvent = (event: { [key: string]: any }) => {
   const eventObj: { [key: string]: any } = {}
 
-  for (let i = 0; i < event.args.length; i++) {
-    eventObj[event.event.args[i].name] = event.args[i].toPrimitive()
+  for (const [index, arg] of event.args.entries()) {
+    eventObj[event.event.args[index].name] = arg.toPrimitive()
   }
 
   return parse(eventObj)
@@ -212,15 +202,11 @@ export const calculateSqrtPriceAfterSlippage = (
   up: boolean
 ): SqrtPrice => {
   const multiplier = getPercentageDenominator() + (up ? slippage : -slippage)
+  const price = sqrtPriceToPrice(sqrtPrice)
+  const priceWithSlippage = price * multiplier * getPercentageDenominator()
+  const sqrtPriceWithSlippage = priceToSqrtPrice(priceWithSlippage) / getPercentageDenominator()
 
-  return (
-    sqrt(
-      ((sqrtPrice * sqrtPrice) / getSqrtPriceDenominator()) *
-        multiplier *
-        getSqrtPriceDenominator() *
-        getPercentageDenominator()
-    ) / getPercentageDenominator()
-  )
+  return sqrtPriceWithSlippage
 }
 
 export const calculatePriceImpact = (
@@ -237,13 +223,13 @@ export const calculatePriceImpact = (
   return (nominator * getPercentageDenominator()) / denominator
 }
 
-export const simulateUnclaimedFees = (
+export const calculateFee = (
   pool: Pool,
   position: Position,
   lowerTick: Tick,
   upperTick: Tick
-): TokenAmounts => {
-  return _simulateUnclaimedFees(
+): [TokenAmount, TokenAmount] => {
+  return _calculateFee(
     lowerTick.index,
     lowerTick.feeGrowthOutsideX,
     lowerTick.feeGrowthOutsideY,
@@ -258,11 +244,23 @@ export const simulateUnclaimedFees = (
     position.liquidity
   )
 }
-export const calculateTokenAmounts = (pool: Pool, position: Position): TokenAmounts => {
-  return wrappedCalculateTokenAmounts(
+export const calculateTokenAmounts = (
+  pool: Pool,
+  position: Position
+): calculateAmountDeltaResult => {
+  return _calculateTokenAmounts(pool, position, false)
+}
+
+export const _calculateTokenAmounts = (
+  pool: Pool,
+  position: Position,
+  sign: boolean
+): calculateAmountDeltaResult => {
+  return calculateAmountDelta(
     pool.currentTickIndex,
     pool.sqrtPrice,
     position.liquidity,
+    sign,
     position.upperTickIndex,
     position.lowerTickIndex
   )
@@ -315,7 +313,8 @@ export const integerSafeCast = (value: bigint): number => {
 
 export const constructTickmap = (initializedChunks: bigint[][], tickSpacing: bigint): bigint[] => {
   const maxChunk = getMaxChunk(tickSpacing)
-  const tickmap = new Array<bigint>(maxChunk + 1).fill(0n)
+  const tickmap = new Array<bigint>(integerSafeCast(maxChunk + 1n)).fill(0n)
+
   for (const [chunkIndex, value] of initializedChunks) {
     tickmap[integerSafeCast(chunkIndex)] = value
   }
@@ -330,14 +329,9 @@ export const priceToSqrtPrice = (price: Price): SqrtPrice => {
   return sqrt(price * getSqrtPriceDenominator())
 }
 
-interface LiquidityBreakPoint {
-  liquidity: Liquidity
-  index: bigint
-}
-
 export const calculateLiquidityBreakpoints = (
   ticks: (Tick | LiquidityTick)[]
-): LiquidityBreakPoint[] => {
+): LiquidityBreakpoint[] => {
   let currentLiquidity = 0n
 
   return ticks.map(tick => {

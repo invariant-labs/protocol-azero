@@ -3,7 +3,7 @@ import { assert } from 'chai'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
-import { positionTickEquals } from '../src/testUtils'
+import { objectEquals } from '../src/testUtils'
 import { initPolkadotApi, integerSafeCast, newFeeTier, newPoolKey } from '../src/utils'
 
 const api = await initPolkadotApi(Network.Local)
@@ -19,7 +19,7 @@ const psp22 = await PSP22.load(api, Network.Local, token0Address)
 const feeTier = newFeeTier(10000000000n, 1n)
 let poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
-describe('get liquidity ticks', async () => {
+describe('get position ticks', async () => {
   beforeEach(async () => {
     invariant = await Invariant.deploy(api, Network.Local, account, 10000000000n)
     token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
@@ -29,14 +29,7 @@ describe('get liquidity ticks', async () => {
 
     await invariant.addFeeTier(account, feeTier)
 
-    await invariant.createPool(
-      account,
-      token0Address,
-      token1Address,
-      feeTier,
-      1000000000000000000000000n,
-      0n
-    )
+    await invariant.createPool(account, poolKey, 1000000000000000000000000n)
 
     await psp22.setContractAddress(token0Address)
     await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
@@ -45,15 +38,7 @@ describe('get liquidity ticks', async () => {
   })
 
   it('should get position ticks', async () => {
-    await invariant.createPosition(
-      account,
-      poolKey,
-      -10n,
-      10n,
-      10n,
-      1000000000000000000000000n,
-      1000000000000000000000000n
-    )
+    await invariant.createPosition(account, poolKey, -10n, 10n, 10n, 1000000000000000000000000n, 0n)
 
     const result = await invariant.getPositionTicks(account, account.address, 0n)
     assert.equal(result.length, 2)
@@ -61,23 +46,15 @@ describe('get liquidity ticks', async () => {
     const lowerTick = await invariant.getTick(account, poolKey, -10n)
     const upperTick = await invariant.getTick(account, poolKey, 10n)
 
-    positionTickEquals(result[0], lowerTick)
-    positionTickEquals(result[1], upperTick)
+    objectEquals(result[0], lowerTick, [])
+    objectEquals(result[1], upperTick, [])
   })
 
   it('should get position ticks limit', async function () {
-    this.timeout(10000)
+    this.timeout(20000)
 
     for (let i = 1n; i <= 186n; i++) {
-      await invariant.createPosition(
-        account,
-        poolKey,
-        -i,
-        i,
-        10n,
-        1000000000000000000000000n,
-        1000000000000000000000000n
-      )
+      await invariant.createPosition(account, poolKey, -i, i, 10n, 1000000000000000000000000n, 0n)
     }
 
     const result = await invariant.getPositionTicks(account, account.address, 0n)
@@ -87,31 +64,15 @@ describe('get liquidity ticks', async () => {
       const lowerTick = await invariant.getTick(account, poolKey, -i)
       const upperTick = await invariant.getTick(account, poolKey, i)
 
-      positionTickEquals(result[integerSafeCast(i) * 2 - 2], lowerTick)
-      positionTickEquals(result[integerSafeCast(i) * 2 - 1], upperTick)
+      objectEquals(result[integerSafeCast(i) * 2 - 2], lowerTick, [])
+      objectEquals(result[integerSafeCast(i) * 2 - 1], upperTick, [])
     }
   })
 
-  it('should get liquidity ticks with offset', async () => {
-    await invariant.createPosition(
-      account,
-      poolKey,
-      -10n,
-      10n,
-      10n,
-      1000000000000000000000000n,
-      1000000000000000000000000n
-    )
+  it('should get position ticks with offset', async () => {
+    await invariant.createPosition(account, poolKey, -10n, 10n, 10n, 1000000000000000000000000n, 0n)
 
-    await invariant.createPosition(
-      account,
-      poolKey,
-      -20n,
-      20n,
-      10n,
-      1000000000000000000000000n,
-      1000000000000000000000000n
-    )
+    await invariant.createPosition(account, poolKey, -20n, 20n, 10n, 1000000000000000000000000n, 0n)
 
     const result1 = await invariant.getPositionTicks(account, account.address, 0n)
     assert.equal(result1.length, 4)
@@ -119,23 +80,15 @@ describe('get liquidity ticks', async () => {
     const result2 = await invariant.getPositionTicks(account, account.address, 1n)
     assert.equal(result2.length, 2)
 
-    positionTickEquals(result1[2], result2[0])
-    positionTickEquals(result1[3], result2[1])
+    objectEquals(result1[2], result2[0], [])
+    objectEquals(result1[3], result2[1], [])
   })
 
   it('should get position ticks with multiple queries', async function () {
-    this.timeout(15000)
+    this.timeout(25000)
 
     for (let i = 1n; i <= 400n; i++) {
-      await invariant.createPosition(
-        account,
-        poolKey,
-        -i,
-        i,
-        10n,
-        1000000000000000000000000n,
-        1000000000000000000000000n
-      )
+      await invariant.createPosition(account, poolKey, -i, i, 10n, 1000000000000000000000000n, 0n)
     }
 
     const positionAmount = await invariant.getUserPositionAmount(account, account.address)
