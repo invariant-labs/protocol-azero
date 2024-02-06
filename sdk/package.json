@@ -52,6 +52,6 @@
     "wasm-pack": "^0.12.1"
   },
   "workspaces": [
-    "invariant-a0-wasm"
+    "wasm/pkg"
   ]
 }
