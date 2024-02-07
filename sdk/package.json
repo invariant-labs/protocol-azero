@@ -27,6 +27,7 @@
     "start:local": "npx tsc && node --experimental-wasm-modules target/src/index.js local",
     "lint": "eslint . --ext .ts",
     "test": "ts-mocha",
+    "wasm:package": "./package.sh",
     "wasm:build": "cd src/wasm && wasm-pack build",
     "node:start": "substrate-contracts-node purge-chain -y && substrate-contracts-node --rpc-port 9944 --dev",
     "node:stop": "ps aux | grep substrate-contracts-node | tr -s ' ' | cut -d ' ' -f 2 | head -n 1 | xargs -r kill -9",

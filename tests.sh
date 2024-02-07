@@ -30,6 +30,6 @@ cargo contract build --release
 
 # Build and test SDK
 cd sdk
-chmod +x tests.sh build.sh
+chmod +x tests.sh build.sh package.sh
 ./build.sh
 ./tests.sh
