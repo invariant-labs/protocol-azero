@@ -4,7 +4,7 @@ import {
   Liquidity,
   RemovePositionEvent,
   SwapEvent
-} from 'invariant-a0-wasm/invariant_a0_wasm.js'
+} from '../src/wasm/pkg/invariant_a0_wasm.js'
 
 export enum InvariantQuery {
   ProtocolFee = 'invariantTrait::getProtocolFee',
