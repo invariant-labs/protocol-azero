@@ -1,7 +1,5 @@
 #!/bin/bash
 
-npm link
-npm i
 npm run lint
 npm run docs:copy
 npm run wasm:build
