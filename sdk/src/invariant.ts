@@ -5,7 +5,7 @@ import { Abi, ContractPromise } from '@polkadot/api-contract'
 import { Bytes } from '@polkadot/types'
 import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
-import { deployContract } from '@scio-labs/use-inkathon/helpers'
+import { deployContract } from '@scio-labs/use-inkathon'
 import {
   FeeTier,
   InvariantError,
@@ -24,7 +24,7 @@ import {
   calculateTick,
   getMaxSqrtPrice,
   getMinSqrtPrice
-} from 'math/math.js'
+} from 'invariant-a0-wasm/invariant_a0_wasm.js'
 import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME } from './consts.js'
 import { Network } from './network.js'
 import {
@@ -43,6 +43,7 @@ import {
   constructTickmap,
   getDeploymentData,
   parse,
+  parseEvent,
   sendQuery,
   sendTx
 } from './utils.js'
@@ -149,15 +150,11 @@ export class Invariant {
               return
             }
 
-            const eventObj: { [key: string]: any } = {}
-
-            for (let i = 0; i < decoded.args.length; i++) {
-              eventObj[decoded.event.args[i].name] = decoded.args[i].toPrimitive()
-            }
+            const parsedEvent = parseEvent(decoded)
 
             this.eventListeners.map(eventListener => {
               if (eventListener.identifier === decoded.event.identifier) {
-                eventListener.listener(parse(eventObj))
+                eventListener.listener(parsedEvent)
               }
             })
           })

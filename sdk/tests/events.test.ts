@@ -8,17 +8,12 @@ import {
   getGlobalMinSqrtPrice,
   toPercentage,
   toSqrtPrice
-} from 'math/math'
+} from 'invariant-a0-wasm/invariant_a0_wasm.js'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
 import { InvariantEvent } from '../src/schema'
-import {
-  createPositionEventEquals,
-  crossTickEventEquals,
-  removePositionEventEquals,
-  swapEventEquals
-} from '../src/testUtils'
+import { objectEquals } from '../src/testUtils'
 import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
 
 const api = await initPolkadotApi(Network.Local)
@@ -66,7 +61,7 @@ describe('events', async () => {
     invariant.on(InvariantEvent.CreatePositionEvent, (event: CreatePositionEvent) => {
       wasFired = true
 
-      createPositionEventEquals(event, expectedCreatePositionEvent)
+      objectEquals(event, expectedCreatePositionEvent, ['timestamp'])
     })
 
     await psp22.setContractAddress(token0Address)
@@ -85,7 +80,7 @@ describe('events', async () => {
     )
 
     assert.deepEqual(result.events.length, 1)
-    createPositionEventEquals(result.events[0], expectedCreatePositionEvent)
+    objectEquals(result.events[0], expectedCreatePositionEvent, ['timestamp'])
     assert.deepEqual(wasFired, true)
   })
 
@@ -150,13 +145,13 @@ describe('events', async () => {
     invariant.on(InvariantEvent.CrossTickEvent, (event: CrossTickEvent) => {
       wasCrossTickEventFired = true
 
-      crossTickEventEquals(event, expectedCrossTickEvent)
+      objectEquals(event, expectedCrossTickEvent, ['timestamp'])
     })
 
     invariant.on(InvariantEvent.SwapEvent, (event: SwapEvent) => {
       wasSwapEventFired = true
 
-      swapEventEquals(event, expectedSwapEvent)
+      objectEquals(event, expectedSwapEvent, ['timestamp'])
     })
 
     await psp22.setContractAddress(token0Address)
@@ -174,8 +169,8 @@ describe('events', async () => {
     )
 
     assert.deepEqual(result.events.length, 2)
-    crossTickEventEquals(result.events[0] as CrossTickEvent, expectedCrossTickEvent)
-    swapEventEquals(result.events[1] as SwapEvent, expectedSwapEvent)
+    objectEquals(result.events[0] as CrossTickEvent, expectedCrossTickEvent, ['timestamp'])
+    objectEquals(result.events[1] as SwapEvent, expectedSwapEvent, ['timestamp'])
     assert.deepEqual(wasCrossTickEventFired, true)
     assert.deepEqual(wasSwapEventFired, true)
   })
@@ -211,13 +206,13 @@ describe('events', async () => {
     invariant.on(InvariantEvent.RemovePositionEvent, (event: RemovePositionEvent) => {
       wasFired = true
 
-      createPositionEventEquals(event, expectedRemovePositionEvent)
+      objectEquals(event, expectedRemovePositionEvent, ['timestamp'])
     })
 
     const result = await invariant.removePosition(account, 0n)
 
     assert.deepEqual(result.events.length, 1)
-    removePositionEventEquals(result.events[0], expectedRemovePositionEvent)
+    objectEquals(result.events[0], expectedRemovePositionEvent, ['timestamp'])
     assert.deepEqual(wasFired, true)
   })
 

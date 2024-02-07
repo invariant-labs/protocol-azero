@@ -1,10 +1,10 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import { Position, SqrtPrice, getLiquidityByX, getLiquidityByY, isTokenX } from 'math/math.js'
+import { Position, SqrtPrice, getLiquidityByX, getLiquidityByY, isTokenX } from 'invariant-a0-wasm/invariant_a0_wasm.js'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
-import { assertThrowsAsync, positionEquals } from '../src/testUtils'
+import { assertThrowsAsync, objectEquals } from '../src/testUtils'
 import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
 
 const api = await initPolkadotApi(Network.Local)
@@ -112,7 +112,8 @@ describe('check get liquidity by x', async () => {
         tokensOwedX: 0n,
         tokensOwedY: 0n
       }
-      await positionEquals(position, expectedPosition)
+
+      await objectEquals(position, expectedPosition, ['lastBlockNumber'])
     }
     // above range
     {
@@ -157,7 +158,7 @@ describe('check get liquidity by x', async () => {
         tokensOwedX: 0n,
         tokensOwedY: 0n
       }
-      await positionEquals(position, expectedPosition)
+      await objectEquals(position, expectedPosition, ['lastBlockNumber'])
     }
   })
 })
@@ -241,7 +242,7 @@ describe('check get liquidity by y', async () => {
         tokensOwedX: 0n,
         tokensOwedY: 0n
       }
-      await positionEquals(position, expectedPosition)
+      await objectEquals(position, expectedPosition, ['lastBlockNumber'])
     }
     // in range
     {
@@ -287,7 +288,7 @@ describe('check get liquidity by y', async () => {
         tokensOwedX: 0n,
         tokensOwedY: 0n
       }
-      await positionEquals(position, expectedPosition)
+      await objectEquals(position, expectedPosition, ['lastBlockNumber'])
     }
     // above range
     {
