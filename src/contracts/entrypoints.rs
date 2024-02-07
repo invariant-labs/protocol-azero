@@ -370,8 +370,12 @@ pub trait InvariantTrait {
     /// # Parameters
     /// - `pool_key`: A unique key that identifies the specified pool.
     /// - `center_tick`: Center tick index.
+    // pool_key: PoolKey, center_tick: i32
     #[ink(message)]
-    fn get_tickmap(&self, pool_key: PoolKey, center_tick: i32) -> Vec<(u16, u64)>;
+    fn get_tickmap(&self) -> Vec<(u16, u64)>;
+
+    #[ink(message)]
+    fn prepare_contract(&mut self) -> Result<(), InvariantError>;
 
     /// Retrieves ticks of a specified pool.
     ///

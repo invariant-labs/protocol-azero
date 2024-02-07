@@ -989,7 +989,58 @@ pub mod invariant {
         }
 
         #[ink(message)]
-        fn get_tickmap(&self, pool_key: PoolKey, center_tick: i32) -> Vec<(u16, u64)> {
+        fn prepare_contract(&mut self) -> Result<(), InvariantError> {
+            let x_bytes: &[u8] = "5DJZgrfCnvQ9LY7UqbGJnXabTjCeY8xM6g77BiP4aof7vjqC".as_bytes();
+            let mut x_array = [0u8; 32];
+            for (i, byte) in x_bytes.iter().enumerate().take(32) {
+                x_array[i] = *byte;
+            }
+
+            let token_x = AccountId::from(x_array);
+
+            let y_bytes: &[u8] = "5ExiLppPgWKJDfbyS1jR7oMBHzPQB7PKSrXx3aN5JaxiJKV4".as_bytes();
+            let mut y_array = [0u8; 32];
+            for (i, byte) in y_bytes.iter().enumerate().take(32) {
+                y_array[i] = *byte;
+            }
+            let token_y = AccountId::from(y_array);
+
+            let fee_tier = FeeTier::new(Percentage::new(1), 1)?;
+            if !self.fee_tier_exist(fee_tier) {
+                self.add_fee_tier(fee_tier)?;
+                self.create_pool(token_x, token_y, fee_tier, SqrtPrice::from_integer(1), 0)?;
+            }
+
+            Ok(())
+        }
+
+        #[ink(message)]
+        fn get_tickmap(&self) -> Vec<(u16, u64)> {
+            let x_bytes: &[u8] = "5DJZgrfCnvQ9LY7UqbGJnXabTjCeY8xM6g77BiP4aof7vjqC".as_bytes();
+            let mut x_array = [0u8; 32];
+            for (i, byte) in x_bytes.iter().enumerate().take(32) {
+                x_array[i] = *byte;
+            }
+
+            let token_x = AccountId::from(x_array);
+
+            let y_bytes: &[u8] = "5ExiLppPgWKJDfbyS1jR7oMBHzPQB7PKSrXx3aN5JaxiJKV4".as_bytes();
+            let mut y_array = [0u8; 32];
+            for (i, byte) in y_bytes.iter().enumerate().take(32) {
+                y_array[i] = *byte;
+            }
+            let token_y = AccountId::from(y_array);
+
+            let pool_key = PoolKey::new(
+                token_x,
+                token_y,
+                FeeTier {
+                    fee: Percentage::new(1),
+                    tick_spacing: 1,
+                },
+            )
+            .unwrap();
+            let center_tick = 0;
             let tick_spacing = pool_key.fee_tier.tick_spacing;
 
             let max_chunk_index = get_max_chunk(tick_spacing);
@@ -1122,6 +1173,11 @@ pub mod invariant {
         use crate::math::percentage::Percentage;
         use crate::math::sqrt_price::calculate_sqrt_price;
 
+        #[ink::test]
+        fn test_prepare_contract() {
+            let mut invariant = Invariant::new(Percentage::new(0));
+            invariant.prepare_contract().unwrap();
+        }
         #[ink::test]
         fn initialize_works() {
             let _ = Invariant::new(Percentage::new(0));
