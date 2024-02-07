@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 SEED="//Alice"
 URL="wss://ws.test.azero.dev"
-CONTRACT="5DNQ2JCwGip6iUuHgam2Y7FZHbJfJsr8M9AQCdVzkBV9LMSM"
+CONTRACT="5DJZgrfCnvQ9LY7UqbGJnXabTjCeY8xM6g77BiP4aof7vjqC"
 
 cargo contract call --suri "$SEED" --url "$URL" \
         --contract $CONTRACT \

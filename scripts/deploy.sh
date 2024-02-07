@@ -76,8 +76,8 @@ temp_file=$(mktemp)
 # Remove temporary file when finished.
 trap "rm -f $temp_file" 0 2 3 15 
 
-SALT=${INVARIANT_VERSION:-1}
-INVARIANT_CONTRACT_FILE="target/ink/invariant.contract"
+SALT=${INVARIANT_VERSION:-0}
+INVARIANT_CONTRACT_FILE="./target/ink/invariant.contract"
 
 echo "Instantiating Invariant contract (version: ${SALT})"
 # cargo contract instantiate --url "$NODE_URL" --salt ${SALT} --suri "$AUTHORITY_SEED" $INVARIANT_CONTRACT_FILE --constructor new --args "0" --execute --skip-confirm --output-json > temp_file
