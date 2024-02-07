@@ -157,10 +157,6 @@ jobs:
       - name: Install jq (required for SDK building)
         run: sudo apt-get install -y jq
 
-      - name: Install packages
-        working-directory: ./sdk
-        run: npm install
-
       - name: Build SDK
         working-directory: ./sdk
         run: |
