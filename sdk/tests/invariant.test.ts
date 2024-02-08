@@ -1,12 +1,12 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import { InvariantError, Percentage, SqrtPrice } from 'invariant-a0-wasm/invariant_a0_wasm.js'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
 import { InvariantTx } from '../src/schema'
 import { assertThrowsAsync } from '../src/testUtils'
 import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
+import { InvariantError, Percentage, SqrtPrice } from '../src/wasm/pkg/invariant_a0_wasm.js'
 
 const api = await initPolkadotApi(Network.Local)
 
