@@ -369,9 +369,8 @@ pub trait InvariantTrait {
     ///
     /// # Parameters
     /// - `pool_key`: A unique key that identifies the specified pool.
-    /// - `center_tick`: Center tick index.
     #[ink(message)]
-    fn get_tickmap(&self, pool_key: PoolKey, center_tick: i32) -> Vec<(u16, u64)>;
+    fn get_tickmap(&self, pool_key: PoolKey) -> Vec<(u16, u64)>;
 
     /// Retrieves ticks of a specified pool.
     ///

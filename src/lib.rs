@@ -38,7 +38,7 @@ pub enum InvariantError {
 #[ink::contract]
 pub mod invariant {
     use crate::contracts::{
-        get_bit_at_position, get_max_chunk, position_to_tick, tick_to_position, FeeTier, FeeTiers,
+        get_bit_at_position, position_to_tick, tick_to_position, FeeTier, FeeTiers,
         InvariantConfig, InvariantTrait, LiquidityTick, Pool, PoolKey, PoolKeys, Pools, Position,
         PositionTick, Positions, Tick, Tickmap, Ticks, CHUNK_SIZE, LIQUIDITY_TICK_LIMIT,
         MAX_TICKMAP_QUERY_SIZE, POSITION_TICK_LIMIT,
@@ -989,50 +989,22 @@ pub mod invariant {
         }
 
         #[ink(message)]
-        fn get_tickmap(&self, pool_key: PoolKey, center_tick: i32) -> Vec<(u16, u64)> {
-            let tick_spacing = pool_key.fee_tier.tick_spacing;
-
-            let max_chunk_index = get_max_chunk(tick_spacing);
+        fn get_tickmap(&self, pool_key: PoolKey) -> Vec<(u16, u64)> {
             let mut tickmap_slice: Vec<(u16, u64)> = vec![];
+            let mut initialized_chunks = self.tickmap.get_initialized_chunks(pool_key);
+            initialized_chunks.sort();
 
-            let (current_chunk_index, _) = tick_to_position(center_tick, tick_spacing);
-            let current_chunk = self
-                .tickmap
-                .bitmap
-                .get((current_chunk_index, pool_key))
-                .unwrap_or(0);
-            if current_chunk != 0 {
-                tickmap_slice.push((current_chunk_index, current_chunk));
-            }
-
-            for step in 1..=max_chunk_index {
-                for &offset in &[step as i16, -(step as i16)] {
-                    if tickmap_slice.len() == MAX_TICKMAP_QUERY_SIZE {
-                        return tickmap_slice;
-                    }
-                    if (current_chunk_index as i16 + offset) < 0
-                        || (current_chunk_index as i16 + offset) > max_chunk_index as i16
-                    {
-                        continue;
-                    }
-
-                    let target_index = (current_chunk_index as i16 + offset) as u16;
-
-                    if target_index <= max_chunk_index {
-                        let chunk = self
-                            .tickmap
-                            .bitmap
-                            .get((target_index, pool_key))
-                            .unwrap_or(0);
-                        if chunk != 0 {
-                            if offset > 0 {
-                                tickmap_slice.push((target_index, chunk));
-                            } else {
-                                tickmap_slice.insert(0, (target_index, chunk));
-                            }
-                        }
-                    }
+            for n in 0..initialized_chunks.len() {
+                if tickmap_slice.len() == MAX_TICKMAP_QUERY_SIZE {
+                    return tickmap_slice;
                 }
+
+                let chunk = self
+                    .tickmap
+                    .bitmap
+                    .get((initialized_chunks[n], pool_key))
+                    .unwrap();
+                tickmap_slice.push((initialized_chunks[n], chunk));
             }
 
             tickmap_slice
@@ -1048,39 +1020,44 @@ pub mod invariant {
 
             let mut skipped_ticks = 0;
 
-            for i in 0..=chunk_limit {
-                let chunk = self.tickmap.bitmap.get((i, pool_key)).unwrap_or(0);
+            let mut initialized_chunks = self.tickmap.get_initialized_chunks(pool_key);
+            initialized_chunks.sort();
 
-                if chunk != 0 {
-                    let end = if chunk as u16 == chunk_limit {
-                        bit_limit
-                    } else {
-                        (CHUNK_SIZE - 1) as u8
-                    };
+            for n in 0..initialized_chunks.len() {
+                let chunk = self
+                    .tickmap
+                    .bitmap
+                    .get((initialized_chunks[n], pool_key))
+                    .unwrap();
 
-                    for bit in 0..=end {
-                        if get_bit_at_position(chunk, bit) == 1 {
-                            if skipped_ticks < offset {
-                                skipped_ticks += 1;
-                                continue;
-                            }
+                let end = if chunk as u16 == chunk_limit {
+                    bit_limit
+                } else {
+                    (CHUNK_SIZE - 1) as u8
+                };
 
-                            let tick_index = position_to_tick(i, bit, tick_spacing);
+                for bit in 0..=end {
+                    if get_bit_at_position(chunk, bit) == 1 {
+                        if skipped_ticks < offset {
+                            skipped_ticks += 1;
+                            continue;
+                        }
 
-                            self.ticks
-                                .get(pool_key, tick_index)
-                                .map(|tick| {
-                                    ticks.push(LiquidityTick {
-                                        index: tick.index,
-                                        liquidity_change: tick.liquidity_change,
-                                        sign: tick.sign,
-                                    })
+                        let tick_index = position_to_tick(initialized_chunks[n], bit, tick_spacing);
+
+                        self.ticks
+                            .get(pool_key, tick_index)
+                            .map(|tick| {
+                                ticks.push(LiquidityTick {
+                                    index: tick.index,
+                                    liquidity_change: tick.liquidity_change,
+                                    sign: tick.sign,
                                 })
-                                .ok();
+                            })
+                            .ok();
 
-                            if ticks.len() >= LIQUIDITY_TICK_LIMIT {
-                                return ticks;
-                            }
+                        if ticks.len() >= LIQUIDITY_TICK_LIMIT {
+                            return ticks;
                         }
                     }
                 }
@@ -1096,15 +1073,16 @@ pub mod invariant {
 
         #[ink(message)]
         fn get_liquidity_ticks_amount(&self, pool_key: PoolKey) -> u32 {
-            let tick_spacing = pool_key.fee_tier.tick_spacing;
-
-            let max_tick = get_max_tick(tick_spacing);
-            let (chunk_limit, _) = tick_to_position(max_tick, tick_spacing);
-
             let mut amount = 0;
 
-            for i in 0..=chunk_limit {
-                let chunk = self.tickmap.bitmap.get((i, pool_key)).unwrap_or(0);
+            let initialized_chunks = self.tickmap.get_initialized_chunks(pool_key);
+
+            for i in 0..initialized_chunks.len() {
+                let chunk = self
+                    .tickmap
+                    .bitmap
+                    .get((initialized_chunks[i], pool_key))
+                    .unwrap();
 
                 amount += chunk.count_ones();
             }

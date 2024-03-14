@@ -75,14 +75,7 @@ pub mod e2e_tests {
         )
         .unwrap();
 
-        let tickmap = get_tickmap!(
-            client,
-            InvariantRef,
-            dex,
-            pool_key,
-            pool.current_tick_index,
-            alice
-        );
+        let tickmap = get_tickmap!(client, InvariantRef, dex, pool_key, alice);
 
         assert_eq!(
             tickmap[0],
@@ -160,14 +153,7 @@ pub mod e2e_tests {
         )
         .unwrap();
 
-        let tickmap = get_tickmap!(
-            client,
-            InvariantRef,
-            dex,
-            pool_key,
-            pool.current_tick_index,
-            alice
-        );
+        let tickmap = get_tickmap!(client, InvariantRef, dex, pool_key, alice);
 
         assert_eq!(tickmap[0], (0, 0b1));
         assert_eq!(
@@ -247,14 +233,7 @@ pub mod e2e_tests {
         )
         .unwrap();
 
-        let tickmap = get_tickmap!(
-            client,
-            InvariantRef,
-            dex,
-            pool_key,
-            pool.current_tick_index,
-            alice
-        );
+        let tickmap = get_tickmap!(client, InvariantRef, dex, pool_key, alice);
 
         assert_eq!(tickmap[0], (0, 0b11));
         assert_eq!(
@@ -266,7 +245,7 @@ pub mod e2e_tests {
         );
         assert_eq!(tickmap.len(), 2);
         {
-            let tickmap = get_tickmap!(client, InvariantRef, dex, pool_key, MIN_TICK, alice);
+            let tickmap = get_tickmap!(client, InvariantRef, dex, pool_key, alice);
             assert_eq!(tickmap[0], (0, 0b11));
             assert_eq!(
                 tickmap[1],
@@ -277,7 +256,7 @@ pub mod e2e_tests {
             );
             assert_eq!(tickmap.len(), 2);
 
-            let tickmap = get_tickmap!(client, InvariantRef, dex, pool_key, 0, alice);
+            let tickmap = get_tickmap!(client, InvariantRef, dex, pool_key, alice);
             assert_eq!(tickmap[0], (0, 0b11));
             assert_eq!(
                 tickmap[1],
@@ -288,7 +267,7 @@ pub mod e2e_tests {
             );
             assert_eq!(tickmap.len(), 2);
 
-            let tickmap = get_tickmap!(client, InvariantRef, dex, pool_key, MAX_TICK, alice);
+            let tickmap = get_tickmap!(client, InvariantRef, dex, pool_key, alice);
             assert_eq!(tickmap[0], (0, 0b11));
             assert_eq!(
                 tickmap[1],
@@ -355,14 +334,7 @@ pub mod e2e_tests {
             .unwrap();
         }
 
-        let tickmap = get_tickmap!(
-            client,
-            InvariantRef,
-            dex,
-            pool_key,
-            pool.current_tick_index,
-            alice
-        );
+        let tickmap = get_tickmap!(client, InvariantRef, dex, pool_key, alice);
 
         for (i, _) in (0..tickmap.len()).enumerate() {
             let current = 3466 + i as u16;
@@ -423,14 +395,7 @@ pub mod e2e_tests {
             .unwrap();
         }
 
-        let tickmap = get_tickmap!(
-            client,
-            InvariantRef,
-            dex,
-            pool_key,
-            pool.current_tick_index,
-            alice
-        );
+        let tickmap = get_tickmap!(client, InvariantRef, dex, pool_key, alice);
         for (i, _) in (0..tickmap.len()).enumerate() {
             let current = 2644 + i as u16;
             assert_eq!(
@@ -496,14 +461,7 @@ pub mod e2e_tests {
             .unwrap();
         }
 
-        let tickmap = get_tickmap!(
-            client,
-            InvariantRef,
-            dex,
-            pool_key,
-            pool.current_tick_index,
-            alice
-        );
+        let tickmap = get_tickmap!(client, InvariantRef, dex, pool_key, alice);
 
         assert_eq!(tickmap.len(), 1638);
 

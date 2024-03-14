@@ -4,6 +4,7 @@ use crate::math::{
     types::sqrt_price::{calculate_sqrt_price, SqrtPrice},
     MAX_TICK,
 };
+use alloc::vec::Vec;
 use ink::storage::Mapping;
 
 pub const TICK_SEARCH_RANGE: i32 = 256;
@@ -11,24 +12,27 @@ pub const CHUNK_SIZE: i32 = 64;
 pub const MAX_RESULT_SIZE: usize = 16 * 1024 * 8;
 pub const MAX_TICKMAP_QUERY_SIZE: usize = MAX_RESULT_SIZE / (16 + 64);
 
+// 221818 * 2 + 1 = 443637
+// 443637 / 16 = 6932 - Max amount of chunks
+// 16Kb = 16 * 1024 * 8 = 131072
+// 131072 / 16 = 8192 - Max amount of chunks stored inside a vector
+
 #[derive(Debug)]
 #[ink::storage_item]
 pub struct Tickmap {
     pub bitmap: Mapping<(u16, PoolKey), u64>,
+    pub initialized_chunks: Mapping<PoolKey, Vec<u16>>,
 }
 
 impl Default for Tickmap {
     fn default() -> Self {
         let bitmap = Mapping::default();
-        Tickmap { bitmap }
+        let initialized_chunks = Mapping::default();
+        Tickmap {
+            bitmap,
+            initialized_chunks,
+        }
     }
-}
-
-pub fn get_max_chunk(tick_spacing: u16) -> u16 {
-    let max_tick = get_max_tick(tick_spacing);
-    let max_bitmap_index = (max_tick + MAX_TICK) / tick_spacing as i32;
-    let max_chunk_index = max_bitmap_index / CHUNK_SIZE;
-    max_chunk_index as u16
 }
 
 pub fn tick_to_position(tick: i32, tick_spacing: u16) -> (u16, u8) {
@@ -249,10 +253,24 @@ impl Tickmap {
             "tick initialize tick again"
         );
 
+        if returned_chunk == 0 {
+            self.store_initialized_chunk(pool_key, chunk)
+        }
+
         self.bitmap.insert(
             (chunk, pool_key),
             &flip_bit_at_position(returned_chunk, bit),
         );
+    }
+
+    pub fn store_initialized_chunk(&mut self, pool_key: PoolKey, chunk: u16) {
+        let mut vec = self.initialized_chunks.get(pool_key).unwrap_or(Vec::new());
+        vec.push(chunk);
+        self.initialized_chunks.insert(pool_key, &vec);
+    }
+
+    pub fn get_initialized_chunks(&self, pool_key: PoolKey) -> Vec<u16> {
+        self.initialized_chunks.get(pool_key).unwrap_or(Vec::new())
     }
 }
 
