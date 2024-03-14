@@ -23,6 +23,9 @@ jobs:
           path: ~/.cargo
           key: ${{ runner.os }}-substrate-contracts-node-${{ hashFiles('rust-toolchain.toml') }}
 
+      - name: Install toolchain
+        run: rustup toolchain install 1.74.0 --profile minimal --component rustfmt rust-src clippy --target wasm32-unknown-unknown
+
       - name: Check if substrate-contracts-node exists
         id: check-substrate-contracts-node
         continue-on-error: true
@@ -60,6 +63,9 @@ jobs:
           key: |
             ${{ runner.os }}-contract-build-env-${{ hashFiles('rust-toolchain.toml') }}
             ${{ runner.os }}-substrate-contracts-node-${{ hashFiles('rust-toolchain.toml') }}
+
+      - name: Install toolchain
+        run: rustup toolchain install 1.74.0 --profile minimal --component rustfmt rust-src clippy --target wasm32-unknown-unknown
 
       - name: Check if substrate-contracts-node exists
         id: check-substrate-contracts-node
@@ -116,6 +122,9 @@ jobs:
           key: |
             ${{ runner.os }}-contract-build-env-${{ hashFiles('rust-toolchain.toml') }}
             ${{ runner.os }}-substrate-contracts-node-${{ hashFiles('rust-toolchain.toml') }}
+
+      - name: Install toolchain
+        run: rustup toolchain install 1.74.0 --profile minimal --component rustfmt rust-src clippy --target wasm32-unknown-unknown
 
       - name: Check if substrate-contracts-node exists
         id: check-substrate-contracts-node
