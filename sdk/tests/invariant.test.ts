@@ -142,7 +142,7 @@ describe('invariant', async () => {
     const poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
     await invariant.createPool(account, poolKey, initSqrtPrice)
-    const pools = await invariant.getPools(account)
+    const pools = await invariant.getPools(account, 1n)
     assert.deepEqual(pools.length, 1)
     const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
     assert.deepEqual(pool, {
@@ -186,7 +186,7 @@ describe('invariant', async () => {
 
       await invariant.createPool(account, poolKey, initSqrtPrice)
 
-      const pools = await invariant.getPools(account)
+      const pools = await invariant.getPools(account, 1n)
       assert.deepEqual(pools.length, 1)
       const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
       assert.deepEqual(pool, {
@@ -210,7 +210,7 @@ describe('invariant', async () => {
         InvariantTx.CreatePool
       )
     }
-    const pools = await invariant.getPools(account)
+    const pools = await invariant.getPools(account, 1n)
     assert.deepEqual(pools.length, 1)
   })
 })
