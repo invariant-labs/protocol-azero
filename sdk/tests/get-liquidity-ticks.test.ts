@@ -94,7 +94,7 @@ describe('get liquidity ticks', async () => {
 
     const liquidityTicks = await invariant.getLiquidityTicksAmount(account, poolKey)
 
-    const promises = []
+    const promises: any[] = []
 
     for (let i = 0n; i < liquidityTicks; i += 780n) {
       promises.push(invariant.getLiquidityTicks(account, poolKey, i))
