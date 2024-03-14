@@ -1,5 +1,4 @@
 use crate::contracts::PoolKey;
-use crate::math::sqrt_price::get_max_tick;
 use crate::math::{
     types::sqrt_price::{calculate_sqrt_price, SqrtPrice},
     MAX_TICK,
@@ -264,13 +263,13 @@ impl Tickmap {
     }
 
     pub fn store_initialized_chunk(&mut self, pool_key: PoolKey, chunk: u16) {
-        let mut vec = self.initialized_chunks.get(pool_key).unwrap_or(Vec::new());
+        let mut vec = self.initialized_chunks.get(pool_key).unwrap_or_default();
         vec.push(chunk);
         self.initialized_chunks.insert(pool_key, &vec);
     }
 
     pub fn get_initialized_chunks(&self, pool_key: PoolKey) -> Vec<u16> {
-        self.initialized_chunks.get(pool_key).unwrap_or(Vec::new())
+        self.initialized_chunks.get(pool_key).unwrap_or_default()
     }
 }
 

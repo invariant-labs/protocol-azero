@@ -994,17 +994,13 @@ pub mod invariant {
             let mut initialized_chunks = self.tickmap.get_initialized_chunks(pool_key);
             initialized_chunks.sort();
 
-            for n in 0..initialized_chunks.len() {
+            for &chunk_index in initialized_chunks.iter() {
                 if tickmap_slice.len() == MAX_TICKMAP_QUERY_SIZE {
                     return tickmap_slice;
                 }
 
-                let chunk = self
-                    .tickmap
-                    .bitmap
-                    .get((initialized_chunks[n], pool_key))
-                    .unwrap();
-                tickmap_slice.push((initialized_chunks[n], chunk));
+                let chunk = self.tickmap.bitmap.get((chunk_index, pool_key)).unwrap();
+                tickmap_slice.push((chunk_index, chunk));
             }
 
             tickmap_slice
@@ -1023,12 +1019,8 @@ pub mod invariant {
             let mut initialized_chunks = self.tickmap.get_initialized_chunks(pool_key);
             initialized_chunks.sort();
 
-            for n in 0..initialized_chunks.len() {
-                let chunk = self
-                    .tickmap
-                    .bitmap
-                    .get((initialized_chunks[n], pool_key))
-                    .unwrap();
+            for &chunk_index in initialized_chunks.iter() {
+                let chunk = self.tickmap.bitmap.get((chunk_index, pool_key)).unwrap();
 
                 let end = if chunk as u16 == chunk_limit {
                     bit_limit
@@ -1043,7 +1035,7 @@ pub mod invariant {
                             continue;
                         }
 
-                        let tick_index = position_to_tick(initialized_chunks[n], bit, tick_spacing);
+                        let tick_index = position_to_tick(chunk_index, bit, tick_spacing);
 
                         self.ticks
                             .get(pool_key, tick_index)
@@ -1077,12 +1069,8 @@ pub mod invariant {
 
             let initialized_chunks = self.tickmap.get_initialized_chunks(pool_key);
 
-            for i in 0..initialized_chunks.len() {
-                let chunk = self
-                    .tickmap
-                    .bitmap
-                    .get((initialized_chunks[i], pool_key))
-                    .unwrap();
+            for &chunk_index in initialized_chunks.iter() {
+                let chunk = self.tickmap.bitmap.get((chunk_index, pool_key)).unwrap();
 
                 amount += chunk.count_ones();
             }
