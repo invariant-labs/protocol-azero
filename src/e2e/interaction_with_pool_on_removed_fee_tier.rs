@@ -103,7 +103,7 @@ pub mod e2e_tests {
         }
         // Get Pools
         {
-            let pools = get_pools!(client, InvariantRef, dex);
+            let pools = get_pools!(client, InvariantRef, dex, 1);
             assert_eq!(pools.len(), 1);
         }
         // Transfer position
