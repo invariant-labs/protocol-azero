@@ -11,7 +11,7 @@ pub struct PoolKeys {
 
 impl PoolKeys {
     pub fn get(&self, pool_key: PoolKey) -> Option<u16> {
-        self.pool_keys.get(&pool_key)
+        self.pool_keys.get(pool_key)
     }
 
     pub fn add(&mut self, pool_key: PoolKey) -> Result<(), InvariantError> {
@@ -42,8 +42,8 @@ impl PoolKeys {
         Ok(())
     }
 
-    pub fn contains(&self, fee_tier_key: PoolKey) -> bool {
-        self.pool_keys.get(&fee_tier_key).is_some()
+    pub fn contains(&self, pool_key: PoolKey) -> bool {
+        self.pool_keys.get(pool_key).is_some()
     }
 
     pub fn get_all(&self, size: u8) -> Result<Vec<PoolKey>, InvariantError> {
@@ -56,7 +56,7 @@ impl PoolKeys {
                 return Ok(pool_keys);
             }
 
-            let pool_key = self.pool_keys_by_index.get(&i).unwrap();
+            let pool_key = self.pool_keys_by_index.get(i).unwrap();
             pool_keys.push(pool_key);
         }
         Ok(pool_keys)

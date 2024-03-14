@@ -482,6 +482,7 @@ macro_rules! get_pools {
             .call_dry_run(&ink_e2e::alice(), &message, 0, None)
             .await
             .return_value()
+            .unwrap()
     }};
 }
 
