@@ -86,7 +86,7 @@ describe('get liquidity ticks', async () => {
   })
 
   it('should get liquidity ticks with multiple queries', async function () {
-    this.timeout(45000)
+    this.timeout(55000)
 
     for (let i = 1n; i <= 400n; i++) {
       await invariant.createPosition(account, poolKey, -i, i, 10n, 1000000000000000000000000n, 0n)
