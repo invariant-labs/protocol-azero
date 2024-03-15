@@ -13,5 +13,5 @@
     "types": ["mocha", "chai"],
     "declaration": true
   },
-  "exclude": ["tests", "target"]
+  "exclude": ["target"]
 }

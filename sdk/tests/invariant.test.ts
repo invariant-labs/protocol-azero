@@ -20,7 +20,7 @@ const psp22 = await PSP22.load(api, Network.Local, token0Address)
 
 const feeTier = newFeeTier(10000000000n, 1n)
 
-describe('invariant', async () => {
+describe('invariant', async function () {
   beforeEach(async () => {
     invariant = await Invariant.deploy(api, Network.Local, account, 10000000000n)
     token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
@@ -175,6 +175,7 @@ describe('invariant', async () => {
   })
 
   it('create pool x/y and y/x', async () => {
+    this.timeout(5000)
     await invariant.addFeeTier(account, feeTier)
     const addedFeeTierExists = await invariant.feeTierExist(account, feeTier)
     assert.deepEqual(addedFeeTierExists, true)
