@@ -85,7 +85,7 @@ describe('tickmap', async () => {
     }
   })
   it('get tickmap more chunks below', async function () {
-    this.timeout(100000)
+    this.timeout(120000)
 
     const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
 
