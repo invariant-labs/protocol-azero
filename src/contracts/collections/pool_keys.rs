@@ -1,6 +1,12 @@
 use crate::{contracts::PoolKey, InvariantError};
 use alloc::vec::Vec;
 use ink::storage::Mapping;
+
+// size of PoolKey = 32+32+8+2 = 74 bytes, max size of ink! storage cell is 16384 bytes
+// that is 16384 - 32 (first 32B is the size of vec) = 16352 bytes left for memory
+// 16352 / 74 = 220 elements. Adding 221st element will panic because of not enough memory in the storage cell
+const MAX_POOL_KEYS_RETURNED: u8 = 220;
+
 #[ink::storage_item]
 #[derive(Debug, Default)]
 pub struct PoolKeys {
@@ -10,7 +16,7 @@ pub struct PoolKeys {
 }
 
 impl PoolKeys {
-    pub fn get(&self, pool_key: PoolKey) -> Option<u16> {
+    pub fn get_index(&self, pool_key: PoolKey) -> Option<u16> {
         self.pool_keys.get(pool_key)
     }
 
@@ -29,29 +35,28 @@ impl PoolKeys {
 
     #[allow(dead_code)]
     pub fn remove(&mut self, pool_key: PoolKey) -> Result<(), InvariantError> {
-        let extracted_pool_key = self.get(pool_key);
-        if extracted_pool_key.is_none() {
-            return Err(InvariantError::PoolKeyNotFound);
+        match self.get_index(pool_key) {
+            Some(index) => {
+                self.pool_keys_by_index.remove(index);
+                self.pool_keys_length -= 1;
+                self.pool_keys.remove(pool_key);
+                Ok(())
+            }
+            None => Err(InvariantError::PoolKeyNotFound),
         }
-
-        let pool_key_index = extracted_pool_key.unwrap();
-
-        self.pool_keys.remove(pool_key);
-        self.pool_keys_by_index.remove(pool_key_index);
-        self.pool_keys_length -= 1;
-        Ok(())
     }
 
     pub fn contains(&self, pool_key: PoolKey) -> bool {
         self.pool_keys.get(pool_key).is_some()
     }
 
-    pub fn get_all(&self, size: u8) -> Result<Vec<PoolKey>, InvariantError> {
-        if size > 220 {
+    pub fn get_all(&self, size: u8, offset: u16) -> Result<Vec<PoolKey>, InvariantError> {
+        if size > MAX_POOL_KEYS_RETURNED || offset > self.pool_keys_length {
             return Err(InvariantError::InvalidSize);
         }
+
         let mut pool_keys = Vec::new();
-        for i in 0..self.pool_keys_length {
+        for i in offset..self.pool_keys_length {
             if size as u16 == i {
                 return Ok(pool_keys);
             }
@@ -116,14 +121,14 @@ mod tests {
         };
         let new_pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
 
-        let result = pool_keys.get_all(3).unwrap();
+        let result = pool_keys.get_all(3, 0).unwrap();
         assert_eq!(result, vec![]);
         assert_eq!(result.len(), 0);
 
         pool_keys.add(pool_key).unwrap();
         pool_keys.add(new_pool_key).unwrap();
 
-        let result = pool_keys.get_all(3).unwrap();
+        let result = pool_keys.get_all(3, 0).unwrap();
         assert_eq!(result, vec![pool_key, new_pool_key]);
         assert_eq!(result.len(), 2);
     }

@@ -937,8 +937,8 @@ pub mod invariant {
         }
 
         #[ink(message)]
-        fn get_pools(&self, size: u8) -> Result<Vec<PoolKey>, InvariantError> {
-            let pool_keys = self.pool_keys.get_all(size)?;
+        fn get_pools(&self, size: u8, offset: u16) -> Result<Vec<PoolKey>, InvariantError> {
+            let pool_keys = self.pool_keys.get_all(size, offset)?;
             Ok(pool_keys)
         }
 

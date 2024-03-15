@@ -323,7 +323,7 @@ pub mod e2e_tests {
         // that is 16384 - 32 (first 32B is the size of vec) = 16352 bytes left for memory
         // 16352 / 74 = 220 elements. Adding 221st element will panic because of not enough memory in the storage cell
 
-        let amount_of_pools_to_create = 1000;
+        let amount_of_pools_to_create = u16::max_value();
         for i in 0..amount_of_pools_to_create {
             let (token_x, token_y) = create_tokens!(client, TokenRef, 500, 500);
             println!("{i}");

@@ -344,8 +344,10 @@ pub trait InvariantTrait {
 
     /// Retrieves listed pools
     /// - `size`: Amount of pool keys to retrive
+    /// - `offset`: The offset from which retrive pools.
     #[ink(message)]
-    fn get_pools(&self, size: u8) -> Result<Vec<PoolKey>, InvariantError>;
+    fn get_pools(&self, size: u8, offset: u16) -> Result<Vec<PoolKey>, InvariantError>;
+
     /// Retrieves available fee tiers
     #[ink(message)]
     fn get_fee_tiers(&self) -> Vec<FeeTier>;
