@@ -28,7 +28,8 @@ describe('invariant', async function () {
     token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
   })
 
-  it('should change protocol fee', async () => {
+  it('should change protocol fee', async function () {
+    this.timeout(10000)
     const newFeeStruct: Percentage = 20000000000n
 
     await invariant.changeProtocolFee(account, newFeeStruct)

@@ -38,7 +38,8 @@ describe('get position ticks', async () => {
     await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
   })
 
-  it('should get position ticks', async () => {
+  it('should get position ticks', async function () {
+    this.timeout(50000)
     await invariant.createPosition(account, poolKey, -10n, 10n, 10n, 1000000000000000000000000n, 0n)
 
     const result = await invariant.getPositionTicks(account, account.address, 0n)

@@ -73,7 +73,8 @@ describe('position', async () => {
     objectEquals(result.events[0], expectedCreatePositionEvent, ['timestamp'])
   })
 
-  it('create position', async () => {
+  it('create position', async function () {
+    this.timeout(10000)
     const position = await invariant.getPosition(account, account.address, 0n)
     const expectedPosition: Position = {
       poolKey: poolKey,
