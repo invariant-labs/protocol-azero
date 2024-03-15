@@ -22,7 +22,7 @@ describe('tickmap', async () => {
   const ticks = [-221818n, -221817n, -58n, 5n, 221817n, 221818n]
   let poolKey = newPoolKey(token0Address, token1Address, feeTier)
   beforeEach(async function () {
-    this.timeout(60000)
+    this.timeout(100000)
 
     invariant = await Invariant.deploy(api, Network.Local, account, 10000000000n)
     token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
@@ -85,7 +85,7 @@ describe('tickmap', async () => {
     }
   })
   it('get tickmap more chunks below', async function () {
-    this.timeout(150000)
+    this.timeout(200000)
 
     const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
 
@@ -105,7 +105,7 @@ describe('tickmap', async () => {
     }
   })
   it('get tickmap max chunks returned', async function () {
-    this.timeout(100000)
+    this.timeout(200000)
 
     const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
 

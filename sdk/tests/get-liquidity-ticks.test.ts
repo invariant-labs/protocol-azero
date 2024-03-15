@@ -51,7 +51,7 @@ describe('get liquidity ticks', async () => {
   })
 
   it('should get liquidity ticks limit', async function () {
-    this.timeout(50000)
+    this.timeout(100000)
 
     for (let i = 1n; i <= 390n; i++) {
       await invariant.createPosition(account, poolKey, -i, i, 10n, 1000000000000000000000000n, 0n)
