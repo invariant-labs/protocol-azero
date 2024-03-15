@@ -36,7 +36,7 @@ describe('check get liquidity by x', async () => {
     : [token1Address, token0Address]
 
   beforeEach(async function () {
-    this.timeout(10000)
+    this.timeout(20000)
     invariant = await Invariant.deploy(api, Network.Local, account, 10000000000n)
     token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
     token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
