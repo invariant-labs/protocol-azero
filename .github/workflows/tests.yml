@@ -81,7 +81,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: install
-          args: --locked cargo-contract
+          args: --version 3.2.0 --locked cargo-contract
 
       - name: Run cargo fmt
         uses: actions-rs/cargo@v1
@@ -137,7 +137,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: install
-          args: --locked cargo-contract
+          args: --version 3.2.0 --locked cargo-contract
 
       - name: Install wasm-bindgen-cli
         uses: actions-rs/cargo@v1
