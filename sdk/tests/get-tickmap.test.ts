@@ -1,11 +1,11 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import { Invariant } from '../src/invariant.js'
-import { Network } from '../src/network.js'
-import { PSP22 } from '../src/psp22.js'
-import { assertThrowsAsync } from '../src/testUtils.js'
-import { initPolkadotApi, integerSafeCast, newFeeTier, newPoolKey } from '../src/utils.js'
-import { getMaxChunk } from '../src/wasm/pkg/invariant_a0_wasm.js'
+import { Invariant } from '../src/invariant'
+import { Network } from '../src/network'
+import { PSP22 } from '../src/psp22'
+import { assertThrowsAsync } from '../src/testUtils'
+import { initPolkadotApi, integerSafeCast, newFeeTier, newPoolKey } from '../src/utils'
+import { getMaxChunk } from '../src/wasm/pkg/invariant_a0_wasm'
 
 const api = await initPolkadotApi(Network.Local)
 

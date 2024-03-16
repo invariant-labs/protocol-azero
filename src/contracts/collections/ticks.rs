@@ -4,11 +4,6 @@ use crate::{
 };
 use ink::storage::Mapping;
 
-// 221818 * 2 + 1 = 443637
-// 443637 / 16 = 6932 - Max amount of chunks
-// 16Kb = 16 * 1024 * 8 = 131072
-// 131072 / 32 = 4096 - Max amount of ticks stored inside a vector
-
 #[ink::storage_item]
 #[derive(Debug, Default)]
 pub struct Ticks {

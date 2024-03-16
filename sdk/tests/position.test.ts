@@ -13,7 +13,7 @@ import {
   TokenAmount,
   getLiquidityByX,
   isTokenX
-} from '../src/wasm/pkg/invariant_a0_wasm.js'
+} from '../src/wasm/pkg/invariant_a0_wasm'
 
 const api = await initPolkadotApi(Network.Local)
 

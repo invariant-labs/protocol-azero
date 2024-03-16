@@ -13,7 +13,7 @@ import {
   priceToSqrtPrice,
   sqrtPriceToPrice
 } from '../src/utils'
-import { toPercentage, toSqrtPrice } from '../src/wasm/pkg/invariant_a0_wasm.js'
+import { toPercentage, toSqrtPrice } from '../src/wasm/pkg/invariant_a0_wasm'
 
 const api = await initPolkadotApi(Network.Local)
 
