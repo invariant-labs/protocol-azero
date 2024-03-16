@@ -991,8 +991,7 @@ pub mod invariant {
         #[ink(message)]
         fn get_tickmap(&self, pool_key: PoolKey) -> Vec<(u16, u64)> {
             let mut tickmap_slice: Vec<(u16, u64)> = vec![];
-            let mut initialized_chunks = self.tickmap.get_initialized_chunks(pool_key);
-            initialized_chunks.sort();
+            let initialized_chunks = self.tickmap.get_initialized_chunks(pool_key);
 
             for &chunk_index in initialized_chunks.iter() {
                 if tickmap_slice.len() == MAX_TICKMAP_QUERY_SIZE {

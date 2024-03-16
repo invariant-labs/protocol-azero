@@ -1,10 +1,8 @@
 #[cfg(test)]
 pub mod e2e_tests {
     use crate::{
-        contracts::tickmap::get_max_chunk,
         contracts::{entrypoints::InvariantTrait, FeeTier, PoolKey},
         invariant::InvariantRef,
-        math::consts::{MAX_TICK, MIN_TICK},
         math::types::liquidity::Liquidity,
         math::types::percentage::Percentage,
         math::types::sqrt_price::{calculate_sqrt_price, get_max_tick, get_min_tick, SqrtPrice},
