@@ -84,10 +84,7 @@ jobs:
           cargo install --force --locked contracts-node
 
       - name: Install cargo contract
-        uses: actions-rs/cargo@v1
-        with:
-          command: install
-          args: --version 3.2.0 --locked cargo-contract
+        run: cargo install +1.71.0 --locked cargo-contract --version 3.2.0
 
       - name: Run cargo fmt
         uses: actions-rs/cargo@v1
