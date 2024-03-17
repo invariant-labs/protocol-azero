@@ -41,7 +41,7 @@ jobs:
         if: ${{ steps.check-substrate-contracts-node.outcome == 'failure' }}
         run: |
           cargo install cargo-dylint dylint-link
-          cargo install --version 0.33.0 --force --locked contracts-node
+          cargo install --version 0.31.0 --force --locked contracts-node
 
       - name: Run unit tests
         uses: actions-rs/cargo@v1
@@ -82,7 +82,7 @@ jobs:
         if: ${{ steps.check-substrate-contracts-node.outcome == 'failure' }}
         run: |
           cargo install cargo-dylint dylint-link
-          cargo install --version 0.33.0 --force --locked contracts-node
+          cargo install --version 0.31.0 --force --locked contracts-node
 
       - name: Install cargo contract
         uses: actions-rs/cargo@v1
@@ -141,7 +141,7 @@ jobs:
         if: ${{ steps.check-substrate-contracts-node.outcome == 'failure' }}
         run: |
           cargo install cargo-dylint dylint-link
-          cargo install --version 0.33.0 --force --locked contracts-node
+          cargo install --version 0.31.0 --force --locked contracts-node
 
       - name: Install cargo contract
         uses: actions-rs/cargo@v1
