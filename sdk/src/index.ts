@@ -1,29 +1,5 @@
 export { Keyring } from '@polkadot/api'
 export {
-  DEFAULT_LOCAL,
-  DEFAULT_PROOF_SIZE,
-  DEFAULT_REF_TIME,
-  MAINNET,
-  MAX_REF_TIME,
-  TESTNET,
-  TESTNET_WAZERO_ADDRESS
-} from './consts.js'
-export { Invariant } from './invariant.js'
-export { Network } from './network.js'
-export { PSP22 } from './psp22.js'
-export { InvariantEvent } from './schema.js'
-export {
-  calculateFee,
-  calculatePriceImpact,
-  calculateSqrtPriceAfterSlippage,
-  calculateTokenAmounts,
-  initPolkadotApi,
-  newFeeTier,
-  newPoolKey,
-  priceToSqrtPrice,
-  sqrtPriceToPrice
-} from './utils.js'
-export {
   CreatePositionEvent,
   CrossTickEvent,
   FeeGrowth,
@@ -63,5 +39,29 @@ export {
   toSecondsPerLiquidity,
   toSqrtPrice,
   toTokenAmount
-} from './wasm/pkg/invariant_a0_wasm.js'
+} from '../wasm/pkg/invariant_a0_wasm.js'
+export {
+  DEFAULT_LOCAL,
+  DEFAULT_PROOF_SIZE,
+  DEFAULT_REF_TIME,
+  MAINNET,
+  MAX_REF_TIME,
+  TESTNET,
+  TESTNET_WAZERO_ADDRESS
+} from './consts.js'
+export { Invariant } from './invariant.js'
+export { Network } from './network.js'
+export { PSP22 } from './psp22.js'
+export { InvariantEvent } from './schema.js'
+export {
+  calculateFee,
+  calculatePriceImpact,
+  calculateSqrtPriceAfterSlippage,
+  calculateTokenAmounts,
+  initPolkadotApi,
+  newFeeTier,
+  newPoolKey,
+  priceToSqrtPrice,
+  sqrtPriceToPrice
+} from './utils.js'
 export { WrappedAZERO } from './wrapped-azero.js'

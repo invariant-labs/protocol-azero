@@ -5,7 +5,7 @@ import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
 import { assertThrowsAsync } from '../src/testUtils'
 import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
-import { InvariantError } from '../src/wasm/pkg/invariant_a0_wasm.js'
+import { InvariantError } from '../wasm/pkg/invariant_a0_wasm.js'
 
 const api = await initPolkadotApi(Network.Local)
 

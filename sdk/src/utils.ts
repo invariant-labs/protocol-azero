@@ -6,9 +6,7 @@ import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { getSubstrateChain, initPolkadotJs as initApi } from '@scio-labs/use-inkathon'
 import { readFile } from 'fs/promises'
-import { MAINNET, TESTNET } from './consts.js'
-import { Network } from './network.js'
-import { EventTxResult, LiquidityBreakpoint, Query, Tx, TxResult } from './schema.js'
+import path from 'path'
 import {
   FeeTier,
   LiquidityTick,
@@ -28,7 +26,10 @@ import {
   getMaxChunk,
   getPercentageDenominator,
   getSqrtPriceDenominator
-} from './wasm/pkg/invariant_a0_wasm.js'
+} from '../wasm/pkg/invariant_a0_wasm.js'
+import { MAINNET, TESTNET } from './consts.js'
+import { Network } from './network.js'
+import { EventTxResult, LiquidityBreakpoint, Query, Tx, TxResult } from './schema.js'
 
 export const initPolkadotApi = async (network: Network, ws?: string): Promise<ApiPromise> => {
   if (network === Network.Local) {
@@ -165,10 +166,17 @@ export const getDeploymentData = async (
   contractName: string
 ): Promise<{ abi: any; wasm: Buffer }> => {
   try {
+    const __dirname = new URL('.', import.meta.url).pathname
+
     const abi = JSON.parse(
-      await readFile(`./contracts/${contractName}/${contractName}.json`, 'utf-8')
+      await readFile(
+        path.join(__dirname, `../contracts/${contractName}/${contractName}.json`),
+        'utf-8'
+      )
     )
-    const wasm = await readFile(`./contracts/${contractName}/${contractName}.wasm`)
+    const wasm = await readFile(
+      path.join(__dirname, `../contracts/${contractName}/${contractName}.wasm`)
+    )
 
     return { abi, wasm }
   } catch (error) {

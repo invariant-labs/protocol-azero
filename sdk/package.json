@@ -6,7 +6,7 @@
   ],
   "description": "",
   "type": "module",
-  "main": "target/src/index.js",
+  "main": "target/index.js",
   "keywords": [
     "Aleph Zero",
     "DEX",

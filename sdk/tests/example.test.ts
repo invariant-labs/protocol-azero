@@ -11,6 +11,7 @@ import {
   newPoolKey,
   priceToSqrtPrice
 } from '../src/utils'
+import { WrappedAZERO } from '../src/wrapped-azero'
 import {
   Pool,
   Position,
@@ -18,8 +19,7 @@ import {
   getLiquidityByY,
   toPercentage,
   toPrice
-} from '../src/wasm/pkg/invariant_a0_wasm.js'
-import { WrappedAZERO } from '../src/wrapped-azero'
+} from '../wasm/pkg/invariant_a0_wasm.js'
 
 const api = await initPolkadotApi(Network.Local)
 

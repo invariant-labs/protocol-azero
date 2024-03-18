@@ -14,7 +14,7 @@ import {
   getGlobalMinSqrtPrice,
   toPercentage,
   toSqrtPrice
-} from '../src/wasm/pkg/invariant_a0_wasm.js'
+} from '../wasm/pkg/invariant_a0_wasm.js'
 
 const api = await initPolkadotApi(Network.Local)
 
