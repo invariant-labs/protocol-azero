@@ -29,7 +29,6 @@ jobs:
         run: substrate-contracts-node --version
 
       - name: Install Protobuf
-        if: ${{ steps.check-substrate-contracts-node.outcome == 'failure' }}
         run: |
           sudo apt-get install -y protobuf-compiler libprotobuf-dev
 
@@ -66,7 +65,6 @@ jobs:
         run: substrate-contracts-node --version
 
       - name: Install Protobuf
-        if: ${{ steps.check-substrate-contracts-node.outcome == 'failure' }}
         run: |
           sudo apt-get install -y protobuf-compiler libprotobuf-dev
 
@@ -121,7 +119,6 @@ jobs:
         run: substrate-contracts-node --version
 
       - name: Install Protobuf
-        if: ${{ steps.check-substrate-contracts-node.outcome == 'failure' }}
         run: |
           sudo apt-get install -y protobuf-compiler libprotobuf-dev
 
