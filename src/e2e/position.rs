@@ -20,8 +20,8 @@ pub mod e2e_tests {
     use ink_e2e::build_message;
     use test_helpers::{
         add_fee_tier, address_of, approve, balance_of, create_dex, create_pool, create_position,
-        create_tokens, get_all_positions, get_pool, get_position, get_tick, is_tick_initialized,
-        mint, remove_position, swap,
+        create_tokens, get_pool, get_position, get_tick, is_tick_initialized, mint,
+        remove_position, swap,
     };
     use token::{TokenRef, PSP22};
 

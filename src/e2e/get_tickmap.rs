@@ -1,6 +1,7 @@
 #[cfg(test)]
 pub mod e2e_tests {
     use crate::{
+        contracts::storage::tickmap::get_max_chunk,
         contracts::{entrypoints::InvariantTrait, FeeTier, PoolKey},
         invariant::InvariantRef,
         math::types::liquidity::Liquidity,
@@ -153,11 +154,11 @@ pub mod e2e_tests {
 
         let tickmap = get_tickmap!(client, InvariantRef, dex, pool_key, alice);
 
-        assert_eq!(tickmap[0], (0, 0b1));
         assert_eq!(
-            tickmap[1],
+            tickmap[0],
             (346, 0b1100000000000000000000000000000000000000)
         );
+        assert_eq!(tickmap[1], (0, 0b1));
         assert_eq!(
             tickmap[2],
             (get_max_chunk(fee_tier.tick_spacing), 0b10000000000)

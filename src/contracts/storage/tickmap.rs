@@ -1,8 +1,9 @@
 use crate::contracts::PoolKey;
 use crate::math::{
-    types::sqrt_price::{calculate_sqrt_price, SqrtPrice},
+    types::sqrt_price::{calculate_sqrt_price, get_max_tick, SqrtPrice},
     MAX_TICK,
 };
+
 use alloc::vec::Vec;
 use ink::storage::Mapping;
 
@@ -32,6 +33,14 @@ impl Default for Tickmap {
             initialized_chunks,
         }
     }
+}
+
+#[allow(dead_code)]
+pub fn get_max_chunk(tick_spacing: u16) -> u16 {
+    let max_tick = get_max_tick(tick_spacing);
+    let max_bitmap_index = (max_tick + MAX_TICK) / tick_spacing as i32;
+    let max_chunk_index = max_bitmap_index / CHUNK_SIZE;
+    max_chunk_index as u16
 }
 
 pub fn tick_to_position(tick: i32, tick_spacing: u16) -> (u16, u8) {
