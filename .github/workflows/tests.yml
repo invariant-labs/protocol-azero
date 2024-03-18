@@ -29,15 +29,13 @@ jobs:
         run: substrate-contracts-node --version
 
       - name: Install Protobuf
-        if: ${{ steps.check-substrate-contracts-node.outcome == 'failure' }}
         run: |
           sudo apt-get install -y protobuf-compiler libprotobuf-dev
 
       - name: Install substrate-contracts-node
-        if: ${{ steps.check-substrate-contracts-node.outcome == 'failure' }}
         run: |
           cargo install cargo-dylint dylint-link
-          cargo install --force --locked contracts-node
+          cargo install --version 0.31.0 --force --locked contracts-node
 
       - name: Run unit tests
         uses: actions-rs/cargo@v1
@@ -67,21 +65,19 @@ jobs:
         run: substrate-contracts-node --version
 
       - name: Install Protobuf
-        if: ${{ steps.check-substrate-contracts-node.outcome == 'failure' }}
         run: |
           sudo apt-get install -y protobuf-compiler libprotobuf-dev
 
       - name: Install substrate-contracts-node
-        if: ${{ steps.check-substrate-contracts-node.outcome == 'failure' }}
         run: |
           cargo install cargo-dylint dylint-link
-          cargo install --force --locked contracts-node
+          cargo install --version 0.31.0 --force --locked contracts-node
 
       - name: Install cargo contract
         uses: actions-rs/cargo@v1
         with:
           command: install
-          args: --locked cargo-contract
+          args: --version 3.2.0 --locked cargo-contract
 
       - name: Run cargo fmt
         uses: actions-rs/cargo@v1
@@ -123,21 +119,19 @@ jobs:
         run: substrate-contracts-node --version
 
       - name: Install Protobuf
-        if: ${{ steps.check-substrate-contracts-node.outcome == 'failure' }}
         run: |
           sudo apt-get install -y protobuf-compiler libprotobuf-dev
 
       - name: Install substrate-contracts-node
-        if: ${{ steps.check-substrate-contracts-node.outcome == 'failure' }}
         run: |
           cargo install cargo-dylint dylint-link
-          cargo install --force --locked contracts-node
+          cargo install --version 0.31.0 --force --locked contracts-node
 
       - name: Install cargo contract
         uses: actions-rs/cargo@v1
         with:
           command: install
-          args: --locked cargo-contract
+          args: --version 3.2.0 --locked cargo-contract
 
       - name: Install wasm-bindgen-cli
         uses: actions-rs/cargo@v1
