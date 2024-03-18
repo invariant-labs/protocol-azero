@@ -20,8 +20,8 @@ pub mod e2e_tests {
     use ink_e2e::build_message;
     use test_helpers::{
         add_fee_tier, address_of, approve, balance_of, create_dex, create_pool, create_position,
-        create_tokens, get_pool, get_position, get_tick, is_tick_initialized, mint,
-        remove_position, swap,
+        create_tokens, get_all_positions, get_pool, get_position, get_tick, is_tick_initialized,
+        mint, remove_position, swap,
     };
     use token::{TokenRef, PSP22};
 
@@ -543,6 +543,68 @@ pub mod e2e_tests {
 
         assert_eq!(dex_x, expected_x_increase);
         assert_eq!(dex_y, expected_y_increase);
+
+        Ok(())
+    }
+    #[ink_e2e::test]
+    async fn test_create_many_positions(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        let dex = create_dex!(client, InvariantRef, Percentage::new(0));
+        let (token_x, token_y) = create_tokens!(client, TokenRef, 1000000000, 1000000000);
+
+        let alice = ink_e2e::alice();
+
+        let fee_tier = FeeTier::new(Percentage::new(0), 1).unwrap();
+
+        add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
+
+        let init_tick = 10;
+        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
+        create_pool!(
+            client,
+            InvariantRef,
+            dex,
+            token_x,
+            token_y,
+            fee_tier,
+            init_sqrt_price,
+            init_tick,
+            alice
+        )
+        .unwrap();
+
+        approve!(client, TokenRef, token_x, dex, 1000000000, alice).unwrap();
+        approve!(client, TokenRef, token_y, dex, 1000000000, alice).unwrap();
+
+        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+
+        for i in (0..=1000).step_by(2) {
+            create_position!(
+                client,
+                InvariantRef,
+                dex,
+                pool_key,
+                i,
+                i + 1,
+                Liquidity::new(10),
+                SqrtPrice::new(0),
+                SqrtPrice::max_instance(),
+                alice
+            )
+            .unwrap();
+        }
+
+        for i in (0..=1000).step_by(2) {
+            get_tick!(client, InvariantRef, dex, pool_key, i).unwrap();
+            get_tick!(client, InvariantRef, dex, pool_key, i + 1).unwrap();
+            assert!(is_tick_initialized!(client, InvariantRef, dex, pool_key, i));
+            assert!(is_tick_initialized!(
+                client,
+                InvariantRef,
+                dex,
+                pool_key,
+                i + 1
+            ));
+        }
 
         Ok(())
     }
