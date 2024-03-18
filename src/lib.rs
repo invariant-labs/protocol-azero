@@ -34,6 +34,7 @@ pub enum InvariantError {
     NotEmptyTickDeinitialization,
     InvalidInitTick,
     InvalidInitSqrtPrice,
+    InvalidSize,
 }
 #[ink::contract]
 pub mod invariant {
@@ -936,8 +937,8 @@ pub mod invariant {
         }
 
         #[ink(message)]
-        fn get_pools(&self) -> Vec<PoolKey> {
-            self.pool_keys.get_all()
+        fn get_pools(&self, size: u8, offset: u16) -> Result<Vec<PoolKey>, InvariantError> {
+            self.pool_keys.get_all(size, offset)
         }
 
         #[ink(message)]
