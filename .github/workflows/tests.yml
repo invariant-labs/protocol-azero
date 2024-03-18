@@ -34,7 +34,6 @@ jobs:
           sudo apt-get install -y protobuf-compiler libprotobuf-dev
 
       - name: Install substrate-contracts-node
-        if: ${{ steps.check-substrate-contracts-node.outcome == 'failure' }}
         run: |
           cargo install cargo-dylint dylint-link
           cargo install --version 0.31.0 --force --locked contracts-node
