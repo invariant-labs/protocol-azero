@@ -475,13 +475,14 @@ macro_rules! is_tick_initialized {
 
 #[macro_export]
 macro_rules! get_pools {
-    ($client:ident, $dex:ty, $dex_address:expr) => {{
-        let message =
-            build_message::<$dex>($dex_address.clone()).call(|contract| contract.get_pools());
+    ($client:ident, $dex:ty, $dex_address:expr, $size:expr, $offset:expr) => {{
+        let message = build_message::<$dex>($dex_address.clone())
+            .call(|contract| contract.get_pools($size, $offset));
         $client
             .call_dry_run(&ink_e2e::alice(), &message, 0, None)
             .await
             .return_value()
+            .unwrap()
     }};
 }
 

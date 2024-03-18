@@ -462,15 +462,20 @@ export class Invariant {
     }
   }
 
-  async getPools(account: IKeyringPair): Promise<Pool[]> {
-    return sendQuery(
+  async getPools(account: IKeyringPair, size: bigint, offset: bigint): Promise<Pool[]> {
+    const result = await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       account,
       InvariantQuery.GetPools,
-      []
+      [size, offset]
     )
+    if (result.ok) {
+      return parse(result.ok)
+    } else {
+      throw new Error(InvariantError[result.err])
+    }
   }
 
   async createPool(

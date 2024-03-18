@@ -306,4 +306,44 @@ pub mod e2e_tests {
 
         Ok(())
     }
+
+    #[ink_e2e::test]
+    async fn test_create_many_pools_success(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        let dex = create_dex!(client, InvariantRef, Percentage::new(0));
+
+        let fee_tier = FeeTier::new(Percentage::from_scale(5, 1), 100).unwrap();
+        let init_tick = 0;
+        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
+
+        let alice = ink_e2e::alice();
+
+        add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
+
+        // size of PoolKeys = 32+32+8+2 = 74 bytes, max size of ink! storage cell is 16384 bytes
+        // that is 16384 - 32 (first 32B is the size of vec) = 16352 bytes left for memory
+        // 16352 / 74 = 220 elements. Adding 221st element will panic because of not enough memory in the storage cell
+
+        let amount_of_pools_to_create = 1000;
+
+        for i in 0..amount_of_pools_to_create {
+            let (token_x, token_y) = create_tokens!(client, TokenRef, 500, 500);
+            println!("{i}");
+            let result = create_pool!(
+                client,
+                InvariantRef,
+                dex,
+                token_x,
+                token_y,
+                fee_tier,
+                init_sqrt_price,
+                init_tick,
+                alice
+            );
+
+            assert!(result.is_ok());
+            get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
+        }
+
+        Ok(())
+    }
 }

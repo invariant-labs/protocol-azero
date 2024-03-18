@@ -343,8 +343,10 @@ pub trait InvariantTrait {
     fn is_tick_initialized(&self, key: PoolKey, index: i32) -> bool;
 
     /// Retrieves listed pools
+    /// - `size`: Amount of pool keys to retrive
+    /// - `offset`: The offset from which retrive pools.
     #[ink(message)]
-    fn get_pools(&self) -> Vec<PoolKey>;
+    fn get_pools(&self, size: u8, offset: u16) -> Result<Vec<PoolKey>, InvariantError>;
 
     /// Retrieves available fee tiers
     #[ink(message)]
