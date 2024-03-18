@@ -1,7 +1,7 @@
 name: Unit and e2e tests
 
 on:
-  push:
+  push: 
     branches:
       - master
   pull_request:
@@ -29,10 +29,12 @@ jobs:
         run: substrate-contracts-node --version
 
       - name: Install Protobuf
+        if: ${{ steps.check-substrate-contracts-node.outcome == 'failure' }}
         run: |
           sudo apt-get install -y protobuf-compiler libprotobuf-dev
 
       - name: Install substrate-contracts-node
+        if: ${{ steps.check-substrate-contracts-node.outcome == 'failure' }}
         run: |
           cargo install cargo-dylint dylint-link
           cargo install --version 0.31.0 --force --locked contracts-node
@@ -65,10 +67,12 @@ jobs:
         run: substrate-contracts-node --version
 
       - name: Install Protobuf
+        if: ${{ steps.check-substrate-contracts-node.outcome == 'failure' }}
         run: |
           sudo apt-get install -y protobuf-compiler libprotobuf-dev
 
       - name: Install substrate-contracts-node
+        if: ${{ steps.check-substrate-contracts-node.outcome == 'failure' }}
         run: |
           cargo install cargo-dylint dylint-link
           cargo install --version 0.31.0 --force --locked contracts-node
@@ -119,11 +123,13 @@ jobs:
         run: substrate-contracts-node --version
 
       - name: Install Protobuf
+        if: ${{ steps.check-substrate-contracts-node.outcome == 'failure' }}
         run: |
           sudo apt-get install -y protobuf-compiler libprotobuf-dev
 
       - name: Install substrate-contracts-node
         run: |
+          if: ${{ steps.check-substrate-contracts-node.outcome == 'failure' }}
           cargo install cargo-dylint dylint-link
           cargo install --version 0.31.0 --force --locked contracts-node
 
