@@ -4,7 +4,7 @@ set -e
 
 cd ..
 cd sdk
-npx tsc
+./build.sh
 npm run node:start &
 sleep 5
 cd ..
