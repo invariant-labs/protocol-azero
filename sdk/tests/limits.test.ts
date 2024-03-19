@@ -37,10 +37,10 @@ describe('limits', async () => {
     await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
   })
 
-  it('should be able to store more than 256kb of data in storage', async function () {
+  it('storage limit test', async function () {
     this.timeout(35000)
 
-    for (let i = 1n; i <= 1619n; i++) {
+    for (let i = 1; i <= 1619; i++) {
       const result = await invariant.createPosition(
         account,
         poolKey,
