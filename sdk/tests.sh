@@ -1,7 +1,7 @@
 #!/bin/bash
 
 npm run node:start &
-npm run test &
+npm run test:local &
 test_pid=$!
 
 wait $test_pid
