@@ -7,7 +7,7 @@ import { PSP22 } from '../src/psp22.js'
 import { ContractOptions } from '../src/schema.js'
 import { initPolkadotApi, integerSafeCast, newFeeTier, newPoolKey } from '../src/utils.js'
 
-describe('crosses', async () => {
+describe('testnet-crosses-limitations', async () => {
   it('Validate limitation number of crosses in single atomic swap', async function () {
     this.timeout(2000000)
     const network = Network.Testnet
@@ -15,7 +15,6 @@ describe('crosses', async () => {
     const keyring = new Keyring({ type: 'sr25519' })
     const deployer = keyring.addFromUri('//Alice')
 
-    console.log('I am running')
     const deployOptions: ContractOptions = {
       storageDepositLimit: null,
       refTime: 259058343000,
