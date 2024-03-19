@@ -6,7 +6,7 @@
   ],
   "description": "",
   "type": "module",
-  "main": "target/src/index.js",
+  "main": "target/index.js",
   "keywords": [
     "Aleph Zero",
     "DEX",
@@ -32,6 +32,7 @@
     "node:stop": "ps aux | grep substrate-contracts-node | tr -s ' ' | cut -d ' ' -f 2 | head -n 1 | xargs -r kill -9",
     "contract:build": "cd .. && cargo contract build --release && cd sdk",
     "docs:copy": "cp ../README.md README.md",
+    "build:copy-wasm": "cd target && mkdir wasm && cp -r ../src/wasm/pkg ./wasm/pkg",
     "test:all": "ts-mocha",
     "test:local": "npm run test:utils && npm run test:wazero && npm run test:psp22 && npm run test:protocol-fee && npm run test:position && npm run test:math && npm run test:invariant && npm run test:get-position-ticks && npm run test:get-liquidity-ticks && npm run test:get-tickmap && npm run test:example && npm run test:events",
     "test:utils": "mocha ./tests/utils.test.ts -g utils",
