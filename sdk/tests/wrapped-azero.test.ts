@@ -11,7 +11,7 @@ const account = await keyring.addFromUri('//Alice')
 
 let wazero = await WrappedAZERO.deploy(api, Network.Local, account)
 
-describe('wrapped azero', function () {
+describe('wrapped-azero', function () {
   beforeEach(async () => {
     wazero = await WrappedAZERO.deploy(api, Network.Local, account)
   })
