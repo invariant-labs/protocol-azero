@@ -75,6 +75,7 @@ export async function sendQuery(
     },
     ...data
   )
+  console.log(result, output)
 
   if (result.isOk && output) {
     return parse(JSON.parse(output.toString()).ok)
