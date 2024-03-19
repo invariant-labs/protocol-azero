@@ -4,7 +4,7 @@ import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
 import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
-import { toPercentage } from '../wasm/pkg/invariant_a0_wasm'
+import { toPercentage } from '../src/wasm/pkg/invariant_a0_wasm.js'
 
 const api = await initPolkadotApi(Network.Local)
 
