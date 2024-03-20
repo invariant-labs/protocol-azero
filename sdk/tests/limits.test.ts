@@ -6,22 +6,24 @@ import { PSP22 } from '../src/psp22'
 import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
 import { toPercentage } from '../src/wasm/pkg/invariant_a0_wasm.js'
 
-const api = await initPolkadotApi(Network.Local)
+const api = await initPolkadotApi(Network.Testnet)
 
 const keyring = new Keyring({ type: 'sr25519' })
 const account = await keyring.addFromUri('//Alice')
 const feeTier = newFeeTier(10000000000n, 1n)
 
-let invariant = await Invariant.deploy(api, Network.Local, account, toPercentage(1n, 2n))
+let invariant = await Invariant.deploy(api, Network.Testnet, account, toPercentage(1n, 2n))
 let token0Address = await PSP22.deploy(api, account, 1000000000000n, 'Coin', 'COIN', 0n)
 let token1Address = await PSP22.deploy(api, account, 1000000000000n, 'Coin', 'COIN', 0n)
 let poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
-const psp22 = await PSP22.load(api, Network.Local, token0Address)
+const psp22 = await PSP22.load(api, Network.Testnet, token0Address)
 
 describe('limits', async () => {
-  beforeEach(async () => {
-    invariant = await Invariant.deploy(api, Network.Local, account, 10000000000n)
+  beforeEach(async function () {
+    this.timeout(60000)
+
+    invariant = await Invariant.deploy(api, Network.Testnet, account, 10000000000n)
     token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
     token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
 
@@ -38,9 +40,10 @@ describe('limits', async () => {
   })
 
   it('storage limit test', async function () {
-    this.timeout(35000)
+    this.timeout(1000000000000)
 
     for (let i = 1; i <= 1619; i++) {
+      console.log(i)
       const result = await invariant.createPosition(
         account,
         poolKey,

@@ -21,8 +21,8 @@ import {
 } from './wasm/pkg/invariant_a0_wasm.js'
 
 export const MAX_REF_TIME = 259058343000
-export const DEFAULT_REF_TIME = 1250000000000
-export const DEFAULT_PROOF_SIZE = 1250000000000
+export const DEFAULT_REF_TIME = 100000000000
+export const DEFAULT_PROOF_SIZE = 100000000000
 
 export const TESTNET = 'alephzero-testnet'
 export const MAINNET = 'alephzero-mainnet'
