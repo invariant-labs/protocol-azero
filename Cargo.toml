@@ -10,7 +10,7 @@ decimal = { path = "src/decimal" }
 traceable_result = { path = "src/traceable_result" }
 
 # ink
-ink = { version = "4.2.0", default-features = false }
+ink = { version = "5.0.0", default-features = false }
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = [
   "derive",
 ] }
@@ -22,7 +22,7 @@ token = { path = "src/token", default-features = false, features = [
 ] }
 
 [dev-dependencies]
-ink_e2e = "4.3.0"
+ink_e2e = "5.0.0"
 test_helpers = { path = "src/test_helpers", default-features = false }
 
 [lib]

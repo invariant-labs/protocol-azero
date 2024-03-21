@@ -86,7 +86,9 @@ impl Pool {
     ) -> TrackableResult<()> {
         let protocol_fee = amount.big_mul_up(protocol_fee);
 
-        let pool_fee = amount - protocol_fee;
+        let pool_fee = amount
+            .checked_sub(protocol_fee)
+            .map_err(|_| err!("Underflow while calculating pool fee"))?;
 
         if (pool_fee.is_zero() && protocol_fee.is_zero()) || self.liquidity.is_zero() {
             return Ok(());
@@ -96,10 +98,16 @@ impl Pool {
 
         if in_x {
             self.fee_growth_global_x = self.fee_growth_global_x.unchecked_add(fee_growth);
-            self.fee_protocol_token_x += protocol_fee;
+            self.fee_protocol_token_x = self
+                .fee_protocol_token_x
+                .checked_add(protocol_fee)
+                .map_err(|_| err!("Overflow while calculating fee protocol token X"))?;
         } else {
             self.fee_growth_global_y = self.fee_growth_global_y.unchecked_add(fee_growth);
-            self.fee_protocol_token_y += protocol_fee;
+            self.fee_protocol_token_y = self
+                .fee_protocol_token_y
+                .checked_add(protocol_fee)
+                .map_err(|_| err!("Overflow while calculating fee protocol token Y"))?;
         }
         Ok(())
     }
@@ -177,7 +185,9 @@ impl Pool {
 
             // set tick to limit (below if price is going down, because current tick should always be below price)
             self.current_tick_index = if x_to_y && is_enough_amount_to_cross {
-                tick.index - fee_tier.tick_spacing as i32
+                tick.index
+                    .checked_sub(fee_tier.tick_spacing as i32)
+                    .unwrap()
             } else {
                 tick.index
             };

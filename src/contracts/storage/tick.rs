@@ -85,7 +85,7 @@ impl Tick {
                 false => FeeGrowth::new(0),
             },
             seconds_outside: match below_current_tick {
-                true => current_timestamp - pool.start_timestamp,
+                true => current_timestamp.checked_sub(pool.start_timestamp).unwrap(),
                 false => 0,
             },
             ..Self::default()
@@ -136,21 +136,35 @@ impl Tick {
             max_liquidity_per_tick,
         )?;
 
-        self.update_liquidity_change(liquidity_delta, is_deposit ^ is_upper);
+        let _ = self.update_liquidity_change(liquidity_delta, is_deposit ^ is_upper);
         Ok(())
     }
 
-    fn update_liquidity_change(&mut self, liquidity_delta: Liquidity, add: bool) {
+    fn update_liquidity_change(
+        &mut self,
+        liquidity_delta: Liquidity,
+        add: bool,
+    ) -> TrackableResult<()> {
         if self.sign ^ add {
             if { self.liquidity_change } > liquidity_delta {
-                self.liquidity_change -= liquidity_delta;
+                self.liquidity_change = self
+                    .liquidity_change
+                    .checked_sub(liquidity_delta)
+                    .map_err(|_| err!("Underflow while calculating liquidity change"))?;
             } else {
-                self.liquidity_change = liquidity_delta - self.liquidity_change;
+                self.liquidity_change = liquidity_delta
+                    .checked_sub(self.liquidity_change)
+                    .map_err(|_| err!("Underflow while calculating liquidity change"))?;
                 self.sign = !self.sign;
             }
         } else {
-            self.liquidity_change += liquidity_delta;
+            self.liquidity_change = self
+                .liquidity_change
+                .checked_add(liquidity_delta)
+                .map_err(|_| err!("Overflow while calculating liquidity change"))?;
         }
+
+        Ok(())
     }
 
     fn calculate_new_liquidity_gross(

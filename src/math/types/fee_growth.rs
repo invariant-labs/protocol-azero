@@ -38,9 +38,9 @@ impl FeeGrowth {
             U256::from(self.get())
                 .checked_mul(liquidity.here())
                 .ok_or_else(|| err!(TrackableError::MUL))?
-                .checked_div(
-                    U256::from(10).pow(U256::from(FeeGrowth::scale() + Liquidity::scale())),
-                )
+                .checked_div(U256::from(10).pow(U256::from(
+                    FeeGrowth::scale().checked_add(Liquidity::scale()).unwrap(),
+                )))
                 .ok_or_else(|| err!(TrackableError::MUL))?
                 .try_into()
                 .map_err(|_| err!(TrackableError::cast::<TokenAmount>().as_str()))?,
