@@ -30,7 +30,11 @@
               "displayName": [
                 "Percentage"
               ],
+<<<<<<< HEAD
               "type": 12
+=======
+              "type": 11
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           }
         ],
@@ -43,7 +47,11 @@
             "ink_primitives",
             "ConstructorResult"
           ],
+<<<<<<< HEAD
           "type": 13
+=======
+          "type": 12
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         },
         "selector": "0x9bae9d5e"
       }
@@ -72,13 +80,21 @@
         "displayName": [
           "ChainExtension"
         ],
+<<<<<<< HEAD
         "type": 68
+=======
+        "type": 66
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
       },
       "hash": {
         "displayName": [
           "Hash"
         ],
+<<<<<<< HEAD
         "type": 67
+=======
+        "type": 65
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
       },
       "maxEventTopics": 4,
       "timestamp": {
@@ -121,7 +137,11 @@
               "displayName": [
                 "PoolKey"
               ],
+<<<<<<< HEAD
               "type": 17
+=======
+              "type": 16
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -132,7 +152,11 @@
               "displayName": [
                 "Liquidity"
               ],
+<<<<<<< HEAD
               "type": 21
+=======
+              "type": 20
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -165,7 +189,11 @@
               "displayName": [
                 "SqrtPrice"
               ],
+<<<<<<< HEAD
               "type": 22
+=======
+              "type": 21
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           }
         ],
@@ -204,7 +232,11 @@
               "displayName": [
                 "PoolKey"
               ],
+<<<<<<< HEAD
               "type": 17
+=======
+              "type": 16
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -215,7 +247,11 @@
               "displayName": [
                 "Vec"
               ],
+<<<<<<< HEAD
               "type": 66
+=======
+              "type": 64
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           }
         ],
@@ -254,7 +290,11 @@
               "displayName": [
                 "PoolKey"
               ],
+<<<<<<< HEAD
               "type": 17
+=======
+              "type": 16
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -265,7 +305,11 @@
               "displayName": [
                 "Liquidity"
               ],
+<<<<<<< HEAD
               "type": 21
+=======
+              "type": 20
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -298,7 +342,11 @@
               "displayName": [
                 "SqrtPrice"
               ],
+<<<<<<< HEAD
               "type": 22
+=======
+              "type": 21
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           }
         ],
@@ -337,7 +385,11 @@
               "displayName": [
                 "PoolKey"
               ],
+<<<<<<< HEAD
               "type": 17
+=======
+              "type": 16
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -348,7 +400,11 @@
               "displayName": [
                 "TokenAmount"
               ],
+<<<<<<< HEAD
               "type": 27
+=======
+              "type": 26
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -359,7 +415,11 @@
               "displayName": [
                 "TokenAmount"
               ],
+<<<<<<< HEAD
               "type": 27
+=======
+              "type": 26
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -370,7 +430,11 @@
               "displayName": [
                 "TokenAmount"
               ],
+<<<<<<< HEAD
               "type": 27
+=======
+              "type": 26
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -381,7 +445,11 @@
               "displayName": [
                 "SqrtPrice"
               ],
+<<<<<<< HEAD
               "type": 22
+=======
+              "type": 21
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -392,7 +460,11 @@
               "displayName": [
                 "SqrtPrice"
               ],
+<<<<<<< HEAD
               "type": 22
+=======
+              "type": 21
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -403,7 +475,11 @@
               "displayName": [
                 "bool"
               ],
+<<<<<<< HEAD
               "type": 9
+=======
+              "type": 8
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           }
         ],
@@ -416,7 +492,11 @@
         "ink",
         "LangError"
       ],
+<<<<<<< HEAD
       "type": 15
+=======
+      "type": 14
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
     },
     "messages": [
       {
@@ -431,7 +511,11 @@
             "ink",
             "MessageResult"
           ],
+<<<<<<< HEAD
           "type": 16
+=======
+          "type": 15
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         },
         "selector": "0xe285b69a"
       },
@@ -443,7 +527,11 @@
               "displayName": [
                 "PoolKey"
               ],
+<<<<<<< HEAD
               "type": 17
+=======
+              "type": 16
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           }
         ],
@@ -457,7 +545,11 @@
             "ink",
             "MessageResult"
           ],
+<<<<<<< HEAD
           "type": 18
+=======
+          "type": 17
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         },
         "selector": "0x5a059796"
       },
@@ -469,7 +561,11 @@
               "displayName": [
                 "Percentage"
               ],
+<<<<<<< HEAD
               "type": 12
+=======
+              "type": 11
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           }
         ],
@@ -483,7 +579,11 @@
             "ink",
             "MessageResult"
           ],
+<<<<<<< HEAD
           "type": 18
+=======
+          "type": 17
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         },
         "selector": "0xc8bd0f58"
       },
@@ -495,7 +595,11 @@
               "displayName": [
                 "PoolKey"
               ],
+<<<<<<< HEAD
               "type": 17
+=======
+              "type": 16
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -518,7 +622,11 @@
             "ink",
             "MessageResult"
           ],
+<<<<<<< HEAD
           "type": 18
+=======
+          "type": 17
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         },
         "selector": "0x0ebd3ec6"
       },
@@ -530,7 +638,11 @@
               "displayName": [
                 "PoolKey"
               ],
+<<<<<<< HEAD
               "type": 17
+=======
+              "type": 16
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -557,7 +669,11 @@
               "displayName": [
                 "Liquidity"
               ],
+<<<<<<< HEAD
               "type": 21
+=======
+              "type": 20
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -566,7 +682,11 @@
               "displayName": [
                 "SqrtPrice"
               ],
+<<<<<<< HEAD
               "type": 22
+=======
+              "type": 21
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -575,7 +695,11 @@
               "displayName": [
                 "SqrtPrice"
               ],
+<<<<<<< HEAD
               "type": 22
+=======
+              "type": 21
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           }
         ],
@@ -589,7 +713,11 @@
             "ink",
             "MessageResult"
           ],
+<<<<<<< HEAD
           "type": 23
+=======
+          "type": 22
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         },
         "selector": "0x0a1ca76b"
       },
@@ -601,7 +729,11 @@
               "displayName": [
                 "PoolKey"
               ],
+<<<<<<< HEAD
               "type": 17
+=======
+              "type": 16
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -610,7 +742,11 @@
               "displayName": [
                 "bool"
               ],
+<<<<<<< HEAD
               "type": 9
+=======
+              "type": 8
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -619,7 +755,11 @@
               "displayName": [
                 "TokenAmount"
               ],
+<<<<<<< HEAD
               "type": 27
+=======
+              "type": 26
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -628,7 +768,11 @@
               "displayName": [
                 "bool"
               ],
+<<<<<<< HEAD
               "type": 9
+=======
+              "type": 8
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -637,7 +781,11 @@
               "displayName": [
                 "SqrtPrice"
               ],
+<<<<<<< HEAD
               "type": 22
+=======
+              "type": 21
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           }
         ],
@@ -651,7 +799,11 @@
             "ink",
             "MessageResult"
           ],
+<<<<<<< HEAD
           "type": 28
+=======
+          "type": 27
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         },
         "selector": "0x1c590004"
       },
@@ -663,7 +815,11 @@
               "displayName": [
                 "TokenAmount"
               ],
+<<<<<<< HEAD
               "type": 27
+=======
+              "type": 26
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -672,7 +828,11 @@
               "displayName": [
                 "TokenAmount"
               ],
+<<<<<<< HEAD
               "type": 27
+=======
+              "type": 26
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -681,7 +841,11 @@
               "displayName": [
                 "Percentage"
               ],
+<<<<<<< HEAD
               "type": 12
+=======
+              "type": 11
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -690,7 +854,11 @@
               "displayName": [
                 "Vec"
               ],
+<<<<<<< HEAD
               "type": 34
+=======
+              "type": 33
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           }
         ],
@@ -704,7 +872,11 @@
             "ink",
             "MessageResult"
           ],
+<<<<<<< HEAD
           "type": 18
+=======
+          "type": 17
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         },
         "selector": "0x5ff8d655"
       },
@@ -716,7 +888,11 @@
               "displayName": [
                 "PoolKey"
               ],
+<<<<<<< HEAD
               "type": 17
+=======
+              "type": 16
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -725,7 +901,11 @@
               "displayName": [
                 "bool"
               ],
+<<<<<<< HEAD
               "type": 9
+=======
+              "type": 8
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -734,7 +914,11 @@
               "displayName": [
                 "TokenAmount"
               ],
+<<<<<<< HEAD
               "type": 27
+=======
+              "type": 26
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -743,7 +927,11 @@
               "displayName": [
                 "bool"
               ],
+<<<<<<< HEAD
               "type": 9
+=======
+              "type": 8
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -752,7 +940,11 @@
               "displayName": [
                 "SqrtPrice"
               ],
+<<<<<<< HEAD
               "type": 22
+=======
+              "type": 21
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           }
         ],
@@ -766,7 +958,11 @@
             "ink",
             "MessageResult"
           ],
+<<<<<<< HEAD
           "type": 36
+=======
+          "type": 35
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         },
         "selector": "0xa2bd3fc7"
       },
@@ -778,7 +974,11 @@
               "displayName": [
                 "TokenAmount"
               ],
+<<<<<<< HEAD
               "type": 27
+=======
+              "type": 26
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -787,7 +987,11 @@
               "displayName": [
                 "Vec"
               ],
+<<<<<<< HEAD
               "type": 34
+=======
+              "type": 33
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           }
         ],
@@ -801,7 +1005,11 @@
             "ink",
             "MessageResult"
           ],
+<<<<<<< HEAD
           "type": 39
+=======
+          "type": 38
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         },
         "selector": "0x879b5256"
       },
@@ -836,7 +1044,11 @@
             "ink",
             "MessageResult"
           ],
+<<<<<<< HEAD
           "type": 18
+=======
+          "type": 17
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         },
         "selector": "0xe5af145a"
       },
@@ -871,7 +1083,11 @@
             "ink",
             "MessageResult"
           ],
+<<<<<<< HEAD
           "type": 23
+=======
+          "type": 22
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         },
         "selector": "0xccb84930"
       },
@@ -897,7 +1113,11 @@
             "ink",
             "MessageResult"
           ],
+<<<<<<< HEAD
           "type": 41
+=======
+          "type": 40
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         },
         "selector": "0xa509d69f"
       },
@@ -923,7 +1143,11 @@
             "ink",
             "MessageResult"
           ],
+<<<<<<< HEAD
           "type": 43
+=======
+          "type": 42
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         },
         "selector": "0x4eb580e1"
       },
@@ -949,7 +1173,11 @@
             "ink",
             "MessageResult"
           ],
+<<<<<<< HEAD
           "type": 43
+=======
+          "type": 42
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         },
         "selector": "0xfe63d239"
       },
@@ -961,7 +1189,11 @@
               "displayName": [
                 "FeeTier"
               ],
+<<<<<<< HEAD
               "type": 11
+=======
+              "type": 10
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           }
         ],
@@ -975,7 +1207,11 @@
             "ink",
             "MessageResult"
           ],
+<<<<<<< HEAD
           "type": 18
+=======
+          "type": 17
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         },
         "selector": "0x009b6a3d"
       },
@@ -987,7 +1223,11 @@
               "displayName": [
                 "FeeTier"
               ],
+<<<<<<< HEAD
               "type": 11
+=======
+              "type": 10
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           }
         ],
@@ -1001,7 +1241,11 @@
             "ink",
             "MessageResult"
           ],
+<<<<<<< HEAD
           "type": 18
+=======
+          "type": 17
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         },
         "selector": "0x3b497d6e"
       },
@@ -1013,7 +1257,11 @@
               "displayName": [
                 "FeeTier"
               ],
+<<<<<<< HEAD
               "type": 11
+=======
+              "type": 10
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           }
         ],
@@ -1027,7 +1275,11 @@
             "ink",
             "MessageResult"
           ],
+<<<<<<< HEAD
           "type": 46
+=======
+          "type": 45
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         },
         "selector": "0x4e9e07ce"
       },
@@ -1057,7 +1309,11 @@
               "displayName": [
                 "FeeTier"
               ],
+<<<<<<< HEAD
               "type": 11
+=======
+              "type": 10
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -1066,7 +1322,11 @@
               "displayName": [
                 "SqrtPrice"
               ],
+<<<<<<< HEAD
               "type": 22
+=======
+              "type": 21
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -1089,7 +1349,11 @@
             "ink",
             "MessageResult"
           ],
+<<<<<<< HEAD
           "type": 18
+=======
+          "type": 17
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         },
         "selector": "0x98b595e9"
       },
@@ -1119,7 +1383,11 @@
               "displayName": [
                 "FeeTier"
               ],
+<<<<<<< HEAD
               "type": 11
+=======
+              "type": 10
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           }
         ],
@@ -1133,7 +1401,11 @@
             "ink",
             "MessageResult"
           ],
+<<<<<<< HEAD
           "type": 47
+=======
+          "type": 46
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         },
         "selector": "0xf91e4a49"
       },
@@ -1145,7 +1417,11 @@
               "displayName": [
                 "PoolKey"
               ],
+<<<<<<< HEAD
               "type": 17
+=======
+              "type": 16
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -1168,7 +1444,11 @@
             "ink",
             "MessageResult"
           ],
+<<<<<<< HEAD
           "type": 49
+=======
+          "type": 48
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         },
         "selector": "0xeebd620b"
       },
@@ -1180,7 +1460,11 @@
               "displayName": [
                 "PoolKey"
               ],
+<<<<<<< HEAD
               "type": 17
+=======
+              "type": 16
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -1203,7 +1487,11 @@
             "ink",
             "MessageResult"
           ],
+<<<<<<< HEAD
           "type": 46
+=======
+          "type": 45
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         },
         "selector": "0xdbae15e5"
       },
@@ -1238,7 +1526,11 @@
             "ink",
             "MessageResult"
           ],
+<<<<<<< HEAD
           "type": 51
+=======
+          "type": 50
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         },
         "selector": "0x6dd2d776"
       },
@@ -1254,7 +1546,11 @@
             "ink",
             "MessageResult"
           ],
+<<<<<<< HEAD
           "type": 54
+=======
+          "type": 53
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         },
         "selector": "0xd05b6003"
       },
@@ -1289,7 +1585,11 @@
             "ink",
             "MessageResult"
           ],
+<<<<<<< HEAD
           "type": 55
+=======
+          "type": 54
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         },
         "selector": "0xcc9476e7"
       },
@@ -1301,6 +1601,7 @@
               "displayName": [
                 "PoolKey"
               ],
+<<<<<<< HEAD
               "type": 17
             }
           }
@@ -1328,6 +1629,9 @@
                 "PoolKey"
               ],
               "type": 17
+=======
+              "type": 16
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -1368,7 +1672,11 @@
             "ink",
             "MessageResult"
           ],
+<<<<<<< HEAD
           "type": 59
+=======
+          "type": 57
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         },
         "selector": "0x3b83b256"
       },
@@ -1380,7 +1688,11 @@
               "displayName": [
                 "PoolKey"
               ],
+<<<<<<< HEAD
               "type": 17
+=======
+              "type": 16
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           },
           {
@@ -1403,7 +1715,11 @@
             "ink",
             "MessageResult"
           ],
+<<<<<<< HEAD
           "type": 62
+=======
+          "type": 60
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         },
         "selector": "0x8ef8d345"
       },
@@ -1429,7 +1745,11 @@
             "ink",
             "MessageResult"
           ],
+<<<<<<< HEAD
           "type": 65
+=======
+          "type": 63
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         },
         "selector": "0xd842f034"
       },
@@ -1441,7 +1761,11 @@
               "displayName": [
                 "PoolKey"
               ],
+<<<<<<< HEAD
               "type": 17
+=======
+              "type": 16
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
             }
           }
         ],
@@ -1455,7 +1779,11 @@
             "ink",
             "MessageResult"
           ],
+<<<<<<< HEAD
           "type": 65
+=======
+          "type": 63
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         },
         "selector": "0xf360dea7"
       }
@@ -2521,6 +2849,51 @@
           "pool_key",
           "PoolKey"
         ]
+<<<<<<< HEAD
+=======
+      }
+    },
+    {
+      "id": 17,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 18
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 14
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 18
+          },
+          {
+            "name": "E",
+            "type": 14
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
       }
     },
     {
@@ -2728,6 +3101,31 @@
           "invariant",
           "InvariantError"
         ]
+<<<<<<< HEAD
+=======
+      }
+    },
+    {
+      "id": 20,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "type": 6,
+                "typeName": "u128"
+              }
+            ]
+          }
+        },
+        "path": [
+          "invariant",
+          "math",
+          "types",
+          "liquidity",
+          "Liquidity"
+        ]
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
       }
     },
     {
@@ -2747,8 +3145,13 @@
           "invariant",
           "math",
           "types",
+<<<<<<< HEAD
           "liquidity",
           "Liquidity"
+=======
+          "sqrt_price",
+          "SqrtPrice"
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         ]
       }
     },
@@ -2765,12 +3168,27 @@
             ]
           }
         },
+<<<<<<< HEAD
         "path": [
           "invariant",
           "math",
           "types",
           "sqrt_price",
           "SqrtPrice"
+=======
+        "params": [
+          {
+            "name": "T",
+            "type": 23
+          },
+          {
+            "name": "E",
+            "type": 14
+          }
+        ],
+        "path": [
+          "Result"
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         ]
       }
     },
@@ -2919,6 +3337,31 @@
           "position",
           "Position"
         ]
+<<<<<<< HEAD
+=======
+      }
+    },
+    {
+      "id": 25,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "type": 6,
+                "typeName": "u128"
+              }
+            ]
+          }
+        },
+        "path": [
+          "invariant",
+          "math",
+          "types",
+          "fee_growth",
+          "FeeGrowth"
+        ]
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
       }
     },
     {
@@ -2938,8 +3381,13 @@
           "invariant",
           "math",
           "types",
+<<<<<<< HEAD
           "fee_growth",
           "FeeGrowth"
+=======
+          "token_amount",
+          "TokenAmount"
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         ]
       }
     },
@@ -2956,12 +3404,27 @@
             ]
           }
         },
+<<<<<<< HEAD
         "path": [
           "invariant",
           "math",
           "types",
           "token_amount",
           "TokenAmount"
+=======
+        "params": [
+          {
+            "name": "T",
+            "type": 28
+          },
+          {
+            "name": "E",
+            "type": 14
+          }
+        ],
+        "path": [
+          "Result"
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         ]
       }
     },
@@ -3034,6 +3497,7 @@
             ]
           }
         },
+<<<<<<< HEAD
         "params": [
           {
             "name": "T",
@@ -3046,6 +3510,12 @@
         ],
         "path": [
           "Result"
+=======
+        "path": [
+          "invariant",
+          "invariant",
+          "CalculateSwapResult"
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         ]
       }
     },
@@ -3234,6 +3704,19 @@
           "tick",
           "Tick"
         ]
+<<<<<<< HEAD
+=======
+      }
+    },
+    {
+      "id": 33,
+      "type": {
+        "def": {
+          "sequence": {
+            "type": 34
+          }
+        }
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
       }
     },
     {
@@ -3243,7 +3726,16 @@
           "sequence": {
             "type": 35
           }
+<<<<<<< HEAD
         }
+=======
+        },
+        "path": [
+          "invariant",
+          "invariant",
+          "SwapHop"
+        ]
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
       }
     },
     {
@@ -3265,10 +3757,25 @@
             ]
           }
         },
+<<<<<<< HEAD
         "path": [
           "invariant",
           "invariant",
           "SwapHop"
+=======
+        "params": [
+          {
+            "name": "T",
+            "type": 36
+          },
+          {
+            "name": "E",
+            "type": 14
+          }
+        ],
+        "path": [
+          "Result"
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
         ]
       }
     },
@@ -3318,6 +3825,45 @@
       "id": 37,
       "type": {
         "def": {
+<<<<<<< HEAD
+=======
+          "composite": {
+            "fields": [
+              {
+                "name": "amount_in",
+                "type": 26,
+                "typeName": "TokenAmount"
+              },
+              {
+                "name": "amount_out",
+                "type": 26,
+                "typeName": "TokenAmount"
+              },
+              {
+                "name": "target_sqrt_price",
+                "type": 21,
+                "typeName": "SqrtPrice"
+              },
+              {
+                "name": "ticks",
+                "type": 31,
+                "typeName": "Vec<Tick>"
+              }
+            ]
+          }
+        },
+        "path": [
+          "invariant",
+          "invariant",
+          "QuoteResult"
+        ]
+      }
+    },
+    {
+      "id": 38,
+      "type": {
+        "def": {
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
           "variant": {
             "variants": [
               {
@@ -3354,6 +3900,7 @@
         "path": [
           "Result"
         ]
+<<<<<<< HEAD
       }
     },
     {
@@ -3390,6 +3937,8 @@
           "invariant",
           "QuoteResult"
         ]
+=======
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
       }
     },
     {
@@ -3516,6 +4065,7 @@
         "path": [
           "Result"
         ]
+<<<<<<< HEAD
       }
     },
     {
@@ -3526,6 +4076,8 @@
             "type": 25
           }
         }
+=======
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
       }
     },
     {
@@ -3574,6 +4126,20 @@
       "id": 44,
       "type": {
         "def": {
+<<<<<<< HEAD
+=======
+          "tuple": [
+            26,
+            26
+          ]
+        }
+      }
+    },
+    {
+      "id": 45,
+      "type": {
+        "def": {
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
           "variant": {
             "variants": [
               {
@@ -3610,6 +4176,7 @@
         "path": [
           "Result"
         ]
+<<<<<<< HEAD
       }
     },
     {
@@ -3621,6 +4188,8 @@
             27
           ]
         }
+=======
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
       }
     },
     {
@@ -3915,6 +4484,7 @@
         "path": [
           "Result"
         ]
+<<<<<<< HEAD
       }
     },
     {
@@ -3925,6 +4495,8 @@
             "type": 17
           }
         }
+=======
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
       }
     },
     {
@@ -4057,12 +4629,81 @@
           "tick",
           "PositionTick"
         ]
+<<<<<<< HEAD
+=======
+      }
+    },
+    {
+      "id": 57,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 58
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 14
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 58
+          },
+          {
+            "name": "E",
+            "type": 14
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
       }
     },
     {
       "id": 58,
       "type": {
         "def": {
+<<<<<<< HEAD
+=======
+          "sequence": {
+            "type": 59
+          }
+        }
+      }
+    },
+    {
+      "id": 59,
+      "type": {
+        "def": {
+          "tuple": [
+            5,
+            4
+          ]
+        }
+      }
+    },
+    {
+      "id": 60,
+      "type": {
+        "def": {
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
           "variant": {
             "variants": [
               {
@@ -4099,6 +4740,7 @@
         "path": [
           "Result"
         ]
+<<<<<<< HEAD
       }
     },
     {
@@ -4151,6 +4793,8 @@
             "type": 61
           }
         }
+=======
+>>>>>>> b951116a23ea2ffd5569e063ed28172cbeed2f0a
       }
     },
     {

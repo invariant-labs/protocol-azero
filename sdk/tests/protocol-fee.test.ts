@@ -20,7 +20,7 @@ const psp22 = await PSP22.load(api, Network.Local, token0Address)
 
 const feeTier = newFeeTier(10000000000n, 1n)
 
-describe('protocol fee', async () => {
+describe('protocol-fee', async () => {
   beforeEach(async () => {
     invariant = await Invariant.deploy(api, Network.Local, account, 10000000000n)
     token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)

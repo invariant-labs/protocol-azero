@@ -23,7 +23,7 @@ let token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN'
 let token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
 const psp22 = await PSP22.load(api, Network.Local, token0Address)
 
-describe('check get liquidity by x', async () => {
+describe('get-liquidity-by-x', async () => {
   const providedAmount = 430000n
 
   const feeTier = newFeeTier(6000000000n, 10n)
@@ -169,7 +169,7 @@ describe('check get liquidity by x', async () => {
   })
 })
 
-describe('check get liquidity by y', async () => {
+describe('get-liquidity-by-y', async () => {
   const providedAmount = 47600000000n
   const feeTier = newFeeTier(6000000000n, 10n)
   const positionOwner = keyring.addFromUri('//Bob')
