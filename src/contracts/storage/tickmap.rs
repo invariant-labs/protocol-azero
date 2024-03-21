@@ -261,19 +261,28 @@ impl Tickmap {
             "tick initialize tick again"
         );
 
+        let updated_chunk = flip_bit_at_position(returned_chunk, bit);
+
         if returned_chunk == 0 {
             self.store_initialized_chunk(pool_key, chunk)
         }
 
-        self.bitmap.insert(
-            (chunk, pool_key),
-            &flip_bit_at_position(returned_chunk, bit),
-        );
+        if updated_chunk == 0 {
+            self.remove_intialized_chunk(pool_key, chunk);
+        }
+
+        self.bitmap.insert((chunk, pool_key), &updated_chunk);
     }
 
     pub fn store_initialized_chunk(&mut self, pool_key: PoolKey, chunk: u16) {
         let mut vec = self.initialized_chunks.get(pool_key).unwrap_or_default();
         vec.push(chunk);
+        self.initialized_chunks.insert(pool_key, &vec);
+    }
+
+    pub fn remove_intialized_chunk(&mut self, pool_key: PoolKey, chunk: u16) {
+        let mut vec = self.initialized_chunks.get(pool_key).unwrap_or_default();
+        vec.retain(|&x| x != chunk);
         self.initialized_chunks.insert(pool_key, &vec);
     }
 

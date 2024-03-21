@@ -367,12 +367,25 @@ pub trait InvariantTrait {
     #[ink(message)]
     fn get_user_position_amount(&self, owner: AccountId) -> u32;
 
+    /// Retrieves indexes of initialized tickmap chunks
+    ///
+    /// # Parameters
+    /// - `pool_key`: A unique key that identifies the specified pool.
+    #[ink(message)]
+    fn get_initialized_chunks(&self, pool_key: PoolKey) -> Vec<u16>;
+
     /// Retrieves tickmap chunks
     ///
     /// # Parameters
     /// - `pool_key`: A unique key that identifies the specified pool.
     #[ink(message)]
-    fn get_tickmap(&self, pool_key: PoolKey) -> Vec<(u16, u64)>;
+    fn get_tickmap(
+        &self,
+        pool_key: PoolKey,
+        current_tick_index: i32,
+        offset: u16,
+        amount: u32,
+    ) -> Vec<(u16, u64)>;
 
     /// Retrieves ticks of a specified pool.
     ///
