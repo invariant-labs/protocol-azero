@@ -6,5 +6,6 @@ npm run docs:copy
 npm run wasm:build
 npm run wasm:package
 npm run build
+npm run build:copy-wasm
 build_status=$?
 exit $build_status
