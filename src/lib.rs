@@ -1012,12 +1012,12 @@ pub mod invariant {
             let max_chunk = get_max_chunk(pool_key.fee_tier.tick_spacing);
 
             let lower_bound = match current_chunk > offset {
-                true => current_chunk - offset as u16,
+                true => current_chunk - offset,
                 false => 0u16,
             };
 
             let upper_bound = match current_chunk + offset < max_chunk {
-                true => current_chunk + offset as u16,
+                true => current_chunk + offset,
                 false => max_chunk,
             };
 
