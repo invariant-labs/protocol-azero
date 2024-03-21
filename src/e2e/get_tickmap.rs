@@ -596,7 +596,7 @@ pub mod e2e_tests {
             .unwrap();
         }
 
-        let mut tickmap = get_tickmap!(
+        let tickmap = get_tickmap!(
             client,
             InvariantRef,
             dex,
