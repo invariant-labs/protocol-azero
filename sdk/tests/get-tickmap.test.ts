@@ -44,7 +44,19 @@ describe('tickmap', async () => {
     const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
     await invariant.createPosition(account, poolKey, ticks[2], ticks[3], 10n, pool.sqrtPrice, 0n)
 
-    const tickmap = await invariant.getTickmap(account, poolKey)
+    const offset = 10n
+    const amountToRetrive = 10n
+    const intializedChunks = await invariant.getInitializedChunks(account, poolKey)
+    const expectedIntializedChunks = [3465n]
+    assert.deepEqual(intializedChunks, expectedIntializedChunks)
+    console.log('intializedChunks', intializedChunks)
+    const tickmap = await invariant.getTickmap(
+      account,
+      poolKey,
+      pool.currentTickIndex,
+      offset,
+      amountToRetrive
+    )
     assert.deepEqual(tickmap[3465], 9223372036854775809n)
 
     for (const [chunkIndex, value] of tickmap.entries()) {
@@ -60,7 +72,19 @@ describe('tickmap', async () => {
     await invariant.createPosition(account, poolKey, ticks[0], ticks[1], 10n, pool.sqrtPrice, 0n)
     await invariant.createPosition(account, poolKey, ticks[4], ticks[5], 10n, pool.sqrtPrice, 0n)
 
-    const tickmap = await invariant.getTickmap(account, poolKey)
+    const intializedChunks = await invariant.getInitializedChunks(account, poolKey)
+    const expectedIntializedChunks = [0n, 6931n]
+    assert.deepEqual(intializedChunks, expectedIntializedChunks)
+
+    const offset = 6932n
+    const amountToRetrive = 2n
+    const tickmap = await invariant.getTickmap(
+      account,
+      poolKey,
+      pool.currentTickIndex,
+      offset,
+      amountToRetrive
+    )
     assert.deepEqual(tickmap[0], 0b11n)
     assert.deepEqual(
       tickmap[integerSafeCast(getMaxChunk(feeTier.tickSpacing))],
@@ -76,7 +100,20 @@ describe('tickmap', async () => {
       await invariant.createPosition(account, poolKey, i, i + 1n, 10n, pool.sqrtPrice, 0n)
     }
 
-    const tickmap = await invariant.getTickmap(account, poolKey)
+    const intializedChunks = await invariant.getInitializedChunks(account, poolKey)
+    for (let i = 0n; i < intializedChunks.length; i++) {
+      assert.exists(intializedChunks.some(chunk => chunk === i + 3466n))
+    }
+
+    const offset = 821n
+    const amountToRetrive = offset * 2n
+    const tickmap = await invariant.getTickmap(
+      account,
+      poolKey,
+      pool.currentTickIndex,
+      offset,
+      amountToRetrive
+    )
 
     const initializedChunks = 52500n / 64n
     for (let i = 0n; i < initializedChunks; i++) {
@@ -94,7 +131,21 @@ describe('tickmap', async () => {
       await invariant.createPosition(account, poolKey, i, i + 1n, 10n, pool.sqrtPrice, 0n)
     }
 
-    const tickmap = await invariant.getTickmap(account, poolKey)
+    const intializedChunks = await invariant.getInitializedChunks(account, poolKey)
+    for (let i = 0n; i < intializedChunks.length; i++) {
+      assert.exists(intializedChunks.some(chunk => chunk === i + 2644n))
+    }
+
+    const offset = 830n
+    const amountToRetrive = offset * 2n
+    const tickmap = await invariant.getTickmap(
+      account,
+      poolKey,
+      pool.currentTickIndex,
+      offset,
+      amountToRetrive
+    )
+
     const initializedChunks = 52544n / 64n
     for (let i = 0n; i < initializedChunks; i++) {
       const current = 2644n + i
@@ -113,7 +164,9 @@ describe('tickmap', async () => {
       await invariant.createPosition(account, poolKey, i, i + 1n, 10n, pool.sqrtPrice, 0n)
     }
 
-    await invariant.getTickmap(account, poolKey)
+    const offset = 6932n
+    const amountToRetrive = 2000n
+    await invariant.getTickmap(account, poolKey, pool.currentTickIndex, offset, amountToRetrive)
   })
   it('get tickmap max chunks + 1 returned', async function () {
     this.timeout(70000)
@@ -124,6 +177,10 @@ describe('tickmap', async () => {
       await invariant.createPosition(account, poolKey, i, i + 1n, 10n, pool.sqrtPrice, 0n)
     }
 
-    assertThrowsAsync(invariant.getTickmap(account, poolKey))
+    const offset = 6932n
+    const amountToRetrive = 2000n
+    assertThrowsAsync(
+      invariant.getTickmap(account, poolKey, pool.currentTickIndex, offset, amountToRetrive)
+    )
   })
 })

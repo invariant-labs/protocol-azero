@@ -599,14 +599,31 @@ export class Invariant {
     )
   }
 
-  async getTickmap(account: IKeyringPair, poolKey: PoolKey): Promise<bigint[]> {
+  async getInitializedChunks(account: IKeyringPair, poolKey: PoolKey): Promise<bigint[]> {
+    return await sendQuery(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      account,
+      InvariantQuery.GetInitializedChunks,
+      [poolKey]
+    )
+  }
+
+  async getTickmap(
+    account: IKeyringPair,
+    poolKey: PoolKey,
+    currentTickIndex: bigint,
+    offset: bigint,
+    amount: bigint
+  ): Promise<bigint[]> {
     const result = await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       account,
       InvariantQuery.GetTickmap,
-      [poolKey]
+      [poolKey, currentTickIndex, offset, amount]
     )
     return constructTickmap(result, poolKey.feeTier.tickSpacing)
   }
