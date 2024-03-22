@@ -12,12 +12,13 @@ macro_rules! get_tickmap {
 
 #[macro_export]
 macro_rules! get_protocol_fee {
-    ($client:ident, $dex:ty, $dex_address:expr) => {{
-        let message = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.get_protocol_fee());
+    ($client:ident, $dex:ident) => {{
+        let mut call_builder = $dex.call_builder::<Invariant>();
+        let call = call_builder.get_protocol_fee();
         $client
-            .call_dry_run(&ink_e2e::alice(), &message, 0, None)
-            .await
+            .call(&ink_e2e::alice(), &call)
+            .dry_run()
+            .await?
             .return_value()
     }};
 }
@@ -48,22 +49,17 @@ macro_rules! withdraw_protocol_fee {
 
 #[macro_export]
 macro_rules! change_protocol_fee {
-    ($client:ident, $dex:ty, $dex_address:expr, $protocol_fee:expr, $caller:ident) => {{
-        let message = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.change_protocol_fee($protocol_fee));
+    ($client:ident, $dex:ident, $protocol_fee:expr, $caller:ident) => {{
+        let mut call_builder = $dex.call_builder::<Invariant>();
+        let call = call_builder.change_protocol_fee($protocol_fee);
         let result = $client
-            .call_dry_run(&$caller, &message, 0, None)
-            .await
+            .call(&$caller, &call)
+            .dry_run()
+            .await?
             .return_value();
 
         if result.is_ok() {
-            let message = build_message::<$dex>($dex_address.clone())
-                .call(|contract| contract.change_protocol_fee($protocol_fee));
-            $client
-                .call(&$caller, message, 0, None)
-                .await
-                .expect("change_protocol_fee failed")
-                .return_value()
+            $client.call(&$caller, &call).submit().await?.return_value()
         } else {
             result
         }
