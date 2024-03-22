@@ -356,7 +356,17 @@ macro_rules! add_fee_tier {
     ($client:ident, $dex:ident, $fee_tier:expr, $caller:ident) => {{
         let mut call_builder = $dex.call_builder::<Invariant>();
         let call = call_builder.add_fee_tier($fee_tier);
-        $client.call(&$caller, &call).submit().await?.return_value()
+        let result = $client
+            .call(&$caller, &call)
+            .dry_run()
+            .await?
+            .return_value();
+
+        if result.is_ok() {
+            $client.call(&$caller, &call).submit().await?.return_value()
+        } else {
+            result
+        }
     }};
 }
 
