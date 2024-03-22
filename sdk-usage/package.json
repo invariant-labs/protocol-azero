@@ -1,0 +1,19 @@
+{
+  "name": "sdk-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "target/index.js",
+  "scripts": {
+    "start": "npx tsc && node --experimental-wasm-modules ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@invariant-labs/a0-sdk": "file:../sdk"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.2"
+  },
+  "type": "module"
+}
