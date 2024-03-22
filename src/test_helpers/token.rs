@@ -7,34 +7,30 @@ macro_rules! address_of {
 
 #[macro_export]
 macro_rules! balance_of {
-    ($client:ident, $token:ty, $token_address:expr, $owner:expr) => {{
-        let message = build_message::<$token>($token_address.clone())
-            .call(|contract| contract.balance_of($owner));
+    ($client:ident, $token:ident, $owner:expr) => {{
+        let mut call_builder = $token.call_builder::<Token>();
+        let call = call_builder.balance_of($owner);
         $client
-            .call_dry_run(&ink_e2e::alice(), &message, 0, None)
-            .await
+            .call(&ink_e2e::alice(), &call)
+            .dry_run()
+            .await?
             .return_value()
     }};
 }
 
 #[macro_export]
 macro_rules! mint {
-    ($client:ident, $token:ty, $token_address:expr, $to:expr, $value:expr, $caller:ident) => {{
-        let message = build_message::<$token>($token_address.clone())
-            .call(|contract| contract.mint($to, $value));
+    ($client:ident, $token:ident, $to:expr, $value:expr, $caller:ident) => {{
+        let mut call_builder = $token.call_builder::<Token>();
+        let call = call_builder.mint($to, $value);
         let result = $client
-            .call_dry_run(&$caller, &message, 0, None)
-            .await
+            .call(&$caller, &call)
+            .dry_run()
+            .await?
             .return_value();
 
         if result.is_ok() {
-            let message = build_message::<$token>($token_address.clone())
-                .call(|contract| contract.mint($to, $value));
-            $client
-                .call(&$caller, message, 0, None)
-                .await
-                .expect("mint failed")
-                .return_value()
+            $client.call(&$caller, &call).submit().await?.return_value()
         } else {
             result
         }
@@ -43,22 +39,17 @@ macro_rules! mint {
 
 #[macro_export]
 macro_rules! approve {
-    ($client:ident, $token:ty, $token_address:expr, $spender:expr, $value:expr, $caller:ident) => {{
-        let message = build_message::<$token>($token_address.clone())
-            .call(|contract| contract.increase_allowance($spender, $value));
+    ($client:ident, $token:ident, $spender:expr, $value:expr, $caller:ident) => {{
+        let mut call_builder = $token.call_builder::<Token>();
+        let call = call_builder.increase_allowance($spender, $value);
         let result = $client
-            .call_dry_run(&$caller, &message, 0, None)
-            .await
+            .call(&$caller, &call)
+            .dry_run()
+            .await?
             .return_value();
 
         if result.is_ok() {
-            let message = build_message::<$token>($token_address.clone())
-                .call(|contract| contract.increase_allowance($spender, $value));
-            $client
-                .call(&$caller, message, 0, None)
-                .await
-                .expect("approve failed")
-                .return_value()
+            $client.call(&$caller, &call).submit().await?.return_value()
         } else {
             result
         }

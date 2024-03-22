@@ -9,7 +9,7 @@ pub use data::{PSP22Data, PSP22Event};
 pub use errors::PSP22Error;
 pub use traits::{PSP22Burnable, PSP22Metadata, PSP22Mintable, PSP22};
 
-pub use self::token::TokenRef;
+pub use self::token::{Token, TokenRef};
 
 // An example code of a smart contract using PSP22Data struct to implement
 // the functionality of PSP22 fungible token.

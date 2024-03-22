@@ -87,38 +87,24 @@ macro_rules! change_fee_receiver {
 
 #[macro_export]
 macro_rules! create_position {
-    ($client:ident, $dex:ty, $dex_address:expr, $pool_key:expr, $lower_tick:expr, $upper_tick:expr, $liquidity_delta:expr, $slippage_limit_lower:expr, $slippage_limit_upper:expr, $caller:ident) => {{
-        let message = build_message::<$dex>($dex_address.clone()).call(|contract| {
-            contract.create_position(
-                $pool_key,
-                $lower_tick,
-                $upper_tick,
-                $liquidity_delta,
-                $slippage_limit_lower,
-                $slippage_limit_upper,
-            )
-        });
+    ($client:ident, $dex:ident, $pool_key:expr, $lower_tick:expr, $upper_tick:expr, $liquidity_delta:expr, $slippage_limit_lower:expr, $slippage_limit_upper:expr, $caller:ident) => {{
+        let mut call_builder = $dex.call_builder::<Invariant>();
+        let call = call_builder.create_position(
+            $pool_key,
+            $lower_tick,
+            $upper_tick,
+            $liquidity_delta,
+            $slippage_limit_lower,
+            $slippage_limit_upper,
+        );
         let result = $client
-            .call_dry_run(&$caller, &message, 0, None)
-            .await
+            .call(&$caller, &call)
+            .dry_run()
+            .await?
             .return_value();
 
         if result.is_ok() {
-            let message = build_message::<$dex>($dex_address.clone()).call(|contract| {
-                contract.create_position(
-                    $pool_key,
-                    $lower_tick,
-                    $upper_tick,
-                    $liquidity_delta,
-                    $slippage_limit_lower,
-                    $slippage_limit_upper,
-                )
-            });
-            $client
-                .call(&$caller, message, 0, None)
-                .await
-                .expect("create_position failed")
-                .return_value()
+            $client.call(&$caller, &call).submit().await?.return_value()
         } else {
             result
         }
@@ -127,36 +113,23 @@ macro_rules! create_position {
 
 #[macro_export]
 macro_rules! swap {
-    ($client:ident, $dex:ty, $dex_address:expr, $pool_key:expr, $x_to_y:expr, $amount:expr, $by_amount_in:expr, $sqrt_price_limit:expr, $caller:ident) => {{
-        let message = build_message::<$dex>($dex_address.clone()).call(|contract| {
-            contract.swap(
-                $pool_key,
-                $x_to_y,
-                $amount,
-                $by_amount_in,
-                $sqrt_price_limit,
-            )
-        });
+    ($client:ident, $dex:ident, $pool_key:expr, $x_to_y:expr, $amount:expr, $by_amount_in:expr, $sqrt_price_limit:expr, $caller:ident) => {{
+        let mut call_builder = $dex.call_builder::<Invariant>();
+        let call = call_builder.swap(
+            $pool_key,
+            $x_to_y,
+            $amount,
+            $by_amount_in,
+            $sqrt_price_limit,
+        );
         let result = $client
-            .call_dry_run(&$caller, &message, 0, None)
-            .await
+            .call(&$caller, &call)
+            .dry_run()
+            .await?
             .return_value();
 
         if result.is_ok() {
-            let message = build_message::<$dex>($dex_address.clone()).call(|contract| {
-                contract.swap(
-                    $pool_key,
-                    $x_to_y,
-                    $amount,
-                    $by_amount_in,
-                    $sqrt_price_limit,
-                )
-            });
-            $client
-                .call(&$caller, message, 0, None)
-                .await
-                .expect("swap failed")
-                .return_value()
+            $client.call(&$caller, &call).submit().await?.return_value()
         } else {
             result
         }
@@ -246,13 +219,14 @@ macro_rules! transfer_position {
 
 #[macro_export]
 macro_rules! get_position {
-    ($client:ident, $dex:ty, $dex_address:expr, $index:expr, $caller:ident) => {{
+    ($client:ident, $dex:ident, $index:expr, $caller:ident) => {{
         let owner = AccountId::from($caller.public_key().0);
-        let message = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.get_position(owner, $index));
+        let mut call_builder = $dex.call_builder::<Invariant>();
+        let call = call_builder.get_position(owner, $index);
         $client
-            .call_dry_run(&$caller, &message, 0, None)
-            .await
+            .call(&ink_e2e::alice(), &call)
+            .dry_run()
+            .await?
             .return_value()
     }};
 }
@@ -296,22 +270,17 @@ macro_rules! update_position_seconds_per_liquidity {
 
 #[macro_export]
 macro_rules! claim_fee {
-    ($client:ident, $dex:ty, $dex_address:expr, $index:expr, $caller:ident) => {{
-        let message =
-            build_message::<$dex>($dex_address.clone()).call(|contract| contract.claim_fee($index));
+    ($client:ident, $dex:ident, $index:expr, $caller:ident) => {{
+        let mut call_builder = $dex.call_builder::<Invariant>();
+        let call = call_builder.claim_fee($index);
         let result = $client
-            .call_dry_run(&$caller, &message, 0, None)
-            .await
+            .call(&$caller, &call)
+            .dry_run()
+            .await?
             .return_value();
 
         if result.is_ok() {
-            let message = build_message::<$dex>($dex_address.clone())
-                .call(|contract| contract.claim_fee($index));
-            $client
-                .call(&$caller, message, 0, None)
-                .await
-                .expect("claim_fee failed")
-                .return_value()
+            $client.call(&$caller, &call).submit().await?.return_value()
         } else {
             result
         }
