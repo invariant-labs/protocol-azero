@@ -41,6 +41,7 @@ describe('limits', async () => {
     await psp22.setContractAddress(token1Address)
     await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
 
+    // 1619 * 162 B = 262278 B > 256 KB
     for (let i = 1; i <= 1619; i++) {
       console.log(i)
       const result = await invariant.createPosition(
