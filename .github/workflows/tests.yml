@@ -35,7 +35,7 @@ jobs:
       - name: Install substrate-contracts-node
         run: |
           cargo install cargo-dylint dylint-link
-          cargo install --version 0.31.0 --force --locked contracts-node
+          cargo install --version 0.39.0 --force --locked contracts-node
 
       - name: Run unit tests
         uses: actions-rs/cargo@v1
@@ -71,13 +71,13 @@ jobs:
       - name: Install substrate-contracts-node
         run: |
           cargo install cargo-dylint dylint-link
-          cargo install --version 0.31.0 --force --locked contracts-node
+          cargo install --version 0.39.0 --force --locked contracts-node
 
       - name: Install cargo contract
         uses: actions-rs/cargo@v1
         with:
           command: install
-          args: --version 3.2.0 --locked cargo-contract
+          args: --version 4.0.2 --locked cargo-contract
 
       - name: Run cargo fmt
         uses: actions-rs/cargo@v1
@@ -125,13 +125,13 @@ jobs:
       - name: Install substrate-contracts-node
         run: |
           cargo install cargo-dylint dylint-link
-          cargo install --version 0.31.0 --force --locked contracts-node
+          cargo install --version 0.39.0 --force --locked contracts-node
 
       - name: Install cargo contract
         uses: actions-rs/cargo@v1
         with:
           command: install
-          args: --version 3.2.0 --locked cargo-contract
+          args: --version 4.0.2 --locked cargo-contract
 
       - name: Install wasm-bindgen-cli
         uses: actions-rs/cargo@v1

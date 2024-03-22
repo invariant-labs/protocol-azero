@@ -5,5 +5,4 @@ pub mod storage;
 
 pub use collections::*;
 pub use entrypoints::*;
-pub use logic::*;
 pub use storage::*;

@@ -1,12 +1,12 @@
 #[macro_export]
 macro_rules! create_dex {
-    ($client:ident,  $dex:ty, $protocol_fee:expr) => {{
-        let constructor = <$dex>::new($protocol_fee);
+    ($client:ident, $protocol_fee:expr) => {{
+        let mut constructor = InvariantRef::new($protocol_fee);
         $client
-            .instantiate("invariant", &ink_e2e::alice(), constructor, 0, None)
+            .instantiate("invariant", &ink_e2e::alice(), &mut constructor)
+            .submit()
             .await
-            .expect("dex new failed")
-            .account_id
+            .expect("instantiate failed")
     }};
 }
 

@@ -1,8 +1,8 @@
 {
   "source": {
-    "hash": "0x222ad95366eef56f6a16f81b06376d3c64d14f3d2ac9c687bf7d527871c85a97",
+    "hash": "0xa4016cbe8d5d3ba1499894b7f0f29c38a0415de8f777c126792c77000d374e11",
     "language": "ink! 5.0.0",
-    "compiler": "rustc 1.74.0",
+    "compiler": "rustc 1.77.0",
     "build_info": {
       "build_mode": "Release",
       "cargo_contract_version": "4.0.2",

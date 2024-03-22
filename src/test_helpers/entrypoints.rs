@@ -353,36 +353,22 @@ macro_rules! remove_position {
 
 #[macro_export]
 macro_rules! add_fee_tier {
-    ($client:ident, $dex:ty, $dex_address:expr, $fee_tier:expr, $caller:ident) => {{
-        let message = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.add_fee_tier($fee_tier));
-        let result = $client
-            .call_dry_run(&$caller, &message, 0, None)
-            .await
-            .return_value();
-
-        if result.is_ok() {
-            let message = build_message::<$dex>($dex_address.clone())
-                .call(|contract| contract.add_fee_tier($fee_tier));
-            $client
-                .call(&$caller, message, 0, None)
-                .await
-                .expect("add_fee_tier failed")
-                .return_value()
-        } else {
-            result
-        }
+    ($client:ident, $dex:ident, $fee_tier:expr, $caller:ident) => {{
+        let mut call_builder = $dex.call_builder::<Invariant>();
+        let call = call_builder.add_fee_tier($fee_tier);
+        $client.call(&$caller, &call).submit().await?.return_value()
     }};
 }
 
 #[macro_export]
 macro_rules! fee_tier_exist {
-    ($client:ident, $dex:ty, $dex_address:expr, $fee_tier:expr) => {{
-        let message = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.fee_tier_exist($fee_tier));
+    ($client:ident, $dex:ident, $fee_tier:expr) => {{
+        let mut call_builder = $dex.call_builder::<Invariant>();
+        let call = call_builder.fee_tier_exist($fee_tier);
         $client
-            .call_dry_run(&ink_e2e::alice(), &message, 0, None)
-            .await
+            .call(&ink_e2e::alice(), &call)
+            .dry_run()
+            .await?
             .return_value()
     }};
 }
@@ -488,12 +474,13 @@ macro_rules! get_pools {
 
 #[macro_export]
 macro_rules! get_fee_tiers {
-    ($client:ident, $dex:ty, $dex_address:expr) => {{
-        let message =
-            build_message::<$dex>($dex_address.clone()).call(|contract| contract.get_fee_tiers());
+    ($client:ident, $dex:ident) => {{
+        let mut call_builder = $dex.call_builder::<Invariant>();
+        let call = call_builder.get_fee_tiers();
         $client
-            .call_dry_run(&ink_e2e::alice(), &message, 0, None)
-            .await
+            .call(&ink_e2e::alice(), &call)
+            .dry_run()
+            .await?
             .return_value()
     }};
 }
