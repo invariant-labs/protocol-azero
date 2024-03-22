@@ -5,4 +5,5 @@ npm run lint &
 npm run docs:copy &
 npm run wasm:build &
 npm run wasm:package &
-npm run build
+npm run build &
+npm run build:copy-wasm

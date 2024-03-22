@@ -6,6 +6,7 @@ import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { getSubstrateChain, initPolkadotJs as initApi } from '@scio-labs/use-inkathon'
 import { readFile } from 'fs/promises'
+import path from 'path'
 import { MAINNET, TESTNET } from './consts.js'
 import { Network } from './network.js'
 import { EventTxResult, LiquidityBreakpoint, Query, Tx, TxResult } from './schema.js'
@@ -164,11 +165,18 @@ export const parseEvents = (events: { [key: string]: any }[]) => {
 export const getDeploymentData = async (
   contractName: string
 ): Promise<{ abi: any; wasm: Buffer }> => {
+  const __dirname = new URL('.', import.meta.url).pathname
+
   try {
     const abi = JSON.parse(
-      await readFile(`./contracts/${contractName}/${contractName}.json`, 'utf-8')
+      await readFile(
+        path.join(__dirname, `../contracts/${contractName}/${contractName}.json`),
+        'utf-8'
+      )
     )
-    const wasm = await readFile(`./contracts/${contractName}/${contractName}.wasm`)
+    const wasm = await readFile(
+      path.join(__dirname, `../contracts/${contractName}/${contractName}.wasm`)
+    )
 
     return { abi, wasm }
   } catch (error) {
