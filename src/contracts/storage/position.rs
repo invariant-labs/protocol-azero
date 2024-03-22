@@ -104,10 +104,12 @@ impl Position {
         self.fee_growth_inside_x = fee_growth_inside_x;
         self.fee_growth_inside_y = fee_growth_inside_y;
 
-        self.tokens_owed_x
+        self.tokens_owed_x = self
+            .tokens_owed_x
             .checked_add(tokens_owed_x)
             .map_err(|_| err!("Overflow while calculating tokens owed X"))?;
-        self.tokens_owed_y
+        self.tokens_owed_y = self
+            .tokens_owed_y
             .checked_add(tokens_owed_y)
             .map_err(|_| err!("Overflow while calculating tokens owed Y"))?;
         Ok(())

@@ -64,10 +64,10 @@ export type Tx = InvariantTx | PSP22Tx | WrappedAZEROTx
 export type Query = InvariantQuery | PSP22Query
 
 export enum InvariantEvent {
-  CreatePositionEvent = 'CreatePositionEvent',
-  CrossTickEvent = 'CrossTickEvent',
-  RemovePositionEvent = 'RemovePositionEvent',
-  SwapEvent = 'SwapEvent'
+  CreatePositionEvent = 'invariant::invariant::CreatePositionEvent',
+  CrossTickEvent = 'invariant::invariant::CrossTickEvent',
+  RemovePositionEvent = 'invariant::invariant::RemovePositionEvent',
+  SwapEvent = 'invariant::invariant::SwapEvent'
 }
 
 export type TxResult = {

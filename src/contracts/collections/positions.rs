@@ -44,11 +44,7 @@ impl Positions {
         let positions_length = self.get_length(account_id);
         let position = self.get(account_id, index)?;
 
-        if index
-            < positions_length
-                .checked_sub(1)
-                .ok_or(InvariantError::InvalidArithmeticOperation)?
-        {
+        if index < positions_length.checked_sub(1).unwrap() {
             let last_position = self
                 .positions
                 .take((account_id, positions_length.checked_sub(1).unwrap()))

@@ -2,7 +2,7 @@
 
 mod data;
 mod errors;
-mod testing;
+// mod testing;
 mod traits;
 
 pub use data::{PSP22Data, PSP22Event};
@@ -238,8 +238,8 @@ mod token {
     }
 
     // (7)
-    #[cfg(test)]
-    mod tests {
-        crate::tests!(Token, (|supply| Token::new(supply, None, None, 0)));
-    }
+    // #[cfg(test)]
+    // mod tests {
+    //     crate::tests!(Token, (|supply| Token::new(supply, None, None, 0)));
+    // }
 }

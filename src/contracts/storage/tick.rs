@@ -383,7 +383,7 @@ mod tests {
             };
             let liquidity_delta = Liquidity::from_integer(3);
             let add = true;
-            tick.update_liquidity_change(liquidity_delta, add);
+            let _ = tick.update_liquidity_change(liquidity_delta, add);
 
             assert!(tick.sign);
             assert_eq!({ tick.liquidity_change }, Liquidity::from_integer(5));
@@ -396,7 +396,7 @@ mod tests {
             };
             let liquidity_delta = Liquidity::from_integer(3);
             let add = false;
-            tick.update_liquidity_change(liquidity_delta, add);
+            let _ = tick.update_liquidity_change(liquidity_delta, add);
 
             assert!(!tick.sign);
             assert_eq!({ tick.liquidity_change }, Liquidity::from_integer(5));
@@ -410,7 +410,7 @@ mod tests {
             };
             let liquidity_delta = Liquidity::from_integer(3);
             let add = false;
-            tick.update_liquidity_change(liquidity_delta, add);
+            let _ = tick.update_liquidity_change(liquidity_delta, add);
 
             assert!(!tick.sign);
             assert_eq!({ tick.liquidity_change }, Liquidity::from_integer(1));
@@ -423,7 +423,7 @@ mod tests {
             };
             let liquidity_delta = Liquidity::from_integer(3);
             let add = true;
-            tick.update_liquidity_change(liquidity_delta, add);
+            let _ = tick.update_liquidity_change(liquidity_delta, add);
 
             assert!(tick.sign);
             assert_eq!({ tick.liquidity_change }, Liquidity::from_integer(1));

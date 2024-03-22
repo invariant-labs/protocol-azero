@@ -2,7 +2,6 @@
 
 import { ApiPromise } from '@polkadot/api'
 import { Abi, ContractPromise } from '@polkadot/api-contract'
-import { Bytes } from '@polkadot/types'
 import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { deployContract } from '@scio-labs/use-inkathon'
@@ -138,13 +137,13 @@ export class Invariant {
               return
             }
 
-            const [account_id, contract_evt] = event.data
+            const [account_id] = event.data
 
             if (account_id.toString() !== this.contract?.address.toString()) {
               return
             }
 
-            const decoded = this.abi.decodeEvent(contract_evt as Bytes)
+            const decoded = this.abi.decodeEvent(record)
 
             if (!decoded) {
               return

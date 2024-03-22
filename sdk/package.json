@@ -49,8 +49,8 @@
     "test:crosses": "mocha ./tests/crosses-testnet.test.ts -g testnet-crosses-limitations"
   },
   "dependencies": {
-    "@polkadot/api": "^10.11.2",
-    "@polkadot/api-contract": "^10.11.2",
+    "@polkadot/api": "^10.12.4",
+    "@polkadot/api-contract": "^10.12.4",
     "@scio-labs/use-inkathon": "^0.6.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
