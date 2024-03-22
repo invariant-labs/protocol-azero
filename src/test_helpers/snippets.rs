@@ -13,24 +13,24 @@ macro_rules! create_dex {
 #[macro_export]
 macro_rules! create_tokens {
     ($client:ident, $token:ty, $token_x_supply:expr, $token_y_supply:expr) => {{
-        let token_x_constructor = <$token>::new($token_x_supply, None, None, 0);
-        let token_y_constructor = <$token>::new($token_y_supply, None, None, 0);
+        let mut token_x_constructor = <$token>::new($token_x_supply, None, None, 0);
+        let mut token_y_constructor = <$token>::new($token_y_supply, None, None, 0);
 
-        let token_x_address = $client
-            .instantiate("token", &ink_e2e::alice(), token_x_constructor, 0, None)
+        let token_x = $client
+            .instantiate("token", &ink_e2e::alice(), &mut token_x_constructor)
+            .submit()
             .await
-            .expect("token x new failed")
-            .account_id;
-        let token_y_address = $client
-            .instantiate("token", &ink_e2e::alice(), token_y_constructor, 0, None)
+            .expect("token x new failed");
+        let token_y = $client
+            .instantiate("token", &ink_e2e::alice(), &mut token_y_constructor)
+            .submit()
             .await
-            .expect("token y new failed")
-            .account_id;
+            .expect("token y new failed");
 
-        if token_x_address < token_y_address {
-            (token_x_address, token_y_address)
+        if token_x.account_id < token_y.account_id {
+            (token_x.account_id, token_y.account_id)
         } else {
-            (token_y_address, token_x_address)
+            (token_y.account_id, token_x.account_id)
         }
     }};
 }

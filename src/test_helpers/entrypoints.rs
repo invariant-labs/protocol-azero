@@ -72,22 +72,17 @@ macro_rules! change_protocol_fee {
 
 #[macro_export]
 macro_rules! change_fee_receiver {
-    ($client:ident, $dex:ty, $dex_address:expr, $pool_key:expr, $fee_receiver:expr, $caller:ident) => {{
-        let message = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.change_fee_receiver($pool_key, $fee_receiver));
+    ($client:ident, $dex:ident, $pool_key:expr, $fee_receiver:expr, $caller:ident) => {{
+        let mut call_builder = $dex.call_builder::<Invariant>();
+        let call = call_builder.change_fee_receiver($pool_key, $fee_receiver);
         let result = $client
-            .call_dry_run(&$caller, &message, 0, None)
-            .await
+            .call(&$caller, &call)
+            .dry_run()
+            .await?
             .return_value();
 
         if result.is_ok() {
-            let message = build_message::<$dex>($dex_address.clone())
-                .call(|contract| contract.change_fee_receiver($pool_key, $fee_receiver));
-            $client
-                .call(&$caller, message, 0, None)
-                .await
-                .expect("change_fee_receiver failed")
-                .return_value()
+            $client.call(&$caller, &call).submit().await?.return_value()
         } else {
             result
         }
@@ -409,24 +404,18 @@ macro_rules! remove_fee_tier {
 
 #[macro_export]
 macro_rules! create_pool {
-    ($client:ident, $dex:ty, $dex_address:expr, $token_0:expr, $token_1:expr, $fee_tier:expr, $init_sqrt_price:expr, $init_tick:expr, $caller:ident) => {{
-        let message = build_message::<$dex>($dex_address.clone()).call(|contract| {
-            contract.create_pool($token_0, $token_1, $fee_tier, $init_sqrt_price, $init_tick)
-        });
+    ($client:ident, $dex:ident, $token_0:expr, $token_1:expr, $fee_tier:expr, $init_sqrt_price:expr, $init_tick:expr, $caller:ident) => {{
+        let mut call_builder = $dex.call_builder::<Invariant>();
+        let call =
+            call_builder.create_pool($token_0, $token_1, $fee_tier, $init_sqrt_price, $init_tick);
         let result = $client
-            .call_dry_run(&$caller, &message, 0, None)
-            .await
+            .call(&$caller, &call)
+            .dry_run()
+            .await?
             .return_value();
 
         if result.is_ok() {
-            let message = build_message::<$dex>($dex_address.clone()).call(|contract| {
-                contract.create_pool($token_0, $token_1, $fee_tier, $init_sqrt_price, $init_tick)
-            });
-            $client
-                .call(&$caller, message, 0, None)
-                .await
-                .expect("create_pool failed")
-                .return_value()
+            $client.call(&$caller, &call).submit().await?.return_value()
         } else {
             result
         }
@@ -435,12 +424,13 @@ macro_rules! create_pool {
 
 #[macro_export]
 macro_rules! get_pool {
-    ($client:ident, $dex:ty, $dex_address:expr, $token_0:expr, $token_1:expr, $fee_tier:expr) => {{
-        let message = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.get_pool($token_0, $token_1, $fee_tier));
+    ($client:ident, $dex:ident, $token_0:expr, $token_1:expr, $fee_tier:expr) => {{
+        let mut call_builder = $dex.call_builder::<Invariant>();
+        let call = call_builder.get_pool($token_0, $token_1, $fee_tier);
         $client
-            .call_dry_run(&ink_e2e::alice(), &message, 0, None)
-            .await
+            .call(&ink_e2e::alice(), &call)
+            .dry_run()
+            .await?
             .return_value()
     }};
 }
