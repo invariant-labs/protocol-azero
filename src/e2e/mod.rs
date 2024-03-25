@@ -6,7 +6,7 @@ pub mod constructor;
 pub mod create_pool;
 pub mod cross;
 pub mod cross_both_side;
-// pub mod get_liquidity_ticks;
+pub mod get_liquidity_ticks;
 // pub mod get_position_ticks;
 // pub mod get_tickmap;
 // pub mod interaction_with_pool_on_removed_fee_tier;
