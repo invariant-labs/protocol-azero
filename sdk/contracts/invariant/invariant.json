@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0xa4016cbe8d5d3ba1499894b7f0f29c38a0415de8f777c126792c77000d374e11",
+    "hash": "0x1a5c332ee742268bd2e7a4ba68eb08dd7a6722e6e9d3e04d25dc9581edd208a1",
     "language": "ink! 5.0.0",
     "compiler": "rustc 1.77.0",
     "build_info": {
@@ -173,7 +173,7 @@
         ],
         "docs": [],
         "label": "CreatePositionEvent",
-        "module_path": "invariant::invariant",
+        "module_path": "invariant::contracts::events",
         "signature_topic": "0x50a25822f8984babdbc09246e1d170630167a27235d98a5ff8ac7516a5cdab15"
       },
       {
@@ -225,7 +225,7 @@
         ],
         "docs": [],
         "label": "CrossTickEvent",
-        "module_path": "invariant::invariant",
+        "module_path": "invariant::contracts::events",
         "signature_topic": "0xcccff012aed0ec795ebacacf32bce7106d512938af21db8ed9c2db1d2673378d"
       },
       {
@@ -310,7 +310,7 @@
         ],
         "docs": [],
         "label": "RemovePositionEvent",
-        "module_path": "invariant::invariant",
+        "module_path": "invariant::contracts::events",
         "signature_topic": "0x9f0ecfca7dad4ac575484802040e0a5b1ce0a4c53a3e2cc6bb41ccb6e9a5db12"
       },
       {
@@ -417,7 +417,7 @@
         ],
         "docs": [],
         "label": "SwapEvent",
-        "module_path": "invariant::invariant",
+        "module_path": "invariant::contracts::events",
         "signature_topic": "0xa2fa68a09109e5201d1e015005173040754b008fc2dc7203c0da57236f0ba81e"
       }
     ],
@@ -3725,6 +3725,8 @@
         },
         "path": [
           "invariant",
+          "contracts",
+          "error",
           "InvariantError"
         ]
       }
@@ -3943,7 +3945,8 @@
         },
         "path": [
           "invariant",
-          "invariant",
+          "contracts",
+          "structs",
           "CalculateSwapResult"
         ]
       }
@@ -3989,7 +3992,8 @@
         },
         "path": [
           "invariant",
-          "invariant",
+          "contracts",
+          "structs",
           "SwapHop"
         ]
       }
@@ -4109,7 +4113,8 @@
         },
         "path": [
           "invariant",
-          "invariant",
+          "contracts",
+          "structs",
           "QuoteResult"
         ]
       }
