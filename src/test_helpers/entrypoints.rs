@@ -134,24 +134,17 @@ macro_rules! swap {
 
 #[macro_export]
 macro_rules! swap_route {
-    ($client:ident, $dex:ty, $dex_address:expr, $amount_in:expr, $expected_amount_out:expr, $slippage:expr, $swaps:expr, $caller:ident) => {{
-        let message = build_message::<$dex>($dex_address.clone()).call(|contract| {
-            contract.swap_route($amount_in, $expected_amount_out, $slippage, $swaps)
-        });
+    ($client:ident, $dex:ident, $amount_in:expr, $expected_amount_out:expr, $slippage:expr, $swaps:expr, $caller:ident) => {{
+        let mut call_builder = $dex.call_builder::<Invariant>();
+        let call = call_builder.swap_route($amount_in, $expected_amount_out, $slippage, $swaps);
         let result = $client
-            .call_dry_run(&$caller, &message, 0, None)
-            .await
+            .call(&$caller, &call)
+            .dry_run()
+            .await?
             .return_value();
 
         if result.is_ok() {
-            let message = build_message::<$dex>($dex_address.clone()).call(|contract| {
-                contract.swap_route($amount_in, $expected_amount_out, $slippage, $swaps)
-            });
-            $client
-                .call(&$caller, message, 0, None)
-                .await
-                .expect("swap_route failed")
-                .return_value()
+            $client.call(&$caller, &call).submit().await?.return_value()
         } else {
             result
         }
@@ -179,12 +172,13 @@ macro_rules! quote {
 
 #[macro_export]
 macro_rules! quote_route {
-    ($client:ident, $dex:ty, $dex_address:expr, $amount_in:expr, $swaps:expr) => {{
-        let message = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.quote_route($amount_in, $swaps));
+    ($client:ident, $dex:ident, $amount_in:expr, $swaps:expr) => {{
+        let mut call_builder = $dex.call_builder::<Invariant>();
+        let call = call_builder.quote_route($amount_in, $swaps);
         $client
-            .call_dry_run(&ink_e2e::alice(), &message, 0, None)
-            .await
+            .call(&ink_e2e::alice(), &call)
+            .dry_run()
+            .await?
             .return_value()
     }};
 }

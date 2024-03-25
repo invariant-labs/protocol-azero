@@ -37,31 +37,48 @@ macro_rules! create_tokens {
 
 #[macro_export]
 macro_rules! create_3_tokens {
-    ($client:ident, $token:ty, $token_x_supply:expr, $token_y_supply:expr, $token_z_supply:expr) => {{
-        let token_x_constructor = <$token>::new($token_x_supply, None, None, 0);
-        let token_y_constructor = <$token>::new($token_y_supply, None, None, 0);
-        let token_z_constructor = <$token>::new($token_z_supply, None, None, 0);
+    ($client:ident, $token_x_supply:expr, $token_y_supply:expr, $token_z_supply:expr) => {{
+        let mut token_x_constructor = TokenRef::new($token_x_supply, None, None, 0);
+        let mut token_y_constructor = TokenRef::new($token_y_supply, None, None, 0);
+        let mut token_z_constructor = TokenRef::new($token_z_supply, None, None, 0);
 
-        let token_x_address = $client
-            .instantiate("token", &ink_e2e::alice(), token_x_constructor, 0, None)
+        let token_x = $client
+            .instantiate("token", &ink_e2e::alice(), &mut token_x_constructor)
+            .submit()
             .await
-            .expect("token x new failed")
-            .account_id;
-        let token_y_address = $client
-            .instantiate("token", &ink_e2e::alice(), token_y_constructor, 0, None)
+            .expect("token x new failed");
+        let token_y = $client
+            .instantiate("token", &ink_e2e::alice(), &mut token_y_constructor)
+            .submit()
             .await
-            .expect("token y new failed")
-            .account_id;
-        let token_z_address = $client
-            .instantiate("token", &ink_e2e::alice(), token_z_constructor, 0, None)
+            .expect("token y new failed");
+        let token_z = $client
+            .instantiate("token", &ink_e2e::alice(), &mut token_y_constructor)
+            .submit()
             .await
-            .expect("token z new failed")
-            .account_id;
+            .expect("token z new failed");
 
-        let mut token_address_vector = [token_x_address, token_y_address, token_z_address];
-        token_address_vector.sort();
-        let [token_x_address, token_y_address, token_z_address] = token_address_vector;
-        (token_x_address, token_y_address, token_z_address)
+        if (token_x.account_id < token_y.account_id) && (token_y.account_id < token_z.account_id) {
+            (token_x, token_y, token_z)
+        } else if (token_x.account_id < token_z.account_id)
+            && (token_z.account_id < token_y.account_id)
+        {
+            (token_x, token_z, token_y)
+        } else if (token_y.account_id < token_x.account_id)
+            && (token_x.account_id < token_z.account_id)
+        {
+            (token_y, token_x, token_z)
+        } else if (token_y.account_id < token_z.account_id)
+            && (token_z.account_id < token_x.account_id)
+        {
+            (token_y, token_z, token_x)
+        } else if (token_z.account_id < token_x.account_id)
+            && (token_x.account_id < token_y.account_id)
+        {
+            (token_z, token_x, token_y)
+        } else {
+            (token_z, token_y, token_x)
+        }
     }};
 }
 
@@ -79,13 +96,13 @@ macro_rules! init_dex_and_tokens {
 
 #[macro_export]
 macro_rules! init_dex_and_3_tokens {
-    ($client:ident, $dex:ty, $token:ty) => {{
+    ($client:ident) => {{
         let mint_amount = u64::MAX as u128;
         let protocol_fee = Percentage::from_scale(1, 2);
 
-        let dex = create_dex!($client, $dex, protocol_fee);
+        let dex = create_dex!($client, protocol_fee);
         let (token_x, token_y, token_z) =
-            create_3_tokens!($client, $token, mint_amount, mint_amount, mint_amount);
+            create_3_tokens!($client, mint_amount, mint_amount, mint_amount);
 
         (dex, token_x, token_y, token_z)
     }};
