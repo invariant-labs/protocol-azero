@@ -1,8 +1,8 @@
 use crate::{
     contracts::{
-        FeeTier, InvariantError, LiquidityTick, Pool, PoolKey, Position, PositionTick, Tick,
+        CalculateSwapResult, FeeTier, InvariantError, LiquidityTick, Pool, PoolKey, Position,
+        PositionTick, QuoteResult, SwapHop, Tick,
     },
-    invariant::{CalculateSwapResult, QuoteResult, SwapHop},
     math::{
         liquidity::Liquidity, percentage::Percentage, sqrt_price::SqrtPrice,
         token_amount::TokenAmount,

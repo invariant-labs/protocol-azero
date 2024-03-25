@@ -9,10 +9,11 @@ pub mod math;
 pub mod invariant {
     use crate::contracts::{
         get_bit_at_position, get_max_chunk, position_to_tick, tick_to_position,
-        CreatePositionEvent, CrossTickEvent, FeeTier, FeeTiers, InvariantConfig, InvariantTrait,
-        LiquidityTick, Pool, PoolKey, PoolKeys, Pools, Position, PositionTick, Positions,
-        RemovePositionEvent, SwapEvent, Tick, Tickmap, Ticks, CHUNK_SIZE, LIQUIDITY_TICK_LIMIT,
-        MAX_TICKMAP_QUERY_SIZE, POSITION_TICK_LIMIT,
+        CalculateSwapResult, CreatePositionEvent, CrossTickEvent, FeeTier, FeeTiers,
+        InvariantConfig, InvariantTrait, LiquidityTick, Pool, PoolKey, PoolKeys, Pools, Position,
+        PositionTick, Positions, QuoteResult, RemovePositionEvent, SwapEvent, SwapHop, Tick,
+        Tickmap, Ticks, CHUNK_SIZE, LIQUIDITY_TICK_LIMIT, MAX_TICKMAP_QUERY_SIZE,
+        POSITION_TICK_LIMIT,
     };
     use crate::math::calculate_min_amount_out;
     use crate::math::check_tick;
@@ -31,33 +32,6 @@ pub mod invariant {
     use ink::prelude::vec::Vec;
     use token::PSP22;
     use traceable_result::unwrap;
-
-    #[derive(Default, Clone, Debug, PartialEq)]
-    #[ink::scale_derive(Encode, Decode, TypeInfo)]
-    pub struct CalculateSwapResult {
-        pub amount_in: TokenAmount,
-        pub amount_out: TokenAmount,
-        pub start_sqrt_price: SqrtPrice,
-        pub target_sqrt_price: SqrtPrice,
-        pub fee: TokenAmount,
-        pub pool: Pool,
-        pub ticks: Vec<Tick>,
-    }
-    #[derive(Default, Debug)]
-    #[ink::scale_derive(Encode, Decode, TypeInfo)]
-    pub struct QuoteResult {
-        pub amount_in: TokenAmount,
-        pub amount_out: TokenAmount,
-        pub target_sqrt_price: SqrtPrice,
-        pub ticks: Vec<Tick>,
-    }
-
-    #[derive(Clone, Debug)]
-    #[ink::scale_derive(Encode, Decode, TypeInfo)]
-    pub struct SwapHop {
-        pub pool_key: PoolKey,
-        pub x_to_y: bool,
-    }
 
     #[ink(storage)]
     #[derive(Default)]
