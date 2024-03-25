@@ -397,12 +397,13 @@ macro_rules! get_tick {
 
 #[macro_export]
 macro_rules! is_tick_initialized {
-    ($client:ident, $dex:ty, $dex_address:expr, $key:expr, $index:expr) => {{
-        let message = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.is_tick_initialized($key, $index));
+    ($client:ident, $dex:ident, $key:expr, $index:expr) => {{
+        let mut call_builder = $dex.call_builder::<Invariant>();
+        let call = call_builder.is_tick_initialized($key, $index);
         $client
-            .call_dry_run(&ink_e2e::alice(), &message, 0, None)
-            .await
+            .call(&ink_e2e::alice(), &call)
+            .dry_run()
+            .await?
             .return_value()
     }};
 }
