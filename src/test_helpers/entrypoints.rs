@@ -160,19 +160,19 @@ macro_rules! swap_route {
 
 #[macro_export]
 macro_rules! quote {
-    ($client:ident, $dex:ty, $dex_address:expr, $pool_key:expr, $x_to_y:expr, $amount:expr, $by_amount_in:expr, $sqrt_price_limit:expr) => {{
-        let message = build_message::<$dex>($dex_address.clone()).call(|contract| {
-            contract.quote(
-                $pool_key,
-                $x_to_y,
-                $amount,
-                $by_amount_in,
-                $sqrt_price_limit,
-            )
-        });
+    ($client:ident, $dex:ident, $pool_key:expr, $x_to_y:expr, $amount:expr, $by_amount_in:expr, $sqrt_price_limit:expr) => {{
+        let mut call_builder = $dex.call_builder::<Invariant>();
+        let call = call_builder.quote(
+            $pool_key,
+            $x_to_y,
+            $amount,
+            $by_amount_in,
+            $sqrt_price_limit,
+        );
         $client
-            .call_dry_run(&ink_e2e::alice(), &message, 0, None)
-            .await
+            .call(&ink_e2e::alice(), &call)
+            .dry_run()
+            .await?
             .return_value()
     }};
 }

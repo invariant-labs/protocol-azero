@@ -11,7 +11,7 @@ pub mod get_position_ticks;
 pub mod get_tickmap;
 pub mod interaction_with_pool_on_removed_fee_tier;
 pub mod limits;
-// pub mod liquidity_gap;
+pub mod liquidity_gap;
 // pub mod max_tick_cross;
 // pub mod multiple_swap;
 // pub mod position;
