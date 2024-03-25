@@ -1,4 +1,4 @@
-use crate::{contracts::PoolKey, InvariantError};
+use crate::contracts::{InvariantError, PoolKey};
 use alloc::vec::Vec;
 use ink::storage::Mapping;
 

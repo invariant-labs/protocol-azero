@@ -1,4 +1,4 @@
-use crate::{contracts::Position, InvariantError};
+use crate::contracts::{InvariantError, Position};
 use ink::{prelude::vec::Vec, primitives::AccountId, storage::Mapping};
 
 #[ink::storage_item]

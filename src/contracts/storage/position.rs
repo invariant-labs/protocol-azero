@@ -1,5 +1,6 @@
 use super::{Pool, PoolKey, Tick};
 use crate::{
+    contracts::InvariantError,
     math::{
         clamm::*,
         types::{
@@ -9,7 +10,6 @@ use crate::{
             token_amount::TokenAmount,
         },
     },
-    InvariantError,
 };
 use decimal::*;
 use traceable_result::*;

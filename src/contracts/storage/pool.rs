@@ -1,7 +1,7 @@
 use super::{FeeTier, Tick};
 use crate::math::types::sqrt_price::check_tick_to_sqrt_price_relationship;
 use crate::{
-    contracts::PoolKey,
+    contracts::{InvariantError, PoolKey},
     math::{
         clamm::*,
         log::get_tick_at_sqrt_price,
@@ -10,7 +10,6 @@ use crate::{
             sqrt_price::SqrtPrice, token_amount::TokenAmount,
         },
     },
-    InvariantError,
 };
 
 use decimal::*;

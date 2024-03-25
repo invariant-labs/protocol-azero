@@ -2,8 +2,8 @@ use decimal::Decimal;
 use ink::primitives::AccountId;
 
 use crate::contracts::FeeTier;
+use crate::contracts::InvariantError;
 use crate::math::percentage::Percentage;
-use crate::InvariantError;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 #[ink::scale_derive(Encode, Decode, TypeInfo)]

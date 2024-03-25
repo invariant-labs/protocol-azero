@@ -2,7 +2,7 @@
 pub mod e2e_tests {
     use crate::invariant::Invariant;
     use crate::{
-        contracts::{entrypoints::InvariantTrait, FeeTier, PoolKey},
+        contracts::{entrypoints::InvariantTrait, FeeTier, InvariantError, PoolKey},
         invariant::InvariantRef,
         math::{
             types::{
@@ -13,7 +13,6 @@ pub mod e2e_tests {
             },
             MAX_SQRT_PRICE, MIN_SQRT_PRICE,
         },
-        InvariantError,
     };
     use decimal::*;
     use ink_e2e::ContractsBackend;

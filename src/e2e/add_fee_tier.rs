@@ -1,10 +1,10 @@
 #[cfg(test)]
 pub mod e2e_tests {
+    use crate::contracts::InvariantError;
     use crate::contracts::{FeeTier, InvariantTrait};
     use crate::invariant::Invariant;
     use crate::invariant::InvariantRef;
     use crate::math::types::percentage::Percentage;
-    use crate::InvariantError;
     use decimal::*;
     use ink_e2e::ContractsBackend;
     use test_helpers::{add_fee_tier, create_dex, fee_tier_exist, get_fee_tiers};

@@ -2,7 +2,7 @@
 pub mod e2e_tests {
     use crate::invariant::Invariant;
     use crate::{
-        contracts::{entrypoints::InvariantTrait, FeeTier, PoolKey},
+        contracts::{entrypoints::InvariantTrait, FeeTier, InvariantError, PoolKey},
         invariant::InvariantRef,
         math::types::{
             fee_growth::FeeGrowth,
@@ -10,7 +10,6 @@ pub mod e2e_tests {
             percentage::Percentage,
             sqrt_price::{calculate_sqrt_price, SqrtPrice},
         },
-        InvariantError,
     };
     use decimal::*;
     use ink::primitives::AccountId;

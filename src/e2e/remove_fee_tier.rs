@@ -1,8 +1,8 @@
 #[cfg(test)]
 pub mod e2e_tests {
+    use crate::contracts::InvariantError;
     use crate::invariant::Invariant;
     use crate::math::types::percentage::Percentage;
-    use crate::InvariantError;
     use crate::{
         contracts::{entrypoints::InvariantTrait, FeeTier},
         invariant::InvariantRef,

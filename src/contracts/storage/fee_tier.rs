@@ -1,4 +1,4 @@
-use crate::{math::types::percentage::Percentage, InvariantError};
+use crate::{contracts::InvariantError, math::types::percentage::Percentage};
 use decimal::*;
 #[derive(Debug, Copy, Clone, PartialEq)]
 #[ink::scale_derive(Encode, Decode, TypeInfo)]

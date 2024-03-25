@@ -1,4 +1,4 @@
-use crate::{contracts::FeeTier, InvariantError};
+use crate::contracts::{FeeTier, InvariantError};
 use alloc::vec::Vec;
 
 #[ink::storage_item]
