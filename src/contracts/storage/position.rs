@@ -13,11 +13,9 @@ use crate::{
 };
 use decimal::*;
 use traceable_result::*;
-#[derive(PartialEq, Default, Debug, Copy, Clone, scale::Decode, scale::Encode)]
-#[cfg_attr(
-    feature = "std",
-    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
-)]
+#[derive(PartialEq, Default, Debug, Copy, Clone)]
+#[ink::scale_derive(Encode, Decode, TypeInfo)]
+#[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
 pub struct Position {
     pub pool_key: PoolKey,
     pub liquidity: Liquidity,

@@ -2875,8 +2875,6 @@ dependencies = [
  "decimal",
  "ink",
  "ink_e2e",
- "parity-scale-codec",
- "scale-info",
  "test_helpers",
  "token",
  "traceable_result",

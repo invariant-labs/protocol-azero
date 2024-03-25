@@ -17,11 +17,9 @@ use decimal::*;
 use ink::primitives::AccountId;
 use traceable_result::*;
 
-#[derive(PartialEq, Debug, Clone, scale::Decode, scale::Encode)]
-#[cfg_attr(
-    feature = "std",
-    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
-)]
+#[derive(PartialEq, Debug, Clone)]
+#[ink::scale_derive(Encode, Decode, TypeInfo)]
+#[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
 pub struct Pool {
     pub liquidity: Liquidity,
     pub sqrt_price: SqrtPrice,

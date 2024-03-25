@@ -5,8 +5,9 @@ mod contracts;
 pub mod e2e;
 pub mod math;
 
-#[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
-#[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+#[derive(Debug, PartialEq, Eq)]
+#[ink::scale_derive(Encode, Decode, TypeInfo)]
+#[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
 pub enum InvariantError {
     NotAdmin,
     NotFeeReceiver,
@@ -108,11 +109,9 @@ pub mod invariant {
         x_to_y: bool,
     }
 
-    #[derive(scale::Decode, Default, scale::Encode, Clone, Debug, PartialEq)]
-    #[cfg_attr(
-        feature = "std",
-        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout,)
-    )]
+    #[derive(Default, Clone, Debug, PartialEq)]
+    #[ink::scale_derive(Encode, Decode, TypeInfo)]
+    #[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
     pub struct CalculateSwapResult {
         pub amount_in: TokenAmount,
         pub amount_out: TokenAmount,
@@ -122,11 +121,9 @@ pub mod invariant {
         pub pool: Pool,
         pub ticks: Vec<Tick>,
     }
-    #[derive(Default, Debug, scale::Decode, scale::Encode)]
-    #[cfg_attr(
-        feature = "std",
-        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
-    )]
+    #[derive(Default, Debug)]
+    #[ink::scale_derive(Encode, Decode, TypeInfo)]
+    #[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
     pub struct QuoteResult {
         pub amount_in: TokenAmount,
         pub amount_out: TokenAmount,
@@ -134,11 +131,9 @@ pub mod invariant {
         pub ticks: Vec<Tick>,
     }
 
-    #[derive(scale::Decode, Default, scale::Encode, Clone, Debug)]
-    #[cfg_attr(
-        feature = "std",
-        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout,)
-    )]
+    #[derive(Clone, Debug)]
+    #[ink::scale_derive(Encode, Decode, TypeInfo)]
+    #[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
     pub struct SwapHop {
         pub pool_key: PoolKey,
         pub x_to_y: bool,
