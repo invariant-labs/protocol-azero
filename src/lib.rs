@@ -7,7 +7,6 @@ pub mod math;
 
 #[derive(Debug, PartialEq, Eq)]
 #[ink::scale_derive(Encode, Decode, TypeInfo)]
-#[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
 pub enum InvariantError {
     NotAdmin,
     NotFeeReceiver,
@@ -111,7 +110,6 @@ pub mod invariant {
 
     #[derive(Default, Clone, Debug, PartialEq)]
     #[ink::scale_derive(Encode, Decode, TypeInfo)]
-    #[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
     pub struct CalculateSwapResult {
         pub amount_in: TokenAmount,
         pub amount_out: TokenAmount,
@@ -123,7 +121,6 @@ pub mod invariant {
     }
     #[derive(Default, Debug)]
     #[ink::scale_derive(Encode, Decode, TypeInfo)]
-    #[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
     pub struct QuoteResult {
         pub amount_in: TokenAmount,
         pub amount_out: TokenAmount,
@@ -133,7 +130,6 @@ pub mod invariant {
 
     #[derive(Clone, Debug)]
     #[ink::scale_derive(Encode, Decode, TypeInfo)]
-    #[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
     pub struct SwapHop {
         pub pool_key: PoolKey,
         pub x_to_y: bool,
