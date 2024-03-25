@@ -105,12 +105,12 @@ macro_rules! init_dex_and_tokens_max_mint_amount {
 
 #[macro_export]
 macro_rules! init_slippage_dex_and_tokens {
-    ($client:ident, $dex:ty, $token:ty) => {{
+    ($client:ident) => {{
         let mint_amount = 10u128.pow(23);
-        let (token_x, token_y) = create_tokens!($client, $token, mint_amount, mint_amount);
+        let (token_x, token_y) = create_tokens!($client, mint_amount, mint_amount);
 
         let protocol_fee = Percentage::from_scale(1, 2);
-        let dex = create_dex!($client, $dex, protocol_fee);
+        let dex = create_dex!($client, protocol_fee);
         (dex, token_x, token_y)
     }};
 }
@@ -214,22 +214,21 @@ macro_rules! init_basic_pool {
 
 #[macro_export]
 macro_rules! init_slippage_pool_with_liquidity {
-    ($client:ident, $dex:ty, $token:ty, $dex_address:ident, $token_x_address:ident, $token_y_address:ident) => {{
+    ($client:ident, $dex:ident, $token_x:ident, $token_y:ident) => {{
         let fee_tier = FeeTier {
             fee: Percentage::from_scale(6, 3),
             tick_spacing: 10,
         };
         let alice = ink_e2e::alice();
-        add_fee_tier!($client, $dex, $dex_address, fee_tier, alice).unwrap();
+        add_fee_tier!($client, $dex, fee_tier, alice).unwrap();
 
         let init_tick = 0;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
         create_pool!(
             $client,
             $dex,
-            $dex_address,
-            $token_x_address,
-            $token_y_address,
+            $token_x.account_id,
+            $token_y.account_id,
             fee_tier,
             init_sqrt_price,
             init_tick,
@@ -243,26 +242,10 @@ macro_rules! init_slippage_pool_with_liquidity {
         let alice = ink_e2e::alice();
 
         let mint_amount = 10u128.pow(10);
-        approve!(
-            $client,
-            $token,
-            $token_x_address,
-            $dex_address,
-            mint_amount,
-            alice
-        )
-        .unwrap();
-        approve!(
-            $client,
-            $token,
-            $token_y_address,
-            $dex_address,
-            mint_amount,
-            alice
-        )
-        .unwrap();
+        approve!($client, $token_x, $dex.account_id, mint_amount, alice).unwrap();
+        approve!($client, $token_y, $dex.account_id, mint_amount, alice).unwrap();
 
-        let pool_key = PoolKey::new($token_x_address, $token_y_address, fee_tier).unwrap();
+        let pool_key = PoolKey::new($token_x.account_id, $token_y.account_id, fee_tier).unwrap();
         let lower_tick = -1000;
         let upper_tick = 1000;
         let liquidity = Liquidity::from_integer(10_000_000_000u128);
@@ -270,9 +253,8 @@ macro_rules! init_slippage_pool_with_liquidity {
         let pool_before = get_pool!(
             $client,
             $dex,
-            $dex_address,
-            $token_x_address,
-            $token_y_address,
+            $token_x.account_id,
+            $token_y.account_id,
             fee_tier
         )
         .unwrap();
@@ -281,7 +263,6 @@ macro_rules! init_slippage_pool_with_liquidity {
         create_position!(
             $client,
             $dex,
-            $dex_address,
             pool_key,
             lower_tick,
             upper_tick,
@@ -295,9 +276,8 @@ macro_rules! init_slippage_pool_with_liquidity {
         let pool_after = get_pool!(
             $client,
             $dex,
-            $dex_address,
-            $token_x_address,
-            $token_y_address,
+            $token_x.account_id,
+            $token_y.account_id,
             fee_tier
         )
         .unwrap();
