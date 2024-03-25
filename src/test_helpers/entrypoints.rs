@@ -402,12 +402,13 @@ macro_rules! get_pool {
 
 #[macro_export]
 macro_rules! get_tick {
-    ($client:ident, $dex:ty, $dex_address:expr, $key:expr, $index:expr) => {{
-        let message = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.get_tick($key, $index));
+    ($client:ident, $dex:ident, $key:expr, $index:expr) => {{
+        let mut call_builder = $dex.call_builder::<Invariant>();
+        let call = call_builder.get_tick($key, $index);
         $client
-            .call_dry_run(&ink_e2e::alice(), &message, 0, None)
-            .await
+            .call(&ink_e2e::alice(), &call)
+            .dry_run()
+            .await?
             .return_value()
     }};
 }

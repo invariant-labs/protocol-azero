@@ -364,7 +364,7 @@ macro_rules! init_basic_position {
 
 #[macro_export]
 macro_rules! init_cross_position {
-    ($client:ident, $dex:ty, $token:ty, $dex_address:ident, $token_x_address:ident, $token_y_address:ident) => {{
+    ($client:ident, $dex:ident, $token_x:ident, $token_y:ident) => {{
         let fee_tier = FeeTier {
             fee: Percentage::from_scale(6, 3),
             tick_spacing: 10,
@@ -372,26 +372,10 @@ macro_rules! init_cross_position {
         let alice = ink_e2e::alice();
 
         let mint_amount = 10u128.pow(10);
-        approve!(
-            $client,
-            $token,
-            $token_x_address,
-            $dex_address,
-            mint_amount,
-            alice
-        )
-        .unwrap();
-        approve!(
-            $client,
-            $token,
-            $token_y_address,
-            $dex_address,
-            mint_amount,
-            alice
-        )
-        .unwrap();
+        approve!($client, $token_x, $dex.account_id, mint_amount, alice).unwrap();
+        approve!($client, $token_y, $dex.account_id, mint_amount, alice).unwrap();
 
-        let pool_key = PoolKey::new($token_x_address, $token_y_address, fee_tier).unwrap();
+        let pool_key = PoolKey::new($token_x.account_id, $token_y.account_id, fee_tier).unwrap();
         let lower_tick = -40;
         let upper_tick = -10;
         let liquidity = Liquidity::from_integer(1000000);
@@ -399,9 +383,8 @@ macro_rules! init_cross_position {
         let pool_before = get_pool!(
             $client,
             $dex,
-            $dex_address,
-            $token_x_address,
-            $token_y_address,
+            $token_x.account_id,
+            $token_y.account_id,
             fee_tier
         )
         .unwrap();
@@ -410,7 +393,6 @@ macro_rules! init_cross_position {
         create_position!(
             $client,
             $dex,
-            $dex_address,
             pool_key,
             lower_tick,
             upper_tick,
@@ -424,9 +406,8 @@ macro_rules! init_cross_position {
         let pool_after = get_pool!(
             $client,
             $dex,
-            $dex_address,
-            $token_x_address,
-            $token_y_address,
+            $token_x.account_id,
+            $token_y.account_id,
             fee_tier
         )
         .unwrap();
@@ -514,39 +495,30 @@ macro_rules! init_basic_swap {
 
 #[macro_export]
 macro_rules! init_cross_swap {
-    ($client:ident, $dex:ty, $token:ty, $dex_address:ident, $token_x_address:ident, $token_y_address:ident) => {{
+    ($client:ident, $dex:ident, $token_x:ident, $token_y:ident) => {{
         let fee = Percentage::from_scale(6, 3);
         let tick_spacing = 10;
         let fee_tier = FeeTier { fee, tick_spacing };
-        let pool_key = PoolKey::new($token_x_address, $token_y_address, fee_tier).unwrap();
+        let pool_key = PoolKey::new($token_x.account_id, $token_y.account_id, fee_tier).unwrap();
         let lower_tick = -20;
 
         let amount = 1000;
         let bob = ink_e2e::bob();
-        mint!(
-            $client,
-            $token,
-            $token_x_address,
-            address_of!(Bob),
-            amount,
-            bob
-        )
-        .unwrap();
-        let amount_x = balance_of!($client, $token, $token_x_address, address_of!(Bob));
+        mint!($client, $token_x, address_of!(Bob), amount, bob).unwrap();
+        let amount_x = balance_of!($client, $token_x, address_of!(Bob));
         assert_eq!(amount_x, amount);
-        approve!($client, $token, $token_x_address, $dex_address, amount, bob).unwrap();
+        approve!($client, $token_x, $dex.account_id, amount, bob).unwrap();
 
-        let amount_x = balance_of!($client, $token, $token_x_address, $dex_address);
-        let amount_y = balance_of!($client, $token, $token_y_address, $dex_address);
+        let amount_x = balance_of!($client, $token_x, $dex.account_id);
+        let amount_y = balance_of!($client, $token_y, $dex.account_id);
         assert_eq!(amount_x, 500);
         assert_eq!(amount_y, 2499);
 
         let pool_before = get_pool!(
             $client,
             $dex,
-            $dex_address,
-            $token_x_address,
-            $token_y_address,
+            $token_x.account_id,
+            $token_y.account_id,
             fee_tier
         )
         .unwrap();
@@ -556,7 +528,6 @@ macro_rules! init_cross_swap {
         swap!(
             $client,
             $dex,
-            $dex_address,
             pool_key,
             true,
             swap_amount,
@@ -569,9 +540,8 @@ macro_rules! init_cross_swap {
         let pool_after = get_pool!(
             $client,
             $dex,
-            $dex_address,
-            $token_x_address,
-            $token_y_address,
+            $token_x.account_id,
+            $token_y.account_id,
             fee_tier
         )
         .unwrap();
@@ -583,13 +553,13 @@ macro_rules! init_cross_swap {
         assert_eq!(pool_after.current_tick_index, lower_tick);
         assert_ne!(pool_after.sqrt_price, pool_before.sqrt_price);
 
-        let amount_x = balance_of!($client, $token, $token_x_address, address_of!(Bob));
-        let amount_y = balance_of!($client, $token, $token_y_address, address_of!(Bob));
+        let amount_x = balance_of!($client, $token_x, address_of!(Bob));
+        let amount_y = balance_of!($client, $token_y, address_of!(Bob));
         assert_eq!(amount_x, 0);
         assert_eq!(amount_y, 990);
 
-        let amount_x = balance_of!($client, $token, $token_x_address, $dex_address);
-        let amount_y = balance_of!($client, $token, $token_y_address, $dex_address);
+        let amount_x = balance_of!($client, $token_x, $dex.account_id);
+        let amount_y = balance_of!($client, $token_y, $dex.account_id);
         assert_eq!(amount_x, 1500);
         assert_eq!(amount_y, 1509);
 
