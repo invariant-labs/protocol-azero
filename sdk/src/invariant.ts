@@ -599,13 +599,13 @@ export class Invariant {
     )
   }
 
-  async getInitializedChunks(account: IKeyringPair, poolKey: PoolKey): Promise<bigint[]> {
+  async getInitializedTickmapChunks(account: IKeyringPair, poolKey: PoolKey): Promise<bigint[]> {
     return await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       account,
-      InvariantQuery.GetInitializedChunks,
+      InvariantQuery.GetInitializedTickmapChunks,
       [poolKey]
     )
   }

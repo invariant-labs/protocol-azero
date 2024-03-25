@@ -372,12 +372,15 @@ pub trait InvariantTrait {
     /// # Parameters
     /// - `pool_key`: A unique key that identifies the specified pool.
     #[ink(message)]
-    fn get_initialized_chunks(&self, pool_key: PoolKey) -> Vec<u16>;
+    fn get_initialized_tickmap_chunks(&self, pool_key: PoolKey) -> Vec<u16>;
 
     /// Retrieves tickmap chunks
     ///
     /// # Parameters
     /// - `pool_key`: A unique key that identifies the specified pool.
+    /// - `current_tick_index`: Current tick index on the pool.
+    /// - `offset`: The offset from current tick index to retrieve chunks.
+    /// - `amount`: The amount of tickmap chunks to be retrieved.
     #[ink(message)]
     fn get_tickmap(
         &self,

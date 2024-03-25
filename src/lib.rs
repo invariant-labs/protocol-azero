@@ -990,7 +990,7 @@ pub mod invariant {
         }
 
         #[ink(message)]
-        fn get_initialized_chunks(&self, pool_key: PoolKey) -> Vec<u16> {
+        fn get_initialized_tickmap_chunks(&self, pool_key: PoolKey) -> Vec<u16> {
             self.tickmap.get_initialized_chunks(pool_key)
         }
 

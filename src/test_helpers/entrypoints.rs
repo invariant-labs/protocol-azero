@@ -15,7 +15,7 @@ macro_rules! get_tickmap {
 macro_rules! get_initialized_chunks {
     ($client:ident, $dex:ty, $dex_address:expr, $pool_key:expr, $caller:ident) => {{
         let message = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.get_initialized_chunks($pool_key));
+            .call(|contract| contract.get_initialized_tickmap_chunks($pool_key));
         $client
             .call_dry_run(&$caller, &message, 0, None)
             .await

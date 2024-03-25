@@ -46,7 +46,7 @@ describe('tickmap', async () => {
 
     const offset = 10n
     const amountToRetrive = 10n
-    const intializedChunks = await invariant.getInitializedChunks(account, poolKey)
+    const intializedChunks = await invariant.getInitializedTickmapChunks(account, poolKey)
     const expectedIntializedChunks = [3465n]
     assert.deepEqual(intializedChunks, expectedIntializedChunks)
     console.log('intializedChunks', intializedChunks)
@@ -72,7 +72,7 @@ describe('tickmap', async () => {
     await invariant.createPosition(account, poolKey, ticks[0], ticks[1], 10n, pool.sqrtPrice, 0n)
     await invariant.createPosition(account, poolKey, ticks[4], ticks[5], 10n, pool.sqrtPrice, 0n)
 
-    const intializedChunks = await invariant.getInitializedChunks(account, poolKey)
+    const intializedChunks = await invariant.getInitializedTickmapChunks(account, poolKey)
     const expectedIntializedChunks = [0n, 6931n]
     assert.deepEqual(intializedChunks, expectedIntializedChunks)
 
@@ -100,7 +100,7 @@ describe('tickmap', async () => {
       await invariant.createPosition(account, poolKey, i, i + 1n, 10n, pool.sqrtPrice, 0n)
     }
 
-    const intializedChunks = await invariant.getInitializedChunks(account, poolKey)
+    const intializedChunks = await invariant.getInitializedTickmapChunks(account, poolKey)
     for (let i = 0n; i < intializedChunks.length; i++) {
       assert.exists(intializedChunks.some(chunk => chunk === i + 3466n))
     }
@@ -131,7 +131,7 @@ describe('tickmap', async () => {
       await invariant.createPosition(account, poolKey, i, i + 1n, 10n, pool.sqrtPrice, 0n)
     }
 
-    const intializedChunks = await invariant.getInitializedChunks(account, poolKey)
+    const intializedChunks = await invariant.getInitializedTickmapChunks(account, poolKey)
     for (let i = 0n; i < intializedChunks.length; i++) {
       assert.exists(intializedChunks.some(chunk => chunk === i + 2644n))
     }
