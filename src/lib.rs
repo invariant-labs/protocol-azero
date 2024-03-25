@@ -40,9 +40,10 @@ pub enum InvariantError {
 #[ink::contract]
 pub mod invariant {
     use crate::contracts::{
-        get_bit_at_position, get_max_chunk, position_to_tick, tick_to_position, FeeTier, FeeTiers,
-        InvariantConfig, InvariantTrait, LiquidityTick, Pool, PoolKey, PoolKeys, Pools, Position,
-        PositionTick, Positions, Tick, Tickmap, Ticks, CHUNK_SIZE, LIQUIDITY_TICK_LIMIT,
+        get_bit_at_position, get_max_chunk, position_to_tick, tick_to_position,
+        CreatePositionEvent, CrossTickEvent, FeeTier, FeeTiers, InvariantConfig, InvariantTrait,
+        LiquidityTick, Pool, PoolKey, PoolKeys, Pools, Position, PositionTick, Positions,
+        RemovePositionEvent, SwapEvent, Tick, Tickmap, Ticks, CHUNK_SIZE, LIQUIDITY_TICK_LIMIT,
         MAX_TICKMAP_QUERY_SIZE, POSITION_TICK_LIMIT,
     };
     use crate::math::calculate_min_amount_out;
@@ -62,51 +63,6 @@ pub mod invariant {
     use ink::prelude::vec::Vec;
     use token::PSP22;
     use traceable_result::unwrap;
-
-    #[ink(event)]
-    pub struct CreatePositionEvent {
-        #[ink(topic)]
-        timestamp: u64,
-        address: AccountId,
-        pool: PoolKey,
-        liquidity: Liquidity,
-        lower_tick: i32,
-        upper_tick: i32,
-        current_sqrt_price: SqrtPrice,
-    }
-    #[ink(event)]
-    pub struct CrossTickEvent {
-        #[ink(topic)]
-        timestamp: u64,
-        address: AccountId,
-        pool: PoolKey,
-        indexes: Vec<i32>,
-    }
-
-    #[ink(event)]
-    pub struct RemovePositionEvent {
-        #[ink(topic)]
-        timestamp: u64,
-        address: AccountId,
-        pool: PoolKey,
-        liquidity: Liquidity,
-        lower_tick: i32,
-        upper_tick: i32,
-        current_sqrt_price: SqrtPrice,
-    }
-    #[ink(event)]
-    pub struct SwapEvent {
-        #[ink(topic)]
-        timestamp: u64,
-        address: AccountId,
-        pool: PoolKey,
-        amount_in: TokenAmount,
-        amount_out: TokenAmount,
-        fee: TokenAmount,
-        start_sqrt_price: SqrtPrice,
-        target_sqrt_price: SqrtPrice,
-        x_to_y: bool,
-    }
 
     #[derive(Default, Clone, Debug, PartialEq)]
     #[ink::scale_derive(Encode, Decode, TypeInfo)]
