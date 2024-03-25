@@ -1,5 +1,6 @@
 #[cfg(test)]
 pub mod e2e_tests {
+    use crate::invariant::Invariant;
     use crate::{
         contracts::tickmap::get_max_chunk,
         contracts::{entrypoints::InvariantTrait, FeeTier, PoolKey},
@@ -10,11 +11,12 @@ pub mod e2e_tests {
         math::types::sqrt_price::{calculate_sqrt_price, get_max_tick, get_min_tick, SqrtPrice},
     };
     use decimal::*;
-    use ink_e2e::build_message;
+    use ink_e2e::ContractsBackend;
     use test_helpers::{
         add_fee_tier, approve, create_dex, create_pool, create_position, create_tokens, get_pool,
         get_tickmap,
     };
+    use token::Token;
     use token::TokenRef;
     use token::PSP22;
 
@@ -30,26 +32,25 @@ pub mod e2e_tests {
     #[ink_e2e::test]
     async fn test_get_tickmap(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let alice = ink_e2e::alice();
-        let dex = create_dex!(client, InvariantRef, Percentage::new(0));
+        let dex = create_dex!(client, Percentage::new(0));
         let initial_amount = 10u128.pow(10);
-        let (token_x, token_y) = create_tokens!(client, TokenRef, initial_amount, initial_amount);
+        let (token_x, token_y) = create_tokens!(client, initial_amount, initial_amount);
 
-        approve!(client, TokenRef, token_x, dex, initial_amount, alice).unwrap();
-        approve!(client, TokenRef, token_y, dex, initial_amount, alice).unwrap();
+        approve!(client, token_x, dex.account_id, initial_amount, alice).unwrap();
+        approve!(client, token_y, dex.account_id, initial_amount, alice).unwrap();
 
         let fee_tier = FeeTier::new(Percentage::from_scale(5, 1), 1).unwrap();
-        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+        let pool_key = PoolKey::new(token_x.account_id, token_y.account_id, fee_tier).unwrap();
         let init_tick = 0;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
 
-        add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
+        add_fee_tier!(client, dex, fee_tier, alice).unwrap();
 
         let result = create_pool!(
             client,
-            InvariantRef,
             dex,
-            token_x,
-            token_y,
+            token_x.account_id,
+            token_y.account_id,
             fee_tier,
             init_sqrt_price,
             init_tick,
@@ -57,13 +58,19 @@ pub mod e2e_tests {
         );
         assert!(result.is_ok());
 
-        let pool = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
+        let pool = get_pool!(
+            client,
+            dex,
+            token_x.account_id,
+            token_y.account_id,
+            fee_tier
+        )
+        .unwrap();
 
         let liquidity_delta = Liquidity::new(1000);
 
         create_position!(
             client,
-            InvariantRef,
             dex,
             pool_key,
             -58,
@@ -75,14 +82,7 @@ pub mod e2e_tests {
         )
         .unwrap();
 
-        let tickmap = get_tickmap!(
-            client,
-            InvariantRef,
-            dex,
-            pool_key,
-            pool.current_tick_index,
-            alice
-        );
+        let tickmap = get_tickmap!(client, dex, pool_key, pool.current_tick_index, alice);
 
         assert_eq!(
             tickmap[0],
@@ -101,26 +101,25 @@ pub mod e2e_tests {
         mut client: ink_e2e::Client<C, E>,
     ) -> E2EResult<()> {
         let alice = ink_e2e::alice();
-        let dex = create_dex!(client, InvariantRef, Percentage::new(0));
+        let dex = create_dex!(client, Percentage::new(0));
         let initial_amount = 10u128.pow(10);
-        let (token_x, token_y) = create_tokens!(client, TokenRef, initial_amount, initial_amount);
+        let (token_x, token_y) = create_tokens!(client, initial_amount, initial_amount);
 
-        approve!(client, TokenRef, token_x, dex, initial_amount, alice).unwrap();
-        approve!(client, TokenRef, token_y, dex, initial_amount, alice).unwrap();
+        approve!(client, token_x, dex.account_id, initial_amount, alice).unwrap();
+        approve!(client, token_y, dex.account_id, initial_amount, alice).unwrap();
 
         let fee_tier = FeeTier::new(Percentage::from_scale(5, 1), 10).unwrap();
-        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+        let pool_key = PoolKey::new(token_x.account_id, token_y.account_id, fee_tier).unwrap();
         let init_tick = 0;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
 
-        add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
+        add_fee_tier!(client, dex, fee_tier, alice).unwrap();
 
         let result = create_pool!(
             client,
-            InvariantRef,
             dex,
-            token_x,
-            token_y,
+            token_x.account_id,
+            token_y.account_id,
             fee_tier,
             init_sqrt_price,
             init_tick,
@@ -128,13 +127,19 @@ pub mod e2e_tests {
         );
         assert!(result.is_ok());
 
-        let pool = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
+        let pool = get_pool!(
+            client,
+            dex,
+            token_x.account_id,
+            token_y.account_id,
+            fee_tier
+        )
+        .unwrap();
 
         let liquidity_delta = Liquidity::new(1000);
 
         create_position!(
             client,
-            InvariantRef,
             dex,
             pool_key,
             10,
@@ -148,7 +153,6 @@ pub mod e2e_tests {
 
         create_position!(
             client,
-            InvariantRef,
             dex,
             pool_key,
             get_min_tick(fee_tier.tick_spacing),
@@ -160,14 +164,7 @@ pub mod e2e_tests {
         )
         .unwrap();
 
-        let tickmap = get_tickmap!(
-            client,
-            InvariantRef,
-            dex,
-            pool_key,
-            pool.current_tick_index,
-            alice
-        );
+        let tickmap = get_tickmap!(client, dex, pool_key, pool.current_tick_index, alice);
 
         assert_eq!(tickmap[0], (0, 0b1));
         assert_eq!(
@@ -188,26 +185,25 @@ pub mod e2e_tests {
         mut client: ink_e2e::Client<C, E>,
     ) -> E2EResult<()> {
         let alice = ink_e2e::alice();
-        let dex = create_dex!(client, InvariantRef, Percentage::new(0));
+        let dex = create_dex!(client, Percentage::new(0));
         let initial_amount = 10u128.pow(10);
-        let (token_x, token_y) = create_tokens!(client, TokenRef, initial_amount, initial_amount);
+        let (token_x, token_y) = create_tokens!(client, initial_amount, initial_amount);
 
-        approve!(client, TokenRef, token_x, dex, initial_amount, alice).unwrap();
-        approve!(client, TokenRef, token_y, dex, initial_amount, alice).unwrap();
+        approve!(client, token_x, dex.account_id, initial_amount, alice).unwrap();
+        approve!(client, token_y, dex.account_id, initial_amount, alice).unwrap();
 
         let fee_tier = FeeTier::new(Percentage::from_scale(5, 1), 1).unwrap();
-        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+        let pool_key = PoolKey::new(token_x.account_id, token_y.account_id, fee_tier).unwrap();
         let init_tick = 0;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
 
-        add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
+        add_fee_tier!(client, dex, fee_tier, alice).unwrap();
 
         let result = create_pool!(
             client,
-            InvariantRef,
             dex,
-            token_x,
-            token_y,
+            token_x.account_id,
+            token_y.account_id,
             fee_tier,
             init_sqrt_price,
             init_tick,
@@ -215,13 +211,19 @@ pub mod e2e_tests {
         );
         assert!(result.is_ok());
 
-        let pool = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
+        let pool = get_pool!(
+            client,
+            dex,
+            token_x.account_id,
+            token_y.account_id,
+            fee_tier
+        )
+        .unwrap();
 
         let liquidity_delta = Liquidity::new(1000);
 
         create_position!(
             client,
-            InvariantRef,
             dex,
             pool_key,
             -221818,
@@ -235,7 +237,6 @@ pub mod e2e_tests {
 
         create_position!(
             client,
-            InvariantRef,
             dex,
             pool_key,
             221817,
@@ -247,14 +248,7 @@ pub mod e2e_tests {
         )
         .unwrap();
 
-        let tickmap = get_tickmap!(
-            client,
-            InvariantRef,
-            dex,
-            pool_key,
-            pool.current_tick_index,
-            alice
-        );
+        let tickmap = get_tickmap!(client, dex, pool_key, pool.current_tick_index, alice);
 
         assert_eq!(tickmap[0], (0, 0b11));
         assert_eq!(
@@ -266,7 +260,7 @@ pub mod e2e_tests {
         );
         assert_eq!(tickmap.len(), 2);
         {
-            let tickmap = get_tickmap!(client, InvariantRef, dex, pool_key, MIN_TICK, alice);
+            let tickmap = get_tickmap!(client, dex, pool_key, MIN_TICK, alice);
             assert_eq!(tickmap[0], (0, 0b11));
             assert_eq!(
                 tickmap[1],
@@ -277,7 +271,7 @@ pub mod e2e_tests {
             );
             assert_eq!(tickmap.len(), 2);
 
-            let tickmap = get_tickmap!(client, InvariantRef, dex, pool_key, 0, alice);
+            let tickmap = get_tickmap!(client, dex, pool_key, 0, alice);
             assert_eq!(tickmap[0], (0, 0b11));
             assert_eq!(
                 tickmap[1],
@@ -288,7 +282,7 @@ pub mod e2e_tests {
             );
             assert_eq!(tickmap.len(), 2);
 
-            let tickmap = get_tickmap!(client, InvariantRef, dex, pool_key, MAX_TICK, alice);
+            let tickmap = get_tickmap!(client, dex, pool_key, MAX_TICK, alice);
             assert_eq!(tickmap[0], (0, 0b11));
             assert_eq!(
                 tickmap[1],
@@ -308,26 +302,25 @@ pub mod e2e_tests {
         mut client: ink_e2e::Client<C, E>,
     ) -> E2EResult<()> {
         let alice = ink_e2e::alice();
-        let dex = create_dex!(client, InvariantRef, Percentage::new(0));
+        let dex = create_dex!(client, Percentage::new(0));
         let initial_amount = 10u128.pow(10);
-        let (token_x, token_y) = create_tokens!(client, TokenRef, initial_amount, initial_amount);
+        let (token_x, token_y) = create_tokens!(client, initial_amount, initial_amount);
 
-        approve!(client, TokenRef, token_x, dex, initial_amount, alice).unwrap();
-        approve!(client, TokenRef, token_y, dex, initial_amount, alice).unwrap();
+        approve!(client, token_x, dex.account_id, initial_amount, alice).unwrap();
+        approve!(client, token_y, dex.account_id, initial_amount, alice).unwrap();
 
         let fee_tier = FeeTier::new(Percentage::from_scale(5, 1), 1).unwrap();
-        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+        let pool_key = PoolKey::new(token_x.account_id, token_y.account_id, fee_tier).unwrap();
         let init_tick = 0;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
 
-        add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
+        add_fee_tier!(client, dex, fee_tier, alice).unwrap();
 
         let result = create_pool!(
             client,
-            InvariantRef,
             dex,
-            token_x,
-            token_y,
+            token_x.account_id,
+            token_y.account_id,
             fee_tier,
             init_sqrt_price,
             init_tick,
@@ -335,14 +328,20 @@ pub mod e2e_tests {
         );
         assert!(result.is_ok());
 
-        let pool = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
+        let pool = get_pool!(
+            client,
+            dex,
+            token_x.account_id,
+            token_y.account_id,
+            fee_tier
+        )
+        .unwrap();
 
         let liquidity_delta = Liquidity::new(1000);
 
         for i in (6..52500).step_by(64) {
             create_position!(
                 client,
-                InvariantRef,
                 dex,
                 pool_key,
                 i,
@@ -355,14 +354,7 @@ pub mod e2e_tests {
             .unwrap();
         }
 
-        let tickmap = get_tickmap!(
-            client,
-            InvariantRef,
-            dex,
-            pool_key,
-            pool.current_tick_index,
-            alice
-        );
+        let tickmap = get_tickmap!(client, dex, pool_key, pool.current_tick_index, alice);
 
         for (i, _) in (0..tickmap.len()).enumerate() {
             let current = 3466 + i as u16;
@@ -376,26 +368,25 @@ pub mod e2e_tests {
         mut client: ink_e2e::Client<C, E>,
     ) -> E2EResult<()> {
         let alice = ink_e2e::alice();
-        let dex = create_dex!(client, InvariantRef, Percentage::new(0));
+        let dex = create_dex!(client, Percentage::new(0));
         let initial_amount = 10u128.pow(10);
-        let (token_x, token_y) = create_tokens!(client, TokenRef, initial_amount, initial_amount);
+        let (token_x, token_y) = create_tokens!(client, initial_amount, initial_amount);
 
-        approve!(client, TokenRef, token_x, dex, initial_amount, alice).unwrap();
-        approve!(client, TokenRef, token_y, dex, initial_amount, alice).unwrap();
+        approve!(client, token_x, dex.account_id, initial_amount, alice).unwrap();
+        approve!(client, token_y, dex.account_id, initial_amount, alice).unwrap();
 
         let fee_tier = FeeTier::new(Percentage::from_scale(5, 1), 1).unwrap();
-        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+        let pool_key = PoolKey::new(token_x.account_id, token_y.account_id, fee_tier).unwrap();
         let init_tick = 0;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
 
-        add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
+        add_fee_tier!(client, dex, fee_tier, alice).unwrap();
 
         let result = create_pool!(
             client,
-            InvariantRef,
             dex,
-            token_x,
-            token_y,
+            token_x.account_id,
+            token_y.account_id,
             fee_tier,
             init_sqrt_price,
             init_tick,
@@ -403,14 +394,20 @@ pub mod e2e_tests {
         );
         assert!(result.is_ok());
 
-        let pool = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
+        let pool = get_pool!(
+            client,
+            dex,
+            token_x.account_id,
+            token_y.account_id,
+            fee_tier
+        )
+        .unwrap();
 
         let liquidity_delta = Liquidity::new(1000);
 
         for i in (-52544..6).step_by(64) {
             create_position!(
                 client,
-                InvariantRef,
                 dex,
                 pool_key,
                 i,
@@ -423,14 +420,7 @@ pub mod e2e_tests {
             .unwrap();
         }
 
-        let tickmap = get_tickmap!(
-            client,
-            InvariantRef,
-            dex,
-            pool_key,
-            pool.current_tick_index,
-            alice
-        );
+        let tickmap = get_tickmap!(client, dex, pool_key, pool.current_tick_index, alice);
         for (i, _) in (0..tickmap.len()).enumerate() {
             let current = 2644 + i as u16;
             assert_eq!(
@@ -449,26 +439,25 @@ pub mod e2e_tests {
         mut client: ink_e2e::Client<C, E>,
     ) -> E2EResult<()> {
         let alice = ink_e2e::alice();
-        let dex = create_dex!(client, InvariantRef, Percentage::new(0));
+        let dex = create_dex!(client, Percentage::new(0));
         let initial_amount = 10u128.pow(10);
-        let (token_x, token_y) = create_tokens!(client, TokenRef, initial_amount, initial_amount);
+        let (token_x, token_y) = create_tokens!(client, initial_amount, initial_amount);
 
-        approve!(client, TokenRef, token_x, dex, initial_amount, alice).unwrap();
-        approve!(client, TokenRef, token_y, dex, initial_amount, alice).unwrap();
+        approve!(client, token_x, dex.account_id, initial_amount, alice).unwrap();
+        approve!(client, token_y, dex.account_id, initial_amount, alice).unwrap();
 
         let fee_tier = FeeTier::new(Percentage::from_scale(5, 1), 1).unwrap();
-        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+        let pool_key = PoolKey::new(token_x.account_id, token_y.account_id, fee_tier).unwrap();
         let init_tick = -200_000;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
 
-        add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
+        add_fee_tier!(client, dex, fee_tier, alice).unwrap();
 
         let result = create_pool!(
             client,
-            InvariantRef,
             dex,
-            token_x,
-            token_y,
+            token_x.account_id,
+            token_y.account_id,
             fee_tier,
             init_sqrt_price,
             init_tick,
@@ -476,14 +465,20 @@ pub mod e2e_tests {
         );
         assert!(result.is_ok());
 
-        let pool = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
+        let pool = get_pool!(
+            client,
+            dex,
+            token_x.account_id,
+            token_y.account_id,
+            fee_tier
+        )
+        .unwrap();
 
         let liquidity_delta = Liquidity::new(1000);
 
         for i in (0..104832).step_by(64) {
             create_position!(
                 client,
-                InvariantRef,
                 dex,
                 pool_key,
                 i,
@@ -496,14 +491,7 @@ pub mod e2e_tests {
             .unwrap();
         }
 
-        let tickmap = get_tickmap!(
-            client,
-            InvariantRef,
-            dex,
-            pool_key,
-            pool.current_tick_index,
-            alice
-        );
+        let tickmap = get_tickmap!(client, dex, pool_key, pool.current_tick_index, alice);
 
         assert_eq!(tickmap.len(), 1638);
 
