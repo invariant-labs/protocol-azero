@@ -98,7 +98,7 @@ macro_rules! init_dex_and_tokens_max_mint_amount {
         let (token_x, token_y) = create_tokens!($client, mint_amount, mint_amount);
 
         let protocol_fee = Percentage::from_scale(1, 2);
-        let dex = create_dex!($client, $dex, protocol_fee);
+        let dex = create_dex!($client, protocol_fee);
         (dex, token_x, token_y)
     }};
 }
@@ -611,28 +611,27 @@ macro_rules! swap_exact_limit {
 
 #[macro_export]
 macro_rules! big_deposit_and_swap {
-    ($client:ident, $dex:ty, $token:ty, $x_to_y:expr) => {{
-        let (dex, token_x, token_y) = init_dex_and_tokens_max_mint_amount!($client, $dex, $token);
+    ($client:ident, $x_to_y:expr) => {{
+        let (dex, token_x, token_y) = init_dex_and_tokens_max_mint_amount!($client);
 
         let mint_amount = 2u128.pow(75) - 1;
         let alice = ink_e2e::alice();
-        approve!($client, $token, token_x, dex, u128::MAX, alice).unwrap();
-        approve!($client, $token, token_y, dex, u128::MAX, alice).unwrap();
+        approve!($client, token_x, dex.account_id, u128::MAX, alice).unwrap();
+        approve!($client, token_y, dex.account_id, u128::MAX, alice).unwrap();
 
         let fee_tier = FeeTier {
             fee: Percentage::from_scale(6, 3),
             tick_spacing: 1,
         };
-        add_fee_tier!($client, $dex, dex, fee_tier, alice).unwrap();
+        add_fee_tier!($client, dex, fee_tier, alice).unwrap();
 
         let init_tick = 0;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
         create_pool!(
             $client,
-            $dex,
             dex,
-            token_x,
-            token_y,
+            token_x.account_id,
+            token_y.account_id,
             fee_tier,
             init_sqrt_price,
             init_tick,
@@ -650,7 +649,14 @@ macro_rules! big_deposit_and_swap {
         } else {
             fee_tier.tick_spacing as i32
         };
-        let pool = get_pool!($client, $dex, dex, token_x, token_y, fee_tier).unwrap();
+        let pool = get_pool!(
+            $client,
+            dex,
+            token_x.account_id,
+            token_y.account_id,
+            fee_tier
+        )
+        .unwrap();
 
         let liquidity_delta = if $x_to_y {
             get_liquidity_by_y(
@@ -674,12 +680,11 @@ macro_rules! big_deposit_and_swap {
             .l
         };
 
-        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+        let pool_key = PoolKey::new(token_x.account_id, token_y.account_id, fee_tier).unwrap();
         let slippage_limit_lower = pool.sqrt_price;
         let slippage_limit_upper = pool.sqrt_price;
         create_position!(
             $client,
-            $dex,
             dex,
             pool_key,
             lower_tick,
@@ -691,8 +696,8 @@ macro_rules! big_deposit_and_swap {
         )
         .unwrap();
 
-        let amount_x = balance_of!($client, $token, token_x, address_of!(Alice));
-        let amount_y = balance_of!($client, $token, token_y, address_of!(Alice));
+        let amount_x = balance_of!($client, token_x, address_of!(Alice));
+        let amount_y = balance_of!($client, token_y, address_of!(Alice));
         if $x_to_y {
             assert_eq!(amount_x, 340282366920938463463374607431768211455);
             assert_eq!(amount_y, 340282366920938425684442744474606501888);
@@ -709,7 +714,6 @@ macro_rules! big_deposit_and_swap {
 
         swap!(
             $client,
-            $dex,
             dex,
             pool_key,
             $x_to_y,
@@ -720,8 +724,8 @@ macro_rules! big_deposit_and_swap {
         )
         .unwrap();
 
-        let amount_x = balance_of!($client, $token, token_x, address_of!(Alice));
-        let amount_y = balance_of!($client, $token, token_y, address_of!(Alice));
+        let amount_x = balance_of!($client, token_x, address_of!(Alice));
+        let amount_y = balance_of!($client, token_y, address_of!(Alice));
         if $x_to_y {
             assert_eq!(amount_x, 340282366920938425684442744474606501888);
             assert_ne!(amount_y, 0);
