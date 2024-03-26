@@ -2,6 +2,7 @@
 
 extern crate alloc;
 mod contracts;
+#[cfg(all(test, feature = "e2e-tests"))]
 pub mod e2e;
 pub mod math;
 
