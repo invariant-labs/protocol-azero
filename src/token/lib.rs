@@ -2,14 +2,14 @@
 
 mod data;
 mod errors;
-// mod testing;
+mod events;
+mod testing;
 mod traits;
 
 pub use data::{PSP22Data, PSP22Event};
 pub use errors::PSP22Error;
+pub use events::{Approval, Transfer};
 pub use traits::{PSP22Burnable, PSP22Metadata, PSP22Mintable, PSP22};
-
-pub use self::token::{Token, TokenRef};
 
 // An example code of a smart contract using PSP22Data struct to implement
 // the functionality of PSP22 fungible token.
@@ -17,20 +17,20 @@ pub use self::token::{Token, TokenRef};
 // Any contract can be easily enriched to act as PSP22 token by:
 // (1) adding PSP22Data to contract storage
 // (2) properly initializing it
-// (3) defining the correct Transfer and Approval events
-// (4) implementing PSP22 trait based on PSP22Data methods
-// (5) properly emitting resulting events
+// (3) implementing PSP22 trait based on PSP22Data methods
+// (4) properly emitting resulting events
 //
-// It is a good practice to also implement the optional PSP22Metadata extension (6)
-// and include unit tests (7).
+// It is a good practice to also implement the optional PSP22Metadata extension (5)
+// and include unit tests (6).
+#[cfg(feature = "contract")]
 #[ink::contract]
 mod token {
     use crate::{PSP22Data, PSP22Error, PSP22Event, PSP22Metadata, PSP22};
-    use ink::prelude::{string::String, vec, vec::Vec};
+    use ink::prelude::{string::String, vec::Vec};
 
     #[ink(storage)]
     pub struct Token {
-        pub data: PSP22Data, // (1)
+        data: PSP22Data, // (1)
         name: Option<String>,
         symbol: Option<String>,
         decimals: u8,
@@ -44,106 +44,30 @@ mod token {
             symbol: Option<String>,
             decimals: u8,
         ) -> Self {
-            Self {
-                data: PSP22Data::new(supply, Self::env().caller()), // (2)
+            let (data, events) = PSP22Data::new(supply, Self::env().caller()); // (2)
+            let contract = Self {
+                data,
                 name,
                 symbol,
                 decimals,
-            }
+            };
+            contract.emit_events(events);
+            contract
         }
 
-        // A helper function translating a vector of PSP22Events into the proper
-        // ink event types (defined internally in this contract) and emitting them.
-        // (5)
+        // A helper function emitting events contained in a vector of PSP22Events.
+        // (4)
         fn emit_events(&self, events: Vec<PSP22Event>) {
             for event in events {
                 match event {
-                    PSP22Event::Transfer { from, to, value } => {
-                        self.env().emit_event(Transfer { from, to, value })
-                    }
-                    PSP22Event::Approval {
-                        owner,
-                        spender,
-                        amount,
-                    } => self.env().emit_event(Approval {
-                        owner,
-                        spender,
-                        amount,
-                    }),
+                    PSP22Event::Transfer(e) => self.env().emit_event(e),
+                    PSP22Event::Approval(e) => self.env().emit_event(e),
                 }
             }
         }
-
-        #[ink(message)]
-        pub fn mint(&mut self, to: AccountId, value: u128) -> Result<(), PSP22Error> {
-            if value == 0 {
-                return Ok(());
-            }
-            let new_supply =
-                self.data
-                    .total_supply
-                    .checked_add(value)
-                    .ok_or(PSP22Error::Custom(String::from(
-                        "Max PSP22 supply exceeded. Max supply limited to 2^128-1.",
-                    )))?;
-            self.data.total_supply = new_supply;
-            let new_balance = self.balance_of(to).saturating_add(value);
-            self.data.balances.insert(to, &new_balance);
-            self.emit_events(vec![PSP22Event::Transfer {
-                from: None,
-                to: Some(to),
-                value,
-            }]);
-            Ok(())
-        }
-
-        #[ink(message)]
-        pub fn burn(&mut self, from: AccountId, value: u128) -> Result<(), PSP22Error> {
-            if value == 0 {
-                return Ok(());
-            }
-            let balance = self.balance_of(from);
-            if balance < value {
-                return Err(PSP22Error::InsufficientBalance);
-            }
-            if balance == value {
-                self.data.balances.remove(from);
-            } else {
-                self.data
-                    .balances
-                    .insert(from, &(balance.saturating_sub(value)));
-            }
-            self.data.total_supply = self.data.total_supply.saturating_sub(value);
-            self.emit_events(vec![PSP22Event::Transfer {
-                from: Some(from),
-                to: None,
-                value,
-            }]);
-            Ok(())
-        }
     }
 
     // (3)
-    #[ink(event)]
-    pub struct Approval {
-        #[ink(topic)]
-        owner: AccountId,
-        #[ink(topic)]
-        spender: AccountId,
-        amount: u128,
-    }
-
-    // (3)
-    #[ink(event)]
-    pub struct Transfer {
-        #[ink(topic)]
-        from: Option<AccountId>,
-        #[ink(topic)]
-        to: Option<AccountId>,
-        value: u128,
-    }
-
-    // (4)
     impl PSP22 for Token {
         #[ink(message)]
         fn total_supply(&self) -> u128 {
@@ -221,7 +145,7 @@ mod token {
         }
     }
 
-    // (6)
+    // (5)
     impl PSP22Metadata for Token {
         #[ink(message)]
         fn token_name(&self) -> Option<String> {
@@ -237,9 +161,10 @@ mod token {
         }
     }
 
-    // (7)
-    // #[cfg(test)]
-    // mod tests {
-    //     crate::tests!(Token, (|supply| Token::new(supply, None, None, 0)));
-    // }
+    // (6)
+    #[cfg(test)]
+    mod tests {
+        use super::Token;
+        crate::tests!(Token, (|supply| Token::new(supply, None, None, 0)));
+    }
 }
