@@ -7,7 +7,7 @@ import { PSP22 } from '../src/psp22'
 import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
 import { toPercentage } from '../src/wasm/pkg/invariant_a0_wasm'
 
-describe('limits', async () => {
+describe('storage limit', async () => {
   it('storage limit test', async function () {
     this.timeout(1000000000000)
 
