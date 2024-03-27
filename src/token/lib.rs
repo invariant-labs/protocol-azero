@@ -11,6 +11,8 @@ pub use errors::PSP22Error;
 pub use events::{Approval, Transfer};
 pub use traits::{PSP22Burnable, PSP22Metadata, PSP22Mintable, PSP22};
 
+pub use crate::token::{Token, TokenRef};
+
 // An example code of a smart contract using PSP22Data struct to implement
 // the functionality of PSP22 fungible token.
 //
@@ -22,11 +24,10 @@ pub use traits::{PSP22Burnable, PSP22Metadata, PSP22Mintable, PSP22};
 //
 // It is a good practice to also implement the optional PSP22Metadata extension (5)
 // and include unit tests (6).
-#[cfg(feature = "contract")]
 #[ink::contract]
 mod token {
-    use crate::{PSP22Data, PSP22Error, PSP22Event, PSP22Metadata, PSP22};
-    use ink::prelude::{string::String, vec::Vec};
+    use crate::{PSP22Data, PSP22Error, PSP22Event, PSP22Metadata, Transfer, PSP22};
+    use ink::prelude::{string::String, vec, vec::Vec};
 
     #[ink(storage)]
     pub struct Token {
@@ -64,6 +65,54 @@ mod token {
                     PSP22Event::Approval(e) => self.env().emit_event(e),
                 }
             }
+        }
+
+        #[ink(message)]
+        pub fn mint(&mut self, to: AccountId, value: u128) -> Result<(), PSP22Error> {
+            if value == 0 {
+                return Ok(());
+            }
+            let new_supply =
+                self.data
+                    .total_supply
+                    .checked_add(value)
+                    .ok_or(PSP22Error::Custom(String::from(
+                        "Max PSP22 supply exceeded. Max supply limited to 2^128-1.",
+                    )))?;
+            self.data.total_supply = new_supply;
+            let new_balance = self.balance_of(to).saturating_add(value);
+            self.data.balances.insert(to, &new_balance);
+            self.emit_events(vec![PSP22Event::Transfer(Transfer {
+                from: None,
+                to: Some(to),
+                value,
+            })]);
+            Ok(())
+        }
+
+        #[ink(message)]
+        pub fn burn(&mut self, from: AccountId, value: u128) -> Result<(), PSP22Error> {
+            if value == 0 {
+                return Ok(());
+            }
+            let balance = self.balance_of(from);
+            if balance < value {
+                return Err(PSP22Error::InsufficientBalance);
+            }
+            if balance == value {
+                self.data.balances.remove(from);
+            } else {
+                self.data
+                    .balances
+                    .insert(from, &(balance.saturating_sub(value)));
+            }
+            self.data.total_supply = self.data.total_supply.saturating_sub(value);
+            self.emit_events(vec![PSP22Event::Transfer(Transfer {
+                from: Some(from),
+                to: None,
+                value,
+            })]);
+            Ok(())
         }
     }
 
