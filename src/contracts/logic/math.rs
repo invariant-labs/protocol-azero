@@ -308,7 +308,10 @@ pub fn calculate_y(
             ((U256::from(sqrt_price_diff.get()).checked_mul(U256::from(shifted_liquidity)))
                 .ok_or_else(|| err!(TrackableError::MUL))?
                 .checked_add(U256::from(
-                    SqrtPrice::from_integer(1).get().checked_sub(1).unwrap(),
+                    SqrtPrice::from_integer(1)
+                        .get()
+                        .checked_sub(1)
+                        .ok_or_else(|| err!("Overflow while calculating TokenAmount"))?,
                 ))
                 .ok_or_else(|| err!(TrackableError::ADD))?)
             .checked_div(U256::from(SqrtPrice::from_integer(1).get()))

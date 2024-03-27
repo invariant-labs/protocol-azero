@@ -44,18 +44,31 @@ impl Positions {
         let positions_length = self.get_length(account_id);
         let position = self.get(account_id, index)?;
 
-        if index < positions_length.checked_sub(1).unwrap() {
+        if index
+            < positions_length
+                .checked_sub(1)
+                .ok_or(InvariantError::SubUnderflow)?
+        {
             let last_position = self
                 .positions
-                .take((account_id, positions_length.checked_sub(1).unwrap()))
+                .take((
+                    account_id,
+                    positions_length
+                        .checked_sub(1)
+                        .ok_or(InvariantError::SubUnderflow)?,
+                ))
                 .unwrap();
             self.positions.insert((account_id, index), &last_position);
         } else {
             self.positions.remove((account_id, index));
         }
 
-        self.positions_length
-            .insert(account_id, &(positions_length.checked_sub(1).unwrap()));
+        self.positions_length.insert(
+            account_id,
+            &(positions_length
+                .checked_sub(1)
+                .ok_or(InvariantError::SubUnderflow)?),
+        );
 
         Ok(position)
     }
