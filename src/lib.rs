@@ -35,6 +35,7 @@ pub enum InvariantError {
     InvalidInitTick,
     InvalidInitSqrtPrice,
     InvalidSize,
+    InvalidTickIndex,
 }
 #[ink::contract]
 pub mod invariant {
@@ -519,6 +520,10 @@ pub mod invariant {
             // liquidity delta = 0 => return
             if liquidity_delta == Liquidity::new(0) {
                 return Err(InvariantError::ZeroLiquidity);
+            }
+
+            if lower_tick == upper_tick {
+                return Err(InvariantError::InvalidTickIndex);
             }
 
             let mut pool = self.pools.get(pool_key)?;
