@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x78e9e26b5ea0c2abd690fd5693462f1163d0852314fb19887797ea876306c6f6",
+    "hash": "0x2e2812bed712bbc698efdd71fad5d2c7ef3c0e2931b32ca7f683697dc800ee08",
     "language": "ink! 4.3.0",
     "compiler": "rustc 1.74.0",
     "build_info": {
@@ -2652,6 +2652,14 @@
               {
                 "index": 26,
                 "name": "InvalidSize"
+              },
+              {
+                "index": 27,
+                "name": "InvalidTickIndex"
+              },
+              {
+                "index": 28,
+                "name": "TickLimitReached"
               }
             ]
           }

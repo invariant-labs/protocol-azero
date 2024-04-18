@@ -140,23 +140,24 @@ impl Pool {
     }
 
     #[allow(clippy::too_many_arguments)]
-    pub fn cross_tick(
+    pub fn update_tick(
         &mut self,
         result: SwapResult,
         swap_limit: SqrtPrice,
-        tick: &mut Tick,
-        remaining_amount: &mut TokenAmount,
+        tick: Option<&mut Tick>,
+        mut remaining_amount: TokenAmount,
         by_amount_in: bool,
         x_to_y: bool,
         current_timestamp: u64,
         protocol_fee: Percentage,
         fee_tier: FeeTier,
-    ) -> (TokenAmount, bool) {
+    ) -> (TokenAmount, TokenAmount, bool) {
         let mut has_crossed = false;
         let mut total_amount = TokenAmount(0);
-        if result.next_sqrt_price == swap_limit {
+        if tick.is_some() && result.next_sqrt_price == swap_limit {
+            let tick = tick.unwrap();
             let is_enough_amount_to_cross = unwrap!(is_enough_amount_to_change_price(
-                *remaining_amount,
+                remaining_amount,
                 result.next_sqrt_price,
                 self.liquidity,
                 fee_tier.fee,
@@ -169,10 +170,10 @@ impl Pool {
                 has_crossed = true;
             } else if !remaining_amount.is_zero() {
                 if by_amount_in {
-                    unwrap!(self.add_fee(*remaining_amount, x_to_y, protocol_fee));
-                    total_amount = *remaining_amount;
+                    unwrap!(self.add_fee(remaining_amount, x_to_y, protocol_fee));
+                    total_amount = remaining_amount;
                 }
-                *remaining_amount = TokenAmount(0);
+                remaining_amount = TokenAmount(0);
             }
 
             // set tick to limit (below if price is going down, because current tick should always be below price)
@@ -188,7 +189,7 @@ impl Pool {
             ));
         };
 
-        (total_amount, has_crossed)
+        (total_amount, remaining_amount, has_crossed)
     }
 
     pub fn withdraw_protocol_fee(&mut self, _pool_key: PoolKey) -> (TokenAmount, TokenAmount) {

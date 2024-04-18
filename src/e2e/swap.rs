@@ -10,6 +10,7 @@ pub mod e2e_tests {
             },
             MAX_SQRT_PRICE, MIN_SQRT_PRICE,
         },
+        InvariantError,
     };
     use decimal::*;
     use ink_e2e::build_message;
@@ -346,6 +347,200 @@ pub mod e2e_tests {
         assert!(lower_tick_bit);
         assert!(middle_tick_bit);
         assert!(upper_tick_bit);
+
+        Ok(())
+    }
+
+    #[ink_e2e::test]
+    async fn test_swap_not_enough_liquidity_token_x(
+        mut client: ink_e2e::Client<C, E>,
+    ) -> E2EResult<()> {
+        let dex = create_dex!(client, InvariantRef, Percentage::from_scale(6, 3));
+        let initial_amount = 10u128.pow(10);
+        let (token_x, token_y) = create_tokens!(client, TokenRef, initial_amount, initial_amount);
+
+        let alice = ink_e2e::alice();
+
+        let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
+
+        add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
+
+        let init_tick = 0;
+        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
+        create_pool!(
+            client,
+            InvariantRef,
+            dex,
+            token_x,
+            token_y,
+            fee_tier,
+            init_sqrt_price,
+            init_tick,
+            alice
+        )
+        .unwrap();
+
+        approve!(client, TokenRef, token_x, dex, initial_amount, alice).unwrap();
+        approve!(client, TokenRef, token_y, dex, initial_amount, alice).unwrap();
+
+        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+
+        let lower_tick_index = -10;
+        let middle_tick_index = 10;
+        let upper_tick_index = 20;
+
+        let liquidity_delta = Liquidity::from_integer(1000000);
+
+        create_position!(
+            client,
+            InvariantRef,
+            dex,
+            pool_key,
+            lower_tick_index,
+            upper_tick_index,
+            liquidity_delta,
+            SqrtPrice::new(0),
+            SqrtPrice::max_instance(),
+            alice
+        )
+        .unwrap();
+
+        create_position!(
+            client,
+            InvariantRef,
+            dex,
+            pool_key,
+            middle_tick_index,
+            upper_tick_index + 20,
+            liquidity_delta,
+            SqrtPrice::new(0),
+            SqrtPrice::max_instance(),
+            alice
+        )
+        .unwrap();
+
+        let pool = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
+
+        assert_eq!(pool.liquidity, liquidity_delta);
+
+        let amount = 1000;
+        let swap_amount = TokenAmount(amount);
+        let bob = ink_e2e::bob();
+        mint!(client, TokenRef, token_x, address_of!(Bob), amount, alice).unwrap();
+        approve!(client, TokenRef, token_x, dex, amount, bob).unwrap();
+
+        let target_sqrt_price = SqrtPrice::new(MIN_SQRT_PRICE);
+
+        let result = swap!(
+            client,
+            InvariantRef,
+            dex,
+            pool_key,
+            true,
+            swap_amount,
+            true,
+            target_sqrt_price,
+            bob
+        );
+
+        assert_eq!(result, Err(InvariantError::TickLimitReached));
+
+        Ok(())
+    }
+
+    #[ink_e2e::test]
+    async fn test_swap_not_enough_liquidity_token_y(
+        mut client: ink_e2e::Client<C, E>,
+    ) -> E2EResult<()> {
+        let dex = create_dex!(client, InvariantRef, Percentage::from_scale(6, 3));
+        let initial_amount = 10u128.pow(10);
+        let (token_x, token_y) = create_tokens!(client, TokenRef, initial_amount, initial_amount);
+
+        let alice = ink_e2e::alice();
+
+        let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
+
+        add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
+
+        let init_tick = 0;
+        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
+        create_pool!(
+            client,
+            InvariantRef,
+            dex,
+            token_x,
+            token_y,
+            fee_tier,
+            init_sqrt_price,
+            init_tick,
+            alice
+        )
+        .unwrap();
+
+        approve!(client, TokenRef, token_x, dex, initial_amount, alice).unwrap();
+        approve!(client, TokenRef, token_y, dex, initial_amount, alice).unwrap();
+
+        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+
+        let lower_tick_index = -20;
+        let middle_tick_index = -10;
+        let upper_tick_index = 10;
+
+        let liquidity_delta = Liquidity::from_integer(1000000);
+
+        create_position!(
+            client,
+            InvariantRef,
+            dex,
+            pool_key,
+            lower_tick_index,
+            upper_tick_index,
+            liquidity_delta,
+            SqrtPrice::new(0),
+            SqrtPrice::max_instance(),
+            alice
+        )
+        .unwrap();
+
+        create_position!(
+            client,
+            InvariantRef,
+            dex,
+            pool_key,
+            lower_tick_index - 20,
+            middle_tick_index,
+            liquidity_delta,
+            SqrtPrice::new(0),
+            SqrtPrice::max_instance(),
+            alice
+        )
+        .unwrap();
+
+        let pool = get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
+
+        assert_eq!(pool.liquidity, liquidity_delta);
+
+        let amount = 1000;
+        let swap_amount = TokenAmount(amount);
+        let bob = ink_e2e::bob();
+        mint!(client, TokenRef, token_y, address_of!(Bob), amount, alice).unwrap();
+        approve!(client, TokenRef, token_y, dex, amount, bob).unwrap();
+
+        let slippage = SqrtPrice::new(MAX_SQRT_PRICE);
+
+        let res = swap!(
+            client,
+            InvariantRef,
+            dex,
+            pool_key,
+            false,
+            swap_amount,
+            true,
+            slippage,
+            bob
+        );
+
+        assert_eq!(res, Err(InvariantError::TickLimitReached));
 
         Ok(())
     }
