@@ -76,7 +76,9 @@ pub mod e2e_tests {
     }
 
     #[ink_e2e::test]
-    async fn test_position_same_upper_and_lower_tick(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+    async fn test_position_same_upper_and_lower_tick(
+        mut client: ink_e2e::Client<C, E>,
+    ) -> E2EResult<()> {
         let dex = create_dex!(client, InvariantRef, Percentage::new(0));
         let (token_x, token_y) = create_tokens!(client, TokenRef, 500, 500);
 
