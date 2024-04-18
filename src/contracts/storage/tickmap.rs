@@ -729,13 +729,10 @@ mod tests {
         // initalized edges
         {
             for spacing in 1..=10 {
-                //println!("spacing = {}", spacing);
                 let tickmap = &mut Tickmap::default();
 
                 let max_index = MAX_TICK - MAX_TICK % spacing;
                 let min_index = -max_index;
-                //println!("max_index = {}", max_index);
-                //println!("min_index = {}", min_index);
 
                 tickmap.flip(true, max_index, spacing as u16, pool_key);
                 tickmap.flip(true, min_index, spacing as u16, pool_key);
@@ -747,13 +744,7 @@ mod tests {
                 let next =
                     tickmap.next_initialized(max_index - tick_edge_diff, spacing as u16, pool_key);
 
-                if prev.is_some() {
-                    //println!("found prev = {}", prev.unwrap());
-                }
-                if next.is_some() {
-                    //println!("found next = {}", next.unwrap());
-                }
-
+                assert_eq!((prev.is_some(), next.is_some()), (true, true));
                 // cleanup
                 {
                     tickmap.flip(false, max_index, spacing as u16, pool_key);
@@ -774,12 +765,7 @@ mod tests {
             let next =
                 tickmap.next_initialized(max_index - tick_edge_diff, spacing as u16, pool_key);
 
-            if prev.is_some() {
-                //println!("found prev = {}", prev.unwrap());
-            }
-            if next.is_some() {
-                //println!("found next = {}", next.unwrap());
-            }
+            assert_eq!((prev.is_some(), next.is_some()), (false, false));
         }
     }
 }
