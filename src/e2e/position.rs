@@ -76,6 +76,57 @@ pub mod e2e_tests {
     }
 
     #[ink_e2e::test]
+    async fn test_position_same_upper_and_lower_tick(
+        mut client: ink_e2e::Client<C, E>,
+    ) -> E2EResult<()> {
+        let dex = create_dex!(client, InvariantRef, Percentage::new(0));
+        let (token_x, token_y) = create_tokens!(client, TokenRef, 500, 500);
+
+        let alice = ink_e2e::alice();
+
+        let fee_tier = FeeTier::new(Percentage::new(0), 1).unwrap();
+
+        add_fee_tier!(client, InvariantRef, dex, fee_tier, alice).unwrap();
+
+        let init_tick = 10;
+        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
+        create_pool!(
+            client,
+            InvariantRef,
+            dex,
+            token_x,
+            token_y,
+            fee_tier,
+            init_sqrt_price,
+            init_tick,
+            alice
+        )
+        .unwrap();
+
+        approve!(client, TokenRef, token_x, dex, 500, alice).unwrap();
+        approve!(client, TokenRef, token_y, dex, 500, alice).unwrap();
+
+        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+
+        let result = create_position!(
+            client,
+            InvariantRef,
+            dex,
+            pool_key,
+            10,
+            10,
+            Liquidity::new(10),
+            SqrtPrice::new(0),
+            SqrtPrice::max_instance(),
+            alice
+        );
+
+        assert_eq!(result, Err(InvariantError::InvalidTickIndex));
+
+        Ok(())
+    }
+
+    #[ink_e2e::test]
     async fn test_remove_position(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
         let alice = ink_e2e::alice();
