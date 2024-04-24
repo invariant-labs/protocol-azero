@@ -35,6 +35,13 @@ pub struct Pool {
     pub fee_receiver: AccountId,
 }
 
+#[derive(PartialEq, Eq, Debug, Clone)]
+pub enum UpdatePoolTick {
+    NoTick,
+    TickInitialized(Tick),
+    TickUninitialized(i32),
+}
+
 impl Default for Pool {
     fn default() -> Self {
         Self {
@@ -144,7 +151,7 @@ impl Pool {
         &mut self,
         result: SwapResult,
         swap_limit: SqrtPrice,
-        tick: Option<&mut Tick>,
+        tick: &mut UpdatePoolTick,
         mut remaining_amount: TokenAmount,
         by_amount_in: bool,
         x_to_y: bool,
@@ -154,39 +161,48 @@ impl Pool {
     ) -> (TokenAmount, TokenAmount, bool) {
         let mut has_crossed = false;
         let mut total_amount = TokenAmount(0);
-        if tick.is_some() && result.next_sqrt_price == swap_limit {
-            let tick = tick.unwrap();
-            let is_enough_amount_to_cross = unwrap!(is_enough_amount_to_change_price(
-                remaining_amount,
-                result.next_sqrt_price,
-                self.liquidity,
-                fee_tier.fee,
-                by_amount_in,
-                x_to_y,
-            ));
 
-            if !x_to_y || is_enough_amount_to_cross {
-                let _ = tick.cross(self, current_timestamp);
-                has_crossed = true;
-            } else if !remaining_amount.is_zero() {
-                if by_amount_in {
-                    unwrap!(self.add_fee(remaining_amount, x_to_y, protocol_fee));
-                    total_amount = remaining_amount;
-                }
-                remaining_amount = TokenAmount(0);
-            }
-
-            // set tick to limit (below if price is going down, because current tick should always be below price)
-            self.current_tick_index = if x_to_y && is_enough_amount_to_cross {
-                tick.index - fee_tier.tick_spacing as i32
-            } else {
-                tick.index
-            };
-        } else {
+        if UpdatePoolTick::NoTick == *tick || swap_limit != result.next_sqrt_price {
             self.current_tick_index = unwrap!(get_tick_at_sqrt_price(
                 result.next_sqrt_price,
                 fee_tier.tick_spacing
             ));
+
+            return (total_amount, remaining_amount, has_crossed);
+        };
+
+        let is_enough_amount_to_cross = unwrap!(is_enough_amount_to_change_price(
+            remaining_amount,
+            result.next_sqrt_price,
+            self.liquidity,
+            fee_tier.fee,
+            by_amount_in,
+            x_to_y,
+        ));
+
+        let tick_index = match tick {
+            UpdatePoolTick::TickInitialized(tick) => {
+                if !x_to_y || is_enough_amount_to_cross {
+                    let _ = tick.cross(self, current_timestamp);
+                    has_crossed = true;
+                } else if !remaining_amount.is_zero() {
+                    if by_amount_in {
+                        unwrap!(self.add_fee(remaining_amount, x_to_y, protocol_fee));
+                        total_amount = remaining_amount;
+                    }
+                    remaining_amount = TokenAmount(0);
+                }
+
+                tick.index
+            }
+            UpdatePoolTick::TickUninitialized(index) => *index,
+            _ => unreachable!(),
+        };
+
+        self.current_tick_index = if x_to_y && is_enough_amount_to_cross {
+            tick_index - fee_tier.tick_spacing as i32
+        } else {
+            tick_index
         };
 
         (total_amount, remaining_amount, has_crossed)
