@@ -170,6 +170,29 @@ macro_rules! swap {
             result
         }
     }};
+
+    ($client:ident, $dex:ty, $dex_address:expr, $pool_key:expr, $x_to_y:expr, $amount:expr, $by_amount_in:expr, $sqrt_price_limit:expr, $caller:ident, $expected_panic: expr) => {{
+        let message = build_message::<$dex>($dex_address.clone()).call(|contract| {
+            contract.swap(
+                $pool_key,
+                $x_to_y,
+                $amount,
+                $by_amount_in,
+                $sqrt_price_limit,
+            )
+        });
+        let result = $client.call_dry_run(&$caller, &message, 0, None).await;
+        if result.is_err() {
+            assert!(
+                result.debug_message().contains($expected_panic),
+                "expected panic to be {:?}\n but got {}",
+                $expected_panic,
+                result.debug_message()
+            )
+        } else {
+            std::panic!("Swap did not panic")
+        }
+    }};
 }
 
 #[macro_export]

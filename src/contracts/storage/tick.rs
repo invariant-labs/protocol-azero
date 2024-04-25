@@ -6,7 +6,7 @@ use crate::math::types::{
 use decimal::*;
 use traceable_result::*;
 
-#[derive(Debug, Copy, Clone, scale::Decode, scale::Encode, PartialEq)]
+#[derive(Debug, Copy, Clone, scale::Decode, scale::Encode, PartialEq, Eq)]
 #[cfg_attr(
     feature = "std",
     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
