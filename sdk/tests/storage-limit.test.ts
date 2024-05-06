@@ -1,13 +1,13 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
+import { toPercentage } from 'invariant-a0-wasm/invariant_a0_wasm.js'
 import { DEFAULT_PROOF_SIZE, MAX_REF_TIME } from '../src/consts'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
 import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
-import { toPercentage } from '../src/wasm/pkg/invariant_a0_wasm'
 
-describe('storage limit', async () => {
+describe('storage-limit', async () => {
   it('storage limit test', async function () {
     this.timeout(1000000000000)
 

@@ -6,6 +6,25 @@ import { Bytes } from '@polkadot/types'
 import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { deployContract } from '@scio-labs/use-inkathon'
+import {
+  FeeTier,
+  InvariantError,
+  Liquidity,
+  LiquidityTick,
+  Percentage,
+  Pool,
+  PoolKey,
+  Position,
+  PositionTick,
+  QuoteResult,
+  SqrtPrice,
+  SwapHop,
+  Tick,
+  TokenAmount,
+  calculateTick,
+  getMaxSqrtPrice,
+  getMinSqrtPrice
+} from 'invariant-a0-wasm/invariant_a0_wasm.js'
 import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME } from './consts.js'
 import { Network } from './network.js'
 import {
@@ -28,25 +47,6 @@ import {
   sendQuery,
   sendTx
 } from './utils.js'
-import {
-  FeeTier,
-  InvariantError,
-  Liquidity,
-  LiquidityTick,
-  Percentage,
-  Pool,
-  PoolKey,
-  Position,
-  PositionTick,
-  QuoteResult,
-  SqrtPrice,
-  SwapHop,
-  Tick,
-  TokenAmount,
-  calculateTick,
-  getMaxSqrtPrice,
-  getMinSqrtPrice
-} from './wasm/pkg/invariant_a0_wasm.js'
 
 export class Invariant {
   contract: ContractPromise

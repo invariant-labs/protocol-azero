@@ -4,13 +4,15 @@
   "description": "",
   "main": "target/index.js",
   "scripts": {
-    "start": "npx tsc && node --experimental-wasm-modules ."
+    "start": "npx tsc && node --experimental-wasm-modules .",
+    "node:start": "substrate-contracts-node purge-chain -y && substrate-contracts-node --rpc-port 9944 --dev",
+    "node:stop": "ps aux | grep substrate-contracts-node | tr -s ' ' | cut -d ' ' -f 2 | head -n 1 | xargs -r kill -9"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@invariant-labs/a0-sdk": "file:../sdk"
+    "@invariant-labs/a0-sdk": "^0.1.8"
   },
   "devDependencies": {
     "typescript": "^5.4.2"
