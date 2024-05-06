@@ -9,22 +9,22 @@ import {
 const invariantActionPrefix = 'invariantTrait::'
 
 export enum InvariantQuery {
-  ProtocolFee = 'invariantTrait::getProtocolFee',
-  GetFeeTiers = 'invariantTrait::getFeeTiers',
-  FeeTierExist = 'invariantTrait::feeTierExist',
-  GetPool = 'invariantTrait::getPool',
-  GetPools = 'invariantTrait::getPools',
-  GetTick = 'invariantTrait::getTick',
-  IsTickInitialized = 'invariantTrait::isTickInitialized',
-  GetPosition = 'invariantTrait::getPosition',
-  GetAllPositions = 'invariantTrait::getAllPositions',
-  Quote = 'invariantTrait::quote',
-  QuoteRoute = 'invariantTrait::quoteRoute',
-  getPositionTicks = 'invariantTrait::getPositionTicks',
-  getUserPositionAmount = 'invariantTrait::getUserPositionAmount',
-  GetTickmap = 'invariantTrait::getTickmap',
-  getLiquidityTicks = 'invariantTrait::getLiquidityTicks',
-  getLiquidityTicksAmount = 'invariantTrait::getLiquidityTicksAmount'
+  ProtocolFee = `${invariantActionPrefix}getProtocolFee`,
+  GetFeeTiers = `${invariantActionPrefix}getFeeTiers`,
+  FeeTierExist = `${invariantActionPrefix}feeTierExist`,
+  GetPool = `${invariantActionPrefix}getPool`,
+  GetPools = `${invariantActionPrefix}getPools`,
+  GetTick = `${invariantActionPrefix}getTick`,
+  IsTickInitialized = `${invariantActionPrefix}isTickInitialized`,
+  GetPosition = `${invariantActionPrefix}getPosition`,
+  GetAllPositions = `${invariantActionPrefix}getAllPositions`,
+  Quote = `${invariantActionPrefix}quote`,
+  QuoteRoute = `${invariantActionPrefix}quoteRoute`,
+  GetPositionTicks = `${invariantActionPrefix}getPositionTicks`,
+  GetUserPositionAmount = `${invariantActionPrefix}getUserPositionAmount`,
+  GetTickmap = `${invariantActionPrefix}getTickmap`,
+  GetLiquidityTicks = `${invariantActionPrefix}getLiquidityTicks`,
+  GetLiquidityTicksAmount = `${invariantActionPrefix}getLiquidityTicksAmount`
 }
 
 export enum InvariantTx {

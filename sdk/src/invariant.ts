@@ -593,7 +593,7 @@ export class Invariant {
       this.gasLimit,
       this.storageDepositLimit,
       account,
-      InvariantQuery.getPositionTicks,
+      InvariantQuery.GetPositionTicks,
       [owner, offset]
     )
   }
@@ -624,7 +624,7 @@ export class Invariant {
       this.gasLimit,
       this.storageDepositLimit,
       account,
-      InvariantQuery.getLiquidityTicks,
+      InvariantQuery.GetLiquidityTicks,
       [poolKey, offset]
     )
   }
@@ -635,7 +635,7 @@ export class Invariant {
       this.gasLimit,
       this.storageDepositLimit,
       account,
-      InvariantQuery.getUserPositionAmount,
+      InvariantQuery.GetUserPositionAmount,
       [owner]
     )
   }
@@ -646,7 +646,7 @@ export class Invariant {
       this.gasLimit,
       this.storageDepositLimit,
       account,
-      InvariantQuery.getLiquidityTicksAmount,
+      InvariantQuery.GetLiquidityTicksAmount,
       [poolKey]
     )
   }

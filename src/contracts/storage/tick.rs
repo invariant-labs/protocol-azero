@@ -130,7 +130,7 @@ impl Tick {
             max_liquidity_per_tick,
         )?;
 
-        let _ = self.update_liquidity_change(liquidity_delta, is_deposit ^ is_upper);
+        self.update_liquidity_change(liquidity_delta, is_deposit ^ is_upper)?;
         Ok(())
     }
 
