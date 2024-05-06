@@ -133,35 +133,60 @@ pub mod invariant {
 
                 // make remaining amount smaller
                 if by_amount_in {
-                    remaining_amount = remaining_amount
-                        .checked_sub(
-                            result
-                                .amount_in
-                                .checked_add(result.fee_amount)
-                                .map_err(|_| InvariantError::AddOverflow)?,
-                        )
-                        .map_err(|_| InvariantError::SubUnderflow)?;
+                    let intermediate =
+                        result
+                            .amount_in
+                            .checked_add(result.fee_amount)
+                            .map_err(|_| {
+                                InvariantError::AddOverflow(
+                                    result.amount_in.get(),
+                                    result.fee_amount.get(),
+                                )
+                            })?;
+                    remaining_amount =
+                        remaining_amount.checked_sub(intermediate).map_err(|_| {
+                            InvariantError::SubUnderflow(remaining_amount.get(), intermediate.get())
+                        })?;
                 } else {
-                    remaining_amount = remaining_amount
-                        .checked_sub(result.amount_out)
-                        .map_err(|_| InvariantError::SubUnderflow)?;
+                    remaining_amount =
+                        remaining_amount
+                            .checked_sub(result.amount_out)
+                            .map_err(|_| {
+                                InvariantError::SubUnderflow(
+                                    remaining_amount.get(),
+                                    result.amount_out.get(),
+                                )
+                            })?;
                 }
 
                 unwrap!(pool.add_fee(result.fee_amount, x_to_y, self.config.protocol_fee));
-                event_fee_amount = event_fee_amount
-                    .checked_add(result.fee_amount)
-                    .map_err(|_| InvariantError::AddOverflow)?;
+                event_fee_amount =
+                    event_fee_amount
+                        .checked_add(result.fee_amount)
+                        .map_err(|_| {
+                            InvariantError::AddOverflow(
+                                event_fee_amount.get(),
+                                result.fee_amount.get(),
+                            )
+                        })?;
 
                 pool.sqrt_price = result.next_sqrt_price;
 
-                total_amount_in = total_amount_in
-                    .checked_add(result.amount_in)
-                    .map_err(|_| InvariantError::AddOverflow)?
-                    .checked_add(result.fee_amount)
-                    .map_err(|_| InvariantError::AddOverflow)?;
-                total_amount_out = total_amount_out
-                    .checked_add(result.amount_out)
-                    .map_err(|_| InvariantError::AddOverflow)?;
+                let intermediate = total_amount_in.checked_add(result.amount_in).map_err(|_| {
+                    InvariantError::AddOverflow(total_amount_in.get(), result.amount_in.get())
+                })?;
+                total_amount_in = intermediate.checked_add(result.fee_amount).map_err(|_| {
+                    InvariantError::AddOverflow(intermediate.get(), result.fee_amount.get())
+                })?;
+                total_amount_out =
+                    total_amount_out
+                        .checked_add(result.amount_out)
+                        .map_err(|_| {
+                            InvariantError::AddOverflow(
+                                total_amount_out.get(),
+                                result.amount_out.get(),
+                            )
+                        })?;
 
                 // Fail if price would go over swap limit
                 if pool.sqrt_price == sqrt_price_limit && !remaining_amount.is_zero() {
@@ -184,9 +209,13 @@ pub mod invariant {
                             pool_key.fee_tier,
                         );
 
-                        total_amount_in = total_amount_in
-                            .checked_add(amount_to_add)
-                            .map_err(|_| InvariantError::AddOverflow)?;
+                        total_amount_in =
+                            total_amount_in.checked_add(amount_to_add).map_err(|_| {
+                                InvariantError::AddOverflow(
+                                    total_amount_in.get(),
+                                    amount_to_add.get(),
+                                )
+                            })?;
                         if has_crossed {
                             ticks.push(tick);
                         }

@@ -28,8 +28,8 @@ pub enum InvariantError {
     InvalidInitTick,
     InvalidInitSqrtPrice,
     InvalidSize,
-    AddOverflow,
-    SubUnderflow,
+    AddOverflow(u128, u128),
+    SubUnderflow(u128, u128),
     MulOverflow,
     DivByZero,
 }

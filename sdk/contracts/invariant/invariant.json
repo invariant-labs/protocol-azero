@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x1a5c332ee742268bd2e7a4ba68eb08dd7a6722e6e9d3e04d25dc9581edd208a1",
+    "hash": "0x727936342951bf0e34fb42b4eb7a5b21f6a986f126b381523a7e465e9a5f7def",
     "language": "ink! 5.0.0",
     "compiler": "rustc 1.77.0",
     "build_info": {
@@ -3717,8 +3717,40 @@
                 "name": "InvalidSize"
               },
               {
+                "fields": [
+                  {
+                    "type": 11,
+                    "typeName": "u128"
+                  },
+                  {
+                    "type": 11,
+                    "typeName": "u128"
+                  }
+                ],
                 "index": 27,
-                "name": "InvalidArithmeticOperation"
+                "name": "AddOverflow"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 11,
+                    "typeName": "u128"
+                  },
+                  {
+                    "type": 11,
+                    "typeName": "u128"
+                  }
+                ],
+                "index": 28,
+                "name": "SubUnderflow"
+              },
+              {
+                "index": 29,
+                "name": "MulOverflow"
+              },
+              {
+                "index": 30,
+                "name": "DivByZero"
               }
             ]
           }
@@ -3946,7 +3978,7 @@
         "path": [
           "invariant",
           "contracts",
-          "structs",
+          "swap_structs",
           "CalculateSwapResult"
         ]
       }
@@ -3993,7 +4025,7 @@
         "path": [
           "invariant",
           "contracts",
-          "structs",
+          "swap_structs",
           "SwapHop"
         ]
       }
@@ -4114,7 +4146,7 @@
         "path": [
           "invariant",
           "contracts",
-          "structs",
+          "swap_structs",
           "QuoteResult"
         ]
       }

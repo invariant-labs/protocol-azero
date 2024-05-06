@@ -47,7 +47,7 @@ impl Positions {
         if index
             < positions_length
                 .checked_sub(1)
-                .ok_or(InvariantError::SubUnderflow)?
+                .ok_or(InvariantError::SubUnderflow(positions_length as u128, 1))?
         {
             let last_position = self
                 .positions
@@ -55,7 +55,7 @@ impl Positions {
                     account_id,
                     positions_length
                         .checked_sub(1)
-                        .ok_or(InvariantError::SubUnderflow)?,
+                        .ok_or(InvariantError::SubUnderflow(positions_length as u128, 1))?,
                 ))
                 .unwrap();
             self.positions.insert((account_id, index), &last_position);
@@ -67,7 +67,7 @@ impl Positions {
             account_id,
             &(positions_length
                 .checked_sub(1)
-                .ok_or(InvariantError::SubUnderflow)?),
+                .ok_or(InvariantError::SubUnderflow(positions_length as u128, 1))?),
         );
 
         Ok(position)

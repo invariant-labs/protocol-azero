@@ -20,9 +20,7 @@ const feeTier = newFeeTier(10000000000n, 1n)
 let poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
 describe('get-liquidity-ticks', async () => {
-  beforeEach(async function () {
-    this.timeout(60000)
-
+  beforeEach(async () => {
     invariant = await Invariant.deploy(api, Network.Local, account, 10000000000n)
     token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
     token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
@@ -53,7 +51,7 @@ describe('get-liquidity-ticks', async () => {
   })
 
   it('should get liquidity ticks limit', async function () {
-    this.timeout(60000)
+    this.timeout(30000)
 
     for (let i = 1n; i <= 390n; i++) {
       await invariant.createPosition(account, poolKey, -i, i, 10n, 1000000000000000000000000n, 0n)
@@ -88,7 +86,7 @@ describe('get-liquidity-ticks', async () => {
   })
 
   it('should get liquidity ticks with multiple queries', async function () {
-    this.timeout(60000)
+    this.timeout(25000)
 
     for (let i = 1n; i <= 400n; i++) {
       await invariant.createPosition(account, poolKey, -i, i, 10n, 1000000000000000000000000n, 0n)

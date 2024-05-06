@@ -6,6 +6,8 @@ import {
   SwapEvent
 } from '../src/wasm/pkg/invariant_a0_wasm.js'
 
+const invariantActionPrefix = 'invariantTrait::'
+
 export enum InvariantQuery {
   ProtocolFee = 'invariantTrait::getProtocolFee',
   GetFeeTiers = 'invariantTrait::getFeeTiers',
@@ -26,18 +28,18 @@ export enum InvariantQuery {
 }
 
 export enum InvariantTx {
-  ChangeProtocolFee = 'invariantTrait::changeProtocolFee',
-  CreatePool = 'invariantTrait::createPool',
-  CreatePosition = 'invariantTrait::createPosition',
-  TransferPosition = 'invariantTrait::transferPosition',
-  RemovePosition = 'invariantTrait::removePosition',
-  ClaimFee = 'invariantTrait::claimFee',
-  AddFeeTier = 'invariantTrait::addFeeTier',
-  RemoveFeeTier = 'invariantTrait::removeFeeTier',
-  ChangeFeeReceiver = 'invariantTrait::changeFeeReceiver',
-  WithdrawProtocolFee = 'invariantTrait::withdrawProtocolFee',
-  Swap = 'invariantTrait::swap',
-  SwapRoute = 'invariantTrait::swapRoute'
+  ChangeProtocolFee = `${invariantActionPrefix}changeProtocolFee`,
+  CreatePool = `${invariantActionPrefix}createPool`,
+  CreatePosition = `${invariantActionPrefix}createPosition`,
+  TransferPosition = `${invariantActionPrefix}transferPosition`,
+  RemovePosition = `${invariantActionPrefix}removePosition`,
+  ClaimFee = `${invariantActionPrefix}claimFee`,
+  AddFeeTier = `${invariantActionPrefix}addFeeTier`,
+  RemoveFeeTier = `${invariantActionPrefix}removeFeeTier`,
+  ChangeFeeReceiver = `${invariantActionPrefix}changeFeeReceiver`,
+  WithdrawProtocolFee = `${invariantActionPrefix}withdrawProtocolFee`,
+  Swap = `${invariantActionPrefix}swap`,
+  SwapRoute = `${invariantActionPrefix}swapRoute`
 }
 
 export enum PSP22Query {
@@ -63,11 +65,13 @@ export enum WrappedAZEROTx {
 export type Tx = InvariantTx | PSP22Tx | WrappedAZEROTx
 export type Query = InvariantQuery | PSP22Query
 
+const invariantEventPrefix = 'invariant::contracts::events::'
+
 export enum InvariantEvent {
-  CreatePositionEvent = 'invariant::invariant::CreatePositionEvent',
-  CrossTickEvent = 'invariant::invariant::CrossTickEvent',
-  RemovePositionEvent = 'invariant::invariant::RemovePositionEvent',
-  SwapEvent = 'invariant::invariant::SwapEvent'
+  CreatePositionEvent = `${invariantEventPrefix}CreatePositionEvent`,
+  CrossTickEvent = `${invariantEventPrefix}CrossTickEvent`,
+  RemovePositionEvent = `${invariantEventPrefix}RemovePositionEvent`,
+  SwapEvent = `${invariantEventPrefix}SwapEvent`
 }
 
 export type TxResult = {
