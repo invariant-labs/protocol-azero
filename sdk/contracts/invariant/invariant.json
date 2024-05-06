@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x727936342951bf0e34fb42b4eb7a5b21f6a986f126b381523a7e465e9a5f7def",
+    "hash": "0x66363de37e0eff626e5b8a331eb1b52c8edb067f9f4f58d2761864ba8b71ecfe",
     "language": "ink! 5.0.0",
     "compiler": "rustc 1.77.0",
     "build_info": {
@@ -3717,6 +3717,14 @@
                 "name": "InvalidSize"
               },
               {
+                "index": 27,
+                "name": "InvalidTickIndex"
+              },
+              {
+                "index": 28,
+                "name": "TickLimitReached"
+              },
+              {
                 "fields": [
                   {
                     "type": 11,
@@ -3727,7 +3735,7 @@
                     "typeName": "u128"
                   }
                 ],
-                "index": 27,
+                "index": 29,
                 "name": "AddOverflow"
               },
               {
@@ -3741,15 +3749,15 @@
                     "typeName": "u128"
                   }
                 ],
-                "index": 28,
+                "index": 30,
                 "name": "SubUnderflow"
               },
               {
-                "index": 29,
+                "index": 31,
                 "name": "MulOverflow"
               },
               {
-                "index": 30,
+                "index": 32,
                 "name": "DivByZero"
               }
             ]

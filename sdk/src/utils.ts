@@ -6,10 +6,6 @@ import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { getSubstrateChain, initPolkadotJs as initApi } from '@scio-labs/use-inkathon'
 import { readFile } from 'fs/promises'
-import path from 'path'
-import { MAINNET, TESTNET } from './consts.js'
-import { Network } from './network.js'
-import { EventTxResult, LiquidityBreakpoint, Query, Tx, TxResult } from './schema.js'
 import {
   FeeTier,
   LiquidityTick,
@@ -29,7 +25,11 @@ import {
   getMaxChunk,
   getPercentageDenominator,
   getSqrtPriceDenominator
-} from './wasm/pkg/invariant_a0_wasm.js'
+} from 'invariant-a0-wasm/invariant_a0_wasm.js'
+import path from 'path'
+import { MAINNET, TESTNET } from './consts.js'
+import { Network } from './network.js'
+import { EventTxResult, LiquidityBreakpoint, Query, Tx, TxResult } from './schema.js'
 
 export const initPolkadotApi = async (network: Network, ws?: string): Promise<ApiPromise> => {
   if (network === Network.Local) {

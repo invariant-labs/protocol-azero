@@ -6,7 +6,8 @@ macro_rules! get_tickmap {
         $client
             .call(&$caller, &call)
             .dry_run()
-            .await?
+            .await
+            .unwrap()
             .return_value()
     }};
 }
@@ -19,7 +20,8 @@ macro_rules! get_protocol_fee {
         $client
             .call(&ink_e2e::alice(), &call)
             .dry_run()
-            .await?
+            .await
+            .unwrap()
             .return_value()
     }};
 }
@@ -32,11 +34,17 @@ macro_rules! withdraw_protocol_fee {
         let result = $client
             .call(&$caller, &call)
             .dry_run()
-            .await?
+            .await
+            .unwrap()
             .return_value();
 
         if result.is_ok() {
-            $client.call(&$caller, &call).submit().await?.return_value()
+            $client
+                .call(&$caller, &call)
+                .submit()
+                .await
+                .unwrap()
+                .return_value()
         } else {
             result
         }
@@ -51,11 +59,17 @@ macro_rules! change_protocol_fee {
         let result = $client
             .call(&$caller, &call)
             .dry_run()
-            .await?
+            .await
+            .unwrap()
             .return_value();
 
         if result.is_ok() {
-            $client.call(&$caller, &call).submit().await?.return_value()
+            $client
+                .call(&$caller, &call)
+                .submit()
+                .await
+                .unwrap()
+                .return_value()
         } else {
             result
         }
@@ -70,11 +84,17 @@ macro_rules! change_fee_receiver {
         let result = $client
             .call(&$caller, &call)
             .dry_run()
-            .await?
+            .await
+            .unwrap()
             .return_value();
 
         if result.is_ok() {
-            $client.call(&$caller, &call).submit().await?.return_value()
+            $client
+                .call(&$caller, &call)
+                .submit()
+                .await
+                .unwrap()
+                .return_value()
         } else {
             result
         }
@@ -96,11 +116,17 @@ macro_rules! create_position {
         let result = $client
             .call(&$caller, &call)
             .dry_run()
-            .await?
+            .await
+            .unwrap()
             .return_value();
 
         if result.is_ok() {
-            $client.call(&$caller, &call).submit().await?.return_value()
+            $client
+                .call(&$caller, &call)
+                .submit()
+                .await
+                .unwrap()
+                .return_value()
         } else {
             result
         }
@@ -121,13 +147,37 @@ macro_rules! swap {
         let result = $client
             .call(&$caller, &call)
             .dry_run()
-            .await?
+            .await
+            .unwrap()
             .return_value();
 
         if result.is_ok() {
-            $client.call(&$caller, &call).submit().await?.return_value()
+            $client
+                .call(&$caller, &call)
+                .submit()
+                .await
+                .unwrap()
+                .return_value()
         } else {
             result
+        }
+    }};
+
+    ($client:ident, $dex:ident, $pool_key:expr, $x_to_y:expr, $amount:expr, $by_amount_in:expr, $sqrt_price_limit:expr, $caller:ident, $expected_panic: expr) => {{
+        let mut call_builder = $dex.call_builder::<Invariant>();
+        let call = call_builder.swap(
+            $pool_key,
+            $x_to_y,
+            $amount,
+            $by_amount_in,
+            $sqrt_price_limit,
+        );
+        let result = $client.call(&$caller, &call).dry_run().await;
+
+        if result.is_err() {
+            assert!(result.unwrap_err().to_string().contains($expected_panic));
+        } else {
+            std::panic!("Swap did not panic");
         }
     }};
 }
@@ -140,11 +190,17 @@ macro_rules! swap_route {
         let result = $client
             .call(&$caller, &call)
             .dry_run()
-            .await?
+            .await
+            .unwrap()
             .return_value();
 
         if result.is_ok() {
-            $client.call(&$caller, &call).submit().await?.return_value()
+            $client
+                .call(&$caller, &call)
+                .submit()
+                .await
+                .unwrap()
+                .return_value()
         } else {
             result
         }
@@ -165,7 +221,8 @@ macro_rules! quote {
         $client
             .call(&ink_e2e::alice(), &call)
             .dry_run()
-            .await?
+            .await
+            .unwrap()
             .return_value()
     }};
 }
@@ -178,7 +235,8 @@ macro_rules! quote_route {
         $client
             .call(&ink_e2e::alice(), &call)
             .dry_run()
-            .await?
+            .await
+            .unwrap()
             .return_value()
     }};
 }
@@ -191,11 +249,17 @@ macro_rules! transfer_position {
         let result = $client
             .call(&$caller, &call)
             .dry_run()
-            .await?
+            .await
+            .unwrap()
             .return_value();
 
         if result.is_ok() {
-            $client.call(&$caller, &call).submit().await?.return_value()
+            $client
+                .call(&$caller, &call)
+                .submit()
+                .await
+                .unwrap()
+                .return_value()
         } else {
             result
         }
@@ -211,7 +275,8 @@ macro_rules! get_position {
         $client
             .call(&ink_e2e::alice(), &call)
             .dry_run()
-            .await?
+            .await
+            .unwrap()
             .return_value()
     }};
 }
@@ -225,7 +290,8 @@ macro_rules! get_all_positions {
         $client
             .call(&ink_e2e::alice(), &call)
             .dry_run()
-            .await?
+            .await
+            .unwrap()
             .return_value()
     }};
 }
@@ -262,11 +328,17 @@ macro_rules! claim_fee {
         let result = $client
             .call(&$caller, &call)
             .dry_run()
-            .await?
+            .await
+            .unwrap()
             .return_value();
 
         if result.is_ok() {
-            $client.call(&$caller, &call).submit().await?.return_value()
+            $client
+                .call(&$caller, &call)
+                .submit()
+                .await
+                .unwrap()
+                .return_value()
         } else {
             result
         }
@@ -281,11 +353,17 @@ macro_rules! remove_position {
         let result = $client
             .call(&$caller, &call)
             .dry_run()
-            .await?
+            .await
+            .unwrap()
             .return_value();
 
         if result.is_ok() {
-            $client.call(&$caller, &call).submit().await?.return_value()
+            $client
+                .call(&$caller, &call)
+                .submit()
+                .await
+                .unwrap()
+                .return_value()
         } else {
             result
         }
@@ -300,11 +378,17 @@ macro_rules! add_fee_tier {
         let result = $client
             .call(&$caller, &call)
             .dry_run()
-            .await?
+            .await
+            .unwrap()
             .return_value();
 
         if result.is_ok() {
-            $client.call(&$caller, &call).submit().await?.return_value()
+            $client
+                .call(&$caller, &call)
+                .submit()
+                .await
+                .unwrap()
+                .return_value()
         } else {
             result
         }
@@ -319,7 +403,8 @@ macro_rules! fee_tier_exist {
         $client
             .call(&ink_e2e::alice(), &call)
             .dry_run()
-            .await?
+            .await
+            .unwrap()
             .return_value()
     }};
 }
@@ -332,11 +417,17 @@ macro_rules! remove_fee_tier {
         let result = $client
             .call(&$caller, &call)
             .dry_run()
-            .await?
+            .await
+            .unwrap()
             .return_value();
 
         if result.is_ok() {
-            $client.call(&$caller, &call).submit().await?.return_value()
+            $client
+                .call(&$caller, &call)
+                .submit()
+                .await
+                .unwrap()
+                .return_value()
         } else {
             result
         }
@@ -352,11 +443,17 @@ macro_rules! create_pool {
         let result = $client
             .call(&$caller, &call)
             .dry_run()
-            .await?
+            .await
+            .unwrap()
             .return_value();
 
         if result.is_ok() {
-            $client.call(&$caller, &call).submit().await?.return_value()
+            $client
+                .call(&$caller, &call)
+                .submit()
+                .await
+                .unwrap()
+                .return_value()
         } else {
             result
         }
@@ -371,7 +468,8 @@ macro_rules! get_pool {
         $client
             .call(&ink_e2e::alice(), &call)
             .dry_run()
-            .await?
+            .await
+            .unwrap()
             .return_value()
     }};
 }
@@ -384,7 +482,8 @@ macro_rules! get_tick {
         $client
             .call(&ink_e2e::alice(), &call)
             .dry_run()
-            .await?
+            .await
+            .unwrap()
             .return_value()
     }};
 }
@@ -397,7 +496,8 @@ macro_rules! is_tick_initialized {
         $client
             .call(&ink_e2e::alice(), &call)
             .dry_run()
-            .await?
+            .await
+            .unwrap()
             .return_value()
     }};
 }
@@ -410,7 +510,8 @@ macro_rules! get_pools {
         $client
             .call(&ink_e2e::alice(), &call)
             .dry_run()
-            .await?
+            .await
+            .unwrap()
             .return_value()
     }};
 }
@@ -423,7 +524,8 @@ macro_rules! get_fee_tiers {
         $client
             .call(&ink_e2e::alice(), &call)
             .dry_run()
-            .await?
+            .await
+            .unwrap()
             .return_value()
     }};
 }
@@ -436,7 +538,8 @@ macro_rules! get_position_ticks {
         $client
             .call(&ink_e2e::alice(), &call)
             .dry_run()
-            .await?
+            .await
+            .unwrap()
             .return_value()
     }};
 }
@@ -449,7 +552,8 @@ macro_rules! get_liquidity_ticks {
         $client
             .call(&ink_e2e::alice(), &call)
             .dry_run()
-            .await?
+            .await
+            .unwrap()
             .return_value()
     }};
 }
@@ -462,7 +566,8 @@ macro_rules! get_liquidity_ticks_amount {
         $client
             .call(&ink_e2e::alice(), &call)
             .dry_run()
-            .await?
+            .await
+            .unwrap()
             .return_value()
     }};
 }

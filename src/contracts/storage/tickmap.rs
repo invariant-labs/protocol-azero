@@ -1,3 +1,4 @@
+use crate::contracts::InvariantError;
 use crate::contracts::PoolKey;
 use crate::math::sqrt_price::get_max_tick;
 use crate::math::{
@@ -222,7 +223,7 @@ impl Tickmap {
         current_tick: i32,
         tick_spacing: u16,
         pool_key: PoolKey,
-    ) -> (SqrtPrice, Option<(i32, bool)>) {
+    ) -> Result<(SqrtPrice, Option<(i32, bool)>), InvariantError> {
         let closes_tick_index = if x_to_y {
             self.prev_initialized(current_tick, tick_spacing, pool_key)
         } else {
@@ -236,23 +237,25 @@ impl Tickmap {
                 if (x_to_y && sqrt_price > sqrt_price_limit)
                     || (!x_to_y && sqrt_price < sqrt_price_limit)
                 {
-                    (sqrt_price, Some((index, true)))
+                    Ok((sqrt_price, Some((index, true))))
                 } else {
-                    (sqrt_price_limit, None)
+                    Ok((sqrt_price_limit, None))
                 }
             }
             None => {
                 let index = get_search_limit(current_tick, tick_spacing, !x_to_y);
                 let sqrt_price = calculate_sqrt_price(index).unwrap();
 
-                assert!(current_tick != index, "LimitReached");
+                if current_tick == index {
+                    return Err(InvariantError::TickLimitReached);
+                }
 
                 if (x_to_y && sqrt_price > sqrt_price_limit)
                     || (!x_to_y && sqrt_price < sqrt_price_limit)
                 {
-                    (sqrt_price, Some((index, false)))
+                    Ok((sqrt_price, Some((index, false))))
                 } else {
-                    (sqrt_price_limit, None)
+                    Ok((sqrt_price_limit, None))
                 }
             }
         }
@@ -304,37 +307,37 @@ mod tests {
         tickmap.flip(true, 0, 1, pool_key);
         // tick limit closer
         {
-            // let (result, from_tick) =
-            // let result = tickmap::Tickmap::get_closer_limit(
-            let _result =
-                tickmap.get_closer_limit(SqrtPrice::from_integer(5), true, 100, 1, pool_key);
-            // println!("Result: {:?}", result);
+            let (result, from_tick) = tickmap
+                .get_closer_limit(SqrtPrice::from_integer(5), true, 100, 1, pool_key)
+                .unwrap();
 
-            // let expected = Price::from_integer(5);
-            let _expected = SqrtPrice::from_integer(5);
-            // assert_eq!(result, expected);
-            // assert_eq!(from_tick, None);
+            let expected = SqrtPrice::from_integer(5);
+            assert_eq!(result, expected);
+            assert_eq!(from_tick, None);
         }
         // trade limit closer
         {
-            let (result, from_tick) =
-                tickmap.get_closer_limit(SqrtPrice::from_scale(1, 1), true, 100, 1, pool_key);
+            let (result, from_tick) = tickmap
+                .get_closer_limit(SqrtPrice::from_scale(1, 1), true, 100, 1, pool_key)
+                .unwrap();
             let expected = SqrtPrice::from_integer(1);
             assert_eq!(result, expected);
             assert_eq!(from_tick, Some((0, true)));
         }
         // other direction
         {
-            let (result, from_tick) =
-                tickmap.get_closer_limit(SqrtPrice::from_integer(2), false, -5, 1, pool_key);
+            let (result, from_tick) = tickmap
+                .get_closer_limit(SqrtPrice::from_integer(2), false, -5, 1, pool_key)
+                .unwrap();
             let expected = SqrtPrice::from_integer(1);
             assert_eq!(result, expected);
             assert_eq!(from_tick, Some((0, true)));
         }
         // other direction
         {
-            let (result, from_tick) =
-                tickmap.get_closer_limit(SqrtPrice::from_scale(1, 1), false, -100, 10, pool_key);
+            let (result, from_tick) = tickmap
+                .get_closer_limit(SqrtPrice::from_scale(1, 1), false, -100, 10, pool_key)
+                .unwrap();
             let expected = SqrtPrice::from_scale(1, 1);
             assert_eq!(result, expected);
             assert_eq!(from_tick, None);
@@ -751,13 +754,10 @@ mod tests {
         // initalized edges
         {
             for spacing in 1..=10 {
-                //println!("spacing = {}", spacing);
                 let tickmap = &mut Tickmap::default();
 
                 let max_index = MAX_TICK - MAX_TICK % spacing;
                 let min_index = -max_index;
-                //println!("max_index = {}", max_index);
-                //println!("min_index = {}", min_index);
 
                 tickmap.flip(true, max_index, spacing as u16, pool_key);
                 tickmap.flip(true, min_index, spacing as u16, pool_key);
@@ -769,13 +769,7 @@ mod tests {
                 let next =
                     tickmap.next_initialized(max_index - tick_edge_diff, spacing as u16, pool_key);
 
-                if prev.is_some() {
-                    //println!("found prev = {}", prev.unwrap());
-                }
-                if next.is_some() {
-                    //println!("found next = {}", next.unwrap());
-                }
-
+                assert_eq!((prev.is_some(), next.is_some()), (true, true));
                 // cleanup
                 {
                     tickmap.flip(false, max_index, spacing as u16, pool_key);
@@ -796,12 +790,7 @@ mod tests {
             let next =
                 tickmap.next_initialized(max_index - tick_edge_diff, spacing as u16, pool_key);
 
-            if prev.is_some() {
-                //println!("found prev = {}", prev.unwrap());
-            }
-            if next.is_some() {
-                //println!("found next = {}", next.unwrap());
-            }
+            assert_eq!((prev.is_some(), next.is_some()), (false, false));
         }
     }
 }

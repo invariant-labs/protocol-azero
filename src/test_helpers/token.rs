@@ -13,7 +13,8 @@ macro_rules! balance_of {
         $client
             .call(&ink_e2e::alice(), &call)
             .dry_run()
-            .await?
+            .await
+            .unwrap()
             .return_value()
     }};
 }
@@ -26,11 +27,17 @@ macro_rules! mint {
         let result = $client
             .call(&$caller, &call)
             .dry_run()
-            .await?
+            .await
+            .unwrap()
             .return_value();
 
         if result.is_ok() {
-            $client.call(&$caller, &call).submit().await?.return_value()
+            $client
+                .call(&$caller, &call)
+                .submit()
+                .await
+                .unwrap()
+                .return_value()
         } else {
             result
         }
@@ -45,11 +52,17 @@ macro_rules! approve {
         let result = $client
             .call(&$caller, &call)
             .dry_run()
-            .await?
+            .await
+            .unwrap()
             .return_value();
 
         if result.is_ok() {
-            $client.call(&$caller, &call).submit().await?.return_value()
+            $client
+                .call(&$caller, &call)
+                .submit()
+                .await
+                .unwrap()
+                .return_value()
         } else {
             result
         }

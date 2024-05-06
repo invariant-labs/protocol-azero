@@ -1,6 +1,6 @@
 {
   "name": "@invariant-labs/a0-sdk",
-  "version": "0.1.6",
+  "version": "0.1.8",
   "collaborators": [
     "Invariant Labs"
   ],
@@ -45,6 +45,7 @@
     "test:get-position-ticks": "mocha ./tests/get-position-ticks.test.ts -g get-position-ticks",
     "test:get-liquidity-ticks": "mocha ./tests/get-liquidity-ticks.test.ts -g get-liquidity-ticks",
     "test:get-tickmap": "mocha ./tests/get-tickmap.test.ts -g tickmap",
+    "test:storage-limit": "mocha ./tests/storage-limit.test.ts -g storage-limit",
     "test:example": "mocha ./tests/example.test.ts -g sdk-guide-snippets",
     "test:events": "mocha ./tests/events.test.ts -g events",
     "test:crosses": "mocha ./tests/crosses-testnet.test.ts -g testnet-crosses-limitations"
@@ -53,6 +54,7 @@
     "@polkadot/api": "^10.12.4",
     "@polkadot/api-contract": "^10.12.4",
     "@scio-labs/use-inkathon": "^0.6.3",
+    "invariant-a0-wasm": "^0.1.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   },

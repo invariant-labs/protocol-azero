@@ -1,17 +1,17 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import { Invariant } from '../src/invariant'
-import { Network } from '../src/network'
-import { PSP22 } from '../src/psp22'
-import { assertThrowsAsync, objectEquals } from '../src/testUtils'
-import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
 import {
   Position,
   SqrtPrice,
   getLiquidityByX,
   getLiquidityByY,
   isTokenX
-} from '../src/wasm/pkg/invariant_a0_wasm.js'
+} from 'invariant-a0-wasm/invariant_a0_wasm.js'
+import { Invariant } from '../src/invariant'
+import { Network } from '../src/network'
+import { PSP22 } from '../src/psp22'
+import { assertThrowsAsync, objectEquals } from '../src/testUtils'
+import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
 
 const api = await initPolkadotApi(Network.Local)
 

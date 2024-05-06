@@ -13,12 +13,11 @@ pub mod invariant {
         CalculateSwapResult, CreatePositionEvent, CrossTickEvent, FeeTier, FeeTiers,
         InvariantConfig, InvariantTrait, LiquidityTick, Pool, PoolKey, PoolKeys, Pools, Position,
         PositionTick, Positions, QuoteResult, RemovePositionEvent, SwapEvent, SwapHop, Tick,
-        Tickmap, Ticks, CHUNK_SIZE, LIQUIDITY_TICK_LIMIT, MAX_TICKMAP_QUERY_SIZE,
+        Tickmap, Ticks, UpdatePoolTick, CHUNK_SIZE, LIQUIDITY_TICK_LIMIT, MAX_TICKMAP_QUERY_SIZE,
         POSITION_TICK_LIMIT,
     };
     use crate::math::calculate_min_amount_out;
     use crate::math::check_tick;
-    use crate::math::log::get_tick_at_sqrt_price;
     use crate::math::percentage::Percentage;
     use crate::math::sqrt_price::get_max_tick;
     use crate::math::sqrt_price::SqrtPrice;
@@ -120,7 +119,7 @@ pub mod invariant {
                     pool.current_tick_index,
                     pool_key.fee_tier.tick_spacing,
                     pool_key,
-                );
+                )?;
 
                 let result = unwrap!(compute_swap_step(
                     pool.sqrt_price,
@@ -193,41 +192,40 @@ pub mod invariant {
                     return Err(InvariantError::PriceLimitReached);
                 }
 
-                if let Some((tick_index, is_initialized)) = limiting_tick {
-                    if is_initialized {
-                        let mut tick = self.ticks.get(pool_key, tick_index)?;
-
-                        let (amount_to_add, has_crossed) = pool.cross_tick(
-                            result,
-                            swap_limit,
-                            &mut tick,
-                            &mut remaining_amount,
-                            by_amount_in,
-                            x_to_y,
-                            current_timestamp,
-                            self.config.protocol_fee,
-                            pool_key.fee_tier,
-                        );
-
-                        total_amount_in =
-                            total_amount_in.checked_add(amount_to_add).map_err(|_| {
-                                InvariantError::AddOverflow(
-                                    total_amount_in.get(),
-                                    amount_to_add.get(),
-                                )
-                            })?;
-                        if has_crossed {
-                            ticks.push(tick);
+                let mut tick_update = {
+                    if let Some((tick_index, is_initialized)) = limiting_tick {
+                        if is_initialized {
+                            let tick = self.ticks.get(pool_key, tick_index)?;
+                            UpdatePoolTick::TickInitialized(tick)
+                        } else {
+                            UpdatePoolTick::TickUninitialized(tick_index)
                         }
+                    } else {
+                        UpdatePoolTick::NoTick
                     }
-                } else {
-                    pool.current_tick_index = unwrap!(get_tick_at_sqrt_price(
-                        result.next_sqrt_price,
-                        pool_key.fee_tier.tick_spacing
-                    ));
+                };
+
+                let (amount_to_add, amount_after_tick_update, has_crossed) = pool.update_tick(
+                    result,
+                    swap_limit,
+                    &mut tick_update,
+                    remaining_amount,
+                    by_amount_in,
+                    x_to_y,
+                    current_timestamp,
+                    self.config.protocol_fee,
+                    pool_key.fee_tier,
+                );
+
+                remaining_amount = amount_after_tick_update;
+                total_amount_in = total_amount_in.checked_add(amount_to_add).unwrap();
+
+                if let UpdatePoolTick::TickInitialized(tick) = tick_update {
+                    if has_crossed {
+                        ticks.push(tick)
+                    }
                 }
             }
-
             if total_amount_out.get() == 0 {
                 return Err(InvariantError::NoGainSwap);
             }
@@ -446,6 +444,10 @@ pub mod invariant {
             // liquidity delta = 0 => return
             if liquidity_delta == Liquidity::new(0) {
                 return Err(InvariantError::ZeroLiquidity);
+            }
+
+            if lower_tick == upper_tick {
+                return Err(InvariantError::InvalidTickIndex);
             }
 
             let mut pool = self.pools.get(pool_key)?;
