@@ -10,7 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@invariant-labs/a0-sdk": "file:../sdk"
+    "@invariant-labs/a0-sdk": "^0.1.8"
   },
   "devDependencies": {
     "typescript": "^5.4.2"
