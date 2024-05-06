@@ -1,5 +1,6 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
+import { toPercentage, toSqrtPrice } from 'invariant-a0-wasm/invariant_a0_wasm.js'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
@@ -13,7 +14,6 @@ import {
   priceToSqrtPrice,
   sqrtPriceToPrice
 } from '../src/utils'
-import { toPercentage, toSqrtPrice } from '../src/wasm/pkg/invariant_a0_wasm.js'
 
 const api = await initPolkadotApi(Network.Local)
 
@@ -115,9 +115,7 @@ describe('utils', () => {
     it('no slippage up', () => {
       const sqrtPrice = toSqrtPrice(1n, 0n)
       const slippage = toPercentage(0n, 0n)
-
       const limitSqrt = calculateSqrtPriceAfterSlippage(sqrtPrice, slippage, true)
-
       assert.equal(limitSqrt, sqrtPrice)
     })
 

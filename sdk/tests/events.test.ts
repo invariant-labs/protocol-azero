@@ -1,11 +1,5 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import { Invariant } from '../src/invariant'
-import { Network } from '../src/network'
-import { PSP22 } from '../src/psp22'
-import { InvariantEvent } from '../src/schema'
-import { objectEquals } from '../src/testUtils'
-import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
 import {
   CreatePositionEvent,
   CrossTickEvent,
@@ -14,7 +8,13 @@ import {
   getGlobalMinSqrtPrice,
   toPercentage,
   toSqrtPrice
-} from '../src/wasm/pkg/invariant_a0_wasm.js'
+} from 'invariant-a0-wasm/invariant_a0_wasm.js'
+import { Invariant } from '../src/invariant'
+import { Network } from '../src/network'
+import { PSP22 } from '../src/psp22'
+import { InvariantEvent } from '../src/schema'
+import { objectEquals } from '../src/testUtils'
+import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
 
 const api = await initPolkadotApi(Network.Local)
 
