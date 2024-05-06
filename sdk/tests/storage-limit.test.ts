@@ -7,7 +7,7 @@ import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
 import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
 
-describe('storage limit', async () => {
+describe('storage-limit', async () => {
   it('storage limit test', async function () {
     this.timeout(1000000000000)
 
