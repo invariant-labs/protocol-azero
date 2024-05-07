@@ -8,6 +8,7 @@ import { getSubstrateChain, initPolkadotJs as initApi } from '@scio-labs/use-ink
 import { readFile } from 'fs/promises'
 import {
   FeeTier,
+  InvariantError,
   LiquidityTick,
   Percentage,
   Pool,
@@ -349,4 +350,10 @@ export const calculateLiquidityBreakpoints = (
       index: tick.index
     }
   })
+}
+
+export const extractError = (err: any) => {
+  const error = Object.keys(err)[0]
+  const parsedError = error[0].toUpperCase() + error.slice(1)
+  return InvariantError[parsedError as any]
 }

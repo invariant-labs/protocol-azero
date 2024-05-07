@@ -122,7 +122,7 @@ describe('position', async () => {
 
       objectEquals(result.events[0], expectedRemovePositionEvent, ['timestamp'])
 
-      assertThrowsAsync(
+      await assertThrowsAsync(
         invariant.getPosition(account, account.address, 0n),
         InvariantError.PositionNotFound
       )
@@ -130,12 +130,12 @@ describe('position', async () => {
       assert.deepEqual(positions.length, 0)
     }
     {
-      assertThrowsAsync(
+      await assertThrowsAsync(
         invariant.getTick(account, poolKey, lowerTickIndex),
         InvariantError.TickNotFound
       )
 
-      assertThrowsAsync(
+      await assertThrowsAsync(
         invariant.getTick(account, poolKey, upperTickIndex),
         InvariantError.TickNotFound
       )
@@ -163,7 +163,7 @@ describe('position', async () => {
       const receiver = keyring.addFromUri('//Bob')
       await invariant.transferPosition(positionOwner, 0n, receiver.address)
 
-      assertThrowsAsync(
+      await assertThrowsAsync(
         invariant.getPosition(positionOwner, positionOwner.address, 0n),
         InvariantError.PositionNotFound
       )

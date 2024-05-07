@@ -7,7 +7,6 @@ import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { deployContract } from '@scio-labs/use-inkathon'
 import {
   FeeTier,
-  InvariantError,
   Liquidity,
   LiquidityTick,
   Percentage,
@@ -40,6 +39,7 @@ import {
 import {
   calculateSqrtPriceAfterSlippage,
   constructTickmap,
+  extractError,
   getDeploymentData,
   parse,
   parseEvent,
@@ -311,7 +311,7 @@ export class Invariant {
     if (result.ok) {
       return parse(result.ok)
     } else {
-      throw new Error(InvariantError[result.err])
+      throw new Error(extractError(result.err))
     }
   }
 
@@ -424,7 +424,7 @@ export class Invariant {
     if (result.ok) {
       return parse(result.ok)
     } else {
-      throw new Error(InvariantError[result.err])
+      throw new Error(extractError(result.err))
     }
   }
 
@@ -457,7 +457,7 @@ export class Invariant {
     if (result.ok) {
       return parse(result.ok)
     } else {
-      throw new Error(InvariantError[result.err])
+      throw new Error(extractError(result.err))
     }
   }
 
@@ -473,7 +473,7 @@ export class Invariant {
     if (result.ok) {
       return parse(result.ok)
     } else {
-      throw new Error(InvariantError[result.err])
+      throw new Error(extractError(result.err))
     }
   }
 
@@ -521,7 +521,7 @@ export class Invariant {
     if (result.ok) {
       return parse(result.ok)
     } else {
-      throw new Error(InvariantError[result.err])
+      throw new Error(extractError(result.err))
     }
   }
 
