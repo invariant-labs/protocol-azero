@@ -41,6 +41,7 @@ import {
 import {
   calculateSqrtPriceAfterSlippage,
   constructTickmap,
+  getAbi,
   getDeploymentData,
   parse,
   parseEvent,
@@ -112,12 +113,12 @@ export class Invariant {
     address: string,
     options?: ContractOptions
   ): Promise<Invariant> {
-    const deploymentData = await getDeploymentData('invariant')
+    const abi = await getAbi('invariant')
 
     return new Invariant(
       api,
       network,
-      deploymentData.abi,
+      abi,
       address,
       options?.storageDepositLimit,
       options?.refTime,

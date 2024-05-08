@@ -7,7 +7,7 @@ import { deployContract } from '@scio-labs/use-inkathon'
 import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME } from './consts.js'
 import { Network } from './network.js'
 import { ContractOptions, PSP22Query, PSP22Tx, TxResult } from './schema.js'
-import { getDeploymentData, sendQuery, sendTx } from './utils.js'
+import { getAbi, getDeploymentData, sendQuery, sendTx } from './utils.js'
 
 export class PSP22 {
   contract: ContractPromise
@@ -64,12 +64,12 @@ export class PSP22 {
     address: string,
     options?: ContractOptions
   ): Promise<PSP22> {
-    const deploymentData = await getDeploymentData('psp22')
+    const abi = await getAbi('psp22')
 
     return new PSP22(
       api,
       network,
-      deploymentData.abi,
+      abi,
       address,
       options?.storageDepositLimit,
       options?.refTime,
