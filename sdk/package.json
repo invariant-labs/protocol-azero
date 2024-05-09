@@ -1,6 +1,6 @@
 {
   "name": "@invariant-labs/a0-sdk",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "collaborators": [
     "Invariant Labs"
   ],
@@ -21,7 +21,7 @@
     "directory": "sdk"
   },
   "scripts": {
-    "prebuild": "npm run contract:build && rm -rf target && cp ../target/ink/invariant.wasm ./contracts/invariant/ && cp ../target/ink/invariant.json ./contracts/invariant",
+    "prebuild": "./prebuild.sh",
     "build": "npx tsc",
     "start:testnet": "npx tsc && node --experimental-wasm-modules target/src/index.js testnet",
     "start:local": "npx tsc && node --experimental-wasm-modules target/src/index.js local",

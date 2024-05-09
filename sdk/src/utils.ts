@@ -5,7 +5,6 @@ import { ContractPromise } from '@polkadot/api-contract'
 import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { getSubstrateChain, initPolkadotJs as initApi } from '@scio-labs/use-inkathon'
-import { readFile } from 'fs/promises'
 import {
   FeeTier,
   LiquidityTick,
@@ -26,7 +25,9 @@ import {
   getPercentageDenominator,
   getSqrtPriceDenominator
 } from 'invariant-a0-wasm/invariant_a0_wasm.js'
-import path from 'path'
+import { abi as invariantAbi } from './abis/invariant'
+import { abi as PSP22Abi } from './abis/psp22'
+import { abi as wrappedAZEROAbi } from './abis/wrapped-azero'
 import { MAINNET, TESTNET } from './consts.js'
 import { Network } from './network.js'
 import { EventTxResult, LiquidityBreakpoint, Query, Tx, TxResult } from './schema.js'
@@ -162,25 +163,55 @@ export const parseEvents = (events: { [key: string]: any }[]) => {
   return events.map(event => parseEvent(event))
 }
 
+let nodeModules: typeof import('./node')
+
+const loadNodeModules = async () => {
+  if (typeof window !== 'undefined') {
+    throw new Error('cannot load node modules in a browser environment')
+  }
+
+  await import('./node')
+    .then(node => {
+      nodeModules = node
+    })
+    .catch(error => {
+      console.error('error while loading node modules:', error)
+    })
+}
+
 export const getDeploymentData = async (
   contractName: string
 ): Promise<{ abi: any; wasm: Buffer }> => {
+  await loadNodeModules()
   const __dirname = new URL('.', import.meta.url).pathname
 
   try {
     const abi = JSON.parse(
-      await readFile(
-        path.join(__dirname, `../contracts/${contractName}/${contractName}.json`),
+      await nodeModules.readFile(
+        nodeModules.join(__dirname, `../contracts/${contractName}/${contractName}.json`),
         'utf-8'
       )
     )
-    const wasm = await readFile(
-      path.join(__dirname, `../contracts/${contractName}/${contractName}.wasm`)
+    const wasm = await nodeModules.readFile(
+      nodeModules.join(__dirname, `../contracts/${contractName}/${contractName}.wasm`)
     )
 
     return { abi, wasm }
   } catch (error) {
     throw new Error(`${contractName}.json or ${contractName}.wasm not found`)
+  }
+}
+
+export const getAbi = async (contractName: string): Promise<any> => {
+  switch (contractName) {
+    case 'invariant':
+      return JSON.parse(invariantAbi)
+    case 'psp22':
+      return JSON.parse(PSP22Abi)
+    case 'wrapped-azero':
+      return JSON.parse(wrappedAZEROAbi)
+    default:
+      throw new Error('contract not found')
   }
 }
 

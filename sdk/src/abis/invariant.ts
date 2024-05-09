@@ -1,3 +1,4 @@
+export const abi = `
 {
   "source": {
     "hash": "0xfdead5944afc0bf4292ebca2ddf552a8b09e8efe39dd67614b766b70a6e1efd6",
@@ -4234,4 +4235,4 @@
     }
   ],
   "version": "4"
-}
+}`

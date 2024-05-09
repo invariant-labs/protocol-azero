@@ -6,7 +6,7 @@ import { deployContract } from '@scio-labs/use-inkathon'
 import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME } from './consts.js'
 import { Network } from './network.js'
 import { ContractOptions, PSP22Query, PSP22Tx, TxResult, WrappedAZEROTx } from './schema.js'
-import { getDeploymentData, sendQuery, sendTx } from './utils.js'
+import { getAbi, getDeploymentData, sendQuery, sendTx } from './utils.js'
 
 export class WrappedAZERO {
   contract: ContractPromise
@@ -67,12 +67,12 @@ export class WrappedAZERO {
     deployer: string,
     options?: ContractOptions
   ): Promise<WrappedAZERO> {
-    const deploymentData = await getDeploymentData('wrapped-azero')
+    const abi = await getAbi('wrapped-azero')
 
     return new WrappedAZERO(
       api,
       network,
-      deploymentData.abi,
+      abi,
       deployer,
       options?.storageDepositLimit,
       options?.refTime,
