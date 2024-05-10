@@ -127,12 +127,12 @@ export class WrappedAZERO {
     )
   }
 
-  async balanceOf(account: IKeyringPair, owner: string): Promise<unknown> {
+  async balanceOf(userAddress: string, owner: string): Promise<unknown> {
     return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      account,
+      userAddress,
       PSP22Query.BalanceOf,
       [owner]
     )

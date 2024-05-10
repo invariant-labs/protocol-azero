@@ -134,67 +134,67 @@ export class PSP22 {
     )
   }
 
-  async tokenName(account: IKeyringPair): Promise<unknown> {
+  async tokenName(userAddress: string): Promise<unknown> {
     return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      account,
+      userAddress,
       PSP22Query.TokenName,
       []
     )
   }
 
-  async tokenSymbol(account: IKeyringPair): Promise<unknown> {
+  async tokenSymbol(userAddress: string): Promise<unknown> {
     return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      account,
+      userAddress,
       PSP22Query.TokenSymbol,
       []
     )
   }
 
-  async tokenDecimals(account: IKeyringPair): Promise<unknown> {
+  async tokenDecimals(userAddress: string): Promise<unknown> {
     return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      account,
+      userAddress,
       PSP22Query.TokenDecimals,
       []
     )
   }
 
-  async balanceOf(account: IKeyringPair, owner: string): Promise<bigint> {
+  async balanceOf(userAddress: string, owner: string): Promise<bigint> {
     return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      account,
+      userAddress,
       PSP22Query.BalanceOf,
       [owner]
     )
   }
 
-  async totalSupply(account: IKeyringPair): Promise<unknown> {
+  async totalSupply(userAddress: string): Promise<unknown> {
     return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      account,
+      userAddress,
       PSP22Query.TotalSupply,
       []
     )
   }
 
-  async allowance(account: IKeyringPair, owner: string, spender: string): Promise<unknown> {
+  async allowance(userAddress: string, owner: string, spender: string): Promise<unknown> {
     return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      account,
+      userAddress,
       PSP22Query.Allowance,
       [owner, spender]
     )

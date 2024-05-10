@@ -65,12 +65,12 @@ export async function sendQuery(
   contract: ContractPromise,
   gasLimit: WeightV2,
   storageDepositLimit: number | null,
-  signer: IKeyringPair,
+  userAddress: string,
   message: Query | Tx,
   data: any[]
 ): Promise<any> {
   const { result, output } = await contract.query[message](
-    signer.address,
+    userAddress,
     {
       gasLimit: gasLimit,
       storageDepositLimit: storageDepositLimit
