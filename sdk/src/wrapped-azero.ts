@@ -6,7 +6,7 @@ import { deployContract } from '@scio-labs/use-inkathon'
 import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME } from './consts.js'
 import { Network } from './network.js'
 import { ContractOptions, PSP22Query, PSP22Tx, TxResult, WrappedAZEROTx } from './schema.js'
-import { getAbi, getDeploymentData, sendQuery, sendTx } from './utils.js'
+import { getAbi, getDeploymentData, getTx, sendQuery, sendTx } from './utils.js'
 
 export class WrappedAZERO {
   contract: ContractPromise
@@ -80,6 +80,24 @@ export class WrappedAZERO {
     )
   }
 
+  // approveTx(spender: string, value: bigint) {
+  //   return getTx(this.contract, this.gasLimit, this.storageDepositLimit, 0n, PSP22Tx.Approve, [
+  //     spender,
+  //     value
+  //   ])
+  // }
+
+  depositTx(value: bigint) {
+    return getTx(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      value,
+      WrappedAZEROTx.Deposit,
+      []
+    )
+  }
+
   async deposit(account: IKeyringPair, value: bigint, block: boolean = true): Promise<TxResult> {
     return sendTx(
       this.contract,
@@ -91,6 +109,17 @@ export class WrappedAZERO {
       [],
       this.waitForFinalization,
       block
+    )
+  }
+
+  withdrawTx(value: bigint) {
+    return getTx(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      0n,
+      WrappedAZEROTx.Withdraw,
+      [value]
     )
   }
 
@@ -106,6 +135,13 @@ export class WrappedAZERO {
       this.waitForFinalization,
       block
     )
+  }
+
+  approveTx(spender: string, value: bigint) {
+    return getTx(this.contract, this.gasLimit, this.storageDepositLimit, 0n, PSP22Tx.Approve, [
+      spender,
+      value
+    ])
   }
 
   async approve(

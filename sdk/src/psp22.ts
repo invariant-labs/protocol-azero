@@ -7,7 +7,7 @@ import { deployContract } from '@scio-labs/use-inkathon'
 import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME } from './consts.js'
 import { Network } from './network.js'
 import { ContractOptions, PSP22Query, PSP22Tx, TxResult } from './schema.js'
-import { getAbi, getDeploymentData, sendQuery, sendTx } from './utils.js'
+import { getAbi, getDeploymentData, getTx, sendQuery, sendTx } from './utils.js'
 
 export class PSP22 {
   contract: ContractPromise
@@ -81,6 +81,10 @@ export class PSP22 {
     this.contract = new ContractPromise(this.api, this.abi, address)
   }
 
+  mintTx(value: bigint) {
+    return getTx(this.contract, this.gasLimit, this.storageDepositLimit, 0n, PSP22Tx.Mint, [value])
+  }
+
   async mint(account: IKeyringPair, value: bigint, block: boolean = true): Promise<TxResult> {
     return sendTx(
       this.contract,
@@ -93,6 +97,14 @@ export class PSP22 {
       this.waitForFinalization,
       block
     )
+  }
+
+  transferTx(to: string, value: bigint, data: Bytes) {
+    return getTx(this.contract, this.gasLimit, this.storageDepositLimit, 0n, PSP22Tx.Transfer, [
+      to,
+      value,
+      data
+    ])
   }
 
   async transfer(
@@ -113,6 +125,13 @@ export class PSP22 {
       this.waitForFinalization,
       block
     )
+  }
+
+  approveTx(spender: string, value: bigint) {
+    return getTx(this.contract, this.gasLimit, this.storageDepositLimit, 0n, PSP22Tx.Approve, [
+      spender,
+      value
+    ])
   }
 
   async approve(

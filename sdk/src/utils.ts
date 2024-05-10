@@ -2,6 +2,7 @@
 
 import { ApiPromise, WsProvider } from '@polkadot/api'
 import { ContractPromise } from '@polkadot/api-contract'
+import { SubmittableExtrinsic } from '@polkadot/api/promise/types'
 import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { getSubstrateChain, initPolkadotJs as initApi } from '@scio-labs/use-inkathon'
@@ -83,6 +84,28 @@ export async function sendQuery(
   } else {
     throw new Error(result.asErr.toHuman()?.toString())
   }
+}
+
+export function getTx(
+  contract: ContractPromise,
+  gasLimit: WeightV2,
+  storageDepositLimit: number | null,
+  value: bigint,
+  message: Tx,
+  data: any[]
+): SubmittableExtrinsic {
+  if (!contract) {
+    throw new Error('contract not loaded')
+  }
+
+  return contract.tx[message](
+    {
+      gasLimit,
+      storageDepositLimit,
+      value
+    },
+    ...data
+  )
 }
 
 export async function sendTx(
