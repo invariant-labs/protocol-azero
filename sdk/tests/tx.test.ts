@@ -19,11 +19,16 @@ describe('tx', function () {
   })
 
   it('should send tx', async () => {
-    const mintTx = psp22.mintTx(500n)
+    const balanceBefore = await psp22.balanceOf(account.address, account.address)
 
+    const mintAmount = 500n
+    const mintTx = psp22.mintTx(mintAmount)
     const hash = await sendTx(mintTx)
 
     expect(hash).to.not.be.undefined
+
+    const balanceAfter = await psp22.balanceOf(account.address, account.address)
+    expect(balanceAfter).to.equal(balanceBefore + mintAmount)
   })
 })
 
