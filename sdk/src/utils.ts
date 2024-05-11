@@ -1,6 +1,6 @@
 /* eslint-disable no-case-declarations */
 
-import { ApiPromise, WsProvider } from '@polkadot/api'
+import { ApiPromise, SubmittableResult, WsProvider } from '@polkadot/api'
 import { ContractPromise } from '@polkadot/api-contract'
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types'
 import { WeightV2 } from '@polkadot/types/interfaces'
@@ -108,6 +108,39 @@ export function createTx(
   )
 }
 
+export async function txPromise(
+  result: SubmittableResult,
+  resolve: any,
+  reject: any,
+  waitForFinalization: boolean = true,
+  block: boolean = true
+) {
+  if (!block) {
+    resolve({
+      hash: result.txHash.toHex(),
+      events: parseEvents((result as any).contractEvents || []) as []
+    })
+  }
+
+  if (result.isError || result.dispatchError) {
+    reject(new Error(result.dispatchError?.toString() || 'error'))
+  }
+
+  if (result.isCompleted && !waitForFinalization) {
+    resolve({
+      hash: result.txHash.toHex(),
+      events: parseEvents((result as any).contractEvents || []) as []
+    })
+  }
+
+  if (result.isFinalized) {
+    resolve({
+      hash: result.txHash.toHex(),
+      events: parseEvents((result as any).contractEvents || []) as []
+    })
+  }
+}
+
 export async function sendTx(
   tx: SubmittableExtrinsic,
   waitForFinalization: boolean = true,
@@ -115,30 +148,7 @@ export async function sendTx(
 ): Promise<EventTxResult<any> | TxResult> {
   return new Promise(async (resolve, reject) => {
     await tx.send(result => {
-      if (!block) {
-        resolve({
-          hash: result.txHash.toHex(),
-          events: parseEvents((result as any).contractEvents || []) as []
-        })
-      }
-
-      if (result.isError || result.dispatchError) {
-        reject(new Error(result.dispatchError?.toString() || 'error'))
-      }
-
-      if (result.isCompleted && !waitForFinalization) {
-        resolve({
-          hash: result.txHash.toHex(),
-          events: parseEvents((result as any).contractEvents || []) as []
-        })
-      }
-
-      if (result.isFinalized) {
-        resolve({
-          hash: result.txHash.toHex(),
-          events: parseEvents((result as any).contractEvents || []) as []
-        })
-      }
+      txPromise(result, resolve, reject, waitForFinalization, block)
     })
   })
 }
@@ -151,30 +161,7 @@ export async function signAndSendTx(
 ): Promise<EventTxResult<any> | TxResult> {
   return new Promise(async (resolve, reject) => {
     await tx.signAndSend(signer, result => {
-      if (!block) {
-        resolve({
-          hash: result.txHash.toHex(),
-          events: parseEvents((result as any).contractEvents || []) as []
-        })
-      }
-
-      if (result.isError || result.dispatchError) {
-        reject(new Error(result.dispatchError?.toString() || 'error'))
-      }
-
-      if (result.isCompleted && !waitForFinalization) {
-        resolve({
-          hash: result.txHash.toHex(),
-          events: parseEvents((result as any).contractEvents || []) as []
-        })
-      }
-
-      if (result.isFinalized) {
-        resolve({
-          hash: result.txHash.toHex(),
-          events: parseEvents((result as any).contractEvents || []) as []
-        })
-      }
+      txPromise(result, resolve, reject, waitForFinalization, block)
     })
   })
 }
