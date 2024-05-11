@@ -108,7 +108,7 @@ export function createTx(
   )
 }
 
-export async function txPromise(
+export async function handleTxResult(
   result: SubmittableResult,
   resolve: any,
   reject: any,
@@ -148,7 +148,7 @@ export async function sendTx(
 ): Promise<EventTxResult<any> | TxResult> {
   return new Promise(async (resolve, reject) => {
     await tx.send(result => {
-      txPromise(result, resolve, reject, waitForFinalization, block)
+      handleTxResult(result, resolve, reject, waitForFinalization, block)
     })
   })
 }
@@ -161,7 +161,7 @@ export async function signAndSendTx(
 ): Promise<EventTxResult<any> | TxResult> {
   return new Promise(async (resolve, reject) => {
     await tx.signAndSend(signer, result => {
-      txPromise(result, resolve, reject, waitForFinalization, block)
+      handleTxResult(result, resolve, reject, waitForFinalization, block)
     })
   })
 }
