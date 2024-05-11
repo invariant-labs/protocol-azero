@@ -86,7 +86,7 @@ export async function sendQuery(
   }
 }
 
-export function getTx(
+export function createTx(
   contract: ContractPromise,
   gasLimit: WeightV2,
   storageDepositLimit: number | null,
@@ -109,31 +109,13 @@ export function getTx(
 }
 
 export async function sendTx(
-  contract: ContractPromise,
-  gasLimit: WeightV2,
-  storageDepositLimit: number | null,
-  value: bigint,
+  tx: SubmittableExtrinsic,
   signer: IKeyringPair,
-  message: Tx,
-  data: any[],
   waitForFinalization: boolean = true,
   block: boolean = true
 ): Promise<EventTxResult<any> | TxResult> {
-  if (!contract) {
-    throw new Error('contract not loaded')
-  }
-
-  const call = contract.tx[message](
-    {
-      gasLimit,
-      storageDepositLimit,
-      value
-    },
-    ...data
-  )
-
   return new Promise(async (resolve, reject) => {
-    await call.signAndSend(signer, result => {
+    await tx.signAndSend(signer, result => {
       if (!block) {
         resolve({
           hash: result.txHash.toHex(),
@@ -142,7 +124,7 @@ export async function sendTx(
       }
 
       if (result.isError || result.dispatchError) {
-        reject(new Error(message))
+        reject(new Error(result.dispatchError?.toString() || 'error'))
       }
 
       if (result.isCompleted && !waitForFinalization) {
@@ -160,6 +142,22 @@ export async function sendTx(
       }
     })
   })
+}
+
+export async function signAndSendTx(
+  contract: ContractPromise,
+  gasLimit: WeightV2,
+  storageDepositLimit: number | null,
+  value: bigint,
+  signer: IKeyringPair,
+  message: Tx,
+  data: any[],
+  waitForFinalization: boolean = true,
+  block: boolean = true
+): Promise<EventTxResult<any> | TxResult> {
+  const tx = createTx(contract, gasLimit, storageDepositLimit, value, message, data)
+
+  return await sendTx(tx, signer, waitForFinalization, block)
 }
 
 export const newPoolKey = (token0: string, token1: string, feeTier: FeeTier): PoolKey => {

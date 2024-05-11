@@ -4,7 +4,6 @@ import { InvariantError, Percentage, SqrtPrice } from 'invariant-a0-wasm/invaria
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
-import { InvariantTx } from '../src/schema'
 import { assertThrowsAsync } from '../src/testUtils'
 import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
 
@@ -208,10 +207,7 @@ describe('invariant', async () => {
     {
       const poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
-      await assertThrowsAsync(
-        invariant.createPool(account, poolKey, initSqrtPrice),
-        InvariantTx.CreatePool
-      )
+      await assertThrowsAsync(invariant.createPool(account, poolKey, initSqrtPrice))
     }
     const pools = await invariant.getPools(account.address, 1n, 0n)
     assert.deepEqual(pools.length, 1)

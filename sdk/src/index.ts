@@ -62,6 +62,9 @@ export {
   newFeeTier,
   newPoolKey,
   priceToSqrtPrice,
+  sendQuery,
+  sendTx,
+  signAndSendTx,
   sqrtPriceToPrice
 } from './utils.js'
 export { WrappedAZERO } from './wrapped-azero.js'

@@ -1,12 +1,13 @@
 import { ApiPromise } from '@polkadot/api'
 import { ContractPromise } from '@polkadot/api-contract'
+import { SubmittableExtrinsic } from '@polkadot/api/promise/types'
 import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types'
 import { deployContract } from '@scio-labs/use-inkathon'
 import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME } from './consts.js'
 import { Network } from './network.js'
 import { ContractOptions, PSP22Query, PSP22Tx, TxResult, WrappedAZEROTx } from './schema.js'
-import { getAbi, getDeploymentData, getTx, sendQuery, sendTx } from './utils.js'
+import { createTx, getAbi, getDeploymentData, sendQuery, signAndSendTx } from './utils.js'
 
 export class WrappedAZERO {
   contract: ContractPromise
@@ -80,15 +81,8 @@ export class WrappedAZERO {
     )
   }
 
-  // approveTx(spender: string, value: bigint) {
-  //   return getTx(this.contract, this.gasLimit, this.storageDepositLimit, 0n, PSP22Tx.Approve, [
-  //     spender,
-  //     value
-  //   ])
-  // }
-
-  depositTx(value: bigint) {
-    return getTx(
+  depositTx(value: bigint): SubmittableExtrinsic {
+    return createTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -99,7 +93,7 @@ export class WrappedAZERO {
   }
 
   async deposit(account: IKeyringPair, value: bigint, block: boolean = true): Promise<TxResult> {
-    return sendTx(
+    return signAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -112,8 +106,8 @@ export class WrappedAZERO {
     )
   }
 
-  withdrawTx(value: bigint) {
-    return getTx(
+  withdrawTx(value: bigint): SubmittableExtrinsic {
+    return createTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -124,7 +118,7 @@ export class WrappedAZERO {
   }
 
   async withdraw(account: IKeyringPair, value: bigint, block: boolean = true): Promise<TxResult> {
-    return sendTx(
+    return signAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -137,8 +131,8 @@ export class WrappedAZERO {
     )
   }
 
-  approveTx(spender: string, value: bigint) {
-    return getTx(this.contract, this.gasLimit, this.storageDepositLimit, 0n, PSP22Tx.Approve, [
+  approveTx(spender: string, value: bigint): SubmittableExtrinsic {
+    return createTx(this.contract, this.gasLimit, this.storageDepositLimit, 0n, PSP22Tx.Approve, [
       spender,
       value
     ])
@@ -150,7 +144,7 @@ export class WrappedAZERO {
     value: bigint,
     block: boolean = true
   ): Promise<TxResult> {
-    return sendTx(
+    return signAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
