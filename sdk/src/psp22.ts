@@ -8,7 +8,7 @@ import { deployContract } from '@scio-labs/use-inkathon'
 import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME } from './consts.js'
 import { Network } from './network.js'
 import { ContractOptions, PSP22Query, PSP22Tx, TxResult } from './schema.js'
-import { createTx, getAbi, getDeploymentData, sendQuery, signAndSendTx } from './utils.js'
+import { createSignAndSendTx, createTx, getAbi, getDeploymentData, sendQuery } from './utils.js'
 
 export class PSP22 {
   contract: ContractPromise
@@ -89,7 +89,7 @@ export class PSP22 {
   }
 
   async mint(account: IKeyringPair, value: bigint, block: boolean = true): Promise<TxResult> {
-    return signAndSendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -117,7 +117,7 @@ export class PSP22 {
     data: Bytes,
     block: boolean = true
   ): Promise<TxResult> {
-    return signAndSendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -143,7 +143,7 @@ export class PSP22 {
     value: bigint,
     block: boolean = true
   ): Promise<TxResult> {
-    return signAndSendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,

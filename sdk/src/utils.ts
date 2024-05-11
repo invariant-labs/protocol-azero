@@ -110,6 +110,41 @@ export function createTx(
 
 export async function sendTx(
   tx: SubmittableExtrinsic,
+  waitForFinalization: boolean = true,
+  block: boolean = true
+): Promise<EventTxResult<any> | TxResult> {
+  return new Promise(async (resolve, reject) => {
+    await tx.send(result => {
+      if (!block) {
+        resolve({
+          hash: result.txHash.toHex(),
+          events: parseEvents((result as any).contractEvents || []) as []
+        })
+      }
+
+      if (result.isError || result.dispatchError) {
+        reject(new Error(result.dispatchError?.toString() || 'error'))
+      }
+
+      if (result.isCompleted && !waitForFinalization) {
+        resolve({
+          hash: result.txHash.toHex(),
+          events: parseEvents((result as any).contractEvents || []) as []
+        })
+      }
+
+      if (result.isFinalized) {
+        resolve({
+          hash: result.txHash.toHex(),
+          events: parseEvents((result as any).contractEvents || []) as []
+        })
+      }
+    })
+  })
+}
+
+export async function signAndSendTx(
+  tx: SubmittableExtrinsic,
   signer: IKeyringPair,
   waitForFinalization: boolean = true,
   block: boolean = true
@@ -144,7 +179,7 @@ export async function sendTx(
   })
 }
 
-export async function signAndSendTx(
+export async function createSignAndSendTx(
   contract: ContractPromise,
   gasLimit: WeightV2,
   storageDepositLimit: number | null,
@@ -157,7 +192,7 @@ export async function signAndSendTx(
 ): Promise<EventTxResult<any> | TxResult> {
   const tx = createTx(contract, gasLimit, storageDepositLimit, value, message, data)
 
-  return await sendTx(tx, signer, waitForFinalization, block)
+  return await signAndSendTx(tx, signer, waitForFinalization, block)
 }
 
 export const newPoolKey = (token0: string, token1: string, feeTier: FeeTier): PoolKey => {

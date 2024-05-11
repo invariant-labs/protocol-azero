@@ -7,7 +7,7 @@ import { deployContract } from '@scio-labs/use-inkathon'
 import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME } from './consts.js'
 import { Network } from './network.js'
 import { ContractOptions, PSP22Query, PSP22Tx, TxResult, WrappedAZEROTx } from './schema.js'
-import { createTx, getAbi, getDeploymentData, sendQuery, signAndSendTx } from './utils.js'
+import { createSignAndSendTx, createTx, getAbi, getDeploymentData, sendQuery } from './utils.js'
 
 export class WrappedAZERO {
   contract: ContractPromise
@@ -93,7 +93,7 @@ export class WrappedAZERO {
   }
 
   async deposit(account: IKeyringPair, value: bigint, block: boolean = true): Promise<TxResult> {
-    return signAndSendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -118,7 +118,7 @@ export class WrappedAZERO {
   }
 
   async withdraw(account: IKeyringPair, value: bigint, block: boolean = true): Promise<TxResult> {
-    return signAndSendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -144,7 +144,7 @@ export class WrappedAZERO {
     value: bigint,
     block: boolean = true
   ): Promise<TxResult> {
-    return signAndSendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,

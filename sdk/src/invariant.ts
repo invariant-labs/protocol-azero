@@ -42,13 +42,13 @@ import {
 import {
   calculateSqrtPriceAfterSlippage,
   constructTickmap,
+  createSignAndSendTx,
   createTx,
   getAbi,
   getDeploymentData,
   parse,
   parseEvent,
-  sendQuery,
-  signAndSendTx
+  sendQuery
 } from './utils.js'
 
 export class Invariant {
@@ -205,7 +205,7 @@ export class Invariant {
     fee: Percentage,
     block: boolean = true
   ): Promise<TxResult> {
-    return signAndSendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -234,7 +234,7 @@ export class Invariant {
     feeTier: FeeTier,
     block: boolean = true
   ): Promise<TxResult> {
-    return signAndSendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -263,7 +263,7 @@ export class Invariant {
     feeTier: FeeTier,
     block: boolean = true
   ): Promise<TxResult> {
-    return signAndSendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -315,7 +315,7 @@ export class Invariant {
     feeReceiver: string,
     block: boolean = true
   ): Promise<TxResult> {
-    return signAndSendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -344,7 +344,7 @@ export class Invariant {
     poolKey: PoolKey,
     block: boolean = true
   ): Promise<TxResult> {
-    return signAndSendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -435,7 +435,7 @@ export class Invariant {
       false
     )
 
-    return signAndSendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -465,7 +465,7 @@ export class Invariant {
     receiver: string,
     block: boolean = true
   ): Promise<TxResult> {
-    return signAndSendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -494,7 +494,7 @@ export class Invariant {
     index: bigint,
     block: boolean = true
   ): Promise<RemovePositionTxResult> {
-    return signAndSendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -519,7 +519,7 @@ export class Invariant {
   }
 
   async claimFee(account: IKeyringPair, index: bigint, block: boolean = true): Promise<TxResult> {
-    return signAndSendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -619,7 +619,7 @@ export class Invariant {
   ): Promise<TxResult> {
     const initTick = calculateTick(initSqrtPrice, poolKey.feeTier.tickSpacing)
 
-    return signAndSendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -699,7 +699,7 @@ export class Invariant {
     sqrtPriceLimit: SqrtPrice,
     block: boolean = true
   ): Promise<SwapTxResult> {
-    return signAndSendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -720,7 +720,7 @@ export class Invariant {
     swaps: SwapHop[],
     block: boolean = true
   ): Promise<SwapRouteTxResult> {
-    return signAndSendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
