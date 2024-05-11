@@ -1,5 +1,6 @@
 import { ApiPromise } from '@polkadot/api'
 import { ContractPromise } from '@polkadot/api-contract'
+import { SubmittableExtrinsic } from '@polkadot/api/promise/types'
 import { Bytes } from '@polkadot/types'
 import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types'
@@ -7,7 +8,7 @@ import { deployContract } from '@scio-labs/use-inkathon'
 import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME } from './consts.js'
 import { Network } from './network.js'
 import { ContractOptions, PSP22Query, PSP22Tx, TxResult } from './schema.js'
-import { getAbi, getDeploymentData, sendQuery, sendTx } from './utils.js'
+import { createSignAndSendTx, createTx, getAbi, getDeploymentData, sendQuery } from './utils.js'
 
 export class PSP22 {
   contract: ContractPromise
@@ -81,8 +82,14 @@ export class PSP22 {
     this.contract = new ContractPromise(this.api, this.abi, address)
   }
 
+  mintTx(value: bigint): SubmittableExtrinsic {
+    return createTx(this.contract, this.gasLimit, this.storageDepositLimit, 0n, PSP22Tx.Mint, [
+      value
+    ])
+  }
+
   async mint(account: IKeyringPair, value: bigint, block: boolean = true): Promise<TxResult> {
-    return sendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -95,6 +102,14 @@ export class PSP22 {
     )
   }
 
+  transferTx(to: string, value: bigint, data: Bytes): SubmittableExtrinsic {
+    return createTx(this.contract, this.gasLimit, this.storageDepositLimit, 0n, PSP22Tx.Transfer, [
+      to,
+      value,
+      data
+    ])
+  }
+
   async transfer(
     account: IKeyringPair,
     to: string,
@@ -102,7 +117,7 @@ export class PSP22 {
     data: Bytes,
     block: boolean = true
   ): Promise<TxResult> {
-    return sendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -115,13 +130,20 @@ export class PSP22 {
     )
   }
 
+  approveTx(spender: string, value: bigint): SubmittableExtrinsic {
+    return createTx(this.contract, this.gasLimit, this.storageDepositLimit, 0n, PSP22Tx.Approve, [
+      spender,
+      value
+    ])
+  }
+
   async approve(
     account: IKeyringPair,
     spender: string,
     value: bigint,
     block: boolean = true
   ): Promise<TxResult> {
-    return sendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,

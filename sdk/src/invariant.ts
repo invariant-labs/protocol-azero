@@ -2,6 +2,7 @@
 
 import { ApiPromise } from '@polkadot/api'
 import { Abi, ContractPromise } from '@polkadot/api-contract'
+import { SubmittableExtrinsic } from '@polkadot/api/promise/types'
 import { Bytes } from '@polkadot/types'
 import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
@@ -41,12 +42,13 @@ import {
 import {
   calculateSqrtPriceAfterSlippage,
   constructTickmap,
+  createSignAndSendTx,
+  createTx,
   getAbi,
   getDeploymentData,
   parse,
   parseEvent,
-  sendQuery,
-  sendTx
+  sendQuery
 } from './utils.js'
 
 export class Invariant {
@@ -187,12 +189,23 @@ export class Invariant {
     )
   }
 
+  changeProtocolFeeTx(fee: Percentage): SubmittableExtrinsic {
+    return createTx(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      0n,
+      InvariantTx.ChangeProtocolFee,
+      [fee]
+    )
+  }
+
   async changeProtocolFee(
     account: IKeyringPair,
     fee: Percentage,
     block: boolean = true
   ): Promise<TxResult> {
-    return sendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -205,12 +218,23 @@ export class Invariant {
     )
   }
 
+  addFeeTierTx(feeTier: FeeTier): SubmittableExtrinsic {
+    return createTx(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      0n,
+      InvariantTx.AddFeeTier,
+      [feeTier]
+    )
+  }
+
   async addFeeTier(
     account: IKeyringPair,
     feeTier: FeeTier,
     block: boolean = true
   ): Promise<TxResult> {
-    return sendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -223,12 +247,23 @@ export class Invariant {
     )
   }
 
+  removeFeeTierTx(feeTier: FeeTier): SubmittableExtrinsic {
+    return createTx(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      0n,
+      InvariantTx.RemoveFeeTier,
+      [feeTier]
+    )
+  }
+
   async removeFeeTier(
     account: IKeyringPair,
     feeTier: FeeTier,
     block: boolean = true
   ): Promise<TxResult> {
-    return sendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -263,13 +298,24 @@ export class Invariant {
     )
   }
 
+  changeFeeReceiverTx(poolKey: PoolKey, feeReceiver: string): SubmittableExtrinsic {
+    return createTx(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      0n,
+      InvariantTx.ChangeFeeReceiver,
+      [poolKey, feeReceiver]
+    )
+  }
+
   async changeFeeReceiver(
     account: IKeyringPair,
     poolKey: PoolKey,
     feeReceiver: string,
     block: boolean = true
   ): Promise<TxResult> {
-    return sendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -282,12 +328,23 @@ export class Invariant {
     )
   }
 
+  withdrawProtocolFeeTx(poolKey: PoolKey): SubmittableExtrinsic {
+    return createTx(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      0n,
+      InvariantTx.WithdrawProtocolFee,
+      [poolKey]
+    )
+  }
+
   async withdrawProtocolFee(
     account: IKeyringPair,
     poolKey: PoolKey,
     block: boolean = true
   ): Promise<TxResult> {
-    return sendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -328,6 +385,35 @@ export class Invariant {
     )
   }
 
+  createPositionTx(
+    poolKey: PoolKey,
+    lowerTick: bigint,
+    upperTick: bigint,
+    liquidityDelta: Liquidity,
+    spotSqrtPrice: SqrtPrice,
+    slippageTolerance: Percentage
+  ): SubmittableExtrinsic {
+    const slippageLimitLower = calculateSqrtPriceAfterSlippage(
+      spotSqrtPrice,
+      slippageTolerance,
+      true
+    )
+    const slippageLimitUpper = calculateSqrtPriceAfterSlippage(
+      spotSqrtPrice,
+      slippageTolerance,
+      false
+    )
+
+    return createTx(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      0n,
+      InvariantTx.CreatePosition,
+      [poolKey, lowerTick, upperTick, liquidityDelta, slippageLimitLower, slippageLimitUpper]
+    )
+  }
+
   async createPosition(
     account: IKeyringPair,
     poolKey: PoolKey,
@@ -349,7 +435,7 @@ export class Invariant {
       false
     )
 
-    return sendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -362,13 +448,24 @@ export class Invariant {
     ) as Promise<CreatePositionTxResult>
   }
 
+  transferPositionTx(index: bigint, receiver: string): SubmittableExtrinsic {
+    return createTx(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      0n,
+      InvariantTx.TransferPosition,
+      [index, receiver]
+    )
+  }
+
   async transferPosition(
     account: IKeyringPair,
     index: bigint,
     receiver: string,
     block: boolean = true
   ): Promise<TxResult> {
-    return sendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -381,12 +478,23 @@ export class Invariant {
     )
   }
 
+  removePositionTx(index: bigint): SubmittableExtrinsic {
+    return createTx(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      0n,
+      InvariantTx.RemovePosition,
+      [index]
+    )
+  }
+
   async removePosition(
     account: IKeyringPair,
     index: bigint,
     block: boolean = true
   ): Promise<RemovePositionTxResult> {
-    return sendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -399,8 +507,19 @@ export class Invariant {
     ) as Promise<RemovePositionTxResult>
   }
 
+  claimFeeTx(index: bigint): SubmittableExtrinsic {
+    return createTx(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      0n,
+      InvariantTx.ClaimFee,
+      [index]
+    )
+  }
+
   async claimFee(account: IKeyringPair, index: bigint, block: boolean = true): Promise<TxResult> {
-    return sendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -479,6 +598,19 @@ export class Invariant {
     }
   }
 
+  createPoolTx(poolKey: PoolKey, initSqrtPrice: SqrtPrice): SubmittableExtrinsic {
+    const initTick = calculateTick(initSqrtPrice, poolKey.feeTier.tickSpacing)
+
+    return createTx(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      0n,
+      InvariantTx.CreatePool,
+      [poolKey.tokenX, poolKey.tokenY, poolKey.feeTier, initSqrtPrice, initTick]
+    )
+  }
+
   async createPool(
     account: IKeyringPair,
     poolKey: PoolKey,
@@ -487,7 +619,7 @@ export class Invariant {
   ): Promise<TxResult> {
     const initTick = calculateTick(initSqrtPrice, poolKey.feeTier.tickSpacing)
 
-    return sendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -542,6 +674,22 @@ export class Invariant {
     )
   }
 
+  swapTx(
+    poolKey: PoolKey,
+    xToY: boolean,
+    amount: TokenAmount,
+    byAmountIn: boolean,
+    sqrtPriceLimit: SqrtPrice
+  ): SubmittableExtrinsic {
+    return createTx(this.contract, this.gasLimit, this.storageDepositLimit, 0n, InvariantTx.Swap, [
+      poolKey,
+      xToY,
+      amount,
+      byAmountIn,
+      sqrtPriceLimit
+    ])
+  }
+
   async swap(
     account: IKeyringPair,
     poolKey: PoolKey,
@@ -551,7 +699,7 @@ export class Invariant {
     sqrtPriceLimit: SqrtPrice,
     block: boolean = true
   ): Promise<SwapTxResult> {
-    return sendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -572,7 +720,7 @@ export class Invariant {
     swaps: SwapHop[],
     block: boolean = true
   ): Promise<SwapRouteTxResult> {
-    return sendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,

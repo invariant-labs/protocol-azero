@@ -1,7 +1,8 @@
 /* eslint-disable no-case-declarations */
 
-import { ApiPromise, WsProvider } from '@polkadot/api'
+import { ApiPromise, SubmittableResult, WsProvider } from '@polkadot/api'
 import { ContractPromise } from '@polkadot/api-contract'
+import { SubmittableExtrinsic } from '@polkadot/api/promise/types'
 import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { getSubstrateChain, initPolkadotJs as initApi } from '@scio-labs/use-inkathon'
@@ -85,7 +86,87 @@ export async function sendQuery(
   }
 }
 
+export function createTx(
+  contract: ContractPromise,
+  gasLimit: WeightV2,
+  storageDepositLimit: number | null,
+  value: bigint,
+  message: Tx,
+  data: any[]
+): SubmittableExtrinsic {
+  if (!contract) {
+    throw new Error('contract not loaded')
+  }
+
+  return contract.tx[message](
+    {
+      gasLimit,
+      storageDepositLimit,
+      value
+    },
+    ...data
+  )
+}
+
+export async function handleTxResult(
+  result: SubmittableResult,
+  resolve: any,
+  reject: any,
+  waitForFinalization: boolean = true,
+  block: boolean = true
+) {
+  if (!block) {
+    resolve({
+      hash: result.txHash.toHex(),
+      events: parseEvents((result as any).contractEvents || []) as []
+    })
+  }
+
+  if (result.isError || result.dispatchError) {
+    reject(new Error(result.dispatchError?.toString() || 'error'))
+  }
+
+  if (result.isCompleted && !waitForFinalization) {
+    resolve({
+      hash: result.txHash.toHex(),
+      events: parseEvents((result as any).contractEvents || []) as []
+    })
+  }
+
+  if (result.isFinalized) {
+    resolve({
+      hash: result.txHash.toHex(),
+      events: parseEvents((result as any).contractEvents || []) as []
+    })
+  }
+}
+
 export async function sendTx(
+  tx: SubmittableExtrinsic,
+  waitForFinalization: boolean = true,
+  block: boolean = true
+): Promise<EventTxResult<any> | TxResult> {
+  return new Promise(async (resolve, reject) => {
+    await tx.send(result => {
+      handleTxResult(result, resolve, reject, waitForFinalization, block)
+    })
+  })
+}
+
+export async function signAndSendTx(
+  tx: SubmittableExtrinsic,
+  signer: IKeyringPair,
+  waitForFinalization: boolean = true,
+  block: boolean = true
+): Promise<EventTxResult<any> | TxResult> {
+  return new Promise(async (resolve, reject) => {
+    await tx.signAndSend(signer, result => {
+      handleTxResult(result, resolve, reject, waitForFinalization, block)
+    })
+  })
+}
+
+export async function createSignAndSendTx(
   contract: ContractPromise,
   gasLimit: WeightV2,
   storageDepositLimit: number | null,
@@ -96,47 +177,9 @@ export async function sendTx(
   waitForFinalization: boolean = true,
   block: boolean = true
 ): Promise<EventTxResult<any> | TxResult> {
-  if (!contract) {
-    throw new Error('contract not loaded')
-  }
+  const tx = createTx(contract, gasLimit, storageDepositLimit, value, message, data)
 
-  const call = contract.tx[message](
-    {
-      gasLimit,
-      storageDepositLimit,
-      value
-    },
-    ...data
-  )
-
-  return new Promise(async (resolve, reject) => {
-    await call.signAndSend(signer, result => {
-      if (!block) {
-        resolve({
-          hash: result.txHash.toHex(),
-          events: parseEvents((result as any).contractEvents || []) as []
-        })
-      }
-
-      if (result.isError || result.dispatchError) {
-        reject(new Error(message))
-      }
-
-      if (result.isCompleted && !waitForFinalization) {
-        resolve({
-          hash: result.txHash.toHex(),
-          events: parseEvents((result as any).contractEvents || []) as []
-        })
-      }
-
-      if (result.isFinalized) {
-        resolve({
-          hash: result.txHash.toHex(),
-          events: parseEvents((result as any).contractEvents || []) as []
-        })
-      }
-    })
-  })
+  return await signAndSendTx(tx, signer, waitForFinalization, block)
 }
 
 export const newPoolKey = (token0: string, token1: string, feeTier: FeeTier): PoolKey => {
