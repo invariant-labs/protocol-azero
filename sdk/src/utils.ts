@@ -206,14 +206,14 @@ export const parseEvents = (events: { [key: string]: any }[]) => {
   return events.map(event => parseEvent(event))
 }
 
-let nodeModules: typeof import('./node')
+let nodeModules: typeof import('./node.js')
 
 const loadNodeModules = async () => {
   if (typeof window !== 'undefined') {
     throw new Error('cannot load node modules in a browser environment')
   }
 
-  await import('./node')
+  await import('./node.js')
     .then(node => {
       nodeModules = node
     })
