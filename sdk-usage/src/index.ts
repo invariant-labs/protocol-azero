@@ -58,7 +58,7 @@ const main = async () => {
   const feeTier = newFeeTier(toPercentage(1n, 2n), 1n) // fee: 0.01 = 1%, tick spacing: 1
 
   // If the fee tier does not exist, you have to add it
-  const isAdded = await invariant.feeTierExist(account, feeTier)
+  const isAdded = await invariant.feeTierExist(account.address, feeTier)
   if (!isAdded) {
     await invariant.addFeeTier(account, feeTier)
   }
@@ -123,7 +123,7 @@ const main = async () => {
   await psp22.approve(account, invariant.contract.address.toString(), amount)
 
   // get estimated result of swap
-  const quoteResult = await invariant.quote(account, poolKey, true, amount, true)
+  const quoteResult = await invariant.quote(account.address, poolKey, true, amount, true)
 
   // slippage is a price change you are willing to accept,
   // for examples if current price is 1 and your slippage is 1%, then price limit will be 1.01
@@ -141,10 +141,19 @@ const main = async () => {
   console.log(swapResult.events)
 
   // query state
-  const pool: Pool = await invariant.getPool(account, TOKEN0_ADDRESS, TOKEN1_ADDRESS, feeTier)
-  const position: Position = await invariant.getPosition(account, account.address, 0n)
-  const lowerTick: Tick = await invariant.getTick(account, poolKey, position.lowerTickIndex)
-  const upperTickAfter: Tick = await invariant.getTick(account, poolKey, position.upperTickIndex)
+  const pool: Pool = await invariant.getPool(
+    account.address,
+    TOKEN0_ADDRESS,
+    TOKEN1_ADDRESS,
+    feeTier
+  )
+  const position: Position = await invariant.getPosition(account.address, account.address, 0n)
+  const lowerTick: Tick = await invariant.getTick(account.address, poolKey, position.lowerTickIndex)
+  const upperTickAfter: Tick = await invariant.getTick(
+    account.address,
+    poolKey,
+    position.upperTickIndex
+  )
 
   // check amount of tokens is able to claim
   const fees = calculateFee(pool, position, lowerTick, upperTickAfter)
@@ -153,7 +162,7 @@ const main = async () => {
   console.log(fees)
 
   // get balance of a specific token before claiming position fees and print it
-  const accountBalanceBeforeClaim = await psp22.balanceOf(account, account.address)
+  const accountBalanceBeforeClaim = await psp22.balanceOf(account.address, account.address)
   console.log(accountBalanceBeforeClaim)
 
   // specify position id
@@ -164,15 +173,15 @@ const main = async () => {
   console.log(claimFeeResult.hash)
 
   // get balance of a specific token after claiming position fees and print it
-  const accountBalanceAfterClaim = await psp22.balanceOf(account, account.address)
+  const accountBalanceAfterClaim = await psp22.balanceOf(account.address, account.address)
   console.log(accountBalanceAfterClaim)
 
   const receiver = keyring.addFromUri('//Bob')
 
-  const positionToTransfer = await invariant.getPosition(account, account.address, 0n)
+  const positionToTransfer = await invariant.getPosition(account.address, account.address, 0n)
   // Transfer position from account (signer) to receiver
   await invariant.transferPosition(account, 0n, receiver.address)
-  const receiverPosition = await invariant.getPosition(receiver, receiver.address, 0n)
+  const receiverPosition = await invariant.getPosition(account.address, receiver.address, 0n)
   console.log(receiverPosition)
 
   // ### retransfer the position back to the original account
@@ -180,9 +189,9 @@ const main = async () => {
   // ###
 
   // fetch user balances before removal
-  const accountToken0BalanceBeforeRemove = await psp22.balanceOf(account, account.address)
+  const accountToken0BalanceBeforeRemove = await psp22.balanceOf(account.address, account.address)
   await psp22.setContractAddress(TOKEN1_ADDRESS)
-  const accountToken1BalanceBeforeRemove = await psp22.balanceOf(account, account.address)
+  const accountToken1BalanceBeforeRemove = await psp22.balanceOf(account.address, account.address)
   console.log(accountToken0BalanceBeforeRemove, accountToken1BalanceBeforeRemove)
 
   // remove position
@@ -191,9 +200,9 @@ const main = async () => {
 
   // get balance of a specific token after removing position
   await psp22.setContractAddress(TOKEN0_ADDRESS)
-  const accountToken0BalanceAfterRemove = await psp22.balanceOf(account, account.address)
+  const accountToken0BalanceAfterRemove = await psp22.balanceOf(account.address, account.address)
   await psp22.setContractAddress(TOKEN1_ADDRESS)
-  const accountToken1BalanceAfterRemove = await psp22.balanceOf(account, account.address)
+  const accountToken1BalanceAfterRemove = await psp22.balanceOf(account.address, account.address)
 
   // print balances
   console.log(accountToken0BalanceAfterRemove, accountToken1BalanceAfterRemove)
