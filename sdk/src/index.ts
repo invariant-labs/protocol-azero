@@ -47,7 +47,11 @@ export {
   MAINNET,
   MAX_REF_TIME,
   TESTNET,
-  TESTNET_WAZERO_ADDRESS
+  TESTNET_WAZERO_ADDRESS,
+  TESTNET_INVARIANT_ADDRESS,
+  TESTNET_BTC_ADDRESS,
+  TESTNET_ETH_ADDRESS,
+  TETSNET_USDC_ADDRESS
 } from './consts.js'
 export { Invariant } from './invariant.js'
 export { Network } from './network.js'
