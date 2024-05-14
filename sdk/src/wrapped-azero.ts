@@ -157,14 +157,9 @@ export class WrappedAZERO {
     )
   }
 
-  async balanceOf(userAddress: string, owner: string): Promise<unknown> {
-    return sendQuery(
-      this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
-      userAddress,
-      PSP22Query.BalanceOf,
-      [owner]
-    )
+  async balanceOf(owner: string): Promise<unknown> {
+    return sendQuery(this.contract, this.gasLimit, this.storageDepositLimit, PSP22Query.BalanceOf, [
+      owner
+    ])
   }
 }

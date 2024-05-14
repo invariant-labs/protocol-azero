@@ -41,10 +41,10 @@ describe('tickmap', async () => {
   })
 
   it('get tickmap', async () => {
-    const pool = await invariant.getPool(account.address, token0Address, token1Address, feeTier)
+    const pool = await invariant.getPool(token0Address, token1Address, feeTier)
     await invariant.createPosition(account, poolKey, ticks[2], ticks[3], 10n, pool.sqrtPrice, 0n)
 
-    const tickmap = await invariant.getTickmap(account.address, poolKey, pool.currentTickIndex)
+    const tickmap = await invariant.getTickmap(poolKey, pool.currentTickIndex)
     assert.deepEqual(tickmap[3465], 9223372036854775809n)
 
     for (const [chunkIndex, value] of tickmap.entries()) {
@@ -56,11 +56,11 @@ describe('tickmap', async () => {
     }
   })
   it('get tickmap edge ticks initialized', async () => {
-    const pool = await invariant.getPool(account.address, token0Address, token1Address, feeTier)
+    const pool = await invariant.getPool(token0Address, token1Address, feeTier)
     await invariant.createPosition(account, poolKey, ticks[0], ticks[1], 10n, pool.sqrtPrice, 0n)
     await invariant.createPosition(account, poolKey, ticks[4], ticks[5], 10n, pool.sqrtPrice, 0n)
 
-    const tickmap = await invariant.getTickmap(account.address, poolKey, pool.currentTickIndex)
+    const tickmap = await invariant.getTickmap(poolKey, pool.currentTickIndex)
     assert.deepEqual(tickmap[0], 0b11n)
     assert.deepEqual(
       tickmap[integerSafeCast(getMaxChunk(feeTier.tickSpacing))],
@@ -70,13 +70,13 @@ describe('tickmap', async () => {
   it('get tickmap more chunks above', async function () {
     this.timeout(35000)
 
-    const pool = await invariant.getPool(account.address, token0Address, token1Address, feeTier)
+    const pool = await invariant.getPool(token0Address, token1Address, feeTier)
 
     for (let i = 6n; i < 52500n; i += 64n) {
       await invariant.createPosition(account, poolKey, i, i + 1n, 10n, pool.sqrtPrice, 0n)
     }
 
-    const tickmap = await invariant.getTickmap(account.address, poolKey, pool.currentTickIndex)
+    const tickmap = await invariant.getTickmap(poolKey, pool.currentTickIndex)
 
     const initializedChunks = 52500n / 64n
     for (let i = 0n; i < initializedChunks; i++) {
@@ -87,14 +87,14 @@ describe('tickmap', async () => {
   it('get tickmap more chunks below', async function () {
     this.timeout(35000)
 
-    const pool = await invariant.getPool(account.address, token0Address, token1Address, feeTier)
+    const pool = await invariant.getPool(token0Address, token1Address, feeTier)
 
     // 51328
     for (let i = -52544n; i < 6n; i += 64n) {
       await invariant.createPosition(account, poolKey, i, i + 1n, 10n, pool.sqrtPrice, 0n)
     }
 
-    const tickmap = await invariant.getTickmap(account.address, poolKey, pool.currentTickIndex)
+    const tickmap = await invariant.getTickmap(poolKey, pool.currentTickIndex)
     const initializedChunks = 52544n / 64n
     for (let i = 0n; i < initializedChunks; i++) {
       const current = 2644n + i
@@ -107,23 +107,23 @@ describe('tickmap', async () => {
   it('get tickmap max chunks returned', async function () {
     this.timeout(70000)
 
-    const pool = await invariant.getPool(account.address, token0Address, token1Address, feeTier)
+    const pool = await invariant.getPool(token0Address, token1Address, feeTier)
 
     for (let i = 0n; i < 104832n; i += 64n) {
       await invariant.createPosition(account, poolKey, i, i + 1n, 10n, pool.sqrtPrice, 0n)
     }
 
-    await invariant.getTickmap(account.address, poolKey, pool.currentTickIndex)
+    await invariant.getTickmap(poolKey, pool.currentTickIndex)
   })
   it('get tickmap max chunks + 1 returned', async function () {
     this.timeout(70000)
 
-    const pool = await invariant.getPool(account.address, token0Address, token1Address, feeTier)
+    const pool = await invariant.getPool(token0Address, token1Address, feeTier)
 
     for (let i = 0n; i < 104896n; i += 64n) {
       await invariant.createPosition(account, poolKey, i, i + 1n, 10n, pool.sqrtPrice, 0n)
     }
 
-    assertThrowsAsync(invariant.getTickmap(account.address, poolKey, pool.currentTickIndex))
+    assertThrowsAsync(invariant.getTickmap(poolKey, pool.currentTickIndex))
   })
 })

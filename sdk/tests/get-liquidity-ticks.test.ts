@@ -1,5 +1,6 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
+import { LiquidityTick } from 'invariant-a0-wasm'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
@@ -40,11 +41,11 @@ describe('get-liquidity-ticks', async () => {
   it('should get liquidity ticks', async function () {
     await invariant.createPosition(account, poolKey, -10n, 10n, 10n, 1000000000000000000000000n, 0n)
 
-    const result = await invariant.getLiquidityTicks(account.address, poolKey, 0n)
+    const result = await invariant.getLiquidityTicks(poolKey, 0n)
     assert.equal(result.length, 2)
 
-    const lowerTick = await invariant.getTick(account.address, poolKey, -10n)
-    const upperTick = await invariant.getTick(account.address, poolKey, 10n)
+    const lowerTick = await invariant.getTick(poolKey, -10n)
+    const upperTick = await invariant.getTick(poolKey, 10n)
 
     objectEquals(result[0], lowerTick, [])
     objectEquals(result[1], upperTick, [])
@@ -57,12 +58,12 @@ describe('get-liquidity-ticks', async () => {
       await invariant.createPosition(account, poolKey, -i, i, 10n, 1000000000000000000000000n, 0n)
     }
 
-    const result = await invariant.getLiquidityTicks(account.address, poolKey, 0n)
+    const result = await invariant.getLiquidityTicks(poolKey, 0n)
     assert.equal(result.length, 780)
 
     for (let i = -390n; i <= 390n; i++) {
       if (i !== 0n) {
-        const tick = await invariant.getTick(account.address, poolKey, i)
+        const tick = await invariant.getTick(poolKey, i)
 
         if (i > 0n) {
           objectEquals(result[integerSafeCast(i) + 390 - 1], tick, [])
@@ -76,10 +77,10 @@ describe('get-liquidity-ticks', async () => {
   it('should get liquidity ticks with offset', async () => {
     await invariant.createPosition(account, poolKey, -10n, 10n, 10n, 1000000000000000000000000n, 0n)
 
-    const result1 = await invariant.getLiquidityTicks(account.address, poolKey, 0n)
+    const result1 = await invariant.getLiquidityTicks(poolKey, 0n)
     assert.equal(result1.length, 2)
 
-    const result2 = await invariant.getLiquidityTicks(account.address, poolKey, 1n)
+    const result2 = await invariant.getLiquidityTicks(poolKey, 1n)
     assert.equal(result2.length, 1)
 
     objectEquals(result1[1], result2[0], [])
@@ -92,12 +93,12 @@ describe('get-liquidity-ticks', async () => {
       await invariant.createPosition(account, poolKey, -i, i, 10n, 1000000000000000000000000n, 0n)
     }
 
-    const liquidityTicks = await invariant.getLiquidityTicksAmount(account.address, poolKey)
+    const liquidityTicks = await invariant.getLiquidityTicksAmount(poolKey)
 
-    const promises = []
+    const promises: Promise<LiquidityTick[]>[] = []
 
     for (let i = 0n; i < liquidityTicks; i += 780n) {
-      promises.push(invariant.getLiquidityTicks(account.address, poolKey, i))
+      promises.push(invariant.getLiquidityTicks(poolKey, i))
     }
 
     const result = await Promise.all(promises)

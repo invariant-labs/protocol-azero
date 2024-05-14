@@ -156,69 +156,56 @@ export class PSP22 {
     )
   }
 
-  async tokenName(userAddress: string): Promise<unknown> {
+  async tokenName(): Promise<unknown> {
     return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      userAddress,
       PSP22Query.TokenName,
       []
     )
   }
 
-  async tokenSymbol(userAddress: string): Promise<unknown> {
+  async tokenSymbol(): Promise<unknown> {
     return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      userAddress,
       PSP22Query.TokenSymbol,
       []
     )
   }
 
-  async tokenDecimals(userAddress: string): Promise<unknown> {
+  async tokenDecimals(): Promise<unknown> {
     return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      userAddress,
       PSP22Query.TokenDecimals,
       []
     )
   }
 
-  async balanceOf(userAddress: string, owner: string): Promise<bigint> {
-    return sendQuery(
-      this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
-      userAddress,
-      PSP22Query.BalanceOf,
-      [owner]
-    )
+  async balanceOf(owner: string): Promise<bigint> {
+    return sendQuery(this.contract, this.gasLimit, this.storageDepositLimit, PSP22Query.BalanceOf, [
+      owner
+    ])
   }
 
-  async totalSupply(userAddress: string): Promise<unknown> {
+  async totalSupply(): Promise<unknown> {
     return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      userAddress,
       PSP22Query.TotalSupply,
       []
     )
   }
 
-  async allowance(userAddress: string, owner: string, spender: string): Promise<unknown> {
-    return sendQuery(
-      this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
-      userAddress,
-      PSP22Query.Allowance,
-      [owner, spender]
-    )
+  async allowance(owner: string, spender: string): Promise<unknown> {
+    return sendQuery(this.contract, this.gasLimit, this.storageDepositLimit, PSP22Query.Allowance, [
+      owner,
+      spender
+    ])
   }
 }
