@@ -21,6 +21,7 @@ const main = async () => {
 
   const keyring = new Keyring({ type: 'sr25519' })
   const mnemonic = process.env.DEPLOYER_MNEMONIC ?? ''
+  const receiver = process.env.RECEIVER_ADDRESS ?? ''
   const account = keyring.addFromMnemonic(mnemonic)
 
   const FEE_TIER = newFeeTier(toPercentage(1n, 4n), 1n)
@@ -76,6 +77,10 @@ const main = async () => {
     1000000000000000000000000n,
     0n
   )
+
+  if (receiver) {
+    await invariant.transferPosition(account, 0n, receiver)
+  }
 
   process.exit(0)
 }
