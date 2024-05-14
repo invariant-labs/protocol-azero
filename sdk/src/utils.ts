@@ -26,9 +26,9 @@ import {
   getPercentageDenominator,
   getSqrtPriceDenominator
 } from 'invariant-a0-wasm/invariant_a0_wasm.js'
-import { abi as invariantAbi } from './abis/invariant'
-import { abi as PSP22Abi } from './abis/psp22'
-import { abi as wrappedAZEROAbi } from './abis/wrapped-azero'
+import { abi as invariantAbi } from './abis/invariant.js'
+import { abi as PSP22Abi } from './abis/psp22.js'
+import { abi as wrappedAZEROAbi } from './abis/wrapped-azero.js'
 import { MAINNET, TESTNET } from './consts.js'
 import { Network } from './network.js'
 import { EventTxResult, LiquidityBreakpoint, Query, Tx, TxResult } from './schema.js'
@@ -206,14 +206,14 @@ export const parseEvents = (events: { [key: string]: any }[]) => {
   return events.map(event => parseEvent(event))
 }
 
-let nodeModules: typeof import('./node')
+let nodeModules: typeof import('./node.js')
 
 const loadNodeModules = async () => {
   if (typeof window !== 'undefined') {
     throw new Error('cannot load node modules in a browser environment')
   }
 
-  await import('./node')
+  await import('./node.js')
     .then(node => {
       nodeModules = node
     })
