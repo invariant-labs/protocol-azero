@@ -8,7 +8,8 @@
     "node:start": "substrate-contracts-node purge-chain -y && substrate-contracts-node --rpc-port 9944 --dev",
     "node:stop": "ps aux | grep substrate-contracts-node | tr -s ' ' | cut -d ' ' -f 2 | head -n 1 | xargs -r kill -9",
     "deploy-tokens": "npx tsc && node --experimental-wasm-modules target/deploy-tokens.js",
-    "deploy-invariant": "npx tsc && node --experimental-wasm-modules target/deploy-invariant.js"
+    "deploy-invariant": "npx tsc && node --experimental-wasm-modules target/deploy-invariant.js",
+    "create-position": "npx tsc && node --experimental-wasm-modules target/create-position.js"
   },
   "keywords": [],
   "author": "",
