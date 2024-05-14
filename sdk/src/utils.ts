@@ -66,9 +66,9 @@ export async function sendQuery(
   contract: ContractPromise,
   gasLimit: WeightV2,
   storageDepositLimit: number | null,
-  userAddress: string,
   message: Query | Tx,
-  data: any[]
+  data: any[],
+  userAddress: string = ''
 ): Promise<any> {
   const { result, output } = await contract.query[message](
     userAddress,

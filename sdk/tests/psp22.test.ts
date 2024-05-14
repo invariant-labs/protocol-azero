@@ -20,37 +20,35 @@ describe('psp22', function () {
 
   it('should set metadata', async () => {
     await psp22.setContractAddress(token0Address)
-    expect(await psp22.tokenName(account.address)).to.equal('Coin')
-    expect(await psp22.tokenSymbol(account.address)).to.equal('COIN')
-    expect(await psp22.tokenDecimals(account.address)).to.equal(12n)
+    expect(await psp22.tokenName()).to.equal('Coin')
+    expect(await psp22.tokenSymbol()).to.equal('COIN')
+    expect(await psp22.tokenDecimals()).to.equal(12n)
   })
 
   it('should mint tokens', async () => {
     await psp22.setContractAddress(token0Address)
     await psp22.mint(account, 500n)
-    expect(await psp22.balanceOf(account.address, account.address)).to.equal(1500n)
+    expect(await psp22.balanceOf(account.address)).to.equal(1500n)
   })
 
   it('should transfer tokens', async () => {
     const data = api.createType('Vec<u8>', [])
     await psp22.setContractAddress(token0Address)
     await psp22.transfer(account, testAccount.address, 250n, data)
-    expect(await psp22.balanceOf(account.address, account.address)).to.equal(750n)
-    expect(await psp22.balanceOf(account.address, testAccount.address)).to.equal(250n)
+    expect(await psp22.balanceOf(account.address)).to.equal(750n)
+    expect(await psp22.balanceOf(testAccount.address)).to.equal(250n)
   })
 
   it('should change instance', async () => {
     const secondTokenAddress = await PSP22.deploy(api, account, 1000n, 'SecondCoin', 'SCOIN', 12n)
     await psp22.setContractAddress(secondTokenAddress)
-    const tokenName = await psp22.tokenName(account.address)
+    const tokenName = await psp22.tokenName()
     assert.equal(tokenName, 'SecondCoin')
   })
 
   it('should approve tokens', async () => {
     await psp22.setContractAddress(token0Address)
     await psp22.approve(account, testAccount.address, 250n)
-    expect(await psp22.allowance(account.address, account.address, testAccount.address)).to.equal(
-      250n
-    )
+    expect(await psp22.allowance(account.address, testAccount.address)).to.equal(250n)
   })
 })
