@@ -9,6 +9,7 @@ pub mod log;
 pub mod math;
 pub mod storage;
 pub mod types;
+pub mod swap;
 
 pub use consts::*;
 pub use custom::*;
@@ -17,3 +18,4 @@ pub use log::*;
 pub use math::*;
 pub use storage::*;
 pub use types::*;
+pub use swap::*;
