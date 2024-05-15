@@ -1,12 +1,5 @@
 /* eslint camelcase: off */
 
-import { ApiPromise } from '@polkadot/api'
-import { Abi, ContractPromise } from '@polkadot/api-contract'
-import { SubmittableExtrinsic } from '@polkadot/api/promise/types'
-import { Bytes } from '@polkadot/types'
-import { WeightV2 } from '@polkadot/types/interfaces'
-import { IKeyringPair } from '@polkadot/types/types/interfaces'
-import { deployContract } from '@scio-labs/use-inkathon'
 import {
   FeeTier,
   InvariantError,
@@ -25,7 +18,14 @@ import {
   calculateTick,
   getMaxSqrtPrice,
   getMinSqrtPrice
-} from 'invariant-a0-wasm/invariant_a0_wasm.js'
+} from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
+import { ApiPromise } from '@polkadot/api'
+import { Abi, ContractPromise } from '@polkadot/api-contract'
+import { SubmittableExtrinsic } from '@polkadot/api/promise/types'
+import { Bytes } from '@polkadot/types'
+import { WeightV2 } from '@polkadot/types/interfaces'
+import { IKeyringPair } from '@polkadot/types/types/interfaces'
+import { deployContract } from '@scio-labs/use-inkathon'
 import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME } from './consts.js'
 import { Network } from './network.js'
 import {
