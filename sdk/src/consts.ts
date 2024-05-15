@@ -18,7 +18,7 @@ import {
   getSqrtPriceScale,
   getTokenAmountDenominator,
   getTokenAmountScale
-} from 'invariant-a0-wasm/invariant_a0_wasm.js'
+} from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 
 export const MAX_REF_TIME = 259058343000
 export const DEFAULT_REF_TIME = 1250000000000
@@ -29,7 +29,7 @@ export const MAINNET = 'alephzero-mainnet'
 export const DEFAULT_LOCAL = 'ws://127.0.0.1:9944'
 
 export const TESTNET_WAZERO_ADDRESS = '5EFDb7mKbougLtr5dnwd5KDfZ3wK55JPGPLiryKq4uRMPR46'
-  
+
 export const TESTNET_INVARIANT_ADDRESS = '5Fb1ihkMNjPY18qeeKFXUL3GohG1C59JdbfchYrbP9ZSpgkX'
 export const TESTNET_BTC_ADDRESS = '5FEE8ptrT6387MYHqYmyB8ChWfkEsGEDpTMDpwUh4FCYGyCi'
 export const TESTNET_ETH_ADDRESS = '5FmDoQPFS5qPMkSumdvVVekiTpsKVmL9E5DHxHEUXCdHFdYy'
