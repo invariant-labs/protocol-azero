@@ -49,8 +49,8 @@ pub mod invariant {
     use crate::math::calculate_min_amount_out;
     use crate::math::check_tick;
     use crate::math::percentage::Percentage;
-    use crate::math::sqrt_price::get_max_tick;
     use crate::math::sqrt_price::SqrtPrice;
+    use crate::math::sqrt_price::{get_max_tick, get_min_tick};
     use crate::math::token_amount::TokenAmount;
     use crate::math::types::liquidity::Liquidity;
 
@@ -215,6 +215,12 @@ pub mod invariant {
                 return Err(InvariantError::WrongLimit);
             }
 
+            let tick_limit = if x_to_y {
+                get_min_tick(pool_key.fee_tier.tick_spacing)
+            } else {
+                get_max_tick(pool_key.fee_tier.tick_spacing)
+            };
+
             let mut remaining_amount = amount;
 
             let mut total_amount_in = TokenAmount(0);
@@ -293,6 +299,15 @@ pub mod invariant {
                     if has_crossed {
                         ticks.push(tick)
                     }
+                }
+
+                let reached_tick_limit = match x_to_y {
+                    true => pool.current_tick_index <= tick_limit,
+                    false => pool.current_tick_index >= tick_limit,
+                };
+
+                if reached_tick_limit {
+                    return Err(InvariantError::TickLimitReached);
                 }
             }
             if total_amount_out.get() == 0 {
