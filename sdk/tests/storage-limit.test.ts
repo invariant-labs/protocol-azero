@@ -1,6 +1,6 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import { toPercentage } from 'invariant-a0-wasm/invariant_a0_wasm.js'
+import { toPercentage } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { DEFAULT_PROOF_SIZE, MAX_REF_TIME } from '../src/consts'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
