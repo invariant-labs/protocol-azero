@@ -28,6 +28,7 @@ const main = async () => {
   const TOKEN_0_ADDRESS = TETSNET_USDC_ADDRESS
   const TOKEN_1_ADDRESS = TESTNET_ETH_ADDRESS
   const POOL_KEY = newPoolKey(TOKEN_0_ADDRESS, TOKEN_1_ADDRESS, FEE_TIER)
+  const AMOUNT = 1000000n
 
   const invariant = await Invariant.load(api, network, TESTNET_INVARIANT_ADDRESS, {
     storageDepositLimit: 100000000000,
@@ -42,38 +43,20 @@ const main = async () => {
 
   console.log(`Deployer: ${account.address}, Uri: ${mnemonic}`)
 
-  await psp22.approve(account, TESTNET_INVARIANT_ADDRESS, 1000000n)
-  console.log(
-    `Token 0 balance: ${await psp22.balanceOf(
-      account.address,
-      account.address
-    )}, Token 0 allowance: ${await psp22.allowance(
-      account.address,
-      account.address,
-      TESTNET_INVARIANT_ADDRESS
-    )}`
-  )
+  await psp22.mint(account, AMOUNT)
+  await psp22.approve(account, TESTNET_INVARIANT_ADDRESS, AMOUNT)
 
   psp22.setContractAddress(TOKEN_1_ADDRESS)
 
-  await psp22.approve(account, TESTNET_INVARIANT_ADDRESS, 1000000n)
-  console.log(
-    `Token 1 balance: ${await psp22.balanceOf(
-      account.address,
-      account.address
-    )}, Token 1 allowance: ${await psp22.allowance(
-      account.address,
-      account.address,
-      TESTNET_INVARIANT_ADDRESS
-    )}`
-  )
+  await psp22.mint(account, AMOUNT)
+  await psp22.approve(account, TESTNET_INVARIANT_ADDRESS, AMOUNT)
 
   await invariant.createPosition(
     account,
     POOL_KEY,
     -10n,
     10n,
-    1000000n,
+    AMOUNT,
     1000000000000000000000000n,
     0n
   )
