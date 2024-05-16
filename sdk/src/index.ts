@@ -1,4 +1,3 @@
-export { Keyring } from '@polkadot/api'
 export {
   CreatePositionEvent,
   CrossTickEvent,
@@ -23,6 +22,7 @@ export {
   SwapResult,
   Tick,
   TokenAmount,
+  calculateSqrtPrice,
   getLiquidityByX,
   getLiquidityByY,
   getMaxChunk,
@@ -39,7 +39,8 @@ export {
   toSecondsPerLiquidity,
   toSqrtPrice,
   toTokenAmount
-} from 'invariant-a0-wasm/invariant_a0_wasm.js'
+} from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
+export { Keyring } from '@polkadot/api'
 export {
   DEFAULT_LOCAL,
   DEFAULT_PROOF_SIZE,
@@ -47,10 +48,10 @@ export {
   MAINNET,
   MAX_REF_TIME,
   TESTNET,
-  TESTNET_WAZERO_ADDRESS,
-  TESTNET_INVARIANT_ADDRESS,
   TESTNET_BTC_ADDRESS,
   TESTNET_ETH_ADDRESS,
+  TESTNET_INVARIANT_ADDRESS,
+  TESTNET_WAZERO_ADDRESS,
   TETSNET_USDC_ADDRESS
 } from './consts.js'
 export { Invariant } from './invariant.js'
