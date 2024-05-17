@@ -1,11 +1,5 @@
 /* eslint-disable no-case-declarations */
 
-import { ApiPromise, SubmittableResult, WsProvider } from '@polkadot/api'
-import { ContractPromise } from '@polkadot/api-contract'
-import { SubmittableExtrinsic } from '@polkadot/api/promise/types'
-import { WeightV2 } from '@polkadot/types/interfaces'
-import { IKeyringPair } from '@polkadot/types/types/interfaces'
-import { getSubstrateChain, initPolkadotJs as initApi } from '@scio-labs/use-inkathon'
 import {
   FeeTier,
   LiquidityTick,
@@ -26,6 +20,12 @@ import {
   getPercentageDenominator,
   getSqrtPriceDenominator
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
+import { ApiPromise, SubmittableResult, WsProvider } from '@polkadot/api'
+import { ContractPromise } from '@polkadot/api-contract'
+import { SubmittableExtrinsic } from '@polkadot/api/promise/types'
+import { WeightV2 } from '@polkadot/types/interfaces'
+import { IKeyringPair } from '@polkadot/types/types/interfaces'
+import { getSubstrateChain, initPolkadotJs as initApi } from '@scio-labs/use-inkathon'
 import { abi as invariantAbi } from './abis/invariant.js'
 import { abi as PSP22Abi } from './abis/psp22.js'
 import { abi as wrappedAZEROAbi } from './abis/wrapped-azero.js'
@@ -66,9 +66,9 @@ export async function sendQuery(
   contract: ContractPromise,
   gasLimit: WeightV2,
   storageDepositLimit: number | null,
-  userAddress: string,
   message: Query | Tx,
-  data: any[]
+  data: any[],
+  userAddress: string = ''
 ): Promise<any> {
   const { result, output } = await contract.query[message](
     userAddress,
@@ -153,6 +153,37 @@ export async function sendTx(
   })
 }
 
+// TODO: to REMOVE
+export async function sendAndDebugTx(
+  tx: SubmittableExtrinsic,
+  api: ApiPromise,
+  waitForFinalization: boolean = true,
+  block: boolean = true
+): Promise<EventTxResult<any> | TxResult> {
+  return new Promise(async (resolve, reject) => {
+    await tx.send(result => {
+      result.events.filter(({ event }) =>
+        api.events.system.ExtrinsicFailed.is(event)
+      ).forEach(({ event: { data: [error] } }) => {
+        // @ts-expect-error not typed error
+        if (error.isModule) {
+          // for module errors, we have the section indexed, lookup
+          // @ts-expect-error not typed error
+          const decoded = api.registry.findMetaError(error.asModule);
+          const { docs, method, section } = decoded;
+
+          console.log(`${section}.${method}: ${docs.join(' ')}`);
+        } else {
+          // Other, CannotLookup, BadOrigin, no extra info
+          console.log(error.toString());
+        }
+      });
+      handleTxResult(result, resolve, reject, waitForFinalization, block)
+    })
+  })
+}
+
+
 export async function signAndSendTx(
   tx: SubmittableExtrinsic,
   signer: IKeyringPair,
@@ -206,14 +237,14 @@ export const parseEvents = (events: { [key: string]: any }[]) => {
   return events.map(event => parseEvent(event))
 }
 
-let nodeModules: typeof import('./node')
+let nodeModules: typeof import('./node.js')
 
 const loadNodeModules = async () => {
   if (typeof window !== 'undefined') {
     throw new Error('cannot load node modules in a browser environment')
   }
 
-  await import('./node')
+  await import('./node.js')
     .then(node => {
       nodeModules = node
     })

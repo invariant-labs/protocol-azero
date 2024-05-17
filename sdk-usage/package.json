@@ -8,13 +8,15 @@
     "node:start": "substrate-contracts-node purge-chain -y && substrate-contracts-node --rpc-port 9944 --dev",
     "node:stop": "ps aux | grep substrate-contracts-node | tr -s ' ' | cut -d ' ' -f 2 | head -n 1 | xargs -r kill -9",
     "deploy-tokens": "npx tsc && node --experimental-wasm-modules target/deploy-tokens.js",
-    "deploy-invariant": "npx tsc && node --experimental-wasm-modules target/deploy-invariant.js"
+    "deploy-invariant": "npx tsc && node --experimental-wasm-modules target/deploy-invariant.js",
+    "create-position": "npx tsc && node --experimental-wasm-modules target/create-position.js",
+    "create-pool": "npx tsc && node --experimental-wasm-modules target/create-pool.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@invariant-labs/a0-sdk": "^0.1.13",
+    "@invariant-labs/a0-sdk": "^0.1.16",
     "dotenv": "^16.4.5"
   },
   "devDependencies": {

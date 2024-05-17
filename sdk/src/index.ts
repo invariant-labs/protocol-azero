@@ -1,66 +1,69 @@
-import { Keyring } from '@polkadot/api'
-import wasm, {
-  Tickmap,
-  getChunkSize,
-  getMaxChunk,
-  getMaxTick
-} from '../src/wasm/pkg/invariant_a0_wasm.js'
-import {
-  simulateInvariantSwap,
-  Tick,
+export {
+  CreatePositionEvent,
+  CrossTickEvent,
+  FeeGrowth,
   FeeTier,
   PoolKey,
-  toPercentage,
-  getMinSqrtPrice,
+  Position,
+  PositionTick,
+  Price,
+  QuoteResult,
+  RemovePositionEvent,
+  SecondsPerLiquidity,
+  SqrtPrice,
+  SwapEvent,
+  SwapResult,
+  Tick,
+  TokenAmount,
+  calculateSqrtPrice,
+  getLiquidityByX,
+  getLiquidityByY,
+  getMaxChunk,
   getMaxSqrtPrice,
-  Pool,
-} from '../src/wasm/pkg/invariant_a0_wasm.js'
-import { newFeeTier, newPoolKey } from './utils.js'
-
-const main = async () => {
-
-  let tick: Tick = {
-    index: 0n,
-    liquidityGross: 1n,
-    feeGrowthOutsideX: 100n,
-    feeGrowthOutsideY: 100n,
-    sign: false,
-    liquidityChange: 1n,
-    sqrtPrice: 1n,
-    secondsOutside: 100n
-  }
-  let pool: Pool = {
-    liquidity: 100n,
-    sqrtPrice: 1000000000000000000000000n,
-    currentTickIndex: -0n,
-    feeGrowthGlobalX: 100n,
-    feeGrowthGlobalY: 100n,
-    startTimestamp: 100n,
-    feeProtocolTokenX: 100n,
-    feeProtocolTokenY: 100n,
-    lastTimestamp: 100n,
-    feeReceiver: 'reciever'
-  }
-  let tick_spacing = 100n
-  let feeTier = newFeeTier(100n, tick_spacing)
-  let poolKey = newPoolKey('tokenX', 'tokenY', feeTier)
-
-  let tickmap = { bitmap: new Map<bigint, bigint>([[34n, 4398046511104n]]) }
-  
-  try {
-    simulateInvariantSwap(
-      tickmap,
-      100n,
-      feeTier,
-      pool,
-      [tick],
-      true,
-      1000000n,
-      true,
-      getMinSqrtPrice(tick_spacing)
-    )
-  } catch(e) {
-    console.log(e)
-  }
-}
-await main()
+  getMaxTick,
+  getMinSqrtPrice,
+  getMinTick,
+  isTokenX,
+  toFeeGrowth,
+  toFixedPoint,
+  toLiquidity,
+  toPercentage,
+  toPrice,
+  toSecondsPerLiquidity,
+  toSqrtPrice,
+  toTokenAmount
+} from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
+export { Keyring } from '@polkadot/api'
+export {
+  DEFAULT_LOCAL,
+  DEFAULT_PROOF_SIZE,
+  DEFAULT_REF_TIME,
+  MAINNET,
+  MAX_REF_TIME,
+  TESTNET,
+  TESTNET_BTC_ADDRESS,
+  TESTNET_ETH_ADDRESS,
+  TESTNET_INVARIANT_ADDRESS,
+  TESTNET_WAZERO_ADDRESS,
+  TETSNET_USDC_ADDRESS
+} from './consts.js'
+export { Invariant } from './invariant.js'
+export { Network } from './network.js'
+export { PSP22 } from './psp22.js'
+export { InvariantEvent } from './schema.js'
+export {
+  calculateFee,
+  calculatePriceImpact,
+  calculateSqrtPriceAfterSlippage,
+  calculateTokenAmounts,
+  initPolkadotApi,
+  newFeeTier,
+  newPoolKey,
+  priceToSqrtPrice,
+  sendQuery,
+  sendTx,
+  sendAndDebugTx,
+  signAndSendTx,
+  sqrtPriceToPrice
+} from './utils.js'
+export { WrappedAZERO } from './wrapped-azero.js'

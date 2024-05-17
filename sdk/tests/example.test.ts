@@ -7,7 +7,7 @@ import {
   getLiquidityByY,
   toPercentage,
   toPrice
-} from 'invariant-a0-wasm/invariant_a0_wasm.js'
+} from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
@@ -62,7 +62,7 @@ describe('sdk guide snippets', async function () {
     const feeTier = newFeeTier(toPercentage(1n, 2n), 1n) // fee: 0.01 = 1%, tick spacing: 1
 
     // If the fee tier does not exist, you have to add it
-    const isAdded = await invariant.feeTierExist(account.address, feeTier)
+    const isAdded = await invariant.feeTierExist(feeTier)
     if (!isAdded) {
       await invariant.addFeeTier(account, feeTier)
     }
@@ -127,7 +127,7 @@ describe('sdk guide snippets', async function () {
     await psp22.approve(account, invariant.contract.address.toString(), amount)
 
     // get estimated result of swap
-    const quoteResult = await invariant.quote(account.address, poolKey, true, amount, true)
+    const quoteResult = await invariant.quote(poolKey, true, amount, true)
 
     // slippage is a price change you are willing to accept,
     // for examples if current price is 1 and your slippage is 1%, then price limit will be 1.01
@@ -145,23 +145,10 @@ describe('sdk guide snippets', async function () {
     console.log(swapResult.events)
 
     // query state
-    const pool: Pool = await invariant.getPool(
-      account.address,
-      TOKEN0_ADDRESS,
-      TOKEN1_ADDRESS,
-      feeTier
-    )
-    const position: Position = await invariant.getPosition(account.address, account.address, 0n)
-    const lowerTick: Tick = await invariant.getTick(
-      account.address,
-      poolKey,
-      position.lowerTickIndex
-    )
-    const upperTickAfter: Tick = await invariant.getTick(
-      account.address,
-      poolKey,
-      position.upperTickIndex
-    )
+    const pool: Pool = await invariant.getPool(TOKEN0_ADDRESS, TOKEN1_ADDRESS, feeTier)
+    const position: Position = await invariant.getPosition(account.address, 0n)
+    const lowerTick: Tick = await invariant.getTick(poolKey, position.lowerTickIndex)
+    const upperTickAfter: Tick = await invariant.getTick(poolKey, position.upperTickIndex)
 
     // check amount of tokens is able to claim
     const fees = calculateFee(pool, position, lowerTick, upperTickAfter)
@@ -170,7 +157,7 @@ describe('sdk guide snippets', async function () {
     console.log(fees)
 
     // get balance of a specific token before claiming position fees and print it
-    const accountBalanceBeforeClaim = await psp22.balanceOf(account.address, account.address)
+    const accountBalanceBeforeClaim = await psp22.balanceOf(account.address)
     console.log(accountBalanceBeforeClaim)
 
     // specify position id
@@ -181,15 +168,15 @@ describe('sdk guide snippets', async function () {
     console.log(claimFeeResult.hash)
 
     // get balance of a specific token after claiming position fees and print it
-    const accountBalanceAfterClaim = await psp22.balanceOf(account.address, account.address)
+    const accountBalanceAfterClaim = await psp22.balanceOf(account.address)
     console.log(accountBalanceAfterClaim)
 
     const receiver = keyring.addFromUri('//Bob')
 
-    const positionToTransfer = await invariant.getPosition(account.address, account.address, 0n)
+    const positionToTransfer = await invariant.getPosition(account.address, 0n)
     // Transfer position from account (signer) to receiver
     await invariant.transferPosition(account, 0n, receiver.address)
-    const receiverPosition = await invariant.getPosition(receiver.address, receiver.address, 0n)
+    const receiverPosition = await invariant.getPosition(receiver.address, 0n)
     assert.deepEqual(positionToTransfer, receiverPosition)
     console.log(receiverPosition)
 
@@ -198,9 +185,9 @@ describe('sdk guide snippets', async function () {
     // ###
 
     // fetch user balances before removal
-    const accountToken0BalanceBeforeRemove = await psp22.balanceOf(account.address, account.address)
+    const accountToken0BalanceBeforeRemove = await psp22.balanceOf(account.address)
     await psp22.setContractAddress(TOKEN1_ADDRESS)
-    const accountToken1BalanceBeforeRemove = await psp22.balanceOf(account.address, account.address)
+    const accountToken1BalanceBeforeRemove = await psp22.balanceOf(account.address)
     console.log(accountToken0BalanceBeforeRemove, accountToken1BalanceBeforeRemove)
 
     // remove position
@@ -209,9 +196,9 @@ describe('sdk guide snippets', async function () {
 
     // get balance of a specific token after removing position
     await psp22.setContractAddress(TOKEN0_ADDRESS)
-    const accountToken0BalanceAfterRemove = await psp22.balanceOf(account.address, account.address)
+    const accountToken0BalanceAfterRemove = await psp22.balanceOf(account.address)
     await psp22.setContractAddress(TOKEN1_ADDRESS)
-    const accountToken1BalanceAfterRemove = await psp22.balanceOf(account.address, account.address)
+    const accountToken1BalanceAfterRemove = await psp22.balanceOf(account.address)
 
     // print balances
     console.log(accountToken0BalanceAfterRemove, accountToken1BalanceAfterRemove)
@@ -221,7 +208,7 @@ describe('sdk guide snippets', async function () {
     const wazero = await WrappedAZERO.load(api, Network.Local, WAZERO_ADDRESS)
 
     // get balance of account
-    const accountBalanceBefore = await wazero.balanceOf(account.address, account.address)
+    const accountBalanceBefore = await wazero.balanceOf(account.address)
     console.log(accountBalanceBefore)
 
     // send AZERO using deposit method
@@ -229,7 +216,7 @@ describe('sdk guide snippets', async function () {
 
     // you will receive WAZERO token which you can use as any other token,
     // later you can exchange it back to AZERO at 1:1 ratio
-    const accountBalanceAfter = await wazero.balanceOf(account.address, account.address)
+    const accountBalanceAfter = await wazero.balanceOf(account.address)
     console.log(accountBalanceAfter)
   })
   it('sdk guide - using psp22', async () => {
@@ -241,7 +228,7 @@ describe('sdk guide snippets', async function () {
     const psp22 = await PSP22.load(api, Network.Local, TOKEN0_ADDRESS)
 
     // interact with token 0
-    const account0Balance = await psp22.balanceOf(account.address, account.address)
+    const account0Balance = await psp22.balanceOf(account.address)
     console.log(account0Balance)
 
     // if you want to interact with different token,
@@ -249,21 +236,21 @@ describe('sdk guide snippets', async function () {
     await psp22.setContractAddress(TOKEN1_ADDRESS)
 
     // now we can interact with token y
-    const account1Balance = await psp22.balanceOf(account.address, account.address)
+    const account1Balance = await psp22.balanceOf(account.address)
     console.log(account1Balance)
 
     // fetch token metadata for previously deployed token0
     await psp22.setContractAddress(TOKEN0_ADDRESS)
-    const token0Name = await psp22.tokenName(account.address)
-    const token0Symbol = await psp22.tokenSymbol(account.address)
-    const token0Decimals = await psp22.tokenDecimals(account.address)
+    const token0Name = await psp22.tokenName()
+    const token0Symbol = await psp22.tokenSymbol()
+    const token0Decimals = await psp22.tokenDecimals()
     console.log(token0Name, token0Symbol, token0Decimals)
 
     // load diffrent token and load its metadata
     await psp22.setContractAddress(TOKEN1_ADDRESS)
-    const token1Name = await psp22.tokenName(account.address)
-    const token1Symbol = await psp22.tokenSymbol(account.address)
-    const token1Decimals = await psp22.tokenDecimals(account.address)
+    const token1Name = await psp22.tokenName()
+    const token1Symbol = await psp22.tokenSymbol()
+    const token1Decimals = await psp22.tokenDecimals()
     console.log(token1Name, token1Symbol, token1Decimals)
   })
 })

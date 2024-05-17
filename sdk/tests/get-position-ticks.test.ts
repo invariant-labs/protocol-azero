@@ -1,5 +1,6 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
+import { PositionTick } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
@@ -40,11 +41,11 @@ describe('get-position-ticks', async () => {
   it('should get position ticks', async () => {
     await invariant.createPosition(account, poolKey, -10n, 10n, 10n, 1000000000000000000000000n, 0n)
 
-    const result = await invariant.getPositionTicks(account.address, account.address, 0n)
+    const result = await invariant.getPositionTicks(account.address, 0n)
     assert.equal(result.length, 2)
 
-    const lowerTick = await invariant.getTick(account.address, poolKey, -10n)
-    const upperTick = await invariant.getTick(account.address, poolKey, 10n)
+    const lowerTick = await invariant.getTick(poolKey, -10n)
+    const upperTick = await invariant.getTick(poolKey, 10n)
 
     objectEquals(result[0], lowerTick, [])
     objectEquals(result[1], upperTick, [])
@@ -57,12 +58,12 @@ describe('get-position-ticks', async () => {
       await invariant.createPosition(account, poolKey, -i, i, 10n, 1000000000000000000000000n, 0n)
     }
 
-    const result = await invariant.getPositionTicks(account.address, account.address, 0n)
+    const result = await invariant.getPositionTicks(account.address, 0n)
     assert.equal(result.length, 372)
 
     for (let i = 1n; i <= 186n; i++) {
-      const lowerTick = await invariant.getTick(account.address, poolKey, -i)
-      const upperTick = await invariant.getTick(account.address, poolKey, i)
+      const lowerTick = await invariant.getTick(poolKey, -i)
+      const upperTick = await invariant.getTick(poolKey, i)
 
       objectEquals(result[integerSafeCast(i) * 2 - 2], lowerTick, [])
       objectEquals(result[integerSafeCast(i) * 2 - 1], upperTick, [])
@@ -74,10 +75,10 @@ describe('get-position-ticks', async () => {
 
     await invariant.createPosition(account, poolKey, -20n, 20n, 10n, 1000000000000000000000000n, 0n)
 
-    const result1 = await invariant.getPositionTicks(account.address, account.address, 0n)
+    const result1 = await invariant.getPositionTicks(account.address, 0n)
     assert.equal(result1.length, 4)
 
-    const result2 = await invariant.getPositionTicks(account.address, account.address, 1n)
+    const result2 = await invariant.getPositionTicks(account.address, 1n)
     assert.equal(result2.length, 2)
 
     objectEquals(result1[2], result2[0], [])
@@ -91,12 +92,12 @@ describe('get-position-ticks', async () => {
       await invariant.createPosition(account, poolKey, -i, i, 10n, 1000000000000000000000000n, 0n)
     }
 
-    const positionAmount = await invariant.getUserPositionAmount(account.address, account.address)
+    const positionAmount = await invariant.getUserPositionAmount(account.address)
 
-    const promises = []
+    const promises: Promise<PositionTick[]>[] = []
 
     for (let i = 0n; i < positionAmount; i += 186n) {
-      promises.push(invariant.getPositionTicks(account.address, account.address, i))
+      promises.push(invariant.getPositionTicks(account.address, i))
     }
 
     const result = await Promise.all(promises)

@@ -1,12 +1,5 @@
 /* eslint camelcase: off */
 
-import { ApiPromise } from '@polkadot/api'
-import { Abi, ContractPromise } from '@polkadot/api-contract'
-import { SubmittableExtrinsic } from '@polkadot/api/promise/types'
-import { Bytes } from '@polkadot/types'
-import { WeightV2 } from '@polkadot/types/interfaces'
-import { IKeyringPair } from '@polkadot/types/types/interfaces'
-import { deployContract } from '@scio-labs/use-inkathon'
 import {
   FeeTier,
   InvariantError,
@@ -26,6 +19,13 @@ import {
   getMaxSqrtPrice,
   getMinSqrtPrice
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
+import { ApiPromise } from '@polkadot/api'
+import { Abi, ContractPromise } from '@polkadot/api-contract'
+import { SubmittableExtrinsic } from '@polkadot/api/promise/types'
+import { Bytes } from '@polkadot/types'
+import { WeightV2 } from '@polkadot/types/interfaces'
+import { IKeyringPair } from '@polkadot/types/types/interfaces'
+import { deployContract } from '@scio-labs/use-inkathon'
 import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME } from './consts.js'
 import { Network } from './network.js'
 import {
@@ -179,12 +179,11 @@ export class Invariant {
     })
   }
 
-  async getProtocolFee(userAddress: string): Promise<Percentage> {
+  async getProtocolFee(): Promise<Percentage> {
     return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      userAddress,
       InvariantQuery.ProtocolFee,
       []
     )
@@ -277,23 +276,21 @@ export class Invariant {
     )
   }
 
-  async getFeeTiers(userAddress: string): Promise<FeeTier[]> {
+  async getFeeTiers(): Promise<FeeTier[]> {
     return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      userAddress,
       InvariantQuery.GetFeeTiers,
       []
     )
   }
 
-  async feeTierExist(userAddress: string, feeTier: FeeTier): Promise<boolean> {
+  async feeTierExist(feeTier: FeeTier): Promise<boolean> {
     return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      userAddress,
       InvariantQuery.FeeTierExist,
       [feeTier]
     )
@@ -358,12 +355,11 @@ export class Invariant {
     )
   }
 
-  async getPosition(userAddress: string, owner: string, index: bigint): Promise<Position> {
+  async getPosition(owner: string, index: bigint): Promise<Position> {
     const result = await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      userAddress,
       InvariantQuery.GetPosition,
       [owner, index]
     )
@@ -375,12 +371,11 @@ export class Invariant {
     }
   }
 
-  async getPositions(userAddress: string, owner: string): Promise<Position[]> {
+  async getPositions(owner: string): Promise<Position[]> {
     return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      userAddress,
       InvariantQuery.GetAllPositions,
       [owner]
     )
@@ -533,12 +528,11 @@ export class Invariant {
     )
   }
 
-  async getTick(userAddress: string, key: PoolKey, index: bigint): Promise<Tick> {
+  async getTick(key: PoolKey, index: bigint): Promise<Tick> {
     const result = await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      userAddress,
       InvariantQuery.GetTick,
       [key, index]
     )
@@ -550,28 +544,21 @@ export class Invariant {
     }
   }
 
-  async isTickInitialized(userAddress: string, key: PoolKey, index: bigint): Promise<boolean> {
+  async isTickInitialized(key: PoolKey, index: bigint): Promise<boolean> {
     return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      userAddress,
       InvariantQuery.IsTickInitialized,
       [key, index]
     )
   }
 
-  async getPool(
-    userAddress: string,
-    token0: string,
-    token1: string,
-    feeTier: FeeTier
-  ): Promise<Pool> {
+  async getPool(token0: string, token1: string, feeTier: FeeTier): Promise<Pool> {
     const result = await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      userAddress,
       InvariantQuery.GetPool,
       [token0, token1, feeTier]
     )
@@ -583,12 +570,11 @@ export class Invariant {
     }
   }
 
-  async getPools(userAddress: string, size: bigint, offset: bigint): Promise<Pool[]> {
+  async getPoolKeys(size: bigint, offset: bigint): Promise<PoolKey[]> {
     const result = await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      userAddress,
       InvariantQuery.GetPools,
       [size, offset]
     )
@@ -634,7 +620,6 @@ export class Invariant {
   }
 
   async quote(
-    userAddress: string,
     poolKey: PoolKey,
     xToY: boolean,
     amount: TokenAmount,
@@ -648,7 +633,6 @@ export class Invariant {
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      userAddress,
       InvariantQuery.Quote,
       [poolKey, xToY, amount, byAmountIn, sqrtPriceLimit]
     )
@@ -660,16 +644,11 @@ export class Invariant {
     }
   }
 
-  async quoteRoute(
-    userAddress: string,
-    amountIn: TokenAmount,
-    swaps: SwapHop[]
-  ): Promise<TokenAmount> {
+  async quoteRoute(amountIn: TokenAmount, swaps: SwapHop[]): Promise<TokenAmount> {
     return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      userAddress,
       InvariantQuery.QuoteRoute,
       [amountIn, swaps]
     )
@@ -734,16 +713,11 @@ export class Invariant {
     ) as Promise<SwapRouteTxResult>
   }
 
-  async getPositionTicks(
-    userAddress: string,
-    owner: string,
-    offset: bigint
-  ): Promise<PositionTick[]> {
+  async getPositionTicks(owner: string, offset: bigint): Promise<PositionTick[]> {
     return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      userAddress,
       InvariantQuery.getPositionTicks,
       [owner, offset]
     )
@@ -758,9 +732,9 @@ export class Invariant {
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      userAddress,
       InvariantQuery.GetTickmap,
-      [poolKey, currentTickIndex]
+      [poolKey, currentTickIndex],
+      userAddress
     )
     
     return {
@@ -777,9 +751,9 @@ export class Invariant {
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      userAddress,
       InvariantQuery.GetTickmap,
-      [poolKey, 1n]
+      [poolKey, 1n],
+      userAddress
     )
     
     return {
@@ -787,57 +761,47 @@ export class Invariant {
     } 
   }
 
-  async getTickmap(
-    userAddress: string,
-    poolKey: PoolKey,
-    currentTickIndex: bigint
-  ): Promise<bigint[]> {
+
+
+
+  async getTickmap(poolKey: PoolKey, currentTickIndex: bigint): Promise<bigint[]> {
     const result = await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      userAddress,
       InvariantQuery.GetTickmap,
       [poolKey, currentTickIndex]
     )
-    
     return constructTickmap(result, poolKey.feeTier.tickSpacing)
   }
 
 
 
-  async getLiquidityTicks(
-    userAddress: string,
-    poolKey: PoolKey,
-    offset: bigint
-  ): Promise<LiquidityTick[]> {
+  async getLiquidityTicks(poolKey: PoolKey, offset: bigint): Promise<LiquidityTick[]> {
     return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      userAddress,
       InvariantQuery.getLiquidityTicks,
       [poolKey, offset]
     )
   }
 
-  async getUserPositionAmount(userAddress: string, owner: string): Promise<bigint> {
+  async getUserPositionAmount(owner: string): Promise<bigint> {
     return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      userAddress,
       InvariantQuery.getUserPositionAmount,
       [owner]
     )
   }
 
-  async getLiquidityTicksAmount(userAddress: string, poolKey: PoolKey): Promise<bigint> {
+  async getLiquidityTicksAmount(poolKey: PoolKey): Promise<bigint> {
     return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      userAddress,
       InvariantQuery.getLiquidityTicksAmount,
       [poolKey]
     )

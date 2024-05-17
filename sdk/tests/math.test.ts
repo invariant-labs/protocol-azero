@@ -6,7 +6,7 @@ import {
   getLiquidityByX,
   getLiquidityByY,
   isTokenX
-} from 'invariant-a0-wasm/invariant_a0_wasm.js'
+} from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
@@ -66,7 +66,7 @@ describe('get-liquidity-by-x', async () => {
       const lowerTickIndex = 80n
       const upperTickIndex = 120n
 
-      const pool = await invariant.getPool(account.address, token0Address, token1Address, feeTier)
+      const pool = await invariant.getPool(token0Address, token1Address, feeTier)
 
       assertThrowsAsync(
         new Promise(() => {
@@ -79,7 +79,7 @@ describe('get-liquidity-by-x', async () => {
       const lowerTickIndex = 80n
       const upperTickIndex = 120n
 
-      const pool = await invariant.getPool(account.address, token0Address, token1Address, feeTier)
+      const pool = await invariant.getPool(token0Address, token1Address, feeTier)
 
       const { l, amount } = getLiquidityByX(
         providedAmount,
@@ -106,7 +106,7 @@ describe('get-liquidity-by-x', async () => {
         0n
       )
 
-      const position = await invariant.getPosition(positionOwner.address, positionOwner.address, 0n)
+      const position = await invariant.getPosition(positionOwner.address, 0n)
       const expectedPosition: Position = {
         poolKey: poolKey,
         liquidity: l,
@@ -126,7 +126,7 @@ describe('get-liquidity-by-x', async () => {
       const lowerTickIndex = 150n
       const upperTickIndex = 800n
 
-      const pool = await invariant.getPool(account.address, token0Address, token1Address, feeTier)
+      const pool = await invariant.getPool(token0Address, token1Address, feeTier)
 
       const { l, amount } = getLiquidityByX(
         providedAmount,
@@ -152,7 +152,7 @@ describe('get-liquidity-by-x', async () => {
         0n
       )
 
-      const position = await invariant.getPosition(positionOwner.address, positionOwner.address, 1n)
+      const position = await invariant.getPosition(positionOwner.address, 1n)
       const expectedPosition: Position = {
         poolKey: poolKey,
         liquidity: l,
@@ -210,7 +210,7 @@ describe('get-liquidity-by-y', async () => {
       const lowerTickIndex = -22000n
       const upperTickIndex = -21000n
 
-      const pool = await invariant.getPool(account.address, token0Address, token1Address, feeTier)
+      const pool = await invariant.getPool(token0Address, token1Address, feeTier)
 
       const { l, amount } = getLiquidityByY(
         providedAmount,
@@ -236,7 +236,7 @@ describe('get-liquidity-by-y', async () => {
         0n
       )
 
-      const position = await invariant.getPosition(positionOwner.address, positionOwner.address, 0n)
+      const position = await invariant.getPosition(positionOwner.address, 0n)
       const expectedPosition: Position = {
         poolKey: poolKey,
         liquidity: l,
@@ -255,7 +255,7 @@ describe('get-liquidity-by-y', async () => {
       const lowerTickIndex = -25000n
       const upperTickIndex = -19000n
 
-      const pool = await invariant.getPool(account.address, token0Address, token1Address, feeTier)
+      const pool = await invariant.getPool(token0Address, token1Address, feeTier)
 
       const { l, amount } = getLiquidityByY(
         providedAmount,
@@ -282,7 +282,7 @@ describe('get-liquidity-by-y', async () => {
         0n
       )
 
-      const position = await invariant.getPosition(positionOwner.address, positionOwner.address, 1n)
+      const position = await invariant.getPosition(positionOwner.address, 1n)
       const expectedPosition: Position = {
         poolKey: poolKey,
         liquidity: l,
@@ -301,7 +301,7 @@ describe('get-liquidity-by-y', async () => {
       const lowerTickIndex = -10000n
       const upperTickIndex = 0n
 
-      const pool = await invariant.getPool(account.address, token0Address, token1Address, feeTier)
+      const pool = await invariant.getPool(token0Address, token1Address, feeTier)
 
       assertThrowsAsync(
         new Promise(() => {

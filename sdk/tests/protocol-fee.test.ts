@@ -1,6 +1,6 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import { InvariantError } from 'invariant-a0-wasm/invariant_a0_wasm.js'
+import { InvariantError } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
@@ -61,34 +61,24 @@ describe('protocol-fee', async () => {
     const poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
     await psp22.setContractAddress(token0Address)
-    const token0Before = await psp22.balanceOf(account.address, account.address.toString())
+    const token0Before = await psp22.balanceOf(account.address.toString())
     await psp22.setContractAddress(token1Address)
-    const token1Before = await psp22.balanceOf(account.address, account.address.toString())
+    const token1Before = await psp22.balanceOf(account.address.toString())
 
-    const poolBefore = await invariant.getPool(
-      account.address,
-      token0Address,
-      token1Address,
-      feeTier
-    )
+    const poolBefore = await invariant.getPool(token0Address, token1Address, feeTier)
     assert.deepEqual(poolBefore.feeProtocolTokenX, 1n)
     assert.deepEqual(poolBefore.feeProtocolTokenY, 0n)
 
     await invariant.withdrawProtocolFee(account, poolKey)
 
-    const poolAfter = await invariant.getPool(
-      account.address,
-      token0Address,
-      token1Address,
-      feeTier
-    )
+    const poolAfter = await invariant.getPool(token0Address, token1Address, feeTier)
     assert.deepEqual(poolAfter.feeProtocolTokenX, 0n)
     assert.deepEqual(poolAfter.feeProtocolTokenY, 0n)
 
     await psp22.setContractAddress(token0Address)
-    const token0After = await psp22.balanceOf(account.address, account.address.toString())
+    const token0After = await psp22.balanceOf(account.address.toString())
     await psp22.setContractAddress(token1Address)
-    const token1After = await psp22.balanceOf(account.address, account.address.toString())
+    const token1After = await psp22.balanceOf(account.address.toString())
 
     if (poolKey.tokenX === token0Address) {
       assert.deepEqual(token0Before + 1n, token0After)
@@ -107,16 +97,11 @@ describe('protocol-fee', async () => {
     await invariant.changeFeeReceiver(account, poolKey, testAccount.address.toString())
 
     await psp22.setContractAddress(token0Address)
-    const token0Before = await psp22.balanceOf(account.address, testAccount.address.toString())
+    const token0Before = await psp22.balanceOf(testAccount.address.toString())
     await psp22.setContractAddress(token1Address)
-    const token1Before = await psp22.balanceOf(account.address, testAccount.address.toString())
+    const token1Before = await psp22.balanceOf(testAccount.address.toString())
 
-    const poolBefore = await invariant.getPool(
-      account.address,
-      token0Address,
-      token1Address,
-      feeTier
-    )
+    const poolBefore = await invariant.getPool(token0Address, token1Address, feeTier)
     assert.deepEqual(poolBefore.feeProtocolTokenX, 1n)
     assert.deepEqual(poolBefore.feeProtocolTokenY, 0n)
 
@@ -126,19 +111,14 @@ describe('protocol-fee', async () => {
       InvariantError.NotFeeReceiver
     )
 
-    const poolAfter = await invariant.getPool(
-      account.address,
-      token0Address,
-      token1Address,
-      feeTier
-    )
+    const poolAfter = await invariant.getPool(token0Address, token1Address, feeTier)
     assert.deepEqual(poolAfter.feeProtocolTokenX, 0n)
     assert.deepEqual(poolAfter.feeProtocolTokenY, 0n)
 
     await psp22.setContractAddress(token0Address)
-    const token0After = await psp22.balanceOf(account.address, testAccount.address.toString())
+    const token0After = await psp22.balanceOf(testAccount.address.toString())
     await psp22.setContractAddress(token1Address)
-    const token1After = await psp22.balanceOf(account.address, testAccount.address.toString())
+    const token1After = await psp22.balanceOf(testAccount.address.toString())
     if (poolKey.tokenX === token0Address) {
       assert.deepEqual(token0Before + 1n, token0After)
       assert.deepEqual(token1Before, token1After)
