@@ -7,13 +7,13 @@ use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;
 
-#[derive(Default, Debug, Copy, Clone, PartialEq, Serialize, Deserialize, Tsify)]
+#[derive(Default, Debug, Copy, Clone, PartialEq, Serialize, Deserialize, Eq, Hash, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 #[serde(rename_all = "camelCase")]
 pub struct FeeTier {
     pub fee: Percentage,
     #[tsify(type = "bigint")]
-    pub tick_spacing: u16,
+    pub tick_spacing: u64,
 }
 
 impl FeeTier {
@@ -26,7 +26,7 @@ impl FeeTier {
             return Err(InvariantError::InvalidFee);
         }
 
-        Ok(Self { fee, tick_spacing })
+        Ok(Self { fee, tick_spacing: tick_spacing as u64 })
     }
 }
 

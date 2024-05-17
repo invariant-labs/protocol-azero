@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize, Tsify)]
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize, Eq, Hash, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 #[serde(rename_all = "camelCase")]
 pub struct PoolKey {

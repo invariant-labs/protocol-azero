@@ -25,7 +25,7 @@ import {
   getMaxChunk,
   getPercentageDenominator,
   getSqrtPriceDenominator
-} from 'invariant-a0-wasm/invariant_a0_wasm.js'
+} from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { abi as invariantAbi } from './abis/invariant.js'
 import { abi as PSP22Abi } from './abis/psp22.js'
 import { abi as wrappedAZEROAbi } from './abis/wrapped-azero.js'

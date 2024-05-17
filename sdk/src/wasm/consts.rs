@@ -11,6 +11,8 @@ pub const MIN_SQRT_PRICE: u128 = 15258932000000000000;
 pub const TICK_SEARCH_RANGE: i32 = 256;
 pub const CHUNK_SIZE: i32 = 64;
 
+pub const MAX_TICK_CROSS: i32 = 146;
+
 #[wasm_wrapper]
 pub fn get_global_max_sqrt_price() -> u128 {
     MAX_SQRT_PRICE
@@ -37,4 +39,9 @@ pub fn get_max_chunk(tick_spacing: u16) -> u16 {
 #[wasm_wrapper]
 pub fn get_chunk_size() -> i32 {
     CHUNK_SIZE
+}
+
+#[wasm_wrapper]
+pub fn get_max_tick_cross() -> i32 {
+    MAX_TICK_CROSS
 }

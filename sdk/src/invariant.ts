@@ -25,7 +25,7 @@ import {
   calculateTick,
   getMaxSqrtPrice,
   getMinSqrtPrice
-} from 'invariant-a0-wasm/invariant_a0_wasm.js'
+} from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME } from './consts.js'
 import { Network } from './network.js'
 import {
@@ -50,6 +50,7 @@ import {
   parseEvent,
   sendQuery
 } from './utils.js'
+import { Tickmap } from './wasm/pkg/invariant_a0_wasm.js'
 
 export class Invariant {
   contract: ContractPromise
@@ -748,6 +749,44 @@ export class Invariant {
     )
   }
 
+  async getRawTickmap(
+    userAddress: string,
+    poolKey: PoolKey,
+    currentTickIndex: bigint
+  ): Promise<Tickmap> {
+    const result = await sendQuery(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      userAddress,
+      InvariantQuery.GetTickmap,
+      [poolKey, currentTickIndex]
+    )
+    
+    return {
+        bitmap: new Map<bigint, bigint>(result)
+    } 
+  }
+
+  async getFullTickmap(
+    userAddress: string,
+    poolKey: PoolKey,
+    startingTickIndex: bigint
+  ): Promise<Tickmap> {
+    const result = await sendQuery(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      userAddress,
+      InvariantQuery.GetTickmap,
+      [poolKey, 1n]
+    )
+    
+    return {
+        bitmap: new Map<bigint, bigint>(result)
+    } 
+  }
+
   async getTickmap(
     userAddress: string,
     poolKey: PoolKey,
@@ -761,8 +800,11 @@ export class Invariant {
       InvariantQuery.GetTickmap,
       [poolKey, currentTickIndex]
     )
+    
     return constructTickmap(result, poolKey.feeTier.tickSpacing)
   }
+
+
 
   async getLiquidityTicks(
     userAddress: string,

@@ -10,6 +10,7 @@ pub mod math;
 pub mod storage;
 pub mod types;
 pub mod swap;
+pub mod collections;
 
 pub use consts::*;
 pub use custom::*;
@@ -19,3 +20,4 @@ pub use math::*;
 pub use storage::*;
 pub use types::*;
 pub use swap::*;
+pub use collections::*;
