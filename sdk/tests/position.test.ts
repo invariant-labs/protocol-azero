@@ -1,14 +1,15 @@
-import { Keyring } from '@polkadot/api'
-import { assert } from 'chai'
 import {
   CreatePositionEvent,
   InvariantError,
+  Pool,
   Position,
   SqrtPrice,
   TokenAmount,
   getLiquidityByX,
   isTokenX
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
+import { Keyring } from '@polkadot/api'
+import { assert } from 'chai'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
@@ -30,6 +31,7 @@ const upperTickIndex = 10n
 const feeTier = newFeeTier(6000000000n, 10n)
 
 let poolKey = newPoolKey(token0Address, token1Address, feeTier)
+let pool: Pool
 
 describe('position', async () => {
   beforeEach(async () => {
@@ -48,7 +50,7 @@ describe('position', async () => {
     await psp22.setContractAddress(token1Address)
     await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
 
-    const pool = await invariant.getPool(token0Address, token1Address, feeTier)
+    pool = await invariant.getPool(token0Address, token1Address, feeTier)
 
     const result = await invariant.createPosition(
       account,
@@ -231,5 +233,39 @@ describe('position', async () => {
       assert.deepEqual(position.feeGrowthInsideX, pool.feeGrowthGlobalX)
       assert.deepEqual(position.tokensOwedX, 0n)
     }
+  })
+
+  it.only('slippage tolerance works', async () => {
+    await invariant.createPosition(
+      account,
+      poolKey,
+      lowerTickIndex,
+      upperTickIndex,
+      10000000000000n,
+      pool.sqrtPrice,
+      10000000000n
+    )
+
+    await invariant.createPosition(
+      account,
+      poolKey,
+      lowerTickIndex,
+      upperTickIndex,
+      10000000000000n,
+      953462589245592315446776n,
+      100000000000n
+    )
+
+    await assertThrowsAsync(
+      invariant.createPosition(
+        account,
+        poolKey,
+        lowerTickIndex,
+        upperTickIndex,
+        10000000000000n,
+        953462589245592315446775n,
+        100000000000n
+      )
+    )
   })
 })
