@@ -723,46 +723,19 @@ export class Invariant {
     )
   }
 
-  async getRawTickmap(
-    userAddress: string,
-    poolKey: PoolKey,
-    currentTickIndex: bigint
-  ): Promise<Tickmap> {
+  async getRawTickmap(poolKey: PoolKey, currentTickIndex: bigint): Promise<Tickmap> {
     const result = await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       InvariantQuery.GetTickmap,
-      [poolKey, currentTickIndex],
-      userAddress
+      [poolKey, currentTickIndex]
     )
-    
+
     return {
-        bitmap: new Map<bigint, bigint>(result)
-    } 
+      bitmap: new Map<bigint, bigint>(result)
+    }
   }
-
-  async getFullTickmap(
-    userAddress: string,
-    poolKey: PoolKey,
-    startingTickIndex: bigint
-  ): Promise<Tickmap> {
-    const result = await sendQuery(
-      this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
-      InvariantQuery.GetTickmap,
-      [poolKey, 1n],
-      userAddress
-    )
-    
-    return {
-        bitmap: new Map<bigint, bigint>(result)
-    } 
-  }
-
-
-
 
   async getTickmap(poolKey: PoolKey, currentTickIndex: bigint): Promise<bigint[]> {
     const result = await sendQuery(
@@ -774,8 +747,6 @@ export class Invariant {
     )
     return constructTickmap(result, poolKey.feeTier.tickSpacing)
   }
-
-
 
   async getLiquidityTicks(poolKey: PoolKey, offset: bigint): Promise<LiquidityTick[]> {
     return sendQuery(

@@ -1,6 +1,6 @@
 use crate::clamm::compute_swap_step;
 use crate::percentage::Percentage;
-use crate::sqrt_price::SqrtPrice;
+use crate::sqrt_price::{get_max_tick, get_min_tick, SqrtPrice};
 use crate::token_amount::TokenAmount;
 use crate::{
     CalculateSwapResult, FeeTier, Tickmap, UpdatePoolTick, MAX_SQRT_PRICE, MAX_TICK_CROSS, MIN_SQRT_PRICE
@@ -27,8 +27,6 @@ pub fn simulate_invariant_swap(
     by_amount_in: bool,
     sqrt_price_limit: SqrtPrice,
 ) -> TrackableResult<CalculateSwapResult> {
-    let mut global_insufficient_liquidity = false;
-    let mut state_outdated = false;
 
     if amount.is_zero() {
         return Err(err!("Amount is zero"));
@@ -44,7 +42,18 @@ pub fn simulate_invariant_swap(
     {
         return Err(err!("Wrong limit"));
     }
+
+    let tick_limit = if x_to_y {
+        get_min_tick(fee_tier.tick_spacing as u16)
+    } else {
+        get_max_tick(fee_tier.tick_spacing as u16)
+    };
+
     let start_sqrt_price = pool.sqrt_price;
+
+    let mut global_insufficient_liquidity = false;
+    let mut state_outdated = false;
+    let mut max_ticks_crossed = false;
 
     let mut crossed_ticks: Vec<Tick> = vec![];
     let mut remaining_amount = amount;
@@ -92,7 +101,8 @@ pub fn simulate_invariant_swap(
 
         // Fail if price would go over swap limit
         if pool.sqrt_price == sqrt_price_limit && !remaining_amount.is_zero() {
-            return Err(err!("Price limit Reached"));
+            global_insufficient_liquidity = true;
+            break;
         }
 
         let mut tick_update = {
@@ -100,10 +110,15 @@ pub fn simulate_invariant_swap(
                 if is_initialized {
                     let tick = ticks
                         .iter()
-                        .find(|t| t.index as i32 == tick_index )
-                        .ok_or(err!("Tick not found"))?;
+                        .find(|t| t.index as i32 == tick_index );
 
-                    UpdatePoolTick::TickInitialized(*tick)
+                    match tick {
+                        Some(tick) => UpdatePoolTick::TickInitialized(*tick),
+                        None => {
+                            state_outdated = true;
+                            break;
+                        },
+                    }    
                 } else {
                     UpdatePoolTick::TickUninitialized(tick_index)
                 }
@@ -127,7 +142,6 @@ pub fn simulate_invariant_swap(
             tick_update_return
         } else {
             state_outdated = true;
-            global_insufficient_liquidity = true;
             break;
         };
         
@@ -138,13 +152,21 @@ pub fn simulate_invariant_swap(
             if has_crossed {
                 crossed_ticks.push(tick);
                 if crossed_ticks.len() > MAX_TICK_CROSS as usize {
-                    return Err(err!("Too many ticks crossed"));
+                    max_ticks_crossed = true;
+                    break;
                 }
             }
         }
-    }
-    if total_amount_out.get() == 0 {
-        return Err(err!("No gain Swap"));
+
+        let reached_tick_limit = match x_to_y {
+            true => pool.current_tick_index <= tick_limit as i64,
+            false => pool.current_tick_index >= tick_limit as i64,
+        };
+
+        if reached_tick_limit {
+            global_insufficient_liquidity = true;
+            break;
+        }
     }
 
     Ok(CalculateSwapResult {
@@ -155,6 +177,7 @@ pub fn simulate_invariant_swap(
         fee: event_fee_amount,
         crossed_ticks,
         global_insufficient_liquidity,
-        state_outdated
+        state_outdated,
+        max_ticks_crossed
     })
 }

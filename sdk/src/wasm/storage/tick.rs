@@ -1,4 +1,7 @@
-use crate::{types::{fee_growth::FeeGrowth, liquidity::Liquidity, sqrt_price::SqrtPrice}, Pool};
+use crate::{
+    types::{fee_growth::FeeGrowth, liquidity::Liquidity, sqrt_price::SqrtPrice},
+    Pool,
+};
 use decimal::*;
 use traceable_result::*;
 

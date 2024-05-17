@@ -1,15 +1,14 @@
 use serde::{Deserialize, Serialize};
 
-use tsify::Tsify;
-use wasm_bindgen::prelude::*;
-use js_sys::*;
-use crate::consts::{MAX_TICK, TICK_SEARCH_RANGE, CHUNK_SIZE};
+use crate::consts::{CHUNK_SIZE, MAX_TICK, TICK_SEARCH_RANGE};
 use crate::types::sqrt_price::{calculate_sqrt_price, SqrtPrice};
 use crate::InvariantError;
+use js_sys::*;
 use std::collections::HashMap;
-
-pub const MAX_RESULT_SIZE: usize = 16 * 1024 * 8;
-pub const MAX_TICKMAP_QUERY_SIZE: usize = MAX_RESULT_SIZE / (16 + 64);
+use traceable_result::*;
+use tsify::Tsify;
+use wasm_bindgen::prelude::*;
+use wasm_wrapper::wasm_wrapper;
 
 #[derive(Serialize, Deserialize, Clone, Debug, Tsify)]
 #[tsify(from_wasm_abi, into_wasm_abi)]
@@ -23,6 +22,27 @@ impl Default for Tickmap {
         let bitmap = HashMap::default();
         Tickmap { bitmap }
     }
+}
+
+#[wasm_wrapper("tickIndexToPosition")]
+pub fn tick_to_position_js(tick: i32, tick_spacing: u16) -> TrackableResult<(u16, u8)> {
+    if !(-MAX_TICK..=MAX_TICK).contains(&tick) {
+        return Err(err!(&format!(
+            "tick not in range of <{}, {}>",
+            -MAX_TICK, MAX_TICK
+        )));
+    }
+
+    if !(tick % tick_spacing as i32 == 0) {
+        return Err(err!("tick not divisible by tick spacing"));
+    }
+
+    let bitmap_index = (tick + MAX_TICK) / tick_spacing as i32;
+
+    let chunk: u16 = (bitmap_index / CHUNK_SIZE) as u16;
+    let bit: u8 = (bitmap_index % CHUNK_SIZE) as u8;
+
+    Ok((chunk, bit))
 }
 
 pub fn tick_to_position(tick: i32, tick_spacing: u16) -> (u16, u8) {
@@ -46,7 +66,7 @@ pub fn tick_to_position(tick: i32, tick_spacing: u16) -> (u16, u8) {
 
     (chunk, bit)
 }
-
+#[wasm_wrapper]
 pub fn position_to_tick(chunk: u16, bit: u8, tick_spacing: u16) -> i32 {
     let tick_range_limit = MAX_TICK - MAX_TICK % tick_spacing as i32;
     (chunk as i32 * CHUNK_SIZE * tick_spacing as i32 + bit as i32 * tick_spacing as i32)
@@ -244,9 +264,7 @@ impl Tickmap {
             "tick initialize tick again"
         );
 
-        self.bitmap.insert(
-            chunk as u64,
-            flip_bit_at_position(returned_chunk, bit),
-        );
+        self.bitmap
+            .insert(chunk as u64, flip_bit_at_position(returned_chunk, bit));
     }
 }
