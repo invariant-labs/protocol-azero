@@ -10,7 +10,8 @@
     "deploy-tokens": "npx tsc && node --experimental-wasm-modules target/deploy-tokens.js",
     "deploy-invariant": "npx tsc && node --experimental-wasm-modules target/deploy-invariant.js",
     "create-position": "npx tsc && node --experimental-wasm-modules target/create-position.js",
-    "create-pool": "npx tsc && node --experimental-wasm-modules target/create-pool.js"
+    "create-pool": "npx tsc && node --experimental-wasm-modules target/create-pool.js",
+    "test": "npx tsc && node --experimental-wasm-modules target/test.js"
   },
   "keywords": [],
   "author": "",
