@@ -69,6 +69,7 @@ export {
   priceToSqrtPrice,
   sendQuery,
   sendTx,
+  sendAndDebugTx,
   signAndSendTx,
   sqrtPriceToPrice
 } from './utils.js'

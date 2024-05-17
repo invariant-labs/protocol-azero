@@ -153,6 +153,37 @@ export async function sendTx(
   })
 }
 
+// TODO: to REMOVE
+export async function sendAndDebugTx(
+  tx: SubmittableExtrinsic,
+  api: ApiPromise,
+  waitForFinalization: boolean = true,
+  block: boolean = true
+): Promise<EventTxResult<any> | TxResult> {
+  return new Promise(async (resolve, reject) => {
+    await tx.send(result => {
+      result.events.filter(({ event }) =>
+        api.events.system.ExtrinsicFailed.is(event)
+      ).forEach(({ event: { data: [error] } }) => {
+        // @ts-expect-error not typed error
+        if (error.isModule) {
+          // for module errors, we have the section indexed, lookup
+          // @ts-expect-error not typed error
+          const decoded = api.registry.findMetaError(error.asModule);
+          const { docs, method, section } = decoded;
+
+          console.log(`${section}.${method}: ${docs.join(' ')}`);
+        } else {
+          // Other, CannotLookup, BadOrigin, no extra info
+          console.log(error.toString());
+        }
+      });
+      handleTxResult(result, resolve, reject, waitForFinalization, block)
+    })
+  })
+}
+
+
 export async function signAndSendTx(
   tx: SubmittableExtrinsic,
   signer: IKeyringPair,
