@@ -457,6 +457,6 @@ export const calculateLiquidityBreakpoints = (
   })
 }
 
-export const generateFee = (tickCount: bigint): FeeTier => {
+export const calculateFeeTierWithLinearRatio = (tickCount: bigint): FeeTier => {
   return newFeeTier(tickCount * toPercentage(1n, 4n), tickCount)
 }
