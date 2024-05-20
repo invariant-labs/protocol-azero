@@ -59,7 +59,7 @@ pub fn simulate_invariant_swap(
     let mut remaining_amount = amount;
     let mut total_amount_in = TokenAmount(0);
     let mut total_amount_out = TokenAmount(0);
-    let mut event_fee_amount = TokenAmount(0);
+    let mut total_fee_amount = TokenAmount(0);
 
     while !remaining_amount.is_zero() {
         let closer_limit = tickmap.get_closer_limit(
@@ -92,7 +92,7 @@ pub fn simulate_invariant_swap(
         }
 
         pool.add_fee(result.fee_amount, x_to_y, protocol_fee)?;
-        event_fee_amount += result.fee_amount;
+        total_fee_amount += result.fee_amount;
 
         pool.sqrt_price = result.next_sqrt_price;
 
@@ -174,7 +174,7 @@ pub fn simulate_invariant_swap(
         amount_out: total_amount_out,
         start_sqrt_price,
         target_sqrt_price: pool.sqrt_price,
-        fee: event_fee_amount,
+        fee: total_fee_amount,
         crossed_ticks,
         global_insufficient_liquidity,
         state_outdated,
