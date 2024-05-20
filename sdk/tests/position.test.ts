@@ -235,7 +235,7 @@ describe('position', async () => {
     }
   })
 
-  it.only('slippage tolerance works', async () => {
+  it('slippage tolerance works', async () => {
     await invariant.createPosition(
       account,
       poolKey,
