@@ -45,12 +45,14 @@ import {
   createSignAndSendTx,
   createTx,
   getAbi,
+  getActiveBitsCount64,
   getDeploymentData,
   parse,
   parseEvent,
   sendQuery
 } from './utils.js'
-import { Tickmap } from './wasm/pkg/invariant_a0_wasm.js'
+import { Tickmap, getMaxTick, getMaxTickmapQuerySize } from './wasm/pkg/invariant_a0_wasm.js'
+import { assert } from 'chai'
 
 export class Invariant {
   contract: ContractPromise
@@ -722,18 +724,87 @@ export class Invariant {
       [owner, offset]
     )
   }
-
-  async getRawTickmap(poolKey: PoolKey, currentTickIndex: bigint): Promise<Tickmap> {
-    const result = await sendQuery(
+  async getRawTickmap(poolKey: PoolKey, currentTickIndex: bigint): Promise<[bigint, bigint][]> {
+    return await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       InvariantQuery.GetTickmap,
       [poolKey, currentTickIndex]
     )
+  }
+
+  async getFullTickmap(poolKey: PoolKey): Promise<Tickmap> {
+    const maxQuerySize = getMaxTickmapQuerySize()
+    const maxTick = getMaxTick(poolKey.feeTier.tickSpacing)
+    const liquidityTicksCount = await this.getLiquidityTicksAmount(poolKey)
+
+    let queriedTicks = 0n
+    let storedTickmap = new Map<bigint, bigint>()
+    let storedChunkMin = 18_446_744_073_709_551_615n //u64max
+    let storedChunkMax = 0n
+
+    let queriedChunksMin = 0n
+    let queriedChunksMax = 0n
+
+    const initIndex = maxQuerySize / 2n
+
+    const initQuery = await this.getRawTickmap(poolKey, initIndex)
+
+    storedTickmap = new Map<bigint, bigint>(initQuery)
+
+    for (const [chunk_index, chunk] of storedTickmap.entries()) {
+      if (chunk_index > storedChunkMax) {
+        storedChunkMax = chunk_index
+        queriedTicks += getActiveBitsCount64(chunk)
+      } else if (chunk_index < storedChunkMin) {
+        storedChunkMin = chunk_index
+        queriedTicks += getActiveBitsCount64(chunk)
+      }
+    }
+
+    let nextQueryIndex = storedChunkMax + maxQuerySize / 2n
+
+    while (queriedTicks < liquidityTicksCount) {
+      assert(nextQueryIndex < maxTick, 'Query failed, max tick reached')
+
+      if (queriedTicks + maxQuerySize > liquidityTicksCount) {
+        // if all remaining ticks are within max query size
+        // they can be queried by starting from the opposite end of the tickmap
+        nextQueryIndex = maxTick
+      } else {
+        nextQueryIndex = storedChunkMax + maxQuerySize / 2n
+      }
+
+      const subsequentQuery = await this.getRawTickmap(poolKey, nextQueryIndex)
+
+      for (const [chunk_index, chunk] of subsequentQuery.values()) {
+        if (chunk_index > queriedChunksMax) {
+          queriedChunksMax = chunk_index
+        }
+        if (chunk_index > queriedChunksMin) {
+          queriedChunksMin = chunk_index
+        }
+
+        if (chunk_index > storedChunkMax) {
+          storedTickmap.set(chunk_index, chunk)
+          queriedTicks += getActiveBitsCount64(chunk)
+        } else if (chunk_index < storedChunkMin) {
+          storedTickmap.set(chunk_index, chunk)
+          queriedTicks += getActiveBitsCount64(chunk)
+        }
+      }
+
+      if (queriedChunksMax > storedChunkMax) {
+        storedChunkMax = queriedChunksMax
+      }
+      if (queriedChunksMin < storedChunkMin) {
+        storedChunkMin = queriedChunksMin
+      }
+    }
 
     return {
-      bitmap: new Map<bigint, bigint>(result)
+      bitmap: storedTickmap
     }
   }
 

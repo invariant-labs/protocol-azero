@@ -1,11 +1,12 @@
 import { Keyring } from '@polkadot/api'
-import { assert } from 'chai'
+import { assert, expect } from 'chai'
 import { getMaxChunk } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
 import { assertThrowsAsync } from '../src/testUtils'
-import { initPolkadotApi, integerSafeCast, newFeeTier, newPoolKey } from '../src/utils'
+import { getActiveBitsCount64, initPolkadotApi, integerSafeCast, newFeeTier, newPoolKey } from '../src/utils'
+import { Tick, Tickmap, getMaxTickmapQuerySize } from '../src/wasm/pkg/invariant_a0_wasm'
 
 const api = await initPolkadotApi(Network.Local)
 
@@ -125,5 +126,60 @@ describe('tickmap', async () => {
     }
 
     assertThrowsAsync(invariant.getTickmap(poolKey, pool.currentTickIndex))
+  })
+  it('get_tickmap query size exceeds max query size', async function () {
+    this.timeout(2000000)
+    const poolKey = newPoolKey(token0Address, token1Address, feeTier)
+
+    const mintAmount = 1n << 120n
+    await psp22.setContractAddress(token0Address)
+    await psp22.mint(account, mintAmount)
+    await psp22.approve(account, invariant.contract.address.toString(), mintAmount)
+    await psp22.setContractAddress(token1Address)
+    await psp22.mint(account, mintAmount)
+    await psp22.approve(account, invariant.contract.address.toString(), mintAmount)
+
+    const liquidityDelta = 10000000n * 10n ** 6n
+    const spotSqrtPrice = 1000000000000000000000000n
+    const slippageTolerance = 0n
+    console.log("pos")
+
+    const indexes: bigint[] = []
+    const maxQuerySize = getMaxTickmapQuerySize();
+    for (let i = -maxQuerySize - 1n; i < 0n; i += 2n) {
+      indexes.push(i)
+      indexes.push(i + 1n)
+
+      await invariant.createPosition(
+        account,
+        poolKey,
+        i,
+        i + 1n,
+        liquidityDelta,
+        spotSqrtPrice,
+        slippageTolerance
+      )
+    }
+
+    assert(BigInt(indexes.length) > maxQuerySize, "test sample insufficient")
+    
+    const ticks: Tick[] = []
+
+    const promises: Promise<Tick>[] = []
+
+    for (const index of indexes) {
+      promises.push(invariant.getTick(poolKey, index))
+    }
+    ticks.push(...(await Promise.all(promises)))
+
+    const tickmap: Tickmap = await invariant.getFullTickmap(poolKey)
+
+    let sum = 0n;
+    for (const [, chunk] of tickmap.bitmap) {
+      sum += getActiveBitsCount64(chunk)
+    }
+
+    expect(sum).to.equal(BigInt(ticks.length))
+
   })
 })
