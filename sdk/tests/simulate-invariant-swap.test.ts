@@ -11,7 +11,8 @@ import {
   newFeeTier,
   newPoolKey,
   filterTickmap,
-  filterTicks
+  filterTicks,
+  delay,
 } from '../src/utils'
 import {
   getMinSqrtPrice,
@@ -36,7 +37,12 @@ const psp22 = await PSP22.load(api, Network.Local, token0Address)
 const feeTier = newFeeTier(10000000000n, 1n)
 
 describe('simulateInvariantSwap', async () => {
-  beforeEach(async () => {
+  beforeEach(async function() {
+    this.timeout(20000)
+    await api.disconnect()
+    await delay(2000)
+    await api.connect()
+
     invariant = await Invariant.deploy(api, Network.Local, account, protocolFee)
     token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
     token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
@@ -567,10 +573,9 @@ describe('simulateInvariantSwap', async () => {
 
     it('ticks', async () => {
       const poolKey = newPoolKey(token0Address, token1Address, feeTier)
-      const pool = await invariant.getPool(token0Address, token1Address, feeTier)
 
-      const sqrtPriceLimit = getMaxSqrtPrice(feeTier.tickSpacing)
-      const amountIn = 6000n
+      const sqrtPriceLimit = getMinSqrtPrice(feeTier.tickSpacing)
+      const amountIn = 20000n
       const byAmountIn = true
       const xToY = true
 
@@ -584,6 +589,7 @@ describe('simulateInvariantSwap', async () => {
         0n
       )
 
+      const pool = await invariant.getPool(token0Address, token1Address, feeTier)
       const ticks = filterTicks(
         await Promise.all([invariant.getTick(poolKey, 10n), invariant.getTick(poolKey, -10n)]),
         pool.currentTickIndex,
@@ -612,11 +618,13 @@ describe('simulateInvariantSwap', async () => {
       expect(simulation.globalInsufficientLiquidity).to.equal(false)
       expect(simulation.maxTicksCrossed).to.equal(false)
       expect(simulation.stateOutdated).to.equal(true)
-      expect(simulation.crossedTicks.length).to.equal(0)
+      expect(simulation.crossedTicks.length).to.equal(1)
     })
   })
   it('max ticks crossed', async function () {
     this.timeout(2000000)
+
+    
     const poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
     const sqrtPriceLimit = getMinSqrtPrice(feeTier.tickSpacing)
@@ -635,7 +643,6 @@ describe('simulateInvariantSwap', async () => {
     const liquidityDelta = 10000000n * 10n ** 6n
     const spotSqrtPrice = 1000000000000000000000000n
     const slippageTolerance = 0n
-    console.log('pos')
 
     const indexes: bigint[] = []
 

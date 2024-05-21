@@ -4,7 +4,6 @@ pub mod e2e_tests {
         contracts::tickmap::get_max_chunk,
         contracts::{entrypoints::InvariantTrait, FeeTier, PoolKey},
         invariant::InvariantRef,
-        math::consts::{MAX_TICK, MIN_TICK},
         math::types::liquidity::Liquidity,
         math::types::percentage::Percentage,
         math::types::sqrt_price::{calculate_sqrt_price, get_max_tick, get_min_tick, SqrtPrice},
@@ -80,7 +79,9 @@ pub mod e2e_tests {
             InvariantRef,
             dex,
             pool_key,
-            pool.current_tick_index,
+            get_min_tick(fee_tier.tick_spacing),
+            get_max_tick(fee_tier.tick_spacing),
+            false,
             alice
         );
 
@@ -165,7 +166,9 @@ pub mod e2e_tests {
             InvariantRef,
             dex,
             pool_key,
-            pool.current_tick_index,
+            get_min_tick(fee_tier.tick_spacing),
+            get_max_tick(fee_tier.tick_spacing),
+            false,
             alice
         );
 
@@ -252,7 +255,9 @@ pub mod e2e_tests {
             InvariantRef,
             dex,
             pool_key,
-            pool.current_tick_index,
+            get_min_tick(fee_tier.tick_spacing),
+            get_max_tick(fee_tier.tick_spacing),
+            false,
             alice
         );
 
@@ -266,7 +271,16 @@ pub mod e2e_tests {
         );
         assert_eq!(tickmap.len(), 2);
         {
-            let tickmap = get_tickmap!(client, InvariantRef, dex, pool_key, MIN_TICK, alice);
+            let tickmap = get_tickmap!(
+                client,
+                InvariantRef,
+                dex,
+                pool_key,
+                get_min_tick(fee_tier.tick_spacing),
+                get_max_tick(fee_tier.tick_spacing),
+                false,
+                alice
+            );
             assert_eq!(tickmap[0], (0, 0b11));
             assert_eq!(
                 tickmap[1],
@@ -277,7 +291,16 @@ pub mod e2e_tests {
             );
             assert_eq!(tickmap.len(), 2);
 
-            let tickmap = get_tickmap!(client, InvariantRef, dex, pool_key, 0, alice);
+            let tickmap = get_tickmap!(
+                client,
+                InvariantRef,
+                dex,
+                pool_key,
+                get_min_tick(fee_tier.tick_spacing),
+                get_max_tick(fee_tier.tick_spacing),
+                false,
+                alice
+            );
             assert_eq!(tickmap[0], (0, 0b11));
             assert_eq!(
                 tickmap[1],
@@ -288,10 +311,19 @@ pub mod e2e_tests {
             );
             assert_eq!(tickmap.len(), 2);
 
-            let tickmap = get_tickmap!(client, InvariantRef, dex, pool_key, MAX_TICK, alice);
-            assert_eq!(tickmap[0], (0, 0b11));
+            let tickmap = get_tickmap!(
+                client,
+                InvariantRef,
+                dex,
+                pool_key,
+                get_min_tick(fee_tier.tick_spacing),
+                get_max_tick(fee_tier.tick_spacing),
+                true,
+                alice
+            );
+            assert_eq!(tickmap[1], (0, 0b11));
             assert_eq!(
-                tickmap[1],
+                tickmap[0],
                 (
                     get_max_chunk(fee_tier.tick_spacing),
                     0b11000000000000000000000000000000000000000000000000000
@@ -360,7 +392,9 @@ pub mod e2e_tests {
             InvariantRef,
             dex,
             pool_key,
-            pool.current_tick_index,
+            get_min_tick(fee_tier.tick_spacing),
+            get_max_tick(fee_tier.tick_spacing),
+            false,
             alice
         );
 
@@ -428,7 +462,9 @@ pub mod e2e_tests {
             InvariantRef,
             dex,
             pool_key,
-            pool.current_tick_index,
+            get_min_tick(fee_tier.tick_spacing),
+            get_max_tick(fee_tier.tick_spacing),
+            false,
             alice
         );
         for (i, _) in (0..tickmap.len()).enumerate() {
@@ -501,7 +537,9 @@ pub mod e2e_tests {
             InvariantRef,
             dex,
             pool_key,
-            pool.current_tick_index,
+            get_min_tick(fee_tier.tick_spacing),
+            get_max_tick(fee_tier.tick_spacing),
+            false,
             alice
         );
 

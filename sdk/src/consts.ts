@@ -19,6 +19,7 @@ import {
   getTokenAmountDenominator,
   getTokenAmountScale
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
+import { getMaxTickCross, getMaxTickmapQuerySize } from './wasm/pkg/invariant_a0_wasm'
 
 export const MAX_REF_TIME = 259058343000
 export const DEFAULT_REF_TIME = 1250000000000
@@ -56,3 +57,5 @@ export const TOKEN_AMOUNT_SCALE = getTokenAmountScale()
 export const MAX_SQRT_PRICE = getGlobalMaxSqrtPrice()
 export const MIN_SQRT_PRICE = getGlobalMinSqrtPrice()
 export const CHUNK_SIZE = getChunkSize()
+export const MAX_TICKMAP_QUERY_SIZE = getMaxTickmapQuerySize()
+export const MAX_TICK_CROSS = getMaxTickCross()

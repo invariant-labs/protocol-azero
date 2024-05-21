@@ -26,7 +26,7 @@ import { Bytes } from '@polkadot/types'
 import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { deployContract } from '@scio-labs/use-inkathon'
-import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME } from './consts.js'
+import { CHUNK_SIZE, DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME, MAX_TICKMAP_QUERY_SIZE } from './consts.js'
 import { Network } from './network.js'
 import {
   ContractOptions,
@@ -45,13 +45,16 @@ import {
   createSignAndSendTx,
   createTx,
   getAbi,
-  getActiveBitsCount64,
   getDeploymentData,
   parse,
   parseEvent,
   sendQuery
 } from './utils.js'
-import { Tickmap, getMaxTick, getMaxTickmapQuerySize } from './wasm/pkg/invariant_a0_wasm.js'
+import {
+  Tickmap,
+  getMaxTick,
+  getMinTick
+} from './wasm/pkg/invariant_a0_wasm.js'
 import { assert } from 'chai'
 
 export class Invariant {
@@ -724,88 +727,64 @@ export class Invariant {
       [owner, offset]
     )
   }
-  async getRawTickmap(poolKey: PoolKey, currentTickIndex: bigint): Promise<[bigint, bigint][]> {
+  async getRawTickmap(
+    poolKey: PoolKey,
+    lowerTick: bigint,
+    upperTick: bigint,
+    xToY: boolean
+  ): Promise<[bigint, bigint][]> {
     return await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       InvariantQuery.GetTickmap,
-      [poolKey, currentTickIndex]
+      [poolKey, lowerTick, upperTick, xToY]
     )
   }
 
   async getFullTickmap(poolKey: PoolKey): Promise<Tickmap> {
-    const maxQuerySize = getMaxTickmapQuerySize()
     const maxTick = getMaxTick(poolKey.feeTier.tickSpacing)
-    const liquidityTicksCount = await this.getLiquidityTicksAmount(poolKey)
+    let lowerTick = getMinTick(poolKey.feeTier.tickSpacing)
+    
+    const xToY = false
+    
+    const promises: Promise<[bigint, bigint][]>[] = []
+    const tickSpacing = poolKey.feeTier.tickSpacing
+    assert(tickSpacing <= 100)
+    
+    assert(MAX_TICKMAP_QUERY_SIZE > 3)
+    assert(CHUNK_SIZE*2n > tickSpacing)
+    // move back 1 chunk since the range is inclusive
+    // then move back additional 2 chunks to ensure that adding tickspacing won't exceed the query limit  
+    const jump = (MAX_TICKMAP_QUERY_SIZE - 3n)*CHUNK_SIZE;
 
-    let queriedTicks = 0n
-    let storedTickmap = new Map<bigint, bigint>()
-    let storedChunkMin = 18_446_744_073_709_551_615n //u64max
-    let storedChunkMax = 0n
-
-    let queriedChunksMin = 0n
-    let queriedChunksMax = 0n
-
-    const initIndex = maxQuerySize / 2n
-
-    const initQuery = await this.getRawTickmap(poolKey, initIndex)
-
-    storedTickmap = new Map<bigint, bigint>(initQuery)
-
-    for (const [chunk_index, chunk] of storedTickmap.entries()) {
-      if (chunk_index > storedChunkMax) {
-        storedChunkMax = chunk_index
-        queriedTicks += getActiveBitsCount64(chunk)
-      } else if (chunk_index < storedChunkMin) {
-        storedChunkMin = chunk_index
-        queriedTicks += getActiveBitsCount64(chunk)
+    while (lowerTick <= maxTick) {
+      let nextTick = lowerTick + jump
+      const remainder = nextTick%tickSpacing;
+      
+      if (remainder > 0) {
+        nextTick += tickSpacing - remainder
       }
+      else if (remainder < 0) {
+        nextTick -= remainder
+      }
+
+      const upperTick = nextTick > maxTick ? maxTick : nextTick
+
+      assert(upperTick%tickSpacing === 0n)
+      assert(lowerTick%tickSpacing === 0n)
+
+      const result = this.getRawTickmap(poolKey, lowerTick, upperTick, xToY)
+      promises.push(result)
+
+      lowerTick = upperTick + tickSpacing
     }
 
-    let nextQueryIndex = storedChunkMax + maxQuerySize / 2n
+    const fullResult: [bigint, bigint][] = (await Promise.all(promises)).flat(1)
 
-    while (queriedTicks < liquidityTicksCount) {
-      assert(nextQueryIndex < maxTick, 'Query failed, max tick reached')
+    const storedTickmap = new Map<bigint, bigint>(fullResult)
 
-      if (queriedTicks + maxQuerySize > liquidityTicksCount) {
-        // if all remaining ticks are within max query size
-        // they can be queried by starting from the opposite end of the tickmap
-        nextQueryIndex = maxTick
-      } else {
-        nextQueryIndex = storedChunkMax + maxQuerySize / 2n
-      }
-
-      const subsequentQuery = await this.getRawTickmap(poolKey, nextQueryIndex)
-
-      for (const [chunk_index, chunk] of subsequentQuery.values()) {
-        if (chunk_index > queriedChunksMax) {
-          queriedChunksMax = chunk_index
-        }
-        if (chunk_index > queriedChunksMin) {
-          queriedChunksMin = chunk_index
-        }
-
-        if (chunk_index > storedChunkMax) {
-          storedTickmap.set(chunk_index, chunk)
-          queriedTicks += getActiveBitsCount64(chunk)
-        } else if (chunk_index < storedChunkMin) {
-          storedTickmap.set(chunk_index, chunk)
-          queriedTicks += getActiveBitsCount64(chunk)
-        }
-      }
-
-      if (queriedChunksMax > storedChunkMax) {
-        storedChunkMax = queriedChunksMax
-      }
-      if (queriedChunksMin < storedChunkMin) {
-        storedChunkMin = queriedChunksMin
-      }
-    }
-
-    return {
-      bitmap: storedTickmap
-    }
+    return { bitmap: storedTickmap }
   }
 
   async getTickmap(poolKey: PoolKey, currentTickIndex: bigint): Promise<bigint[]> {

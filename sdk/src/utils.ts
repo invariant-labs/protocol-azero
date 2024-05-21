@@ -36,7 +36,8 @@ import {
   Tickmap,
   simulateInvariantSwap as _simulateInvariantSwap,
   tickIndexToPosition,
-  getMaxTickCross
+  getMaxTickCross,
+  CalculateSwapResult
 } from '../src/wasm/pkg/invariant_a0_wasm.js'
 
 export const initPolkadotApi = async (network: Network, ws?: string): Promise<ApiPromise> => {
@@ -482,6 +483,32 @@ export function getActiveBitsCount64(num: bigint) {
   return activeBits
 }
 
+export function lowestActiveBit(num: bigint) {
+  let bit = 0n
+
+  while (bit < 64) {
+    if (num & (1n << bit)) {
+      return bit
+    }
+    bit += 1n
+  }
+
+  return bit
+}
+
+export function highestActiveBit(num: bigint) {
+  let bit = 63n
+
+  while (bit >= 0n) {
+    if (num & (1n << bit)) {
+      return bit
+    }
+    bit -= 1n
+  }
+
+  return bit
+}
+
 export function simulateInvariantSwap(
   tickmap: Tickmap,
   protocolFee: TokenAmount,
@@ -492,7 +519,7 @@ export function simulateInvariantSwap(
   amountIn: TokenAmount,
   byAmountIn: boolean,
   sqrtPriceLimit: SqrtPrice
-) {
+): CalculateSwapResult {
   return _simulateInvariantSwap(
     tickmap,
     protocolFee,
@@ -560,3 +587,7 @@ export function filterTickmap(
 
   return { bitmap: filteredTickmap }
 }
+
+export const delay = (delayMs: number) => {
+  return new Promise(resolve => setTimeout(resolve, delayMs));
+};
