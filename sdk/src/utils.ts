@@ -18,7 +18,8 @@ import {
   calculateAmountDeltaResult,
   getMaxChunk,
   getPercentageDenominator,
-  getSqrtPriceDenominator
+  getSqrtPriceDenominator,
+  toPercentage
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { ApiPromise, SubmittableResult, WsProvider } from '@polkadot/api'
 import { ContractPromise } from '@polkadot/api-contract'
@@ -454,4 +455,8 @@ export const calculateLiquidityBreakpoints = (
       index: tick.index
     }
   })
+}
+
+export const calculateFeeTierWithLinearRatio = (tickCount: bigint): FeeTier => {
+  return newFeeTier(tickCount * toPercentage(1n, 4n), tickCount)
 }
