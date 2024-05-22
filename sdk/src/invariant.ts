@@ -57,8 +57,7 @@ import {
   parseEvent,
   sendQuery
 } from './utils.js'
-import { assert } from 'chai'
-
+import assert from 'assert'
 export class Invariant {
   contract: ContractPromise
   api: ApiPromise
