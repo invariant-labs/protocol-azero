@@ -3,8 +3,8 @@ import {
   Keyring,
   Network,
   TESTNET_BTC_ADDRESS,
+  TESTNET_ETH_ADDRESS,
   TESTNET_INVARIANT_ADDRESS,
-  TETSNET_USDC_ADDRESS,
   initPolkadotApi,
   newFeeTier,
   newPoolKey,
@@ -24,7 +24,7 @@ const main = async () => {
   const account = keyring.addFromMnemonic(mnemonic)
 
   const FEE_TIER = newFeeTier(toPercentage(1n, 4n), 1n)
-  const TOKEN_0_ADDRESS = TETSNET_USDC_ADDRESS
+  const TOKEN_0_ADDRESS = TESTNET_ETH_ADDRESS
   const TOKEN_1_ADDRESS = TESTNET_BTC_ADDRESS
   const POOL_KEY = newPoolKey(TOKEN_0_ADDRESS, TOKEN_1_ADDRESS, FEE_TIER)
 
@@ -34,7 +34,7 @@ const main = async () => {
     proofSize: 100000000000
   })
 
-  await invariant.createPool(account, POOL_KEY, toSqrtPrice(1n, 0n))
+  await invariant.createPool(account, POOL_KEY, 1000000000000000000000000n)
 
   process.exit(0)
 }

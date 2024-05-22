@@ -9,11 +9,10 @@ import {
   DEFAULT_PROOF_SIZE,
   newPoolKey,
   TESTNET_ETH_ADDRESS,
-  TETSNET_USDC_ADDRESS,  
+  TESTNET_USDC_ADDRESS
 } from '@invariant-labs/a0-sdk'
 import { ContractOptions } from '@invariant-labs/a0-sdk/target/schema'
 import dotenv from 'dotenv'
-
 
 dotenv.config()
 
@@ -65,13 +64,13 @@ const main = async () => {
 
   await INVARIANT.createPool(
     account,
-    newPoolKey(TETSNET_USDC_ADDRESS, TESTNET_ETH_ADDRESS, feeTiers[0]),
+    newPoolKey(TESTNET_USDC_ADDRESS, TESTNET_ETH_ADDRESS, feeTiers[0]),
     1000000000000000000000000n
   ).catch(err => {
     console.error(err), process.exit(1)
   })
 
-  console.log(`Pool added ${TETSNET_USDC_ADDRESS}, ${TESTNET_ETH_ADDRESS}`)
+  console.log(`Pool added ${TESTNET_USDC_ADDRESS}, ${TESTNET_ETH_ADDRESS}`)
   process.exit(0)
 }
 

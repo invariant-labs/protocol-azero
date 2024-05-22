@@ -1,6 +1,6 @@
 {
   "name": "@invariant-labs/a0-sdk",
-  "version": "0.1.21",
+  "version": "0.1.24",
   "collaborators": [
     "Invariant Labs"
   ],
@@ -21,20 +21,22 @@
     "directory": "sdk"
   },
   "scripts": {
+    "a": "echo Running script a",
+    "a:b": "echo Running script ab",
     "prebuild": "./prebuild.sh",
     "build": "npx tsc",
     "start:testnet": "npx tsc && node --experimental-wasm-modules target/src/index.js testnet",
     "start:local": "npx tsc && node --experimental-wasm-modules target/src/index.js local",
     "lint": "eslint . --ext .ts",
     "wasm:package": "./package.sh",
-    "wasm:build": "cd src/wasm && wasm-pack build",
+    "wasm:build": "cd src/wasm && wasm-pack build --features tsify/js",
     "node:start": "substrate-contracts-node purge-chain -y && substrate-contracts-node --rpc-port 9944 --dev",
     "node:stop": "ps aux | grep substrate-contracts-node | tr -s ' ' | cut -d ' ' -f 2 | head -n 1 | xargs -r kill -9",
     "contract:build": "cd .. && cargo contract build --release && cd sdk",
     "docs:copy": "cp ../README.md README.md",
     "build:copy-wasm": "cd target && mkdir wasm && cp -r ../src/wasm/pkg ./wasm/pkg",
     "test:all": "ts-mocha",
-    "test:local": "npm run test:utils && npm run test:wazero && npm run test:psp22 && npm run test:protocol-fee && npm run test:position && npm run test:math && npm run test:invariant && npm run test:get-position-ticks && npm run test:get-liquidity-ticks && npm run test:get-tickmap && npm run test:example && npm run test:events && npm run test:tx",
+    "test:local": "npm run test:utils && npm run test:wazero && npm run test:psp22 && npm run test:protocol-fee  && npm run test:math && npm run test:invariant && npm run test:example && npm run test:events && npm run test:tx && npm run test:position && npm run test:get-liquidity-ticks ",
     "test:utils": "mocha ./tests/utils.test.ts -g utils",
     "test:wazero": "mocha ./tests/wrapped-azero.test.ts -g wrapped-azero",
     "test:psp22": "mocha ./tests/psp22.test.ts -g psp22",
@@ -44,18 +46,19 @@
     "test:invariant": "mocha ./tests/invariant.test.ts -g invariant",
     "test:get-position-ticks": "mocha ./tests/get-position-ticks.test.ts -g get-position-ticks",
     "test:get-liquidity-ticks": "mocha ./tests/get-liquidity-ticks.test.ts -g get-liquidity-ticks",
-    "test:get-tickmap": "mocha ./tests/get-tickmap.test.ts -g tickmap",
+    "test:get-tickmap": "mocha ./tests/get-tickmap.test.ts -g 'tickmap test'",
     "test:storage-limit": "mocha ./tests/storage-limit.test.ts -g storage-limit",
     "test:example": "mocha ./tests/example.test.ts -g sdk-guide-snippets",
     "test:events": "mocha ./tests/events.test.ts -g events",
     "test:crosses": "mocha ./tests/crosses-testnet.test.ts -g testnet-crosses-limitations",
-    "test:tx": "mocha ./tests/tx.test.ts -g tx"
+    "test:tx": "mocha ./tests/tx.test.ts -g tx",
+    "test:simulate-invariant-swap": "mocha ./tests/simulate-invariant-swap.test.ts -g simulateInvariantSwap"
   },
   "dependencies": {
     "@polkadot/api": "^10.11.2",
     "@polkadot/api-contract": "^10.11.2",
     "@scio-labs/use-inkathon": "^0.6.3",
-    "@invariant-labs/a0-sdk-wasm": "^0.1.6",
+    "@invariant-labs/a0-sdk-wasm": "^0.1.8",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   },

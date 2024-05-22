@@ -5,7 +5,7 @@ import {
   PSP22,
   TESTNET_ETH_ADDRESS,
   TESTNET_INVARIANT_ADDRESS,
-  TETSNET_USDC_ADDRESS,
+  TESTNET_USDC_ADDRESS,
   initPolkadotApi,
   newFeeTier,
   newPoolKey,
@@ -24,8 +24,8 @@ const main = async () => {
   const receiver = process.env.RECEIVER_ADDRESS ?? ''
   const account = keyring.addFromMnemonic(mnemonic)
 
-  const FEE_TIER = newFeeTier(toPercentage(2n, 4n), 2n)
-  const TOKEN_0_ADDRESS = TETSNET_USDC_ADDRESS
+  const FEE_TIER = newFeeTier(toPercentage(1n, 4n), 1n)
+  const TOKEN_0_ADDRESS = TESTNET_USDC_ADDRESS
   const TOKEN_1_ADDRESS = TESTNET_ETH_ADDRESS
   const POOL_KEY = newPoolKey(TOKEN_0_ADDRESS, TOKEN_1_ADDRESS, FEE_TIER)
   const AMOUNT = 1000000000000000000n

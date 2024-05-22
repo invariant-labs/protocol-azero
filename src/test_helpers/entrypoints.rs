@@ -1,8 +1,9 @@
 #[macro_export]
 macro_rules! get_tickmap {
-    ($client:ident, $dex:ty, $dex_address:expr, $pool_key:expr,$current_tick_index:expr, $caller:ident) => {{
-        let message = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.get_tickmap($pool_key, $current_tick_index));
+    ($client:ident, $dex:ty, $dex_address:expr, $pool_key:expr,$lower_tick_index:expr, $upper_tick_index:expr , $x_to_y:expr, $caller:ident) => {{
+        let message = build_message::<$dex>($dex_address.clone()).call(|contract| {
+            contract.get_tickmap($pool_key, $lower_tick_index, $upper_tick_index, $x_to_y)
+        });
         $client
             .call_dry_run(&$caller, &message, 0, None)
             .await

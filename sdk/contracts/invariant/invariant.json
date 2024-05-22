@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x43a0f42854fe3a45c884abe00645ce636c2b7d2bfb54049baf085210f6a29019",
+    "hash": "0x1da8ff2e4a1cd9b7a3e093cda307890f50dfd278e3d9487df5b098382b447437",
     "language": "ink! 4.3.0",
     "compiler": "rustc 1.74.0",
     "build_info": {
@@ -1305,12 +1305,30 @@
             }
           },
           {
-            "label": "center_tick",
+            "label": "lower_tick_index",
             "type": {
               "displayName": [
                 "i32"
               ],
               "type": 7
+            }
+          },
+          {
+            "label": "upper_tick_index",
+            "type": {
+              "displayName": [
+                "i32"
+              ],
+              "type": 7
+            }
+          },
+          {
+            "label": "x_to_y",
+            "type": {
+              "displayName": [
+                "bool"
+              ],
+              "type": 8
             }
           }
         ],

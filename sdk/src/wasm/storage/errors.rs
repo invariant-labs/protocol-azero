@@ -31,6 +31,7 @@ pub enum InvariantError {
     NotEmptyTickDeinitialization,
     InvalidInitTick,
     InvalidInitSqrtPrice,
+    TickLimitReached,
 }
 
 impl core::fmt::Display for InvariantError {

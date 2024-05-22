@@ -371,9 +371,17 @@ pub trait InvariantTrait {
     ///
     /// # Parameters
     /// - `pool_key`: A unique key that identifies the specified pool.
-    /// - `center_tick`: Center tick index.
+    /// - `start_tick_index`: offset tick index.
+    /// - `end_tick_index`: limiting tick index.
+    /// - `x_to_y`: direction of the query.
     #[ink(message)]
-    fn get_tickmap(&self, pool_key: PoolKey, center_tick: i32) -> Vec<(u16, u64)>;
+    fn get_tickmap(
+        &self,
+        pool_key: PoolKey,
+        start_tick_index: i32,
+        end_tick_index: i32,
+        x_to_y: bool,
+    ) -> Vec<(u16, u64)>;
 
     /// Retrieves ticks of a specified pool.
     ///

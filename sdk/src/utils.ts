@@ -19,7 +19,13 @@ import {
   getMaxChunk,
   getPercentageDenominator,
   getSqrtPriceDenominator,
-  toPercentage
+  toPercentage,
+  Tickmap,
+  simulateInvariantSwap as _simulateInvariantSwap,
+  tickIndexToPosition,
+  getMaxTickCross,
+  CalculateSwapResult,
+  positionToTick as _positionToTick
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { ApiPromise, SubmittableResult, WsProvider } from '@polkadot/api'
 import { ContractPromise } from '@polkadot/api-contract'
@@ -163,27 +169,32 @@ export async function sendAndDebugTx(
 ): Promise<EventTxResult<any> | TxResult> {
   return new Promise(async (resolve, reject) => {
     await tx.send(result => {
-      result.events.filter(({ event }) =>
-        api.events.system.ExtrinsicFailed.is(event)
-      ).forEach(({ event: { data: [error] } }) => {
-        // @ts-expect-error not typed error
-        if (error.isModule) {
-          // for module errors, we have the section indexed, lookup
-          // @ts-expect-error not typed error
-          const decoded = api.registry.findMetaError(error.asModule);
-          const { docs, method, section } = decoded;
+      result.events
+        .filter(({ event }) => api.events.system.ExtrinsicFailed.is(event))
+        .forEach(
+          ({
+            event: {
+              data: [error]
+            }
+          }) => {
+            // @ts-expect-error not typed error
+            if (error.isModule) {
+              // for module errors, we have the section indexed, lookup
+              // @ts-expect-error not typed error
+              const decoded = api.registry.findMetaError(error.asModule)
+              const { docs, method, section } = decoded
 
-          console.log(`${section}.${method}: ${docs.join(' ')}`);
-        } else {
-          // Other, CannotLookup, BadOrigin, no extra info
-          console.log(error.toString());
-        }
-      });
+              console.log(`${section}.${method}: ${docs.join(' ')}`)
+            } else {
+              // Other, CannotLookup, BadOrigin, no extra info
+              console.log(error.toString())
+            }
+          }
+        )
       handleTxResult(result, resolve, reject, waitForFinalization, block)
     })
   })
 }
-
 
 export async function signAndSendTx(
   tx: SubmittableExtrinsic,
@@ -457,6 +468,132 @@ export const calculateLiquidityBreakpoints = (
   })
 }
 
+export function getActiveBitsCount64(num: bigint) {
+  let activeBits = 0n
+  let bit = 0n
+
+  while (bit < 64) {
+    if (num & (1n << bit)) {
+      activeBits += 1n
+    }
+    bit += 1n
+  }
+
+  return activeBits
+}
+
+export function lowestActiveBit(num: bigint) {
+  let bit = 0n
+
+  while (bit < 64) {
+    if (num & (1n << bit)) {
+      return bit
+    }
+    bit += 1n
+  }
+
+  return bit
+}
+
+export function highestActiveBit(num: bigint) {
+  let bit = 63n
+
+  while (bit >= 0n) {
+    if (num & (1n << bit)) {
+      return bit
+    }
+    bit -= 1n
+  }
+
+  return bit
+}
+
+export function simulateInvariantSwap(
+  tickmap: Tickmap,
+  protocolFee: TokenAmount,
+  feeTier: FeeTier,
+  pool: Pool,
+  ticks: Tick[],
+  xToY: boolean,
+  amountIn: TokenAmount,
+  byAmountIn: boolean,
+  sqrtPriceLimit: SqrtPrice
+): CalculateSwapResult {
+  return _simulateInvariantSwap(
+    tickmap,
+    protocolFee,
+    feeTier,
+    pool,
+    ticks,
+    xToY,
+    amountIn,
+    byAmountIn,
+    sqrtPriceLimit
+  )
+}
+
+export function positionToTick(chunkIndex: bigint, bit: bigint, tickSpacing: bigint): bigint {
+  return _positionToTick(chunkIndex, bit, tickSpacing)
+}
+
+export function filterTicks(ticks: Tick[], tickIndex: bigint, xToY: boolean): Tick[] {
+  const filteredTicks = new Array(...ticks)
+  const maxTicksCross = getMaxTickCross()
+  let tickCount = 0
+
+  for (const [index, tick] of filteredTicks.entries()) {
+    if (tickCount >= maxTicksCross) {
+      break
+    }
+
+    if (xToY) {
+      if (tick.index > tickIndex) {
+        filteredTicks.splice(index, 1)
+      }
+    } else {
+      if (tick.index < tickIndex) {
+        filteredTicks.splice(index, 1)
+      }
+    }
+    tickCount++
+  }
+
+  return ticks
+}
+
+export function filterTickmap(
+  tickmap: Tickmap,
+  tickSpacing: bigint,
+  index: bigint,
+  xToY: boolean
+): Tickmap {
+  const filteredTickmap = new Map(tickmap.bitmap)
+  const [currentChunkIndex] = tickIndexToPosition(index, tickSpacing)
+  const maxTicksCross = getMaxTickCross()
+  let tickCount = 0
+  for (const [chunkIndex] of filteredTickmap) {
+    if (tickCount >= maxTicksCross) {
+      break
+    }
+
+    if (xToY) {
+      if (chunkIndex > currentChunkIndex) {
+        filteredTickmap.delete(chunkIndex)
+      }
+    } else {
+      if (chunkIndex < currentChunkIndex) {
+        filteredTickmap.delete(chunkIndex)
+      }
+    }
+    tickCount++
+  }
+
+  return { bitmap: filteredTickmap }
+}
+
+export const delay = (delayMs: number) => {
+  return new Promise(resolve => setTimeout(resolve, delayMs))
+}
 export const calculateFeeTierWithLinearRatio = (tickCount: bigint): FeeTier => {
   return newFeeTier(tickCount * toPercentage(1n, 4n), tickCount)
 }

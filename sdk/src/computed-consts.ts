@@ -1,5 +1,5 @@
 import { FeeTier } from '@invariant-labs/a0-sdk-wasm'
-import { calculateFeeTierWithLinearRatio } from './utils'
+import { calculateFeeTierWithLinearRatio } from './utils.js'
 
 export const FEE_TIERS: FeeTier[] = [
   calculateFeeTierWithLinearRatio(1n),
