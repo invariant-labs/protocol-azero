@@ -52,9 +52,9 @@ export {
   TESTNET_ETH_ADDRESS,
   TESTNET_INVARIANT_ADDRESS,
   TESTNET_WAZERO_ADDRESS,
-  TESTNET_USDC_ADDRESS,
-  FEE_TIERS
+  TESTNET_USDC_ADDRESS
 } from './consts.js'
+export { FEE_TIERS } from './computed-consts.js'
 export { Invariant } from './invariant.js'
 export { Network } from './network.js'
 export { PSP22 } from './psp22.js'
