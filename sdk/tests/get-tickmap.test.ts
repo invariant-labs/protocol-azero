@@ -3,13 +3,14 @@ import { assert, expect } from 'chai'
 import {
   getMaxChunk,
   getMaxTick,
-  getMinTick
+  getMinTick,
+  Tick, 
+  Tickmap
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
 import { delay, getActiveBitsCount64, initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
-import { Tick, Tickmap } from '../src/wasm/pkg/invariant_a0_wasm'
 import { CHUNK_SIZE, MAX_TICKMAP_QUERY_SIZE } from '../src/consts'
 
 const api = await initPolkadotApi(Network.Local)

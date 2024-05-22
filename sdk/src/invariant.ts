@@ -14,10 +14,13 @@ import {
   SqrtPrice,
   SwapHop,
   Tick,
+  Tickmap,
   TokenAmount,
   calculateTick,
   getMaxSqrtPrice,
-  getMinSqrtPrice
+  getMinSqrtPrice,
+  getMaxTick,
+  getMinTick
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { ApiPromise } from '@polkadot/api'
 import { Abi, ContractPromise } from '@polkadot/api-contract'
@@ -54,7 +57,6 @@ import {
   parseEvent,
   sendQuery
 } from './utils.js'
-import { Tickmap, getMaxTick, getMinTick } from './wasm/pkg/invariant_a0_wasm.js'
 import { assert } from 'chai'
 
 export class Invariant {

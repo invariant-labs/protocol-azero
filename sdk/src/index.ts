@@ -7,6 +7,7 @@ export {
   Position,
   PositionTick,
   Price,
+  Pool,
   QuoteResult,
   RemovePositionEvent,
   SecondsPerLiquidity,
@@ -14,6 +15,7 @@ export {
   SwapEvent,
   SwapResult,
   Tick,
+  Tickmap,
   TokenAmount,
   calculateSqrtPrice,
   getLiquidityByX,
@@ -57,6 +59,8 @@ export {
   calculatePriceImpact,
   calculateSqrtPriceAfterSlippage,
   calculateTokenAmounts,
+  filterTickmap,
+  filterTicks,
   initPolkadotApi,
   newFeeTier,
   newPoolKey,
@@ -65,7 +69,7 @@ export {
   sendTx,
   sendAndDebugTx,
   signAndSendTx,
-  sqrtPriceToPrice,
   simulateInvariantSwap,
+  sqrtPriceToPrice,
 } from './utils.js'
 export { WrappedAZERO } from './wrapped-azero.js'

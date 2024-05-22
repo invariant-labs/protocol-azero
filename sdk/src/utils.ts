@@ -19,7 +19,12 @@ import {
   getMaxChunk,
   getPercentageDenominator,
   getSqrtPriceDenominator,
-  toPercentage
+  toPercentage,
+  Tickmap,
+  simulateInvariantSwap as _simulateInvariantSwap,
+  tickIndexToPosition,
+  getMaxTickCross,
+  CalculateSwapResult
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { ApiPromise, SubmittableResult, WsProvider } from '@polkadot/api'
 import { ContractPromise } from '@polkadot/api-contract'
@@ -33,13 +38,6 @@ import { abi as wrappedAZEROAbi } from './abis/wrapped-azero.js'
 import { MAINNET, TESTNET } from './consts.js'
 import { Network } from './network.js'
 import { EventTxResult, LiquidityBreakpoint, Query, Tx, TxResult } from './schema.js'
-import {
-  Tickmap,
-  simulateInvariantSwap as _simulateInvariantSwap,
-  tickIndexToPosition,
-  getMaxTickCross,
-  CalculateSwapResult
-} from '../src/wasm/pkg/invariant_a0_wasm.js'
 
 export const initPolkadotApi = async (network: Network, ws?: string): Promise<ApiPromise> => {
   if (network === Network.Local) {
@@ -589,8 +587,8 @@ export function filterTickmap(
 }
 
 export const delay = (delayMs: number) => {
-  return new Promise(resolve => setTimeout(resolve, delayMs));
-};
+  return new Promise(resolve => setTimeout(resolve, delayMs))
+}
 export const calculateFeeTierWithLinearRatio = (tickCount: bigint): FeeTier => {
   return newFeeTier(tickCount * toPercentage(1n, 4n), tickCount)
 }

@@ -19,7 +19,7 @@ import {
   getSqrtPriceDenominator,
   getSqrtPriceScale,
   getTokenAmountDenominator,
-  getTokenAmountScale,
+  getTokenAmountScale
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 
 export const MAX_REF_TIME = 259058343000

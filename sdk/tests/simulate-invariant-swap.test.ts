@@ -1,6 +1,5 @@
 import { Keyring } from '@polkadot/api'
 import { expect } from 'chai'
-import { Tick } from '../src/wasm/pkg/invariant_a0_wasm.js'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
@@ -15,11 +14,12 @@ import {
   delay
 } from '../src/utils'
 import {
+  Tick,
   getMinSqrtPrice,
   getMaxSqrtPrice,
   Tickmap,
   SwapEvent
-} from '../src/wasm/pkg/invariant_a0_wasm'
+} from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 
 const api = await initPolkadotApi(Network.Local)
 
