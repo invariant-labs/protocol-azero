@@ -26,7 +26,12 @@ import { Bytes } from '@polkadot/types'
 import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { deployContract } from '@scio-labs/use-inkathon'
-import { CHUNK_SIZE, DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME, MAX_TICKMAP_QUERY_SIZE } from './consts.js'
+import {
+  CHUNK_SIZE,
+  DEFAULT_PROOF_SIZE,
+  DEFAULT_REF_TIME,
+  MAX_TICKMAP_QUERY_SIZE
+} from './consts.js'
 import { Network } from './network.js'
 import {
   ContractOptions,
@@ -41,7 +46,6 @@ import {
 } from './schema.js'
 import {
   calculateSqrtPriceAfterSlippage,
-  constructTickmap,
   createSignAndSendTx,
   createTx,
   getAbi,
@@ -50,11 +54,7 @@ import {
   parseEvent,
   sendQuery
 } from './utils.js'
-import {
-  Tickmap,
-  getMaxTick,
-  getMinTick
-} from './wasm/pkg/invariant_a0_wasm.js'
+import { Tickmap, getMaxTick, getMinTick } from './wasm/pkg/invariant_a0_wasm.js'
 import { assert } from 'chai'
 
 export class Invariant {
@@ -745,34 +745,37 @@ export class Invariant {
   async getFullTickmap(poolKey: PoolKey): Promise<Tickmap> {
     const maxTick = getMaxTick(poolKey.feeTier.tickSpacing)
     let lowerTick = getMinTick(poolKey.feeTier.tickSpacing)
-    
+
     const xToY = false
-    
+
     const promises: Promise<[bigint, bigint][]>[] = []
     const tickSpacing = poolKey.feeTier.tickSpacing
     assert(tickSpacing <= 100)
-    
+
     assert(MAX_TICKMAP_QUERY_SIZE > 3)
-    assert(CHUNK_SIZE*2n > tickSpacing)
+    assert(CHUNK_SIZE * 2n > tickSpacing)
     // move back 1 chunk since the range is inclusive
-    // then move back additional 2 chunks to ensure that adding tickspacing won't exceed the query limit  
-    const jump = (MAX_TICKMAP_QUERY_SIZE - 3n)*CHUNK_SIZE;
+    // then move back additional 2 chunks to ensure that adding tickspacing won't exceed the query limit
+    const jump = (MAX_TICKMAP_QUERY_SIZE - 3n) * CHUNK_SIZE
 
     while (lowerTick <= maxTick) {
       let nextTick = lowerTick + jump
-      const remainder = nextTick%tickSpacing;
-      
+      const remainder = nextTick % tickSpacing
+
       if (remainder > 0) {
         nextTick += tickSpacing - remainder
-      }
-      else if (remainder < 0) {
+      } else if (remainder < 0) {
         nextTick -= remainder
       }
 
-      const upperTick = nextTick > maxTick ? maxTick : nextTick
+      let upperTick = nextTick
 
-      assert(upperTick%tickSpacing === 0n)
-      assert(lowerTick%tickSpacing === 0n)
+      if (upperTick > maxTick) {
+        upperTick = maxTick
+      }
+
+      assert(upperTick % tickSpacing === 0n)
+      assert(lowerTick % tickSpacing === 0n)
 
       const result = this.getRawTickmap(poolKey, lowerTick, upperTick, xToY)
       promises.push(result)
@@ -785,17 +788,6 @@ export class Invariant {
     const storedTickmap = new Map<bigint, bigint>(fullResult)
 
     return { bitmap: storedTickmap }
-  }
-
-  async getTickmap(poolKey: PoolKey, currentTickIndex: bigint): Promise<bigint[]> {
-    const result = await sendQuery(
-      this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
-      InvariantQuery.GetTickmap,
-      [poolKey, currentTickIndex]
-    )
-    return constructTickmap(result, poolKey.feeTier.tickSpacing)
   }
 
   async getLiquidityTicks(poolKey: PoolKey, offset: bigint): Promise<LiquidityTick[]> {

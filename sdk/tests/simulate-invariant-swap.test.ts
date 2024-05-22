@@ -12,7 +12,7 @@ import {
   newPoolKey,
   filterTickmap,
   filterTicks,
-  delay,
+  delay
 } from '../src/utils'
 import {
   getMinSqrtPrice,
@@ -37,7 +37,7 @@ const psp22 = await PSP22.load(api, Network.Local, token0Address)
 const feeTier = newFeeTier(10000000000n, 1n)
 
 describe('simulateInvariantSwap', async () => {
-  beforeEach(async function() {
+  beforeEach(async function () {
     this.timeout(20000)
     await api.disconnect()
     await delay(2000)
@@ -187,7 +187,7 @@ describe('simulateInvariantSwap', async () => {
         amountIn,
         byAmountIn,
         sqrtPriceLimit
-      ) as CalculateSwapResult
+      )
 
       expect(simulation.stateOutdated).to.equal(false)
       expect(simulation.maxTicksCrossed).to.equal(false)
@@ -441,7 +441,7 @@ describe('simulateInvariantSwap', async () => {
         amountIn,
         byAmountIn,
         sqrtPriceLimit
-      ) as CalculateSwapResult
+      )
 
       const swap = await invariant.swap(
         account,
@@ -623,8 +623,6 @@ describe('simulateInvariantSwap', async () => {
   })
   it('max ticks crossed', async function () {
     this.timeout(2000000)
-
-    
     const poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
     const sqrtPriceLimit = getMinSqrtPrice(feeTier.tickSpacing)
@@ -668,7 +666,12 @@ describe('simulateInvariantSwap', async () => {
 
     const pool = await invariant.getPool(token0Address, token1Address, feeTier)
 
-    const tickmap: Tickmap = filterTickmap(await invariant.getFullTickmap(poolKey), poolKey.feeTier.tickSpacing, pool.currentTickIndex, xToY)
+    const tickmap: Tickmap = filterTickmap(
+      await invariant.getFullTickmap(poolKey),
+      poolKey.feeTier.tickSpacing,
+      pool.currentTickIndex,
+      xToY
+    )
 
     const simulation = simulateInvariantSwap(
       tickmap,
