@@ -397,12 +397,12 @@ export class Invariant {
     const slippageLimitLower = calculateSqrtPriceAfterSlippage(
       spotSqrtPrice,
       slippageTolerance,
-      true
+      false
     )
     const slippageLimitUpper = calculateSqrtPriceAfterSlippage(
       spotSqrtPrice,
       slippageTolerance,
-      false
+      true
     )
 
     return createTx(
@@ -428,12 +428,12 @@ export class Invariant {
     const slippageLimitLower = calculateSqrtPriceAfterSlippage(
       spotSqrtPrice,
       slippageTolerance,
-      true
+      false
     )
     const slippageLimitUpper = calculateSqrtPriceAfterSlippage(
       spotSqrtPrice,
       slippageTolerance,
-      false
+      true
     )
 
     return createSignAndSendTx(

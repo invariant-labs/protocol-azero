@@ -17,7 +17,6 @@ import {
 import {
   getMinSqrtPrice,
   getMaxSqrtPrice,
-  CalculateSwapResult,
   Tickmap,
   SwapEvent
 } from '../src/wasm/pkg/invariant_a0_wasm'

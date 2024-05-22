@@ -45,7 +45,8 @@ export {
   TESTNET_ETH_ADDRESS,
   TESTNET_INVARIANT_ADDRESS,
   TESTNET_WAZERO_ADDRESS,
-  TETSNET_USDC_ADDRESS
+  TESTNET_USDC_ADDRESS,
+  FEE_TIERS
 } from './consts.js'
 export { Invariant } from './invariant.js'
 export { Network } from './network.js'
