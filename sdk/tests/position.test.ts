@@ -24,7 +24,7 @@ const account = await keyring.addFromUri('//Alice')
 let invariant = await Invariant.deploy(api, Network.Local, account, 10000000000n)
 let token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
 let token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
-const psp22 = await PSP22.load(api, Network.Local, token0Address)
+const psp22 = await PSP22.load(api, Network.Local)
 
 const lowerTickIndex = -20n
 const upperTickIndex = 10n
@@ -45,10 +45,8 @@ describe('position', async () => {
 
     await invariant.createPool(account, poolKey, 1000000000000000000000000n)
 
-    await psp22.setContractAddress(token0Address)
-    await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
-    await psp22.setContractAddress(token1Address)
-    await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
+    await psp22.approve(account, invariant.contract.address.toString(), 10000000000n, token0Address)
+    await psp22.approve(account, invariant.contract.address.toString(), 10000000000n, token1Address)
 
     pool = await invariant.getPool(token0Address, token1Address, feeTier)
 
@@ -177,9 +175,8 @@ describe('position', async () => {
       const amount: TokenAmount = 1000n
       const swapper = keyring.addFromUri('//Bob')
 
-      await psp22.setContractAddress(tokenX)
-      await psp22.mint(swapper, amount)
-      await psp22.approve(swapper, invariant.contract.address.toString(), amount)
+      await psp22.mint(swapper, amount, tokenX)
+      await psp22.approve(swapper, invariant.contract.address.toString(), amount, tokenX)
 
       const poolBefore = await invariant.getPool(token0Address, token1Address, feeTier)
 
@@ -187,18 +184,14 @@ describe('position', async () => {
       await invariant.swap(swapper, poolKey, true, amount, true, targetSqrtPrice)
 
       const poolAfter = await invariant.getPool(token0Address, token1Address, feeTier)
-      await psp22.setContractAddress(tokenX)
-      const swapperX = await psp22.balanceOf(swapper.address)
-      await psp22.setContractAddress(tokenY)
-      const swapperY = await psp22.balanceOf(swapper.address)
+      const swapperX = await psp22.balanceOf(swapper.address, tokenX)
+      const swapperY = await psp22.balanceOf(swapper.address, tokenY)
 
       assert.equal(swapperX, 0n)
       assert.equal(swapperY, 993n)
 
-      await psp22.setContractAddress(tokenX)
-      const invariantX = await psp22.balanceOf(invariant.contract.address.toString())
-      await psp22.setContractAddress(tokenY)
-      const invariantY = await psp22.balanceOf(invariant.contract.address.toString())
+      const invariantX = await psp22.balanceOf(invariant.contract.address.toString(), tokenX)
+      const invariantY = await psp22.balanceOf(invariant.contract.address.toString(), tokenY)
 
       assert.equal(invariantX, 1500n)
       assert.equal(invariantY, 7n)
@@ -212,16 +205,14 @@ describe('position', async () => {
       assert.deepEqual(poolAfter.feeProtocolTokenY, 0n)
     }
     {
-      await psp22.setContractAddress(tokenX)
-      const positionOwnerBeforeX = await psp22.balanceOf(account.address)
-      const invariantBeforeX = await psp22.balanceOf(invariant.contract.address.toString())
+      const positionOwnerBeforeX = await psp22.balanceOf(account.address, tokenX)
+      const invariantBeforeX = await psp22.balanceOf(invariant.contract.address.toString(), tokenX)
 
       await invariant.claimFee(account, 0n)
 
-      await psp22.setContractAddress(tokenX)
-      const positionOwnerAfterX = await psp22.balanceOf(account.address)
+      const positionOwnerAfterX = await psp22.balanceOf(account.address, tokenX)
 
-      const invariantAfterX = await psp22.balanceOf(invariant.contract.address.toString())
+      const invariantAfterX = await psp22.balanceOf(invariant.contract.address.toString(), tokenX)
 
       const position = await invariant.getPosition(account.address, 0n)
       const pool = await invariant.getPool(token0Address, token1Address, feeTier)

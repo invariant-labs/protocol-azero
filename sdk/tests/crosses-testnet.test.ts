@@ -24,7 +24,7 @@ describe('testnet-crosses-limitations', async () => {
     const invariant = await Invariant.deploy(api, network, deployer, 10000000000n, deployOptions)
     const token0Address = await PSP22.deploy(api, deployer, 1000000000n, 'Coin', 'COIN', 0n)
     const token1Address = await PSP22.deploy(api, deployer, 1000000000n, 'Coin', 'COIN', 0n)
-    const psp22 = await PSP22.load(api, network, token0Address, deployOptions)
+    const psp22 = await PSP22.load(api, network, deployOptions)
 
     const feeTier = newFeeTier(6000000000n, 10n)
     const poolKey = newPoolKey(token0Address, token1Address, feeTier)
@@ -34,12 +34,10 @@ describe('testnet-crosses-limitations', async () => {
     await invariant.createPool(deployer, poolKey, 1000000000000000000000000n)
 
     const mintAmount = 1n << 110n
-    await psp22.setContractAddress(token0Address)
-    await psp22.mint(deployer, mintAmount)
-    await psp22.approve(deployer, invariant.contract.address.toString(), mintAmount)
-    await psp22.setContractAddress(token1Address)
-    await psp22.mint(deployer, mintAmount)
-    await psp22.approve(deployer, invariant.contract.address.toString(), mintAmount)
+    await psp22.mint(deployer, mintAmount, token0Address)
+    await psp22.approve(deployer, invariant.contract.address.toString(), mintAmount, token0Address)
+    await psp22.mint(deployer, mintAmount, token1Address)
+    await psp22.approve(deployer, invariant.contract.address.toString(), mintAmount, token1Address)
 
     const liquidityDelta = 10000000n * 10n ** 6n
     const spotSqrtPrice = 1000000000000000000000000n
@@ -60,9 +58,8 @@ describe('testnet-crosses-limitations', async () => {
     const swapAmount = 909000n
     const tokenX = isTokenX(token0Address, token1Address) ? token0Address : token1Address
 
-    psp22.setContractAddress(tokenX)
-    await psp22.mint(swapper, swapAmount)
-    await psp22.approve(swapper, invariant.contract.address.toString(), swapAmount)
+    await psp22.mint(swapper, swapAmount, tokenX)
+    await psp22.approve(swapper, invariant.contract.address.toString(), swapAmount, tokenX)
 
     const quote = await invariant.quote(poolKey, true, swapAmount, true)
     const targetSqrtPrice = quote.targetSqrtPrice
