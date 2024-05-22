@@ -71,5 +71,6 @@ export {
   signAndSendTx,
   simulateInvariantSwap,
   sqrtPriceToPrice,
+  positionToTick
 } from './utils.js'
 export { WrappedAZERO } from './wrapped-azero.js'

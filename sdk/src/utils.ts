@@ -24,7 +24,8 @@ import {
   simulateInvariantSwap as _simulateInvariantSwap,
   tickIndexToPosition,
   getMaxTickCross,
-  CalculateSwapResult
+  CalculateSwapResult,
+  positionToTick as _positionToTick
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { ApiPromise, SubmittableResult, WsProvider } from '@polkadot/api'
 import { ContractPromise } from '@polkadot/api-contract'
@@ -529,6 +530,10 @@ export function simulateInvariantSwap(
     byAmountIn,
     sqrtPriceLimit
   )
+}
+
+export function positionToTick(chunkIndex: bigint, bit: bigint, tickSpacing: bigint): bigint {
+  return _positionToTick(chunkIndex, bit, tickSpacing)
 }
 
 export function filterTicks(ticks: Tick[], tickIndex: bigint, xToY: boolean): Tick[] {
