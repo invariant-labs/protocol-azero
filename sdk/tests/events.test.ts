@@ -27,7 +27,7 @@ let token0Address = await PSP22.deploy(api, account, 1000000000000n, 'Coin', 'CO
 let token1Address = await PSP22.deploy(api, account, 1000000000000n, 'Coin', 'COIN', 0n)
 let poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
-const psp22 = await PSP22.load(api, Network.Local, token0Address)
+const psp22 = await PSP22.load(api, Network.Local)
 
 describe('events', async () => {
   beforeEach(async () => {
@@ -39,10 +39,18 @@ describe('events', async () => {
     await invariant.addFeeTier(account, feeTier)
     await invariant.createPool(account, poolKey, toSqrtPrice(1n, 0n))
 
-    await psp22.setContractAddress(token0Address)
-    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000n)
-    await psp22.setContractAddress(token1Address)
-    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000n)
+    await psp22.approve(
+      account,
+      invariant.contract.address.toString(),
+      1000000000000n,
+      token0Address
+    )
+    await psp22.approve(
+      account,
+      invariant.contract.address.toString(),
+      1000000000000n,
+      token1Address
+    )
   })
 
   it('create position event', async () => {
@@ -64,10 +72,18 @@ describe('events', async () => {
       objectEquals(event, expectedCreatePositionEvent, ['timestamp'])
     })
 
-    await psp22.setContractAddress(token0Address)
-    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000n)
-    await psp22.setContractAddress(token1Address)
-    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000n)
+    await psp22.approve(
+      account,
+      invariant.contract.address.toString(),
+      1000000000000n,
+      token0Address
+    )
+    await psp22.approve(
+      account,
+      invariant.contract.address.toString(),
+      1000000000000n,
+      token1Address
+    )
 
     const result = await invariant.createPosition(
       account,
@@ -85,10 +101,8 @@ describe('events', async () => {
   })
 
   it('cross tick and swap event', async () => {
-    await psp22.setContractAddress(token0Address)
-    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000n)
-    await psp22.setContractAddress(token1Address)
-    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000n)
+    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000n, token0Address)
+    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000n, token1Address)
 
     await invariant.createPosition(
       account,
@@ -154,10 +168,8 @@ describe('events', async () => {
       objectEquals(event, expectedSwapEvent, ['timestamp'])
     })
 
-    await psp22.setContractAddress(token0Address)
-    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000n)
-    await psp22.setContractAddress(token1Address)
-    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000n)
+    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000n, token0Address)
+    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000n, token1Address)
 
     const result = await invariant.swap(
       account,
@@ -178,10 +190,8 @@ describe('events', async () => {
   it('remove position event', async () => {
     let wasFired = false
 
-    await psp22.setContractAddress(token0Address)
-    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000n)
-    await psp22.setContractAddress(token1Address)
-    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000n)
+    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000n, token0Address)
+    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000n, token1Address)
 
     await invariant.createPosition(
       account,
@@ -225,10 +235,8 @@ describe('events', async () => {
 
     invariant.on(InvariantEvent.CreatePositionEvent, handler)
 
-    await psp22.setContractAddress(token0Address)
-    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000n)
-    await psp22.setContractAddress(token1Address)
-    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000n)
+    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000n, token0Address)
+    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000n, token1Address)
 
     await invariant.createPosition(
       account,

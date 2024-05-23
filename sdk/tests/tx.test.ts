@@ -11,7 +11,7 @@ const keyring = new Keyring({ type: 'sr25519' })
 const account = await keyring.addFromUri('//Alice')
 
 let token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
-const psp22 = await PSP22.load(api, Network.Local, token0Address)
+const psp22 = await PSP22.load(api, Network.Local)
 
 describe('tx', function () {
   beforeEach(async () => {
@@ -19,15 +19,15 @@ describe('tx', function () {
   })
 
   it('should send tx', async () => {
-    const balanceBefore = await psp22.balanceOf(account.address)
+    const balanceBefore = await psp22.balanceOf(account.address, token0Address)
 
     const mintAmount = 500n
-    const mintTx = psp22.mintTx(mintAmount)
+    const mintTx = psp22.mintTx(mintAmount, token0Address)
     const hash = await sendTx(mintTx)
 
     expect(hash).to.not.be.undefined
 
-    const balanceAfter = await psp22.balanceOf(account.address)
+    const balanceAfter = await psp22.balanceOf(account.address, token0Address)
     expect(balanceAfter).to.equal(balanceBefore + mintAmount)
   })
 })

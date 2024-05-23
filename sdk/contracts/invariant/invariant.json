@@ -1,11 +1,11 @@
 {
   "source": {
-    "hash": "0x154612febc9f13ab8c6e2782eb24ab97c68feef3508024704567a812faec52bb",
+    "hash": "0x8e3bd05f5544230aa45b4a3f5305039869613d396ea7fd25c09c6f7e7cc52f72",
     "language": "ink! 5.0.0",
     "compiler": "rustc 1.77.0",
     "build_info": {
       "build_mode": "Release",
-      "cargo_contract_version": "4.0.2",
+      "cargo_contract_version": "4.1.1",
       "rust_toolchain": "stable-x86_64-unknown-linux-gnu",
       "wasm_opt_settings": {
         "keep_debug_symbols": false,
@@ -1329,7 +1329,7 @@
               "displayName": [
                 "i32"
               ],
-              "type": 7
+              "type": 12
             }
           },
           {
@@ -1338,7 +1338,7 @@
               "displayName": [
                 "bool"
               ],
-              "type": 8
+              "type": 33
             }
           }
         ],

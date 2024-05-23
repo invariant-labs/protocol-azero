@@ -11,7 +11,6 @@ import { ContractOptions, PSP22Query, PSP22Tx, TxResult } from './schema.js'
 import { createSignAndSendTx, createTx, getAbi, getDeploymentData, sendQuery } from './utils.js'
 
 export class PSP22 {
-  contract: ContractPromise
   api: ApiPromise
   abi: any
   gasLimit: WeightV2
@@ -22,7 +21,6 @@ export class PSP22 {
     api: ApiPromise,
     network: Network,
     abi: any,
-    address: string,
     storageDepositLimit: number | null = null,
     refTime: number = DEFAULT_REF_TIME,
     proofSize: number = DEFAULT_PROOF_SIZE
@@ -30,7 +28,6 @@ export class PSP22 {
     this.api = api
     this.abi = abi
     this.waitForFinalization = network !== Network.Local
-    this.contract = new ContractPromise(this.api, abi, address)
     this.gasLimit = api.registry.createType('WeightV2', {
       refTime,
       proofSize
@@ -59,38 +56,35 @@ export class PSP22 {
     return deploy.address.toString()
   }
 
-  static async load(
-    api: ApiPromise,
-    network: Network,
-    address: string,
-    options?: ContractOptions
-  ): Promise<PSP22> {
+  static async load(api: ApiPromise, network: Network, options?: ContractOptions): Promise<PSP22> {
     const abi = await getAbi('psp22')
 
     return new PSP22(
       api,
       network,
       abi,
-      address,
       options?.storageDepositLimit,
       options?.refTime,
       options?.proofSize
     )
   }
 
-  async setContractAddress(address: string) {
-    this.contract = new ContractPromise(this.api, this.abi, address)
+  mintTx(value: bigint, tokenAddress: string): SubmittableExtrinsic {
+    const contract = new ContractPromise(this.api, this.abi, tokenAddress)
+
+    return createTx(contract, this.gasLimit, this.storageDepositLimit, 0n, PSP22Tx.Mint, [value])
   }
 
-  mintTx(value: bigint): SubmittableExtrinsic {
-    return createTx(this.contract, this.gasLimit, this.storageDepositLimit, 0n, PSP22Tx.Mint, [
-      value
-    ])
-  }
+  async mint(
+    account: IKeyringPair,
+    value: bigint,
+    tokenAddress: string,
+    block: boolean = true
+  ): Promise<TxResult> {
+    const contract = new ContractPromise(this.api, this.abi, tokenAddress)
 
-  async mint(account: IKeyringPair, value: bigint, block: boolean = true): Promise<TxResult> {
     return createSignAndSendTx(
-      this.contract,
+      contract,
       this.gasLimit,
       this.storageDepositLimit,
       0n,
@@ -102,8 +96,10 @@ export class PSP22 {
     )
   }
 
-  transferTx(to: string, value: bigint, data: Bytes): SubmittableExtrinsic {
-    return createTx(this.contract, this.gasLimit, this.storageDepositLimit, 0n, PSP22Tx.Transfer, [
+  transferTx(to: string, value: bigint, data: Bytes, tokenAddress: string): SubmittableExtrinsic {
+    const contract = new ContractPromise(this.api, this.abi, tokenAddress)
+
+    return createTx(contract, this.gasLimit, this.storageDepositLimit, 0n, PSP22Tx.Transfer, [
       to,
       value,
       data
@@ -115,10 +111,13 @@ export class PSP22 {
     to: string,
     value: bigint,
     data: Bytes,
+    tokenAddress: string,
     block: boolean = true
   ): Promise<TxResult> {
+    const contract = new ContractPromise(this.api, this.abi, tokenAddress)
+
     return createSignAndSendTx(
-      this.contract,
+      contract,
       this.gasLimit,
       this.storageDepositLimit,
       0n,
@@ -130,8 +129,10 @@ export class PSP22 {
     )
   }
 
-  approveTx(spender: string, value: bigint): SubmittableExtrinsic {
-    return createTx(this.contract, this.gasLimit, this.storageDepositLimit, 0n, PSP22Tx.Approve, [
+  approveTx(spender: string, value: bigint, tokenAddress: string): SubmittableExtrinsic {
+    const contract = new ContractPromise(this.api, this.abi, tokenAddress)
+
+    return createTx(contract, this.gasLimit, this.storageDepositLimit, 0n, PSP22Tx.Approve, [
       spender,
       value
     ])
@@ -141,10 +142,13 @@ export class PSP22 {
     account: IKeyringPair,
     spender: string,
     value: bigint,
+    tokenAddress: string,
     block: boolean = true
   ): Promise<TxResult> {
+    const contract = new ContractPromise(this.api, this.abi, tokenAddress)
+
     return createSignAndSendTx(
-      this.contract,
+      contract,
       this.gasLimit,
       this.storageDepositLimit,
       0n,
@@ -156,29 +160,23 @@ export class PSP22 {
     )
   }
 
-  async tokenName(): Promise<unknown> {
-    return sendQuery(
-      this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
-      PSP22Query.TokenName,
-      []
-    )
+  async tokenName(tokenAddress: string): Promise<unknown> {
+    const contract = new ContractPromise(this.api, this.abi, tokenAddress)
+
+    return sendQuery(contract, this.gasLimit, this.storageDepositLimit, PSP22Query.TokenName, [])
   }
 
-  async tokenSymbol(): Promise<unknown> {
-    return sendQuery(
-      this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
-      PSP22Query.TokenSymbol,
-      []
-    )
+  async tokenSymbol(tokenAddress: string): Promise<unknown> {
+    const contract = new ContractPromise(this.api, this.abi, tokenAddress)
+
+    return sendQuery(contract, this.gasLimit, this.storageDepositLimit, PSP22Query.TokenSymbol, [])
   }
 
-  async tokenDecimals(): Promise<unknown> {
+  async tokenDecimals(tokenAddress: string): Promise<unknown> {
+    const contract = new ContractPromise(this.api, this.abi, tokenAddress)
+
     return sendQuery(
-      this.contract,
+      contract,
       this.gasLimit,
       this.storageDepositLimit,
       PSP22Query.TokenDecimals,
@@ -186,26 +184,32 @@ export class PSP22 {
     )
   }
 
-  async balanceOf(owner: string): Promise<bigint> {
-    return sendQuery(this.contract, this.gasLimit, this.storageDepositLimit, PSP22Query.BalanceOf, [
+  async balanceOf(owner: string, tokenAddress: string): Promise<bigint> {
+    const contract = new ContractPromise(this.api, this.abi, tokenAddress)
+
+    return sendQuery(contract, this.gasLimit, this.storageDepositLimit, PSP22Query.BalanceOf, [
       owner
     ])
   }
 
-  async totalSupply(): Promise<unknown> {
-    return sendQuery(
-      this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
-      PSP22Query.TotalSupply,
-      []
-    )
+  async totalSupply(tokenAddress: string): Promise<unknown> {
+    const contract = new ContractPromise(this.api, this.abi, tokenAddress)
+
+    return sendQuery(contract, this.gasLimit, this.storageDepositLimit, PSP22Query.TotalSupply, [])
   }
 
-  async allowance(owner: string, spender: string): Promise<unknown> {
-    return sendQuery(this.contract, this.gasLimit, this.storageDepositLimit, PSP22Query.Allowance, [
+  async allowance(owner: string, spender: string, tokenAddress: string): Promise<unknown> {
+    const contract = new ContractPromise(this.api, this.abi, tokenAddress)
+
+    return sendQuery(contract, this.gasLimit, this.storageDepositLimit, PSP22Query.Allowance, [
       owner,
       spender
     ])
+  }
+
+  async getAllBalances(tokens: string[], owner: string): Promise<Map<string, bigint>> {
+    const balancePromises = await Promise.all(tokens.map(token => this.balanceOf(owner, token)));
+    
+    return new Map(tokens.map((token, i) => [token, balancePromises[i]]));
   }
 }

@@ -52,7 +52,7 @@ const main = async () => {
   // load invariant contract
   const invariant = await Invariant.load(api, Network.Local, INVARIANT_ADDRESS)
   // load token contract
-  const psp22 = await PSP22.load(api, Network.Local, TOKEN0_ADDRESS)
+  const psp22 = await PSP22.load(api, Network.Local)
 
   // set fee tier, make sure that fee tier with specified parameters exists
   const feeTier = newFeeTier(toPercentage(1n, 2n), 1n) // fee: 0.01 = 1%, tick spacing: 1
@@ -96,10 +96,8 @@ const main = async () => {
   console.log(tokenXAmount, tokenYAmount)
 
   // approve transfers of both tokens
-  await psp22.setContractAddress(poolKey.tokenX)
-  await psp22.approve(account, invariant.contract.address.toString(), tokenXAmount)
-  await psp22.setContractAddress(poolKey.tokenY)
-  await psp22.approve(account, invariant.contract.address.toString(), tokenYAmount)
+  await psp22.approve(account, invariant.contract.address.toString(), tokenXAmount, poolKey.tokenX)
+  await psp22.approve(account, invariant.contract.address.toString(), tokenYAmount, poolKey.tokenY)
 
   // create position
   const createPositionResult = await invariant.createPosition(
@@ -119,8 +117,7 @@ const main = async () => {
   const amount = 6n * 10n ** 12n
 
   // approve token x transfer
-  await psp22.setContractAddress(poolKey.tokenX)
-  await psp22.approve(account, invariant.contract.address.toString(), amount)
+  await psp22.approve(account, invariant.contract.address.toString(), amount, poolKey.tokenX)
 
   // get estimated result of swap
   const quoteResult = await invariant.quote(poolKey, true, amount, true)
@@ -153,7 +150,7 @@ const main = async () => {
   console.log(fees)
 
   // get balance of a specific token before claiming position fees and print it
-  const accountBalanceBeforeClaim = await psp22.balanceOf(account.address)
+  const accountBalanceBeforeClaim = await psp22.balanceOf(account.address, poolKey.tokenX)
   console.log(accountBalanceBeforeClaim)
 
   // specify position id
@@ -164,7 +161,7 @@ const main = async () => {
   console.log(claimFeeResult.hash)
 
   // get balance of a specific token after claiming position fees and print it
-  const accountBalanceAfterClaim = await psp22.balanceOf(account.address)
+  const accountBalanceAfterClaim = await psp22.balanceOf(account.address, poolKey.tokenX)
   console.log(accountBalanceAfterClaim)
 
   const receiver = keyring.addFromUri('//Bob')
@@ -180,9 +177,8 @@ const main = async () => {
   // ###
 
   // fetch user balances before removal
-  const accountToken0BalanceBeforeRemove = await psp22.balanceOf(account.address)
-  await psp22.setContractAddress(TOKEN1_ADDRESS)
-  const accountToken1BalanceBeforeRemove = await psp22.balanceOf(account.address)
+  const accountToken0BalanceBeforeRemove = await psp22.balanceOf(account.address, poolKey.tokenX)
+  const accountToken1BalanceBeforeRemove = await psp22.balanceOf(account.address, TOKEN1_ADDRESS)
   console.log(accountToken0BalanceBeforeRemove, accountToken1BalanceBeforeRemove)
 
   // remove position
@@ -190,10 +186,8 @@ const main = async () => {
   console.log(removePositionResult.hash)
 
   // get balance of a specific token after removing position
-  await psp22.setContractAddress(TOKEN0_ADDRESS)
-  const accountToken0BalanceAfterRemove = await psp22.balanceOf(account.address)
-  await psp22.setContractAddress(TOKEN1_ADDRESS)
-  const accountToken1BalanceAfterRemove = await psp22.balanceOf(account.address)
+  const accountToken0BalanceAfterRemove = await psp22.balanceOf(account.address, TOKEN0_ADDRESS)
+  const accountToken1BalanceAfterRemove = await psp22.balanceOf(account.address, TOKEN1_ADDRESS)
 
   // print balances
   console.log(accountToken0BalanceAfterRemove, accountToken1BalanceAfterRemove)

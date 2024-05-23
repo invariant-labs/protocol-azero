@@ -56,7 +56,7 @@ describe('sdk guide snippets', async function () {
     // load invariant contract
     const invariant = await Invariant.load(api, Network.Local, INVARIANT_ADDRESS)
     // load token contract
-    const psp22 = await PSP22.load(api, Network.Local, TOKEN0_ADDRESS)
+    const psp22 = await PSP22.load(api, Network.Local)
 
     // set fee tier, make sure that fee tier with specified parameters exists
     const feeTier = newFeeTier(toPercentage(1n, 2n), 1n) // fee: 0.01 = 1%, tick spacing: 1
@@ -100,10 +100,18 @@ describe('sdk guide snippets', async function () {
     console.log(tokenXAmount, tokenYAmount)
 
     // approve transfers of both tokens
-    await psp22.setContractAddress(poolKey.tokenX)
-    await psp22.approve(account, invariant.contract.address.toString(), tokenXAmount)
-    await psp22.setContractAddress(poolKey.tokenY)
-    await psp22.approve(account, invariant.contract.address.toString(), tokenYAmount)
+    await psp22.approve(
+      account,
+      invariant.contract.address.toString(),
+      tokenXAmount,
+      poolKey.tokenX
+    )
+    await psp22.approve(
+      account,
+      invariant.contract.address.toString(),
+      tokenYAmount,
+      poolKey.tokenY
+    )
 
     // create position
     const createPositionResult = await invariant.createPosition(
@@ -123,8 +131,7 @@ describe('sdk guide snippets', async function () {
     const amount = 6n * 10n ** 12n
 
     // approve token x transfer
-    await psp22.setContractAddress(poolKey.tokenX)
-    await psp22.approve(account, invariant.contract.address.toString(), amount)
+    await psp22.approve(account, invariant.contract.address.toString(), amount, poolKey.tokenX)
 
     // get estimated result of swap
     const quoteResult = await invariant.quote(poolKey, true, amount, true)
@@ -157,7 +164,7 @@ describe('sdk guide snippets', async function () {
     console.log(fees)
 
     // get balance of a specific token before claiming position fees and print it
-    const accountBalanceBeforeClaim = await psp22.balanceOf(account.address)
+    const accountBalanceBeforeClaim = await psp22.balanceOf(account.address, poolKey.tokenX)
     console.log(accountBalanceBeforeClaim)
 
     // specify position id
@@ -168,7 +175,7 @@ describe('sdk guide snippets', async function () {
     console.log(claimFeeResult.hash)
 
     // get balance of a specific token after claiming position fees and print it
-    const accountBalanceAfterClaim = await psp22.balanceOf(account.address)
+    const accountBalanceAfterClaim = await psp22.balanceOf(account.address, poolKey.tokenX)
     console.log(accountBalanceAfterClaim)
 
     const receiver = keyring.addFromUri('//Bob')
@@ -185,9 +192,8 @@ describe('sdk guide snippets', async function () {
     // ###
 
     // fetch user balances before removal
-    const accountToken0BalanceBeforeRemove = await psp22.balanceOf(account.address)
-    await psp22.setContractAddress(TOKEN1_ADDRESS)
-    const accountToken1BalanceBeforeRemove = await psp22.balanceOf(account.address)
+    const accountToken0BalanceBeforeRemove = await psp22.balanceOf(account.address, poolKey.tokenX)
+    const accountToken1BalanceBeforeRemove = await psp22.balanceOf(account.address, TOKEN1_ADDRESS)
     console.log(accountToken0BalanceBeforeRemove, accountToken1BalanceBeforeRemove)
 
     // remove position
@@ -195,10 +201,8 @@ describe('sdk guide snippets', async function () {
     console.log(removePositionResult.hash)
 
     // get balance of a specific token after removing position
-    await psp22.setContractAddress(TOKEN0_ADDRESS)
-    const accountToken0BalanceAfterRemove = await psp22.balanceOf(account.address)
-    await psp22.setContractAddress(TOKEN1_ADDRESS)
-    const accountToken1BalanceAfterRemove = await psp22.balanceOf(account.address)
+    const accountToken0BalanceAfterRemove = await psp22.balanceOf(account.address, TOKEN0_ADDRESS)
+    const accountToken1BalanceAfterRemove = await psp22.balanceOf(account.address, TOKEN1_ADDRESS)
 
     // print balances
     console.log(accountToken0BalanceAfterRemove, accountToken1BalanceAfterRemove)
@@ -225,32 +229,27 @@ describe('sdk guide snippets', async function () {
     const TOKEN1_ADDRESS = await PSP22.deploy(api, account, 500n, 'CoinB', 'BCOIN', 12n)
 
     // load token by passing its address (you can use existing one), it allows you to interact with it
-    const psp22 = await PSP22.load(api, Network.Local, TOKEN0_ADDRESS)
+    const psp22 = await PSP22.load(api, Network.Local)
 
     // interact with token 0
-    const account0Balance = await psp22.balanceOf(account.address)
+    const account0Balance = await psp22.balanceOf(account.address, TOKEN0_ADDRESS)
     console.log(account0Balance)
 
     // if you want to interact with different token,
-    // simply set different contract address
-    await psp22.setContractAddress(TOKEN1_ADDRESS)
-
-    // now we can interact with token y
-    const account1Balance = await psp22.balanceOf(account.address)
+    // simply pass different contract address as an argument
+    const account1Balance = await psp22.balanceOf(account.address, TOKEN1_ADDRESS)
     console.log(account1Balance)
 
     // fetch token metadata for previously deployed token0
-    await psp22.setContractAddress(TOKEN0_ADDRESS)
-    const token0Name = await psp22.tokenName()
-    const token0Symbol = await psp22.tokenSymbol()
-    const token0Decimals = await psp22.tokenDecimals()
+    const token0Name = await psp22.tokenName(TOKEN0_ADDRESS)
+    const token0Symbol = await psp22.tokenSymbol(TOKEN0_ADDRESS)
+    const token0Decimals = await psp22.tokenDecimals(TOKEN0_ADDRESS)
     console.log(token0Name, token0Symbol, token0Decimals)
 
     // load diffrent token and load its metadata
-    await psp22.setContractAddress(TOKEN1_ADDRESS)
-    const token1Name = await psp22.tokenName()
-    const token1Symbol = await psp22.tokenSymbol()
-    const token1Decimals = await psp22.tokenDecimals()
+    const token1Name = await psp22.tokenName(TOKEN1_ADDRESS)
+    const token1Symbol = await psp22.tokenSymbol(TOKEN1_ADDRESS)
+    const token1Decimals = await psp22.tokenDecimals(TOKEN1_ADDRESS)
     console.log(token1Name, token1Symbol, token1Decimals)
   })
 })

@@ -26,7 +26,7 @@ describe('storage-limit', async () => {
     const token1Address = await PSP22.deploy(api, account, 1000000000000n, 'Coin', 'COIN', 0n)
     const poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
-    const psp22 = await PSP22.load(api, Network.Testnet, token0Address, {
+    const psp22 = await PSP22.load(api, Network.Testnet, {
       storageDepositLimit: null,
       refTime: MAX_REF_TIME,
       proofSize: DEFAULT_PROOF_SIZE
@@ -36,10 +36,8 @@ describe('storage-limit', async () => {
 
     await invariant.createPool(account, poolKey, 1000000000000000000000000n)
 
-    await psp22.setContractAddress(token0Address)
-    await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
-    await psp22.setContractAddress(token1Address)
-    await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
+    await psp22.approve(account, invariant.contract.address.toString(), 10000000000n, token0Address)
+    await psp22.approve(account, invariant.contract.address.toString(), 10000000000n, token1Address)
 
     // 1619 * 162 B = 262278 B > 256 KB
     for (let i = 1; i <= 1619; i++) {
