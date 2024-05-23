@@ -1,5 +1,5 @@
 export enum Network {
-  Local,
-  Testnet,
-  Mainnet
+  Local = 'Local',
+  Testnet = 'Testnet',
+  Mainnet = 'Mainnet'
 }
