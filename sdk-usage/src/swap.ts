@@ -35,7 +35,7 @@ const main = async () => {
     proofSize: 100000000000
   })
   const positionBefore = await invariant.getPosition(account.address, POSITION_ID)
-  const psp22 = await PSP22.load(api, network, positionBefore.poolKey.tokenX, {
+  const psp22 = await PSP22.load(api, network, {
     storageDepositLimit: 100000000000,
     refTime: 100000000000,
     proofSize: 100000000000
@@ -43,13 +43,21 @@ const main = async () => {
 
   console.log(`Deployer: ${account.address}, Uri: ${mnemonic}`)
 
-  await psp22.mint(account, SWAP_AMOUNT)
-  await psp22.approve(account, TESTNET_INVARIANT_ADDRESS, SWAP_AMOUNT)
+  await psp22.mint(account, SWAP_AMOUNT, positionBefore.poolKey.tokenX)
+  await psp22.approve(
+    account,
+    TESTNET_INVARIANT_ADDRESS,
+    SWAP_AMOUNT,
+    positionBefore.poolKey.tokenX
+  )
 
-  psp22.setContractAddress(positionBefore.poolKey.tokenY)
-
-  await psp22.mint(account, SWAP_AMOUNT)
-  await psp22.approve(account, TESTNET_INVARIANT_ADDRESS, SWAP_AMOUNT)
+  await psp22.mint(account, SWAP_AMOUNT, positionBefore.poolKey.tokenY)
+  await psp22.approve(
+    account,
+    TESTNET_INVARIANT_ADDRESS,
+    SWAP_AMOUNT,
+    positionBefore.poolKey.tokenY
+  )
 
   const protocolFee = await invariant.getProtocolFee()
   const {
