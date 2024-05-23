@@ -48,4 +48,28 @@ describe('psp22', function () {
       250n
     )
   })
+
+  it('should get all balances', async () => {
+    token0Address = await PSP22.deploy(api, account, 0n, 'Coin', 'COIN', 12n)
+    const token1Address = await PSP22.deploy(api, account, 0n, 'Coin', 'COIN', 12n)
+    const token2Address = await PSP22.deploy(api, account, 0n, 'Coin', 'COIN', 12n)
+    const token3Address = await PSP22.deploy(api, account, 0n, 'Coin', 'COIN', 12n)
+
+    await psp22.mint(account, 100n, token0Address)
+    await psp22.mint(account, 200n, token1Address)
+    await psp22.mint(account, 300n, token2Address)
+    await psp22.mint(account, 400n, token3Address)
+    
+
+    const balances = await psp22.getAllBalances(
+      [token0Address, token1Address, token2Address, token3Address],
+      account.address
+    )
+
+    expect(balances.size).to.equal(4)
+    expect(balances.get(token0Address)).to.equal(100n)
+    expect(balances.get(token1Address)).to.equal(200n)
+    expect(balances.get(token2Address)).to.equal(300n)
+    expect(balances.get(token3Address)).to.equal(400n)
+  })
 })
