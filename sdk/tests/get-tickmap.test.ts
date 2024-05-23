@@ -21,7 +21,7 @@ const account = await keyring.addFromUri('//Alice')
 let invariant = await Invariant.deploy(api, Network.Local, account, 10000000000n)
 let token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
 let token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
-const psp22 = await PSP22.load(api, Network.Local, token0Address)
+const psp22 = await PSP22.load(api, Network.Local)
 
 describe('tickmap test', async () => {
   const feeTier = newFeeTier(10000000000n, 1n)
@@ -44,10 +44,8 @@ describe('tickmap test', async () => {
 
     await invariant.createPool(account, poolKey, 1000000000000000000000000n)
 
-    psp22.setContractAddress(token0Address)
-    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000000000n)
-    psp22.setContractAddress(token1Address)
-    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000000000n)
+    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000000000n, token0Address)
+    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000000000n, token1Address)
   })
 
   it('get tickmap', async () => {
@@ -155,12 +153,10 @@ describe('tickmap test', async () => {
     const poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
     const mintAmount = 1n << 120n
-    await psp22.setContractAddress(token0Address)
-    await psp22.mint(account, mintAmount)
-    await psp22.approve(account, invariant.contract.address.toString(), mintAmount)
-    await psp22.setContractAddress(token1Address)
-    await psp22.mint(account, mintAmount)
-    await psp22.approve(account, invariant.contract.address.toString(), mintAmount)
+    await psp22.mint(account, mintAmount, token0Address)
+    await psp22.approve(account, invariant.contract.address.toString(), mintAmount, token0Address)
+    await psp22.mint(account, mintAmount,token1Address)
+    await psp22.approve(account, invariant.contract.address.toString(), mintAmount, token1Address)
 
     const liquidityDelta = 10000000n * 10n ** 6n
     const spotSqrtPrice = 1000000000000000000000000n

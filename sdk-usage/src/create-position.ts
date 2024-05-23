@@ -35,7 +35,7 @@ const main = async () => {
     refTime: 100000000000,
     proofSize: 100000000000
   })
-  const psp22 = await PSP22.load(api, network, TOKEN_0_ADDRESS, {
+  const psp22 = await PSP22.load(api, network, {
     storageDepositLimit: 100000000000,
     refTime: 100000000000,
     proofSize: 100000000000
@@ -43,13 +43,11 @@ const main = async () => {
 
   console.log(`Deployer: ${account.address}, Uri: ${mnemonic}`)
 
-  await psp22.mint(account, AMOUNT)
-  await psp22.approve(account, TESTNET_INVARIANT_ADDRESS, AMOUNT)
+  await psp22.mint(account, AMOUNT, TOKEN_0_ADDRESS)
+  await psp22.approve(account, TESTNET_INVARIANT_ADDRESS, AMOUNT, TOKEN_0_ADDRESS)
 
-  psp22.setContractAddress(TOKEN_1_ADDRESS)
-
-  await psp22.mint(account, AMOUNT)
-  await psp22.approve(account, TESTNET_INVARIANT_ADDRESS, AMOUNT)
+  await psp22.mint(account, AMOUNT, TOKEN_0_ADDRESS)
+  await psp22.approve(account, TESTNET_INVARIANT_ADDRESS, AMOUNT, TOKEN_0_ADDRESS)
 
   await invariant.createPosition(
     account,
