@@ -9,7 +9,6 @@ import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME } from './consts.js'
 import { Network } from './network.js'
 import { ContractOptions, PSP22Query, PSP22Tx, TxResult } from './schema.js'
 import { createSignAndSendTx, createTx, getAbi, getDeploymentData, sendQuery } from './utils.js'
-import assert from 'assert'
 
 export class PSP22 {
   api: ApiPromise
@@ -209,21 +208,8 @@ export class PSP22 {
   }
 
   async getAllBalances(tokens: string[], owner: string): Promise<Map<string, bigint>> {
-    const promises: Promise<bigint>[] = []
-
-    for (const token of tokens) {
-      promises.push(this.balanceOf(owner, token))
-    }
-
-    const balances = await Promise.all(promises)
-
-    assert(balances.length === tokens.length)
-
-    let balancesMap = new Map<string, bigint>()
-    for (let i = 0; i < balances.length; i++) {
-      balancesMap.set(tokens[i], balances[i])
-    }
-
-    return balancesMap
+    const balancePromises = await Promise.all(tokens.map(token => this.balanceOf(owner, token)));
+    
+    return new Map(tokens.map((token, i) => [token, balancePromises[i]]));
   }
 }
