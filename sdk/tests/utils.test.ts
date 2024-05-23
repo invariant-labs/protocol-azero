@@ -1,6 +1,6 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import { toPercentage, toSqrtPrice } from 'invariant-a0-wasm/invariant_a0_wasm.js'
+import { toPercentage, toSqrtPrice } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
@@ -73,20 +73,20 @@ describe('utils', () => {
       await psp22.setContractAddress(token1Address)
       await psp22.approve(account, invariant.contract.address.toString(), 1000000000n)
       await invariant.swap(account, poolKey, true, 4999n, true, 999505344804856076727628n)
-      const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
-      const position = await invariant.getPosition(account, account.address, 0n)
-      const lowerTick = await invariant.getTick(account, poolKey, -10n)
-      const upperTick = await invariant.getTick(account, poolKey, 10n)
+      const pool = await invariant.getPool(token0Address, token1Address, feeTier)
+      const position = await invariant.getPosition(account.address, 0n)
+      const lowerTick = await invariant.getTick(poolKey, -10n)
+      const upperTick = await invariant.getTick(poolKey, 10n)
       const result = calculateFee(pool, position, lowerTick, upperTick)
       await psp22.setContractAddress(token0Address)
-      const token0Before = await psp22.balanceOf(account, account.address.toString())
+      const token0Before = await psp22.balanceOf(account.address.toString())
       await psp22.setContractAddress(token1Address)
-      const token1Before = await psp22.balanceOf(account, account.address.toString())
+      const token1Before = await psp22.balanceOf(account.address.toString())
       await invariant.claimFee(account, 0n)
       await psp22.setContractAddress(token0Address)
-      const token0After = await psp22.balanceOf(account, account.address.toString())
+      const token0After = await psp22.balanceOf(account.address.toString())
       await psp22.setContractAddress(token1Address)
-      const token1After = await psp22.balanceOf(account, account.address.toString())
+      const token1After = await psp22.balanceOf(account.address.toString())
       if (poolKey.tokenX === token0Address) {
         assert.equal(token0Before + result[0], token0After)
         assert.equal(token1Before, token1After)

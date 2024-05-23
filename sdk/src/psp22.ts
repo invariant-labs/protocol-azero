@@ -1,5 +1,6 @@
 import { ApiPromise } from '@polkadot/api'
 import { ContractPromise } from '@polkadot/api-contract'
+import { SubmittableExtrinsic } from '@polkadot/api/promise/types'
 import { Bytes } from '@polkadot/types'
 import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types'
@@ -7,7 +8,7 @@ import { deployContract } from '@scio-labs/use-inkathon'
 import { DEFAULT_PROOF_SIZE, DEFAULT_REF_TIME } from './consts.js'
 import { Network } from './network.js'
 import { ContractOptions, PSP22Query, PSP22Tx, TxResult } from './schema.js'
-import { getDeploymentData, sendQuery, sendTx } from './utils.js'
+import { createSignAndSendTx, createTx, getAbi, getDeploymentData, sendQuery } from './utils.js'
 
 export class PSP22 {
   contract: ContractPromise
@@ -64,12 +65,12 @@ export class PSP22 {
     address: string,
     options?: ContractOptions
   ): Promise<PSP22> {
-    const deploymentData = await getDeploymentData('psp22')
+    const abi = await getAbi('psp22')
 
     return new PSP22(
       api,
       network,
-      deploymentData.abi,
+      abi,
       address,
       options?.storageDepositLimit,
       options?.refTime,
@@ -81,8 +82,14 @@ export class PSP22 {
     this.contract = new ContractPromise(this.api, this.abi, address)
   }
 
+  mintTx(value: bigint): SubmittableExtrinsic {
+    return createTx(this.contract, this.gasLimit, this.storageDepositLimit, 0n, PSP22Tx.Mint, [
+      value
+    ])
+  }
+
   async mint(account: IKeyringPair, value: bigint, block: boolean = true): Promise<TxResult> {
-    return sendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -95,6 +102,14 @@ export class PSP22 {
     )
   }
 
+  transferTx(to: string, value: bigint, data: Bytes): SubmittableExtrinsic {
+    return createTx(this.contract, this.gasLimit, this.storageDepositLimit, 0n, PSP22Tx.Transfer, [
+      to,
+      value,
+      data
+    ])
+  }
+
   async transfer(
     account: IKeyringPair,
     to: string,
@@ -102,7 +117,7 @@ export class PSP22 {
     data: Bytes,
     block: boolean = true
   ): Promise<TxResult> {
-    return sendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -115,13 +130,20 @@ export class PSP22 {
     )
   }
 
+  approveTx(spender: string, value: bigint): SubmittableExtrinsic {
+    return createTx(this.contract, this.gasLimit, this.storageDepositLimit, 0n, PSP22Tx.Approve, [
+      spender,
+      value
+    ])
+  }
+
   async approve(
     account: IKeyringPair,
     spender: string,
     value: bigint,
     block: boolean = true
   ): Promise<TxResult> {
-    return sendTx(
+    return createSignAndSendTx(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
@@ -134,69 +156,56 @@ export class PSP22 {
     )
   }
 
-  async tokenName(account: IKeyringPair): Promise<unknown> {
+  async tokenName(): Promise<unknown> {
     return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      account,
       PSP22Query.TokenName,
       []
     )
   }
 
-  async tokenSymbol(account: IKeyringPair): Promise<unknown> {
+  async tokenSymbol(): Promise<unknown> {
     return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      account,
       PSP22Query.TokenSymbol,
       []
     )
   }
 
-  async tokenDecimals(account: IKeyringPair): Promise<unknown> {
+  async tokenDecimals(): Promise<unknown> {
     return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      account,
       PSP22Query.TokenDecimals,
       []
     )
   }
 
-  async balanceOf(account: IKeyringPair, owner: string): Promise<bigint> {
-    return sendQuery(
-      this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
-      account,
-      PSP22Query.BalanceOf,
-      [owner]
-    )
+  async balanceOf(owner: string): Promise<bigint> {
+    return sendQuery(this.contract, this.gasLimit, this.storageDepositLimit, PSP22Query.BalanceOf, [
+      owner
+    ])
   }
 
-  async totalSupply(account: IKeyringPair): Promise<unknown> {
+  async totalSupply(): Promise<unknown> {
     return sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
-      account,
       PSP22Query.TotalSupply,
       []
     )
   }
 
-  async allowance(account: IKeyringPair, owner: string, spender: string): Promise<unknown> {
-    return sendQuery(
-      this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
-      account,
-      PSP22Query.Allowance,
-      [owner, spender]
-    )
+  async allowance(owner: string, spender: string): Promise<unknown> {
+    return sendQuery(this.contract, this.gasLimit, this.storageDepositLimit, PSP22Query.Allowance, [
+      owner,
+      spender
+    ])
   }
 }

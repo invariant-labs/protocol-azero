@@ -1,8 +1,10 @@
 #[macro_export]
 macro_rules! get_tickmap {
-    ($client:ident, $dex:ident, $pool_key:expr, $current_tick_index:expr, $caller:ident) => {{
+    ($client:ident, $dex:ident, $pool_key:expr, $lower_tick_index:expr, $upper_tick_index:expr , $x_to_y:expr, $caller:ident) => {{
         let mut call_builder = $dex.call_builder::<Invariant>();
-        let call = call_builder.get_tickmap($pool_key, $current_tick_index);
+        let call =
+            call_builder.get_tickmap($pool_key, $lower_tick_index, $upper_tick_index, $x_to_y);
+
         $client
             .call(&$caller, &call)
             .dry_run()

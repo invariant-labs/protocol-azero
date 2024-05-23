@@ -1,11 +1,5 @@
 /* eslint-disable no-case-declarations */
 
-import { ApiPromise, WsProvider } from '@polkadot/api'
-import { ContractPromise } from '@polkadot/api-contract'
-import { WeightV2 } from '@polkadot/types/interfaces'
-import { IKeyringPair } from '@polkadot/types/types/interfaces'
-import { getSubstrateChain, initPolkadotJs as initApi } from '@scio-labs/use-inkathon'
-import { readFile } from 'fs/promises'
 import {
   FeeTier,
   InvariantError,
@@ -25,9 +19,24 @@ import {
   calculateAmountDeltaResult,
   getMaxChunk,
   getPercentageDenominator,
-  getSqrtPriceDenominator
-} from 'invariant-a0-wasm/invariant_a0_wasm.js'
-import path from 'path'
+  getSqrtPriceDenominator,
+  toPercentage,
+  Tickmap,
+  simulateInvariantSwap as _simulateInvariantSwap,
+  tickIndexToPosition,
+  getMaxTickCross,
+  CalculateSwapResult,
+  positionToTick as _positionToTick
+} from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
+import { ApiPromise, SubmittableResult, WsProvider } from '@polkadot/api'
+import { ContractPromise } from '@polkadot/api-contract'
+import { SubmittableExtrinsic } from '@polkadot/api/promise/types'
+import { WeightV2 } from '@polkadot/types/interfaces'
+import { IKeyringPair } from '@polkadot/types/types/interfaces'
+import { getSubstrateChain, initPolkadotJs as initApi } from '@scio-labs/use-inkathon'
+import { abi as invariantAbi } from './abis/invariant.js'
+import { abi as PSP22Abi } from './abis/psp22.js'
+import { abi as wrappedAZEROAbi } from './abis/wrapped-azero.js'
 import { MAINNET, TESTNET } from './consts.js'
 import { Network } from './network.js'
 import { EventTxResult, LiquidityBreakpoint, Query, Tx, TxResult } from './schema.js'
@@ -65,12 +74,12 @@ export async function sendQuery(
   contract: ContractPromise,
   gasLimit: WeightV2,
   storageDepositLimit: number | null,
-  signer: IKeyringPair,
   message: Query | Tx,
-  data: any[]
+  data: any[],
+  userAddress: string = ''
 ): Promise<any> {
   const { result, output } = await contract.query[message](
-    signer.address,
+    userAddress,
     {
       gasLimit: gasLimit,
       storageDepositLimit: storageDepositLimit
@@ -85,7 +94,123 @@ export async function sendQuery(
   }
 }
 
+export function createTx(
+  contract: ContractPromise,
+  gasLimit: WeightV2,
+  storageDepositLimit: number | null,
+  value: bigint,
+  message: Tx,
+  data: any[]
+): SubmittableExtrinsic {
+  if (!contract) {
+    throw new Error('contract not loaded')
+  }
+
+  return contract.tx[message](
+    {
+      gasLimit,
+      storageDepositLimit,
+      value
+    },
+    ...data
+  )
+}
+
+export async function handleTxResult(
+  result: SubmittableResult,
+  resolve: any,
+  reject: any,
+  waitForFinalization: boolean = true,
+  block: boolean = true
+) {
+  if (!block) {
+    resolve({
+      hash: result.txHash.toHex(),
+      events: parseEvents((result as any).contractEvents || []) as []
+    })
+  }
+
+  if (result.isError || result.dispatchError) {
+    reject(new Error(result.dispatchError?.toString() || 'error'))
+  }
+
+  if (result.isCompleted && !waitForFinalization) {
+    resolve({
+      hash: result.txHash.toHex(),
+      events: parseEvents((result as any).contractEvents || []) as []
+    })
+  }
+
+  if (result.isFinalized) {
+    resolve({
+      hash: result.txHash.toHex(),
+      events: parseEvents((result as any).contractEvents || []) as []
+    })
+  }
+}
+
 export async function sendTx(
+  tx: SubmittableExtrinsic,
+  waitForFinalization: boolean = true,
+  block: boolean = true
+): Promise<EventTxResult<any> | TxResult> {
+  return new Promise(async (resolve, reject) => {
+    await tx.send(result => {
+      handleTxResult(result, resolve, reject, waitForFinalization, block)
+    })
+  })
+}
+
+// TODO: to REMOVE
+export async function sendAndDebugTx(
+  tx: SubmittableExtrinsic,
+  api: ApiPromise,
+  waitForFinalization: boolean = true,
+  block: boolean = true
+): Promise<EventTxResult<any> | TxResult> {
+  return new Promise(async (resolve, reject) => {
+    await tx.send(result => {
+      result.events
+        .filter(({ event }) => api.events.system.ExtrinsicFailed.is(event))
+        .forEach(
+          ({
+            event: {
+              data: [error]
+            }
+          }) => {
+            // @ts-expect-error not typed error
+            if (error.isModule) {
+              // for module errors, we have the section indexed, lookup
+              // @ts-expect-error not typed error
+              const decoded = api.registry.findMetaError(error.asModule)
+              const { docs, method, section } = decoded
+
+              console.log(`${section}.${method}: ${docs.join(' ')}`)
+            } else {
+              // Other, CannotLookup, BadOrigin, no extra info
+              console.log(error.toString())
+            }
+          }
+        )
+      handleTxResult(result, resolve, reject, waitForFinalization, block)
+    })
+  })
+}
+
+export async function signAndSendTx(
+  tx: SubmittableExtrinsic,
+  signer: IKeyringPair,
+  waitForFinalization: boolean = true,
+  block: boolean = true
+): Promise<EventTxResult<any> | TxResult> {
+  return new Promise(async (resolve, reject) => {
+    await tx.signAndSend(signer, result => {
+      handleTxResult(result, resolve, reject, waitForFinalization, block)
+    })
+  })
+}
+
+export async function createSignAndSendTx(
   contract: ContractPromise,
   gasLimit: WeightV2,
   storageDepositLimit: number | null,
@@ -96,47 +221,9 @@ export async function sendTx(
   waitForFinalization: boolean = true,
   block: boolean = true
 ): Promise<EventTxResult<any> | TxResult> {
-  if (!contract) {
-    throw new Error('contract not loaded')
-  }
+  const tx = createTx(contract, gasLimit, storageDepositLimit, value, message, data)
 
-  const call = contract.tx[message](
-    {
-      gasLimit,
-      storageDepositLimit,
-      value
-    },
-    ...data
-  )
-
-  return new Promise(async (resolve, reject) => {
-    await call.signAndSend(signer, result => {
-      if (!block) {
-        resolve({
-          hash: result.txHash.toHex(),
-          events: parseEvents((result as any).contractEvents || []) as []
-        })
-      }
-
-      if (result.isError || result.dispatchError) {
-        reject(new Error(message))
-      }
-
-      if (result.isCompleted && !waitForFinalization) {
-        resolve({
-          hash: result.txHash.toHex(),
-          events: parseEvents((result as any).contractEvents || []) as []
-        })
-      }
-
-      if (result.isFinalized) {
-        resolve({
-          hash: result.txHash.toHex(),
-          events: parseEvents((result as any).contractEvents || []) as []
-        })
-      }
-    })
-  })
+  return await signAndSendTx(tx, signer, waitForFinalization, block)
 }
 
 export const newPoolKey = (token0: string, token1: string, feeTier: FeeTier): PoolKey => {
@@ -163,25 +250,55 @@ export const parseEvents = (events: { [key: string]: any }[]) => {
   return events.map(event => parseEvent(event))
 }
 
+let nodeModules: typeof import('./node.js')
+
+const loadNodeModules = async () => {
+  if (typeof window !== 'undefined') {
+    throw new Error('cannot load node modules in a browser environment')
+  }
+
+  await import('./node.js')
+    .then(node => {
+      nodeModules = node
+    })
+    .catch(error => {
+      console.error('error while loading node modules:', error)
+    })
+}
+
 export const getDeploymentData = async (
   contractName: string
 ): Promise<{ abi: any; wasm: Buffer }> => {
+  await loadNodeModules()
   const __dirname = new URL('.', import.meta.url).pathname
 
   try {
     const abi = JSON.parse(
-      await readFile(
-        path.join(__dirname, `../contracts/${contractName}/${contractName}.json`),
+      await nodeModules.readFile(
+        nodeModules.join(__dirname, `../contracts/${contractName}/${contractName}.json`),
         'utf-8'
       )
     )
-    const wasm = await readFile(
-      path.join(__dirname, `../contracts/${contractName}/${contractName}.wasm`)
+    const wasm = await nodeModules.readFile(
+      nodeModules.join(__dirname, `../contracts/${contractName}/${contractName}.wasm`)
     )
 
     return { abi, wasm }
   } catch (error) {
     throw new Error(`${contractName}.json or ${contractName}.wasm not found`)
+  }
+}
+
+export const getAbi = async (contractName: string): Promise<any> => {
+  switch (contractName) {
+    case 'invariant':
+      return JSON.parse(invariantAbi)
+    case 'psp22':
+      return JSON.parse(PSP22Abi)
+    case 'wrapped-azero':
+      return JSON.parse(wrappedAZEROAbi)
+    default:
+      throw new Error('contract not found')
   }
 }
 
@@ -356,4 +473,134 @@ export const extractError = (err: any) => {
   const error = Object.keys(err)[0]
   const parsedError = error[0].toUpperCase() + error.slice(1)
   return InvariantError[parsedError as any]
+}
+
+export function getActiveBitsCount64(num: bigint) {
+  let activeBits = 0n
+  let bit = 0n
+
+  while (bit < 64) {
+    if (num & (1n << bit)) {
+      activeBits += 1n
+    }
+    bit += 1n
+  }
+
+  return activeBits
+}
+
+export function lowestActiveBit(num: bigint) {
+  let bit = 0n
+
+  while (bit < 64) {
+    if (num & (1n << bit)) {
+      return bit
+    }
+    bit += 1n
+  }
+
+  return bit
+}
+
+export function highestActiveBit(num: bigint) {
+  let bit = 63n
+
+  while (bit >= 0n) {
+    if (num & (1n << bit)) {
+      return bit
+    }
+    bit -= 1n
+  }
+
+  return bit
+}
+
+export function simulateInvariantSwap(
+  tickmap: Tickmap,
+  protocolFee: TokenAmount,
+  feeTier: FeeTier,
+  pool: Pool,
+  ticks: Tick[],
+  xToY: boolean,
+  amountIn: TokenAmount,
+  byAmountIn: boolean,
+  sqrtPriceLimit: SqrtPrice
+): CalculateSwapResult {
+  return _simulateInvariantSwap(
+    tickmap,
+    protocolFee,
+    feeTier,
+    pool,
+    ticks,
+    xToY,
+    amountIn,
+    byAmountIn,
+    sqrtPriceLimit
+  )
+}
+
+export function positionToTick(chunkIndex: bigint, bit: bigint, tickSpacing: bigint): bigint {
+  return _positionToTick(chunkIndex, bit, tickSpacing)
+}
+
+export function filterTicks(ticks: Tick[], tickIndex: bigint, xToY: boolean): Tick[] {
+  const filteredTicks = new Array(...ticks)
+  const maxTicksCross = getMaxTickCross()
+  let tickCount = 0
+
+  for (const [index, tick] of filteredTicks.entries()) {
+    if (tickCount >= maxTicksCross) {
+      break
+    }
+
+    if (xToY) {
+      if (tick.index > tickIndex) {
+        filteredTicks.splice(index, 1)
+      }
+    } else {
+      if (tick.index < tickIndex) {
+        filteredTicks.splice(index, 1)
+      }
+    }
+    tickCount++
+  }
+
+  return ticks
+}
+
+export function filterTickmap(
+  tickmap: Tickmap,
+  tickSpacing: bigint,
+  index: bigint,
+  xToY: boolean
+): Tickmap {
+  const filteredTickmap = new Map(tickmap.bitmap)
+  const [currentChunkIndex] = tickIndexToPosition(index, tickSpacing)
+  const maxTicksCross = getMaxTickCross()
+  let tickCount = 0
+  for (const [chunkIndex] of filteredTickmap) {
+    if (tickCount >= maxTicksCross) {
+      break
+    }
+
+    if (xToY) {
+      if (chunkIndex > currentChunkIndex) {
+        filteredTickmap.delete(chunkIndex)
+      }
+    } else {
+      if (chunkIndex < currentChunkIndex) {
+        filteredTickmap.delete(chunkIndex)
+      }
+    }
+    tickCount++
+  }
+
+  return { bitmap: filteredTickmap }
+}
+
+export const delay = (delayMs: number) => {
+  return new Promise(resolve => setTimeout(resolve, delayMs))
+}
+export const calculateFeeTierWithLinearRatio = (tickCount: bigint): FeeTier => {
+  return newFeeTier(tickCount * toPercentage(1n, 4n), tickCount)
 }

@@ -9,7 +9,7 @@ pub mod e2e_tests {
                 fee_growth::FeeGrowth, liquidity::Liquidity, percentage::Percentage,
                 sqrt_price::calculate_sqrt_price, sqrt_price::SqrtPrice, token_amount::TokenAmount,
             },
-            MAX_SQRT_PRICE, MAX_TICK, MIN_SQRT_PRICE, MIN_TICK,
+            MAX_SQRT_PRICE, MIN_SQRT_PRICE,
         },
     };
     use decimal::*;
@@ -438,8 +438,7 @@ pub mod e2e_tests {
 
         let target_sqrt_price = SqrtPrice::new(MIN_SQRT_PRICE);
 
-        let error = std::format!("tick not in range of <{}, {}>", MIN_TICK, MAX_TICK);
-        swap!(
+        let error = swap!(
             client,
             dex,
             pool_key,
@@ -447,9 +446,10 @@ pub mod e2e_tests {
             swap_amount,
             true,
             target_sqrt_price,
-            bob,
-            &error
+            bob
         );
+
+        assert_eq!(error, Err(InvariantError::TickLimitReached));
 
         Ok(())
     }

@@ -1,14 +1,15 @@
-import { Keyring } from '@polkadot/api'
-import { assert } from 'chai'
 import {
   CreatePositionEvent,
   InvariantError,
+  Pool,
   Position,
   SqrtPrice,
   TokenAmount,
   getLiquidityByX,
   isTokenX
-} from 'invariant-a0-wasm/invariant_a0_wasm.js'
+} from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
+import { Keyring } from '@polkadot/api'
+import { assert } from 'chai'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
@@ -30,6 +31,7 @@ const upperTickIndex = 10n
 const feeTier = newFeeTier(6000000000n, 10n)
 
 let poolKey = newPoolKey(token0Address, token1Address, feeTier)
+let pool: Pool
 
 describe('position', async () => {
   beforeEach(async () => {
@@ -48,7 +50,7 @@ describe('position', async () => {
     await psp22.setContractAddress(token1Address)
     await psp22.approve(account, invariant.contract.address.toString(), 10000000000n)
 
-    const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
+    pool = await invariant.getPool(token0Address, token1Address, feeTier)
 
     const result = await invariant.createPosition(
       account,
@@ -74,7 +76,7 @@ describe('position', async () => {
   })
 
   it('create position', async () => {
-    const position = await invariant.getPosition(account, account.address, 0n)
+    const position = await invariant.getPosition(account.address, 0n)
     const expectedPosition: Position = {
       poolKey: poolKey,
       liquidity: 1000000000000n,
@@ -89,8 +91,8 @@ describe('position', async () => {
     await objectEquals(position, expectedPosition, ['lastBlockNumber'])
   })
   it('calculate token amounts from position liquidity', async () => {
-    const position = await invariant.getPosition(account, account.address, 0n)
-    const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
+    const position = await invariant.getPosition(account.address, 0n)
+    const pool = await invariant.getPool(token0Address, token1Address, feeTier)
 
     const providedAmount = 500n
     const { amount: expectedYAmount } = getLiquidityByX(
@@ -122,36 +124,19 @@ describe('position', async () => {
 
       objectEquals(result.events[0], expectedRemovePositionEvent, ['timestamp'])
 
-      await assertThrowsAsync(
-        invariant.getPosition(account, account.address, 0n),
-        InvariantError.PositionNotFound
-      )
-      const positions = await invariant.getPositions(account, account.address)
+      assertThrowsAsync(invariant.getPosition(account.address, 0n), InvariantError.PositionNotFound)
+      const positions = await invariant.getPositions(account.address)
       assert.deepEqual(positions.length, 0)
     }
     {
-      await assertThrowsAsync(
-        invariant.getTick(account, poolKey, lowerTickIndex),
-        InvariantError.TickNotFound
-      )
+      assertThrowsAsync(invariant.getTick(poolKey, lowerTickIndex), InvariantError.TickNotFound)
 
-      await assertThrowsAsync(
-        invariant.getTick(account, poolKey, upperTickIndex),
-        InvariantError.TickNotFound
-      )
+      assertThrowsAsync(invariant.getTick(poolKey, upperTickIndex), InvariantError.TickNotFound)
 
-      const isLowerTickInitialized = await invariant.isTickInitialized(
-        account,
-        poolKey,
-        lowerTickIndex
-      )
+      const isLowerTickInitialized = await invariant.isTickInitialized(poolKey, lowerTickIndex)
       assert.exists(!isLowerTickInitialized)
 
-      const isUpperTickInitialized = await invariant.isTickInitialized(
-        account,
-        poolKey,
-        upperTickIndex
-      )
+      const isUpperTickInitialized = await invariant.isTickInitialized(poolKey, upperTickIndex)
 
       assert.exists(!isUpperTickInitialized)
     }
@@ -163,11 +148,11 @@ describe('position', async () => {
       const receiver = keyring.addFromUri('//Bob')
       await invariant.transferPosition(positionOwner, 0n, receiver.address)
 
-      await assertThrowsAsync(
-        invariant.getPosition(positionOwner, positionOwner.address, 0n),
+      assertThrowsAsync(
+        invariant.getPosition(positionOwner.address, 0n),
         InvariantError.PositionNotFound
       )
-      const position = await invariant.getPosition(receiver, receiver.address, 0n)
+      const position = await invariant.getPosition(receiver.address, 0n)
       const expectedPosition: Position = {
         poolKey: poolKey,
         liquidity: 1000000000000n,
@@ -196,24 +181,24 @@ describe('position', async () => {
       await psp22.mint(swapper, amount)
       await psp22.approve(swapper, invariant.contract.address.toString(), amount)
 
-      const poolBefore = await invariant.getPool(account, token0Address, token1Address, feeTier)
+      const poolBefore = await invariant.getPool(token0Address, token1Address, feeTier)
 
       const targetSqrtPrice: SqrtPrice = 15258932000000000000n
       await invariant.swap(swapper, poolKey, true, amount, true, targetSqrtPrice)
 
-      const poolAfter = await invariant.getPool(account, token0Address, token1Address, feeTier)
+      const poolAfter = await invariant.getPool(token0Address, token1Address, feeTier)
       await psp22.setContractAddress(tokenX)
-      const swapperX = await psp22.balanceOf(swapper, swapper.address)
+      const swapperX = await psp22.balanceOf(swapper.address)
       await psp22.setContractAddress(tokenY)
-      const swapperY = await psp22.balanceOf(swapper, swapper.address)
+      const swapperY = await psp22.balanceOf(swapper.address)
 
       assert.equal(swapperX, 0n)
       assert.equal(swapperY, 993n)
 
       await psp22.setContractAddress(tokenX)
-      const invariantX = await psp22.balanceOf(account, invariant.contract.address.toString())
+      const invariantX = await psp22.balanceOf(invariant.contract.address.toString())
       await psp22.setContractAddress(tokenY)
-      const invariantY = await psp22.balanceOf(account, invariant.contract.address.toString())
+      const invariantY = await psp22.balanceOf(invariant.contract.address.toString())
 
       assert.equal(invariantX, 1500n)
       assert.equal(invariantY, 7n)
@@ -228,18 +213,18 @@ describe('position', async () => {
     }
     {
       await psp22.setContractAddress(tokenX)
-      const positionOwnerBeforeX = await psp22.balanceOf(account, account.address)
-      const invariantBeforeX = await psp22.balanceOf(account, invariant.contract.address.toString())
+      const positionOwnerBeforeX = await psp22.balanceOf(account.address)
+      const invariantBeforeX = await psp22.balanceOf(invariant.contract.address.toString())
 
       await invariant.claimFee(account, 0n)
 
       await psp22.setContractAddress(tokenX)
-      const positionOwnerAfterX = await psp22.balanceOf(account, account.address)
+      const positionOwnerAfterX = await psp22.balanceOf(account.address)
 
-      const invariantAfterX = await psp22.balanceOf(account, invariant.contract.address.toString())
+      const invariantAfterX = await psp22.balanceOf(invariant.contract.address.toString())
 
-      const position = await invariant.getPosition(account, account.address, 0n)
-      const pool = await invariant.getPool(account, token0Address, token1Address, feeTier)
+      const position = await invariant.getPosition(account.address, 0n)
+      const pool = await invariant.getPool(token0Address, token1Address, feeTier)
       const expectedTokensClaimed = 5n
 
       assert.deepEqual(positionOwnerAfterX - expectedTokensClaimed, positionOwnerBeforeX)
@@ -248,5 +233,39 @@ describe('position', async () => {
       assert.deepEqual(position.feeGrowthInsideX, pool.feeGrowthGlobalX)
       assert.deepEqual(position.tokensOwedX, 0n)
     }
+  })
+
+  it('slippage tolerance works', async () => {
+    await invariant.createPosition(
+      account,
+      poolKey,
+      lowerTickIndex,
+      upperTickIndex,
+      10000000000000n,
+      pool.sqrtPrice,
+      10000000000n
+    )
+
+    await invariant.createPosition(
+      account,
+      poolKey,
+      lowerTickIndex,
+      upperTickIndex,
+      10000000000000n,
+      953462589245592315446776n,
+      100000000000n
+    )
+
+    await assertThrowsAsync(
+      invariant.createPosition(
+        account,
+        poolKey,
+        lowerTickIndex,
+        upperTickIndex,
+        10000000000000n,
+        953462589245592315446775n,
+        100000000000n
+      )
+    )
   })
 })

@@ -34,6 +34,17 @@ pub fn get_max_chunk(tick_spacing: u16) -> u16 {
     max_chunk_index as u16
 }
 
+pub fn get_min_chunk(tick_spacing: u16) -> u16 {
+    let min_tick = get_max_tick(tick_spacing);
+    let min_bitmap_index = MAX_TICK
+        .checked_sub(min_tick)
+        .unwrap()
+        .checked_div(tick_spacing as i32)
+        .unwrap();
+    let min_chunk_index = min_bitmap_index.checked_div(CHUNK_SIZE).unwrap();
+    min_chunk_index as u16
+}
+
 pub fn tick_to_position(tick: i32, tick_spacing: u16) -> (u16, u8) {
     assert!(
         (-MAX_TICK..=MAX_TICK).contains(&tick),

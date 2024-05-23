@@ -64,14 +64,14 @@ describe('testnet-crosses-limitations', async () => {
     await psp22.mint(swapper, swapAmount)
     await psp22.approve(swapper, invariant.contract.address.toString(), swapAmount)
 
-    const quote = await invariant.quote(swapper, poolKey, true, swapAmount, true)
+    const quote = await invariant.quote(poolKey, true, swapAmount, true)
     const targetSqrtPrice = quote.targetSqrtPrice
 
-    const poolBeforeSwap = await invariant.getPool(deployer, token0Address, token1Address, feeTier)
+    const poolBeforeSwap = await invariant.getPool(token0Address, token1Address, feeTier)
 
     await invariant.swap(swapper, poolKey, true, swapAmount, true, targetSqrtPrice)
 
-    const poolAfterSwap = await invariant.getPool(deployer, token0Address, token1Address, feeTier)
+    const poolAfterSwap = await invariant.getPool(token0Address, token1Address, feeTier)
 
     const crossed = Math.abs(
       integerSafeCast((poolAfterSwap.currentTickIndex - poolBeforeSwap.currentTickIndex) / 10n)
