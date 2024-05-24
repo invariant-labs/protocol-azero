@@ -58,7 +58,7 @@ describe('utils', () => {
       assert.equal(x, expectedX)
       assert.equal(y, expectedY)
     })
-    it('current tick = 50, slippage = 1%, [0, 75] range', () => {
+    it('current tick = 30, slippage = 1%, [0, 75] range', () => {
       const currentTickIndex = 30n
       const currentSqrtPrice = calculateSqrtPrice(currentTickIndex)
       const slippage = toPercentage(1n, 2n)
