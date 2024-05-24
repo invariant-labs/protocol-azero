@@ -606,6 +606,7 @@ export const assert = (condition: boolean, message?: string) => {
 }
 
 export const calculateTokenAmountsWithSlippage = (
+  currentTickIndex: bigint,
   currentSqrtPrice: SqrtPrice,
   liquidity: Liquidity,
   lowerTickIndex: bigint,
@@ -615,18 +616,20 @@ export const calculateTokenAmountsWithSlippage = (
 ): [bigint, bigint] => {
   const lowerBound = calculateSqrtPriceAfterSlippage(currentSqrtPrice, slippage, false)
   const upperBound = calculateSqrtPriceAfterSlippage(currentSqrtPrice, slippage, true)
+  console.log('lowerBound', lowerBound)
+  console.log('upperBound', upperBound)
 
   const [lowerX, lowerY] = calculateAmountDelta(
+    currentTickIndex,
     lowerBound,
-    currentSqrtPrice,
     liquidity,
     roundingUp,
     upperTickIndex,
     lowerTickIndex
   )
   const [upperX, upperY] = calculateAmountDelta(
+    currentTickIndex,
     upperBound,
-    currentSqrtPrice,
     liquidity,
     roundingUp,
     upperTickIndex,
