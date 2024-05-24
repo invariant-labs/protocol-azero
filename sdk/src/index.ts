@@ -59,6 +59,7 @@ export {
   calculateFee,
   calculatePriceImpact,
   calculateSqrtPriceAfterSlippage,
+  calculateTickDelta,
   calculateTokenAmounts,
   filterTickmap,
   filterTicks,
