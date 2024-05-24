@@ -1,6 +1,7 @@
 use crate::consts::*;
 use crate::types::sqrt_price::SqrtPrice;
 use decimal::*;
+use js_sys::BigInt;
 use traceable_result::*;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use wasm_wrapper::wasm_wrapper;
@@ -21,6 +22,7 @@ fn sqrt_price_to_x32(decimal: SqrtPrice) -> u64 {
     (decimal.get() * LOG2_ONE / SQRT_PRICE_DENOMINATOR) as u64
 }
 
+#[wasm_wrapper]
 fn align_tick_to_spacing(accurate_tick: i32, tick_spacing: i32) -> i32 {
     match accurate_tick > 0 {
         true => accurate_tick - (accurate_tick % tick_spacing),
