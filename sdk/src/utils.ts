@@ -1,6 +1,7 @@
 /* eslint-disable no-case-declarations */
 
 import {
+  CalculateSwapResult,
   FeeTier,
   LiquidityTick,
   Percentage,
@@ -10,22 +11,21 @@ import {
   Price,
   SqrtPrice,
   Tick,
+  Tickmap,
   TokenAmount,
   _calculateFee,
   _newFeeTier,
   _newPoolKey,
+  positionToTick as _positionToTick,
+  simulateInvariantSwap as _simulateInvariantSwap,
   calculateAmountDelta,
   calculateAmountDeltaResult,
   getMaxChunk,
+  getMaxTickCross,
   getPercentageDenominator,
   getSqrtPriceDenominator,
-  toPercentage,
-  Tickmap,
-  simulateInvariantSwap as _simulateInvariantSwap,
   tickIndexToPosition,
-  getMaxTickCross,
-  CalculateSwapResult,
-  positionToTick as _positionToTick
+  toPercentage
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { ApiPromise, SubmittableResult, WsProvider } from '@polkadot/api'
 import { ContractPromise } from '@polkadot/api-contract'
@@ -598,8 +598,47 @@ export const calculateFeeTierWithLinearRatio = (tickCount: bigint): FeeTier => {
   return newFeeTier(tickCount * toPercentage(1n, 4n), tickCount)
 }
 
-export const assert = (condition: boolean, message?: string) =>  {
+export const assert = (condition: boolean, message?: string) => {
   if (!condition) {
     throw new Error(message || 'assertion failed')
   }
+}
+
+export const calculateTokenAmountsWithSlippage = (
+  pool: Pool,
+  position: Position,
+  slippage: Percentage
+): [bigint, bigint] => {
+  return _calculateTokenAmountsWithSlippage(pool, position, slippage, true)
+}
+
+export const _calculateTokenAmountsWithSlippage = (
+  pool: Pool,
+  position: Position,
+  slippage: Percentage,
+  sign: boolean
+): [bigint, bigint] => {
+  const lowerBound = calculateSqrtPriceAfterSlippage(pool.sqrtPrice, slippage, false)
+  const upperBound = calculateSqrtPriceAfterSlippage(pool.sqrtPrice, slippage, true)
+
+  const [lowerX, lowerY] = calculateAmountDelta(
+    lowerBound,
+    pool.sqrtPrice,
+    position.liquidity,
+    sign,
+    position.upperTickIndex,
+    position.lowerTickIndex
+  )
+  const [upperX, upperY] = calculateAmountDelta(
+    upperBound,
+    pool.sqrtPrice,
+    position.liquidity,
+    sign,
+    position.upperTickIndex,
+    position.lowerTickIndex
+  )
+
+  const x = lowerX > upperX ? lowerX : upperX
+  const y = lowerY > upperY ? lowerY : upperY
+  return [x, y]
 }
