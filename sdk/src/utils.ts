@@ -597,3 +597,9 @@ export const delay = (delayMs: number) => {
 export const calculateFeeTierWithLinearRatio = (tickCount: bigint): FeeTier => {
   return newFeeTier(tickCount * toPercentage(1n, 4n), tickCount)
 }
+
+export const assert = (condition: boolean, message?: string) =>  {
+  if (!condition) {
+    throw new Error(message || 'assertion failed')
+  }
+}

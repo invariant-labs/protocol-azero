@@ -55,9 +55,9 @@ import {
   getDeploymentData,
   parse,
   parseEvent,
-  sendQuery
+  sendQuery,
+  assert
 } from './utils.js'
-import assert from 'assert'
 export class Invariant {
   contract: ContractPromise
   api: ApiPromise
