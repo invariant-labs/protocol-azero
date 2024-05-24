@@ -3,6 +3,7 @@
 import {
   CalculateSwapResult,
   FeeTier,
+  Liquidity,
   LiquidityTick,
   Percentage,
   Pool,
@@ -605,37 +606,31 @@ export const assert = (condition: boolean, message?: string) => {
 }
 
 export const calculateTokenAmountsWithSlippage = (
-  pool: Pool,
-  position: Position,
-  slippage: Percentage
-): [bigint, bigint] => {
-  return _calculateTokenAmountsWithSlippage(pool, position, slippage, true)
-}
-
-export const _calculateTokenAmountsWithSlippage = (
-  pool: Pool,
-  position: Position,
+  currentSqrtPrice: SqrtPrice,
+  liquidity: Liquidity,
+  lowerTickIndex: bigint,
+  upperTickIndex: bigint,
   slippage: Percentage,
-  sign: boolean
+  roundingUp: boolean
 ): [bigint, bigint] => {
-  const lowerBound = calculateSqrtPriceAfterSlippage(pool.sqrtPrice, slippage, false)
-  const upperBound = calculateSqrtPriceAfterSlippage(pool.sqrtPrice, slippage, true)
+  const lowerBound = calculateSqrtPriceAfterSlippage(currentSqrtPrice, slippage, false)
+  const upperBound = calculateSqrtPriceAfterSlippage(currentSqrtPrice, slippage, true)
 
   const [lowerX, lowerY] = calculateAmountDelta(
     lowerBound,
-    pool.sqrtPrice,
-    position.liquidity,
-    sign,
-    position.upperTickIndex,
-    position.lowerTickIndex
+    currentSqrtPrice,
+    liquidity,
+    roundingUp,
+    upperTickIndex,
+    lowerTickIndex
   )
   const [upperX, upperY] = calculateAmountDelta(
     upperBound,
-    pool.sqrtPrice,
-    position.liquidity,
-    sign,
-    position.upperTickIndex,
-    position.lowerTickIndex
+    currentSqrtPrice,
+    liquidity,
+    roundingUp,
+    upperTickIndex,
+    lowerTickIndex
   )
 
   const x = lowerX > upperX ? lowerX : upperX
