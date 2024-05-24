@@ -3,11 +3,11 @@ export {
   CrossTickEvent,
   FeeGrowth,
   FeeTier,
+  Pool,
   PoolKey,
   Position,
   PositionTick,
   Price,
-  Pool,
   QuoteResult,
   RemovePositionEvent,
   SecondsPerLiquidity,
@@ -36,7 +36,9 @@ export {
   toTokenAmount
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 export { Keyring } from '@polkadot/api'
+export { FEE_TIERS } from './computed-consts.js'
 export {
+  CONCENTRATION_FACTOR,
   DEFAULT_LOCAL,
   DEFAULT_PROOF_SIZE,
   DEFAULT_REF_TIME,
@@ -46,10 +48,9 @@ export {
   TESTNET_BTC_ADDRESS,
   TESTNET_ETH_ADDRESS,
   TESTNET_INVARIANT_ADDRESS,
-  TESTNET_WAZERO_ADDRESS,
-  TESTNET_USDC_ADDRESS
+  TESTNET_USDC_ADDRESS,
+  TESTNET_WAZERO_ADDRESS
 } from './consts.js'
-export { FEE_TIERS } from './computed-consts.js'
 export { Invariant } from './invariant.js'
 export { Network } from './network.js'
 export { PSP22 } from './psp22.js'
@@ -58,19 +59,21 @@ export {
   calculateFee,
   calculatePriceImpact,
   calculateSqrtPriceAfterSlippage,
+  calculateTickDelta,
   calculateTokenAmounts,
   filterTickmap,
   filterTicks,
+  getConcentrationArray,
   initPolkadotApi,
   newFeeTier,
   newPoolKey,
+  positionToTick,
   priceToSqrtPrice,
+  sendAndDebugTx,
   sendQuery,
   sendTx,
-  sendAndDebugTx,
   signAndSendTx,
   simulateInvariantSwap,
-  sqrtPriceToPrice,
-  positionToTick
+  sqrtPriceToPrice
 } from './utils.js'
 export { WrappedAZERO } from './wrapped-azero.js'

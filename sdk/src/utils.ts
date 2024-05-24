@@ -19,6 +19,7 @@ import {
   _newPoolKey,
   positionToTick as _positionToTick,
   simulateInvariantSwap as _simulateInvariantSwap,
+  alignTickToSpacing,
   calculateAmountDelta,
   calculateAmountDeltaResult,
   getMaxChunk,
@@ -41,7 +42,6 @@ import { abi as wrappedAZEROAbi } from './abis/wrapped-azero.js'
 import { CONCENTRATION_FACTOR, MAINNET, TESTNET } from './consts.js'
 import { Network } from './network.js'
 import { EventTxResult, LiquidityBreakpoint, Query, Tx, TxResult } from './schema.js'
-import { alignTickToSpacing } from './wasm/pkg/invariant_a0_wasm.js'
 
 export const initPolkadotApi = async (network: Network, ws?: string): Promise<ApiPromise> => {
   if (network === Network.Local) {
