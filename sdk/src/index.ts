@@ -36,7 +36,7 @@ export {
   toTokenAmount
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 export { Keyring } from '@polkadot/api'
-export { FEE_TIERS } from './computed-consts.js'
+export { CONCENTRATION_ARRAY, FEE_TIERS } from './computed-consts.js'
 export {
   CONCENTRATION_FACTOR,
   DEFAULT_LOCAL,
@@ -59,11 +59,9 @@ export {
   calculateFee,
   calculatePriceImpact,
   calculateSqrtPriceAfterSlippage,
-  calculateTickDelta,
   calculateTokenAmounts,
   filterTickmap,
   filterTicks,
-  getConcentrationArray,
   initPolkadotApi,
   newFeeTier,
   newPoolKey,

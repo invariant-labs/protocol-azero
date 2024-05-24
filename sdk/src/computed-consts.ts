@@ -1,5 +1,5 @@
 import { FeeTier } from '@invariant-labs/a0-sdk-wasm'
-import { calculateFeeTierWithLinearRatio } from './utils.js'
+import { calculateFeeTierWithLinearRatio, getConcentrationArray, integerSafeCast } from './utils.js'
 
 export const FEE_TIERS: FeeTier[] = [
   calculateFeeTierWithLinearRatio(1n),
@@ -9,3 +9,7 @@ export const FEE_TIERS: FeeTier[] = [
   calculateFeeTierWithLinearRatio(30n),
   calculateFeeTierWithLinearRatio(100n)
 ]
+
+export const CONCENTRATION_ARRAY: number[][] = FEE_TIERS.map(tier =>
+  getConcentrationArray(integerSafeCast(tier.tickSpacing), 2, 0).sort((a, b) => a - b)
+)
