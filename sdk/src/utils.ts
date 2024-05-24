@@ -1,7 +1,9 @@
 /* eslint-disable no-case-declarations */
 
 import {
+  CalculateSwapResult,
   FeeTier,
+  Liquidity,
   LiquidityTick,
   Percentage,
   Pool,
@@ -10,22 +12,21 @@ import {
   Price,
   SqrtPrice,
   Tick,
+  Tickmap,
   TokenAmount,
   _calculateFee,
   _newFeeTier,
   _newPoolKey,
+  positionToTick as _positionToTick,
+  simulateInvariantSwap as _simulateInvariantSwap,
   calculateAmountDelta,
   calculateAmountDeltaResult,
   getMaxChunk,
+  getMaxTickCross,
   getPercentageDenominator,
   getSqrtPriceDenominator,
-  toPercentage,
-  Tickmap,
-  simulateInvariantSwap as _simulateInvariantSwap,
   tickIndexToPosition,
-  getMaxTickCross,
-  CalculateSwapResult,
-  positionToTick as _positionToTick
+  toPercentage
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { ApiPromise, SubmittableResult, WsProvider } from '@polkadot/api'
 import { ContractPromise } from '@polkadot/api-contract'
@@ -598,8 +599,44 @@ export const calculateFeeTierWithLinearRatio = (tickCount: bigint): FeeTier => {
   return newFeeTier(tickCount * toPercentage(1n, 4n), tickCount)
 }
 
-export const assert = (condition: boolean, message?: string) =>  {
+export const assert = (condition: boolean, message?: string) => {
   if (!condition) {
     throw new Error(message || 'assertion failed')
   }
+}
+
+export const calculateTokenAmountsWithSlippage = (
+  currentTickIndex: bigint,
+  currentSqrtPrice: SqrtPrice,
+  liquidity: Liquidity,
+  lowerTickIndex: bigint,
+  upperTickIndex: bigint,
+  slippage: Percentage,
+  roundingUp: boolean
+): [bigint, bigint] => {
+  const lowerBound = calculateSqrtPriceAfterSlippage(currentSqrtPrice, slippage, false)
+  const upperBound = calculateSqrtPriceAfterSlippage(currentSqrtPrice, slippage, true)
+  console.log('lowerBound', lowerBound)
+  console.log('upperBound', upperBound)
+
+  const [lowerX, lowerY] = calculateAmountDelta(
+    currentTickIndex,
+    lowerBound,
+    liquidity,
+    roundingUp,
+    upperTickIndex,
+    lowerTickIndex
+  )
+  const [upperX, upperY] = calculateAmountDelta(
+    currentTickIndex,
+    upperBound,
+    liquidity,
+    roundingUp,
+    upperTickIndex,
+    lowerTickIndex
+  )
+
+  const x = lowerX > upperX ? lowerX : upperX
+  const y = lowerY > upperY ? lowerY : upperY
+  return [x, y]
 }
