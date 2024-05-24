@@ -1,10 +1,10 @@
 use crate::alloc::string::ToString;
 use crate::clamm::{calculate_amount_delta, is_enough_amount_to_change_price, SwapResult};
-use crate::{get_tick_at_sqrt_price, FeeTier, Tick};
 use crate::percentage::Percentage;
 use crate::types::{
     fee_growth::FeeGrowth, liquidity::Liquidity, sqrt_price::SqrtPrice, token_amount::TokenAmount,
 };
+use crate::{get_tick_at_sqrt_price, FeeTier, Tick};
 use decimal::{BigOps, CheckedOps};
 use serde::{Deserialize, Serialize};
 use traceable_result::*;
@@ -40,7 +40,9 @@ impl Pool {
     ) -> TrackableResult<()> {
         let protocol_fee = amount.big_mul_up(protocol_fee);
 
-        let pool_fee = amount - protocol_fee;
+        let pool_fee = amount
+            .checked_sub(protocol_fee)
+            .map_err(|_| err!("Underflow while calculating pool fee"))?;
 
         if (pool_fee.is_zero() && protocol_fee.is_zero()) || self.liquidity.is_zero() {
             return Ok(());
@@ -50,10 +52,16 @@ impl Pool {
 
         if in_x {
             self.fee_growth_global_x = self.fee_growth_global_x.unchecked_add(fee_growth);
-            self.fee_protocol_token_x += protocol_fee;
+            self.fee_protocol_token_x = self
+                .fee_protocol_token_x
+                .checked_add(protocol_fee)
+                .map_err(|_| err!("Overflow while calculating fee protocol token X"))?;
         } else {
             self.fee_growth_global_y = self.fee_growth_global_y.unchecked_add(fee_growth);
-            self.fee_protocol_token_y += protocol_fee;
+            self.fee_protocol_token_y = self
+                .fee_protocol_token_y
+                .checked_add(protocol_fee)
+                .map_err(|_| err!("Overflow while calculating fee protocol token Y"))?;
         }
         Ok(())
     }
@@ -110,10 +118,9 @@ impl Pool {
         let mut total_amount = TokenAmount(0);
 
         if UpdatePoolTick::NoTick == *tick || swap_limit != result.next_sqrt_price {
-            self.current_tick_index = unwrap!(get_tick_at_sqrt_price(
-                result.next_sqrt_price,
-                fee_tier.tick_spacing as u16
-            )) as i64;
+            self.current_tick_index =
+                (get_tick_at_sqrt_price(result.next_sqrt_price, fee_tier.tick_spacing as u16)?)
+                    as i64;
 
             return Ok((total_amount, remaining_amount, has_crossed));
         };
@@ -131,7 +138,7 @@ impl Pool {
             UpdatePoolTick::TickInitialized(tick) => {
                 if !x_to_y || is_enough_amount_to_cross {
                     tick.cross(self, current_timestamp)?;
-                    
+
                     has_crossed = true;
                 } else if !remaining_amount.is_zero() {
                     if by_amount_in {
@@ -146,8 +153,11 @@ impl Pool {
             UpdatePoolTick::TickUninitialized(index) => *index as i64,
             _ => unreachable!(),
         };
+
         self.current_tick_index = if x_to_y && is_enough_amount_to_cross {
-            tick_index - fee_tier.tick_spacing as i64
+            tick_index
+                .checked_sub(fee_tier.tick_spacing as i64)
+                .ok_or(err!(TrackableError::SUB))?
         } else {
             tick_index
         };

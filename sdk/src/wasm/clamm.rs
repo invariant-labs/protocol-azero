@@ -2,7 +2,6 @@ use crate::consts::*;
 use crate::types::{liquidity::*, percentage::*, sqrt_price::*, token_amount::*};
 use core::convert::TryInto;
 use decimal::*;
-use js_sys::BigInt;
 use serde::{Deserialize, Serialize};
 use traceable_result::*;
 use tsify::Tsify;
@@ -49,7 +48,11 @@ pub fn compute_swap_step(
     let (mut amount_in, mut amount_out) = (TokenAmount(0), TokenAmount(0));
 
     if by_amount_in {
-        let amount_after_fee = amount.big_mul(Percentage::from_integer(1u8) - fee);
+        let amount_after_fee = amount.big_mul(
+            Percentage::from_integer(1u8)
+                .checked_sub(fee)
+                .map_err(|_| err!("Underflow while calculating amount after fee"))?,
+        );
 
         amount_in = ok_or_mark_trace!(if x_to_y {
             get_delta_x(target_sqrt_price, current_sqrt_price, liquidity, true)
@@ -130,7 +133,9 @@ pub fn compute_swap_step(
     }
 
     let fee_amount = if by_amount_in && next_sqrt_price != target_sqrt_price {
-        amount - amount_in
+        amount
+            .checked_sub(amount_in)
+            .map_err(|_| err!("Underflow while calculating fee amount"))?
     } else {
         amount_in.big_mul_up(fee)
     };
@@ -151,9 +156,13 @@ pub fn get_delta_x(
     rounding_up: bool,
 ) -> TrackableResult<TokenAmount> {
     let delta_price: SqrtPrice = if sqrt_price_a > sqrt_price_b {
-        sqrt_price_a - sqrt_price_b
+        sqrt_price_a
+            .checked_sub(sqrt_price_b)
+            .map_err(|_| err!("Underflow while calculating delta price"))?
     } else {
-        sqrt_price_b - sqrt_price_a
+        sqrt_price_b
+            .checked_sub(sqrt_price_a)
+            .map_err(|_| err!("Underflow while calculating delta price"))?
     };
     let nominator = delta_price.big_mul_to_value(liquidity);
 
@@ -177,9 +186,13 @@ pub fn get_delta_y(
     rounding_up: bool,
 ) -> TrackableResult<TokenAmount> {
     let delta: SqrtPrice = if sqrt_price_a > sqrt_price_b {
-        sqrt_price_a - sqrt_price_b
+        sqrt_price_a
+            .checked_sub(sqrt_price_b)
+            .map_err(|_| err!("Underflow while calculating delta"))?
     } else {
-        sqrt_price_b - sqrt_price_a
+        sqrt_price_b
+            .checked_sub(sqrt_price_a)
+            .map_err(|_| err!("Underflow while calculating delta"))?
     };
 
     let delta_y = match rounding_up {
@@ -345,7 +358,11 @@ pub fn is_enough_amount_to_change_price(
     }
 
     let next_sqrt_price = ok_or_mark_trace!(if by_amount_in {
-        let amount_after_fee = amount.big_mul(Percentage::from_integer(1) - fee);
+        let amount_after_fee = amount.big_mul(
+            Percentage::from_integer(1)
+                .checked_sub(fee)
+                .map_err(|_| err!(TrackableError::SUB))?,
+        );
         get_next_sqrt_price_from_input(starting_sqrt_price, liquidity, amount_after_fee, x_to_y)
     } else {
         get_next_sqrt_price_from_output(starting_sqrt_price, liquidity, amount, x_to_y)
@@ -355,13 +372,19 @@ pub fn is_enough_amount_to_change_price(
 }
 
 #[wasm_wrapper]
-pub fn calculate_max_liquidity_per_tick(tick_spacing: u16) -> Liquidity {
+pub fn calculate_max_liquidity_per_tick(tick_spacing: u16) -> TrackableResult<Liquidity> {
     const MAX_TICKS_AMOUNT_SQRT_PRICE_LIMITED: u128 = 2 * MAX_TICK as u128 + 1;
-    let ticks_amount_spacing_limited = MAX_TICKS_AMOUNT_SQRT_PRICE_LIMITED / tick_spacing as u128;
-    Liquidity::new(Liquidity::max_instance().get() / ticks_amount_spacing_limited)
+    let ticks_amount_spacing_limited = MAX_TICKS_AMOUNT_SQRT_PRICE_LIMITED
+        .checked_div(tick_spacing as u128)
+        .ok_or(err!(TrackableError::DIV))?;
+    Ok(Liquidity::new(
+        Liquidity::max_instance()
+            .get()
+            .checked_div(ticks_amount_spacing_limited)
+            .ok_or(err!(TrackableError::DIV))?,
+    ))
 }
 
-#[wasm_wrapper]
 pub fn check_ticks(tick_lower: i32, tick_upper: i32, tick_spacing: u16) -> TrackableResult<()> {
     if tick_lower > tick_upper {
         return Err(err!("tick_lower > tick_upper"));
@@ -374,9 +397,13 @@ pub fn check_ticks(tick_lower: i32, tick_upper: i32, tick_spacing: u16) -> Track
 
 #[wasm_wrapper]
 pub fn check_tick(tick_index: i32, tick_spacing: u16) -> TrackableResult<()> {
-    let (min_tick, max_tick) = (get_min_tick(tick_spacing), get_max_tick(tick_spacing));
+    let (min_tick, max_tick) = (get_min_tick(tick_spacing)?, get_max_tick(tick_spacing)?);
     let tick_spacing = tick_spacing as i32;
-    if tick_index % tick_spacing != 0 {
+    if tick_index
+        .checked_rem(tick_spacing)
+        .ok_or(err!("tick spacing is zero"))?
+        != 0
+    {
         return Err(err!("InvalidTickSpacing"));
     }
     if tick_index > max_tick || tick_index < min_tick {
@@ -390,6 +417,10 @@ pub fn check_tick(tick_index: i32, tick_spacing: u16) -> TrackableResult<()> {
 pub fn calculate_min_amount_out(
     expected_amount_out: TokenAmount,
     slippage: Percentage,
-) -> TokenAmount {
-    expected_amount_out.big_mul_up(Percentage::from_integer(1u8) - slippage)
+) -> TrackableResult<TokenAmount> {
+    Ok(expected_amount_out.big_mul_up(
+        Percentage::from_integer(1u8)
+            .checked_sub(slippage)
+            .map_err(|_| err!(TrackableError::SUB))?,
+    ))
 }

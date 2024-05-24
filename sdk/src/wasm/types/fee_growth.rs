@@ -46,7 +46,11 @@ impl FeeGrowth {
                 .checked_mul(liquidity.here())
                 .ok_or_else(|| err!(TrackableError::MUL))?
                 .checked_div(
-                    U256::from(10).pow(U256::from(FeeGrowth::scale() + Liquidity::scale())),
+                    U256::from(10).pow(U256::from(
+                        FeeGrowth::scale()
+                            .checked_add(Liquidity::scale())
+                            .ok_or(err!(TrackableError::ADD))?,
+                    )),
                 )
                 .ok_or_else(|| err!(TrackableError::MUL))?
                 .try_into()
