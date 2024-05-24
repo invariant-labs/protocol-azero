@@ -10,6 +10,11 @@ export const FEE_TIERS: FeeTier[] = [
   calculateFeeTierWithLinearRatio(100n)
 ]
 
-export const CONCENTRATION_ARRAY: number[][] = FEE_TIERS.map(tier =>
-  getConcentrationArray(integerSafeCast(tier.tickSpacing), 2, 0).sort((a, b) => a - b)
-)
+export const CONCENTRATION_ARRAY: { [key: string]: number[] } = FEE_TIERS.reduce((acc, tier) => {
+  acc[integerSafeCast(tier.tickSpacing)] = getConcentrationArray(
+    integerSafeCast(tier.tickSpacing),
+    2,
+    0
+  ).sort((a, b) => a - b)
+  return acc
+}, {} as { [key: string]: number[] })
