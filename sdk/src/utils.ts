@@ -4,6 +4,7 @@ import {
   CalculateSwapResult,
   FeeTier,
   InvariantError,
+  Liquidity,
   LiquidityTick,
   Percentage,
   Pool,
@@ -657,4 +658,38 @@ export const getConcentrationArray = (
     (maxTick - Math.abs(currentTick) - (minimumRange / 2) * tickSpacing) / tickSpacing
 
   return concentrations.slice(0, limitIndex)
+}
+
+export const calculateTokenAmountsWithSlippage = (
+  currentTickIndex: bigint,
+  currentSqrtPrice: SqrtPrice,
+  liquidity: Liquidity,
+  lowerTickIndex: bigint,
+  upperTickIndex: bigint,
+  slippage: Percentage,
+  roundingUp: boolean
+): [bigint, bigint] => {
+  const lowerBound = calculateSqrtPriceAfterSlippage(currentSqrtPrice, slippage, false)
+  const upperBound = calculateSqrtPriceAfterSlippage(currentSqrtPrice, slippage, true)
+
+  const [lowerX, lowerY] = calculateAmountDelta(
+    currentTickIndex,
+    lowerBound,
+    liquidity,
+    roundingUp,
+    upperTickIndex,
+    lowerTickIndex
+  )
+  const [upperX, upperY] = calculateAmountDelta(
+    currentTickIndex,
+    upperBound,
+    liquidity,
+    roundingUp,
+    upperTickIndex,
+    lowerTickIndex
+  )
+
+  const x = lowerX > upperX ? lowerX : upperX
+  const y = lowerY > upperY ? lowerY : upperY
+  return [x, y]
 }
