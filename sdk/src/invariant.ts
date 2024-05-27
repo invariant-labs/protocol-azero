@@ -53,9 +53,9 @@ import {
   getDeploymentData,
   parse,
   parseEvent,
-  sendQuery
+  sendQuery,
+  assert
 } from './utils.js'
-import assert from 'assert'
 import { SubmittableExtrinsic } from '@polkadot/api/types/submittable'
 export class Invariant {
   contract: ContractPromise

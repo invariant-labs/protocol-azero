@@ -3,7 +3,7 @@
 # Usage: ./publish.sh <version>
 # For example: ./publish.sh 0.1.0
 
-./package.sh
+# ./package.sh
 
 jq '.name = "@invariant-labs/a0-sdk-wasm"' src/wasm/pkg/package.json > temp.json && mv temp.json src/wasm/pkg/package.json
 

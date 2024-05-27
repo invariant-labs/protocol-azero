@@ -1,6 +1,11 @@
+import {
+  calculateSqrtPrice,
+  toLiquidity,
+  toPercentage,
+  toSqrtPrice
+} from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import { toPercentage, toSqrtPrice } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
@@ -8,6 +13,8 @@ import {
   calculateFee,
   calculatePriceImpact,
   calculateSqrtPriceAfterSlippage,
+  calculateTokenAmountsWithSlippage,
+  getConcentrationArray,
   initPolkadotApi,
   newFeeTier,
   newPoolKey,
@@ -28,6 +35,54 @@ const psp22 = await PSP22.load(api, Network.Local)
 const feeTier = newFeeTier(10000000000n, 1n)
 
 describe('utils', () => {
+  describe('test calculateTokensWithSlippage', () => {
+    const liquidity = toLiquidity(100000000n, 0n)
+
+    it('tick Spacing = 1, currentPrice = 1000000000000000000000000, slippage = 1%, [-10, 10] range', () => {
+      const tickSpacing = 1n
+      const currentSqrtPrice = toSqrtPrice(1n, 0n) //1000000000000000000000000
+      const slippage = toPercentage(1n, 2n)
+      const lowerTickIndex = -10n
+      const upperTickIndex = 10n
+      const [x, y] = calculateTokenAmountsWithSlippage(
+        tickSpacing,
+        currentSqrtPrice,
+        liquidity,
+        lowerTickIndex,
+        upperTickIndex,
+        slippage,
+        true
+      )
+
+      const expectedX = 553767n
+      const expectedY = 548742n
+      assert.equal(x, expectedX)
+      assert.equal(y, expectedY)
+    })
+    it('tickSpacing = 5n, current price = 1001501050455000000000000, slippage = 1%, [0, 75] range', () => {
+      const tickSpacing = 5n
+      const currentTickIndex = 30n
+      const currentSqrtPrice = calculateSqrtPrice(currentTickIndex) //1001501050455000000000000
+      const slippage = toPercentage(1n, 2n)
+      const lowerTickIndex = 0n
+      const upperTickIndex = 75n
+
+      const [x, y] = calculateTokenAmountsWithSlippage(
+        tickSpacing,
+        currentSqrtPrice,
+        liquidity,
+        lowerTickIndex,
+        upperTickIndex,
+        slippage,
+        true
+      )
+      const expectedX = 727426n
+      const expectedY = 649610n
+      assert.equal(x, expectedX)
+      assert.equal(y, expectedY)
+    })
+  })
+
   describe('test calculatePriceImpact', () => {
     it('increasing price', () => {
       // price change       120 -> 599
@@ -46,6 +101,33 @@ describe('utils', () => {
       assert.equal(priceImpact, 999999999365n)
     })
   })
+  describe('test getConcentrationArray', () => {
+    it('high current tick ', async () => {
+      const tickSpacing = 4
+      const maxConcentration = 10
+      const expectedResult = 11
+
+      const result = getConcentrationArray(tickSpacing, maxConcentration, 221752)
+
+      assert.equal(result.length, expectedResult)
+    })
+    it('middle current tick ', async () => {
+      const tickSpacing = 4
+      const maxConcentration = 10
+      const expectedResult = 124
+
+      const result = getConcentrationArray(tickSpacing, maxConcentration, 221300)
+      assert.equal(result.length, expectedResult)
+    })
+    it('low current tick ', async () => {
+      const tickSpacing = 4
+      const maxConcentration = 10
+      const expectedResult = 137
+
+      const result = getConcentrationArray(tickSpacing, maxConcentration, 0)
+      assert.equal(result.length, expectedResult)
+    })
+  })
   describe('test calculateFee', () => {
     beforeEach(async () => {
       token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
@@ -55,8 +137,18 @@ describe('utils', () => {
       await invariant.addFeeTier(account, feeTier)
       const poolKey = newPoolKey(token0Address, token1Address, feeTier)
       await invariant.createPool(account, poolKey, 1000000000000000000000000n)
-      await psp22.approve(account, invariant.contract.address.toString(), 10000000000000n, token0Address)
-      await psp22.approve(account, invariant.contract.address.toString(), 10000000000000n, token1Address)
+      await psp22.approve(
+        account,
+        invariant.contract.address.toString(),
+        10000000000000n,
+        token0Address
+      )
+      await psp22.approve(
+        account,
+        invariant.contract.address.toString(),
+        10000000000000n,
+        token1Address
+      )
       await invariant.createPosition(
         account,
         poolKey,
@@ -66,8 +158,18 @@ describe('utils', () => {
         1000000000000000000000000n,
         0n
       )
-      await psp22.approve(account, invariant.contract.address.toString(), 1000000000n, token0Address)
-      await psp22.approve(account, invariant.contract.address.toString(), 1000000000n, token1Address)
+      await psp22.approve(
+        account,
+        invariant.contract.address.toString(),
+        1000000000n,
+        token0Address
+      )
+      await psp22.approve(
+        account,
+        invariant.contract.address.toString(),
+        1000000000n,
+        token1Address
+      )
       await invariant.swap(account, poolKey, true, 4999n, true, 999505344804856076727628n)
       const pool = await invariant.getPool(token0Address, token1Address, feeTier)
       const position = await invariant.getPosition(account.address, 0n)

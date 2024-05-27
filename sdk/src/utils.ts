@@ -1,8 +1,10 @@
 /* eslint-disable no-case-declarations */
 
 import {
+  CalculateSwapResult,
   FeeTier,
   InvariantError,
+  Liquidity,
   LiquidityTick,
   Percentage,
   Pool,
@@ -11,22 +13,24 @@ import {
   Price,
   SqrtPrice,
   Tick,
+  Tickmap,
   TokenAmount,
   _calculateFee,
   _newFeeTier,
   _newPoolKey,
+  positionToTick as _positionToTick,
+  simulateInvariantSwap as _simulateInvariantSwap,
+  alignTickToSpacing,
   calculateAmountDelta,
   calculateAmountDeltaResult,
+  calculateTick,
   getMaxChunk,
+  getMaxTick,
+  getMaxTickCross,
   getPercentageDenominator,
   getSqrtPriceDenominator,
-  toPercentage,
-  Tickmap,
-  simulateInvariantSwap as _simulateInvariantSwap,
   tickIndexToPosition,
-  getMaxTickCross,
-  CalculateSwapResult,
-  positionToTick as _positionToTick
+  toPercentage
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { ApiPromise, SubmittableResult, WsProvider } from '@polkadot/api'
 import { ContractPromise } from '@polkadot/api-contract'
@@ -37,7 +41,7 @@ import { getSubstrateChain, initPolkadotJs as initApi } from '@scio-labs/use-ink
 import { abi as invariantAbi } from './abis/invariant.js'
 import { abi as PSP22Abi } from './abis/psp22.js'
 import { abi as wrappedAZEROAbi } from './abis/wrapped-azero.js'
-import { MAINNET, TESTNET } from './consts.js'
+import { CONCENTRATION_FACTOR, MAINNET, TESTNET } from './consts.js'
 import { Network } from './network.js'
 import { EventTxResult, LiquidityBreakpoint, Query, Tx, TxResult } from './schema.js'
 
@@ -603,4 +607,98 @@ export const delay = (delayMs: number) => {
 }
 export const calculateFeeTierWithLinearRatio = (tickCount: bigint): FeeTier => {
   return newFeeTier(tickCount * toPercentage(1n, 4n), tickCount)
+}
+
+export const assert = (condition: boolean, message?: string) => {
+  if (!condition) {
+    throw new Error(message || 'assertion failed')
+  }
+}
+
+export const calculateConcentration = (tickSpacing: number, minimumRange: number, n: number) => {
+  const concentration = 1 / (1 - Math.pow(1.0001, (-tickSpacing * (minimumRange + 2 * n)) / 4))
+  return concentration / CONCENTRATION_FACTOR
+}
+
+export const calculateTickDelta = (
+  tickSpacing: number,
+  minimumRange: number,
+  concentration: number
+) => {
+  const base = Math.pow(1.0001, -(tickSpacing / 4))
+  const logArg =
+    (1 - 1 / (concentration * CONCENTRATION_FACTOR)) /
+    Math.pow(1.0001, (-tickSpacing * minimumRange) / 4)
+
+  return Math.ceil(Math.log(logArg) / Math.log(base) / 2)
+}
+
+export const getConcentrationArray = (
+  tickSpacing: number,
+  minimumRange: number,
+  currentTick: number
+): number[] => {
+  const concentrations: number[] = []
+  let counter = 0
+  let concentration = 0
+  let lastConcentration = calculateConcentration(tickSpacing, minimumRange, counter) + 1
+  let concentrationDelta = 1
+
+  while (concentrationDelta >= 1) {
+    concentration = calculateConcentration(tickSpacing, minimumRange, counter)
+    concentrations.push(concentration)
+    concentrationDelta = lastConcentration - concentration
+    lastConcentration = concentration
+    counter++
+  }
+  concentration = Math.ceil(concentrations[concentrations.length - 1])
+
+  while (concentration > 1) {
+    concentrations.push(concentration)
+    concentration--
+  }
+  const maxTick = integerSafeCast(alignTickToSpacing(getMaxTick(1n), tickSpacing))
+  if ((minimumRange / 2) * tickSpacing > maxTick - Math.abs(currentTick)) {
+    throw new Error(String(InvariantError.TickLimitReached))
+  }
+  const limitIndex =
+    (maxTick - Math.abs(currentTick) - (minimumRange / 2) * tickSpacing) / tickSpacing
+
+  return concentrations.slice(0, limitIndex)
+}
+
+export const calculateTokenAmountsWithSlippage = (
+  tickSpacing: bigint,
+  currentSqrtPrice: SqrtPrice,
+  liquidity: Liquidity,
+  lowerTickIndex: bigint,
+  upperTickIndex: bigint,
+  slippage: Percentage,
+  roundingUp: boolean
+): [bigint, bigint] => {
+  const lowerBound = calculateSqrtPriceAfterSlippage(currentSqrtPrice, slippage, false)
+  const upperBound = calculateSqrtPriceAfterSlippage(currentSqrtPrice, slippage, true)
+
+  const currentTickIndex = calculateTick(currentSqrtPrice, tickSpacing)
+  
+  const [lowerX, lowerY] = calculateAmountDelta(
+    currentTickIndex,
+    lowerBound,
+    liquidity,
+    roundingUp,
+    upperTickIndex,
+    lowerTickIndex
+  )
+  const [upperX, upperY] = calculateAmountDelta(
+    currentTickIndex,
+    upperBound,
+    liquidity,
+    roundingUp,
+    upperTickIndex,
+    lowerTickIndex
+  )
+
+  const x = lowerX > upperX ? lowerX : upperX
+  const y = lowerY > upperY ? lowerY : upperY
+  return [x, y]
 }
