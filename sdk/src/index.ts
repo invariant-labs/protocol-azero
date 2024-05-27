@@ -33,8 +33,7 @@ export {
   toPrice,
   toSecondsPerLiquidity,
   toSqrtPrice,
-  toTokenAmount,
-  calculateTick
+  toTokenAmount
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 export { Keyring } from '@polkadot/api'
 export { CONCENTRATION_ARRAY, FEE_TIERS } from './computed-consts.js'

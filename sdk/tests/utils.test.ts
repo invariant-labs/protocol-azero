@@ -38,14 +38,14 @@ describe('utils', () => {
   describe('test calculateTokensWithSlippage', () => {
     const liquidity = toLiquidity(100000000n, 0n)
 
-    it('current tick = 0, slippage = 1%, [-10, 10] range', () => {
-      const currentTickIndex = 0n
-      const currentSqrtPrice = calculateSqrtPrice(currentTickIndex)
+    it('tick Spacing = 1, currentPrice = 1000000000000000000000000, slippage = 1%, [-10, 10] range', () => {
+      const tickSpacing = 1n
+      const currentSqrtPrice = toSqrtPrice(1n, 0n) //1000000000000000000000000
       const slippage = toPercentage(1n, 2n)
       const lowerTickIndex = -10n
       const upperTickIndex = 10n
       const [x, y] = calculateTokenAmountsWithSlippage(
-        currentTickIndex,
+        tickSpacing,
         currentSqrtPrice,
         liquidity,
         lowerTickIndex,
@@ -59,15 +59,16 @@ describe('utils', () => {
       assert.equal(x, expectedX)
       assert.equal(y, expectedY)
     })
-    it('current tick = 30, slippage = 1%, [0, 75] range', () => {
+    it('tickSpacing = 5n, current price = 1001501050455000000000000, slippage = 1%, [0, 75] range', () => {
+      const tickSpacing = 5n
       const currentTickIndex = 30n
-      const currentSqrtPrice = calculateSqrtPrice(currentTickIndex)
+      const currentSqrtPrice = calculateSqrtPrice(currentTickIndex) //1001501050455000000000000
       const slippage = toPercentage(1n, 2n)
       const lowerTickIndex = 0n
       const upperTickIndex = 75n
 
       const [x, y] = calculateTokenAmountsWithSlippage(
-        currentTickIndex,
+        tickSpacing,
         currentSqrtPrice,
         liquidity,
         lowerTickIndex,
