@@ -23,6 +23,7 @@ import {
   alignTickToSpacing,
   calculateAmountDelta,
   calculateAmountDeltaResult,
+  calculateTick,
   getMaxChunk,
   getMaxTick,
   getMaxTickCross,
@@ -661,7 +662,7 @@ export const getConcentrationArray = (
 }
 
 export const calculateTokenAmountsWithSlippage = (
-  currentTickIndex: bigint,
+  tickSpacing: bigint,
   currentSqrtPrice: SqrtPrice,
   liquidity: Liquidity,
   lowerTickIndex: bigint,
@@ -672,6 +673,8 @@ export const calculateTokenAmountsWithSlippage = (
   const lowerBound = calculateSqrtPriceAfterSlippage(currentSqrtPrice, slippage, false)
   const upperBound = calculateSqrtPriceAfterSlippage(currentSqrtPrice, slippage, true)
 
+  const currentTickIndex = calculateTick(currentSqrtPrice, tickSpacing)
+  
   const [lowerX, lowerY] = calculateAmountDelta(
     currentTickIndex,
     lowerBound,
