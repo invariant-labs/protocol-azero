@@ -124,7 +124,8 @@ jobs:
 
       - name: Install substrate-contracts-node
         run: |
-          cargo install cargo-dylint dylint-link
+          cargo install cargo-dylint --version 3.0.0 --locked 
+          cargo install dylint-link --version 3.0.0 --locked 
           cargo install --version 0.31.0 --force --locked contracts-node
 
       - name: Install cargo contract
