@@ -8,6 +8,7 @@ import {
   getGlobalMinSqrtPrice,
   getLiquidityDenominator,
   getLiquidityScale,
+  getLiquidityTicksLimit,
   getMaxTickCross,
   getMaxTickmapQuerySize,
   getPercentageDenominator,
@@ -61,3 +62,4 @@ export const MIN_SQRT_PRICE = getGlobalMinSqrtPrice()
 export const CHUNK_SIZE = getChunkSize()
 export const MAX_TICKMAP_QUERY_SIZE = getMaxTickmapQuerySize()
 export const MAX_TICK_CROSS = getMaxTickCross()
+export const LIQUIDITY_TICKS_LIMIT = getLiquidityTicksLimit()
