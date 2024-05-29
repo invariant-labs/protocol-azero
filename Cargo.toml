@@ -20,6 +20,7 @@ scale-info = { version = "2.6", default-features = false, features = [
 token = { path = "src/token", default-features = false, features = [
   "ink-as-dependency",
 ] }
+wrapped-azero = { version = "1.0", default-features = false, features = ["ink-as-dependency"] }
 
 [dev-dependencies]
 ink_e2e = "4.3.0"

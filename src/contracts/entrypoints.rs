@@ -397,4 +397,11 @@ pub trait InvariantTrait {
     /// - `pool_key`: A unique key that identifies the specified pool.
     #[ink(message)]
     fn get_liquidity_ticks_amount(&self, pool_key: PoolKey) -> u32;
+
+    /// Transfers, withdraws and transfers back all wAZERO tokens from the caller.
+    ///
+    /// # Parameters
+    /// - `address`: Address of wAZERO contract.
+    #[ink(message)]
+    fn withdraw_all_wazero(&self, address: AccountId) -> Result<(), InvariantError>;
 }

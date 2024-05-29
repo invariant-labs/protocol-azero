@@ -37,7 +37,8 @@ export enum InvariantTx {
   ChangeFeeReceiver = 'invariantTrait::changeFeeReceiver',
   WithdrawProtocolFee = 'invariantTrait::withdrawProtocolFee',
   Swap = 'invariantTrait::swap',
-  SwapRoute = 'invariantTrait::swapRoute'
+  SwapRoute = 'invariantTrait::swapRoute',
+  WithdrawAllWAZERO = 'invariantTrait::withdrawAllWazero'
 }
 
 export enum PSP22Query {

@@ -1,7 +1,7 @@
 export const abi = `
 {
   "source": {
-    "hash": "0x4beec0591b3fa27df68ca42ca4274d80bb2317c3817b10dd634cfb08d1a0fdd9",
+    "hash": "0x778c30a1574fa88e87e5bcdf558a2d3321142b16168413198b496130e4a81264",
     "language": "ink! 4.3.0",
     "compiler": "rustc 1.74.0",
     "build_info": {
@@ -1433,6 +1433,32 @@ export const abi = `
           "type": 63
         },
         "selector": "0xf360dea7"
+      },
+      {
+        "args": [
+          {
+            "label": "address",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 1
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "InvariantTrait::withdraw_all_wazero",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 17
+        },
+        "selector": "0x06099ca3"
       }
     ]
   },
@@ -2679,6 +2705,10 @@ export const abi = `
               {
                 "index": 28,
                 "name": "TickLimitReached"
+              },
+              {
+                "index": 29,
+                "name": "WAZEROWithdrawError"
               }
             ]
           }
