@@ -1,10 +1,7 @@
 #!/bin/bash
 
 npm run node:start &
-npm run test:local &
-test_pid=$!
-
-wait $test_pid
+npm run test:get-liquidity-ticks
 test_status=$?
 
 npm run node:stop
