@@ -9,7 +9,7 @@ import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
 import { objectEquals } from '../src/testUtils'
-import { initPolkadotApi, integerSafeCast, newFeeTier, newPoolKey } from '../src/utils'
+import { delay, initPolkadotApi, integerSafeCast, newFeeTier, newPoolKey } from '../src/utils'
 import { CHUNK_SIZE, LIQUIDITY_TICKS_LIMIT } from '../src/consts'
 
 const network = Network.Local
@@ -96,6 +96,7 @@ describe('get-liquidity-ticks', async () => {
     for (let i = 1n; i <= 400n; i++) {
       await invariant.createPosition(account, poolKey, -i, i, 10n, 1000000000000000000000000n, 0n)
     }
+    await delay(8000)
 
     const tickmap = await invariant.getFullTickmap(poolKey)
 
