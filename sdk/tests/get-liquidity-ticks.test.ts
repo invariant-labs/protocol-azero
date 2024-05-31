@@ -32,7 +32,6 @@ const psp22 = await PSP22.load(api, network, deployOptions)
 const feeTier = newFeeTier(10000000000n, 1n)
 let poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
-
 describe('get-liquidity-ticks', async () => {
   beforeEach(async function () {
     this.timeout(20000)
@@ -69,20 +68,25 @@ describe('get-liquidity-ticks', async () => {
         }
       }
     }
-    const result = await invariant.getLiquidityTicks(poolKey, tickIndexes)
-
-    assert.equal(result.length, tickLimit)
+    const singleQueryLiquidityTicks = await invariant.getLiquidityTicks(poolKey, tickIndexes)
+    assert.equal(singleQueryLiquidityTicks.length, tickLimit)
 
     for (let i = -390n; i <= 390n; i++) {
       if (i !== 0n) {
         const tick = await invariant.getTick(poolKey, i)
 
         if (i > 0n) {
-          objectEquals(result[integerSafeCast(i) + 390 - 1], tick, [])
+          objectEquals(singleQueryLiquidityTicks[integerSafeCast(i) + 390 - 1], tick, ['index', 'liquidity', 'sign' ])
         } else {
-          objectEquals(result[integerSafeCast(i) + 390], tick, [])
+          objectEquals(singleQueryLiquidityTicks[integerSafeCast(i) + 390], tick, ['index', 'liquidity', 'sign' ])
         }
       }
+    }
+
+    const allLiquidityTicks = await invariant.getAllLiquidityTicks(poolKey, tickmap)
+    assert.equal(allLiquidityTicks.length, tickLimit)
+    for (let i = 0; i < allLiquidityTicks.length; i++) {
+      assert.deepEqual(allLiquidityTicks[i], singleQueryLiquidityTicks[i])
     }
   })
 
@@ -129,7 +133,13 @@ describe('get-liquidity-ticks', async () => {
     assert.equal(fullQuery.length, integerSafeCast(ticksAmount))
 
     for (let i = 0; i < 800; i++) {
-      assert(fullQuery[i].index == tickIndexes[i])
+      assert(fullQuery[i].index === tickIndexes[i])
+    }
+
+    const liquidityTicks = await invariant.getAllLiquidityTicks(poolKey, tickmap)
+    assert.equal(liquidityTicks.length, integerSafeCast(ticksAmount))
+    for (let i = 0; i < liquidityTicks.length; i++) {
+      assert.deepEqual(liquidityTicks[i], fullQuery[i])
     }
   })
 })
