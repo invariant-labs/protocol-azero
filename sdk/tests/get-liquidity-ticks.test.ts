@@ -94,9 +94,11 @@ describe('get-liquidity-ticks', async () => {
     this.timeout(1200000)
 
     for (let i = 1n; i <= 400n; i++) {
+      if (i === 200n) {
+        await delay(10000)
+      }
       await invariant.createPosition(account, poolKey, -i, i, 10n, 1000000000000000000000000n, 0n)
     }
-    await delay(8000)
 
     const tickmap = await invariant.getFullTickmap(poolKey)
 
@@ -116,7 +118,10 @@ describe('get-liquidity-ticks', async () => {
     const minTick = getMinTick(poolKey.feeTier.tickSpacing)
     const maxTick = getMaxTick(poolKey.feeTier.tickSpacing)
 
+    await delay(10000)
     const amountBelowZero = await invariant.getLiquidityTicksAmount(poolKey, minTick, 0n)
+
+    await delay(10000)
     const amountAboveZero = await invariant.getLiquidityTicksAmount(poolKey, 1n, maxTick)
 
     const ticksAmount = amountBelowZero + amountAboveZero
