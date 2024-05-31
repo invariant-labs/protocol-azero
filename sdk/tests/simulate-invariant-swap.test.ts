@@ -575,54 +575,54 @@ describe('simulateInvariantSwap', async () => {
       expect(simulation.crossedTicks.length).to.equal(0)
     })
 
-    // it('ticks', async () => {
-    //   const poolKey = newPoolKey(token0Address, token1Address, feeTier)
+    it('ticks', async () => {
+      const poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
-    //   const sqrtPriceLimit = getMinSqrtPrice(feeTier.tickSpacing)
-    //   const amountIn = 20000n
-    //   const byAmountIn = true
-    //   const xToY = true
+      const sqrtPriceLimit = getMinSqrtPrice(feeTier.tickSpacing)
+      const amountIn = 20000n
+      const byAmountIn = true
+      const xToY = true
 
-    //   await invariant.createPosition(
-    //     account,
-    //     poolKey,
-    //     -20n,
-    //     10n,
-    //     10000000000000n,
-    //     1000000000000000000000000n,
-    //     0n
-    //   )
+      await invariant.createPosition(
+        account,
+        poolKey,
+        -20n,
+        10n,
+        10000000000000n,
+        1000000000000000000000000n,
+        0n
+      )
 
-    //   const pool = await invariant.getPool(token0Address, token1Address, feeTier)
-    //   const ticks = filterTicks(
-    //     await Promise.all([invariant.getTick(poolKey, 10n), invariant.getTick(poolKey, -10n)]),
-    //     pool.currentTickIndex,
-    //     xToY
-    //   )
+      const pool = await invariant.getPool(token0Address, token1Address, feeTier)
+      const ticks = filterTicks(
+        await invariant.getLiquidityTicks(poolKey, [10n, -10n]),
+        pool.currentTickIndex,
+        xToY
+      )
 
-    //   const tickmap = filterTickmap(
-    //     await invariant.getFullTickmap(poolKey),
-    //     poolKey.feeTier.tickSpacing,
-    //     pool.currentTickIndex,
-    //     xToY
-    //   )
+      const tickmap = filterTickmap(
+        await invariant.getFullTickmap(poolKey),
+        poolKey.feeTier.tickSpacing,
+        pool.currentTickIndex,
+        xToY
+      )
 
-    //   const simulation = simulateInvariantSwap(
-    //     tickmap,
-    //     feeTier,
-    //     pool,
-    //     ticks,
-    //     xToY,
-    //     amountIn,
-    //     byAmountIn,
-    //     sqrtPriceLimit
-    //   )
+      const simulation = simulateInvariantSwap(
+        tickmap,
+        feeTier,
+        pool,
+        ticks,
+        xToY,
+        amountIn,
+        byAmountIn,
+        sqrtPriceLimit
+      )
 
-    //   expect(simulation.globalInsufficientLiquidity).to.equal(false)
-    //   expect(simulation.maxTicksCrossed).to.equal(false)
-    //   expect(simulation.stateOutdated).to.equal(true)
-    //   expect(simulation.crossedTicks.length).to.equal(1)
-    // })
+      expect(simulation.globalInsufficientLiquidity).to.equal(false)
+      expect(simulation.maxTicksCrossed).to.equal(false)
+      expect(simulation.stateOutdated).to.equal(true)
+      expect(simulation.crossedTicks.length).to.equal(1)
+    })
   })
   it('max ticks crossed', async function () {
     this.timeout(2000000)
