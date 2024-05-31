@@ -827,7 +827,8 @@ export class Invariant {
       promises.push(this.getLiquidityTicks(poolKey, tickIndexes.slice(i, i + tickLimit)))
     }
     
-    return Promise.all(promises).then(ticks => ticks.flat(1))
+    const tickResults = await Promise.all(promises);
+    return tickResults.flat(1);
   }
 
   async getUserPositionAmount(owner: string): Promise<bigint> {
