@@ -1,6 +1,6 @@
 {
   "name": "@invariant-labs/a0-sdk",
-  "version": "0.1.34",
+  "version": "0.1.35",
   "collaborators": [
     "Invariant Labs"
   ],
@@ -58,7 +58,7 @@
     "@polkadot/api": "^10.11.2",
     "@polkadot/api-contract": "^10.11.2",
     "@scio-labs/use-inkathon": "^0.6.3",
-    "@invariant-labs/a0-sdk-wasm": "0.1.11",
+    "@invariant-labs/a0-sdk-wasm": "file:./src/wasm/pkg",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   },

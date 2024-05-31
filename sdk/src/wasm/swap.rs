@@ -1,5 +1,4 @@
 use crate::clamm::compute_swap_step;
-use crate::percentage::Percentage;
 use crate::sqrt_price::{get_max_tick, get_min_tick, SqrtPrice};
 use crate::token_amount::TokenAmount;
 use crate::{
@@ -18,7 +17,6 @@ type Ticks = Vec<Tick>;
 #[wasm_wrapper]
 pub fn simulate_invariant_swap(
     tickmap: Tickmap,
-    protocol_fee: Percentage,
     fee_tier: FeeTier,
     mut pool: Pool,
     ticks: Ticks,
@@ -91,7 +89,6 @@ pub fn simulate_invariant_swap(
             remaining_amount -= result.amount_out;
         }
 
-        pool.add_fee(result.fee_amount, x_to_y, protocol_fee)?;
         total_fee_amount += result.fee_amount;
 
         pool.sqrt_price = result.next_sqrt_price;
@@ -135,7 +132,6 @@ pub fn simulate_invariant_swap(
             by_amount_in,
             x_to_y,
             pool.last_timestamp,
-            protocol_fee,
             fee_tier,
         );
         let (amount_to_add, amount_after_tick_update, has_crossed) = if let Ok(tick_update_return) = tick_update_return {

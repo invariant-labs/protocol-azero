@@ -1,11 +1,11 @@
 use crate::alloc::string::ToString;
 use crate::clamm::{calculate_amount_delta, is_enough_amount_to_change_price, SwapResult};
+use crate::fee_growth::FeeGrowth;
 use crate::{get_tick_at_sqrt_price, FeeTier, Tick};
-use crate::percentage::Percentage;
 use crate::types::{
-    fee_growth::FeeGrowth, liquidity::Liquidity, sqrt_price::SqrtPrice, token_amount::TokenAmount,
+    liquidity::Liquidity, sqrt_price::SqrtPrice, token_amount::TokenAmount,
 };
-use decimal::{BigOps, CheckedOps};
+use decimal::CheckedOps;
 use serde::{Deserialize, Serialize};
 use traceable_result::*;
 use tsify::Tsify;
@@ -32,32 +32,6 @@ pub struct Pool {
 }
 
 impl Pool {
-    pub fn add_fee(
-        &mut self,
-        amount: TokenAmount,
-        in_x: bool,
-        protocol_fee: Percentage,
-    ) -> TrackableResult<()> {
-        let protocol_fee = amount.big_mul_up(protocol_fee);
-
-        let pool_fee = amount - protocol_fee;
-
-        if (pool_fee.is_zero() && protocol_fee.is_zero()) || self.liquidity.is_zero() {
-            return Ok(());
-        }
-
-        let fee_growth = ok_or_mark_trace!(FeeGrowth::from_fee(self.liquidity, pool_fee))?;
-
-        if in_x {
-            self.fee_growth_global_x = self.fee_growth_global_x.unchecked_add(fee_growth);
-            self.fee_protocol_token_x += protocol_fee;
-        } else {
-            self.fee_growth_global_y = self.fee_growth_global_y.unchecked_add(fee_growth);
-            self.fee_protocol_token_y += protocol_fee;
-        }
-        Ok(())
-    }
-
     pub fn update_liquidity(
         &mut self,
         liquidity_delta: Liquidity,
@@ -103,7 +77,6 @@ impl Pool {
         by_amount_in: bool,
         x_to_y: bool,
         current_timestamp: u64,
-        protocol_fee: Percentage,
         fee_tier: FeeTier,
     ) -> TrackableResult<(TokenAmount, TokenAmount, bool)> {
         let mut has_crossed = false;
@@ -135,7 +108,6 @@ impl Pool {
                     has_crossed = true;
                 } else if !remaining_amount.is_zero() {
                     if by_amount_in {
-                        unwrap!(self.add_fee(remaining_amount, x_to_y, protocol_fee));
                         total_amount = remaining_amount;
                     }
                     remaining_amount = TokenAmount(0);
