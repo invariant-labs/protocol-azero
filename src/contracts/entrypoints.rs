@@ -387,14 +387,33 @@ pub trait InvariantTrait {
     ///
     /// # Parameters
     /// - `pool_key`: A unique key that identifies the specified pool.
-    /// - `offset`: The offset from which ticks will be retrieved.
+    /// - `tick_indexes`: Indexes of the tick to be retrieved.
+    ///
+    /// # Errors
+    /// - Fails if tick_indexes are too large
+    /// - Fails if tick is not found
+    ///
     #[ink(message)]
-    fn get_liquidity_ticks(&self, pool_key: PoolKey, offset: u16) -> Vec<LiquidityTick>;
-
+    fn get_liquidity_ticks(
+        &self,
+        pool_key: PoolKey,
+        tick_indexes: Vec<i32>,
+    ) -> Result<Vec<LiquidityTick>, InvariantError>;
     /// Retrieves the amount of liquidity ticks of a specified pool.
     ///
     /// # Parameters
-    /// - `pool_key`: A unique key that identifies the specified pool.
+    /// - `pool_key`: A unique key that identifies the specified pool. For poolkeys with tick_spacing equal to 1 the query has to be split into 2 smaller queries
+    /// - `lower_tick`: index to start counting from(inclusive)
+    /// - `upper_tick`: index to stop counting after(inclusive)
+    ///
+    /// # Errors
+    /// - Fails if lower_tick or upper_tick are invalid
+    /// - Fails if tick_spacing is invalid
     #[ink(message)]
-    fn get_liquidity_ticks_amount(&self, pool_key: PoolKey) -> u32;
+    fn get_liquidity_ticks_amount(
+        &self,
+        pool_key: PoolKey,
+        lower_tick: i32,
+        upper_tick: i32,
+    ) -> Result<u32, InvariantError>;
 }

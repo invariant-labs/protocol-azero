@@ -46,8 +46,8 @@ const main = async () => {
   await psp22.mint(account, AMOUNT, TOKEN_0_ADDRESS)
   await psp22.approve(account, TESTNET_INVARIANT_ADDRESS, AMOUNT, TOKEN_0_ADDRESS)
 
-  await psp22.mint(account, AMOUNT, TOKEN_0_ADDRESS)
-  await psp22.approve(account, TESTNET_INVARIANT_ADDRESS, AMOUNT, TOKEN_0_ADDRESS)
+  await psp22.mint(account, AMOUNT, TOKEN_1_ADDRESS)
+  await psp22.approve(account, TESTNET_INVARIANT_ADDRESS, AMOUNT, TOKEN_1_ADDRESS)
 
   await invariant.createPosition(
     account,

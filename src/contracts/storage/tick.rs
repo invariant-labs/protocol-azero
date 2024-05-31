@@ -53,6 +53,16 @@ pub struct LiquidityTick {
     pub sign: bool,
 }
 
+impl From<Tick> for LiquidityTick {
+    fn from(tick: Tick) -> Self {
+        Self {
+            index: tick.index,
+            liquidity_change: tick.liquidity_change,
+            sign: tick.sign,
+        }
+    }
+}
+
 impl Default for Tick {
     fn default() -> Self {
         Tick {

@@ -1,28 +1,42 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import { LiquidityTick } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
+import {
+  getMaxTick,
+  getMinTick,
+  positionToTick
+} from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
 import { objectEquals } from '../src/testUtils'
 import { initPolkadotApi, integerSafeCast, newFeeTier, newPoolKey } from '../src/utils'
+import { CHUNK_SIZE, LIQUIDITY_TICKS_LIMIT } from '../src/consts'
 
-const api = await initPolkadotApi(Network.Local)
+const network = Network.Local
+const api = await initPolkadotApi(network)
 
 const keyring = new Keyring({ type: 'sr25519' })
 const account = await keyring.addFromUri('//Alice')
 
-let invariant = await Invariant.deploy(api, Network.Local, account, 10000000000n)
+const deployOptions = {
+  storageDepositLimit: null,
+  refTime: 259058343000,
+  proofSize: 1160117000
+}
+
+let invariant = await Invariant.deploy(api, network, account, 10000000000n, deployOptions)
 let token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
 let token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
-const psp22 = await PSP22.load(api, Network.Local)
+const psp22 = await PSP22.load(api, network, deployOptions)
 
 const feeTier = newFeeTier(10000000000n, 1n)
 let poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
+
 describe('get-liquidity-ticks', async () => {
-  beforeEach(async () => {
-    invariant = await Invariant.deploy(api, Network.Local, account, 10000000000n)
+  beforeEach(async function () {
+    this.timeout(20000)
+    invariant = await Invariant.deploy(api, network, account, 10000000000n, deployOptions)
     token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
     token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
 
@@ -31,33 +45,33 @@ describe('get-liquidity-ticks', async () => {
     await invariant.addFeeTier(account, feeTier)
 
     await invariant.createPool(account, poolKey, 1000000000000000000000000n)
-
     await psp22.approve(account, invariant.contract.address.toString(), 10000000000n, token0Address)
     await psp22.approve(account, invariant.contract.address.toString(), 10000000000n, token1Address)
   })
 
-  it('should get liquidity ticks', async function () {
-    await invariant.createPosition(account, poolKey, -10n, 10n, 10n, 1000000000000000000000000n, 0n)
-
-    const result = await invariant.getLiquidityTicks(poolKey, 0n)
-    assert.equal(result.length, 2)
-
-    const lowerTick = await invariant.getTick(poolKey, -10n)
-    const upperTick = await invariant.getTick(poolKey, 10n)
-
-    objectEquals(result[0], lowerTick, [])
-    objectEquals(result[1], upperTick, [])
-  })
-
   it('should get liquidity ticks limit', async function () {
-    this.timeout(30000)
+    this.timeout(1200000)
+    const tickLimit = integerSafeCast(LIQUIDITY_TICKS_LIMIT)
 
     for (let i = 1n; i <= 390n; i++) {
       await invariant.createPosition(account, poolKey, -i, i, 10n, 1000000000000000000000000n, 0n)
     }
+    const tickmap = await invariant.getFullTickmap(poolKey)
 
-    const result = await invariant.getLiquidityTicks(poolKey, 0n)
-    assert.equal(result.length, 780)
+    const tickIndexes: bigint[] = []
+
+    for (const [chunkIndex, chunk] of tickmap.bitmap.entries()) {
+      for (let bit = 0n; bit < CHUNK_SIZE; bit++) {
+        const checkedBit = chunk & (1n << bit)
+        if (checkedBit) {
+          const tickIndex = positionToTick(chunkIndex, bit, poolKey.feeTier.tickSpacing)
+          tickIndexes.push(tickIndex)
+        }
+      }
+    }
+    const result = await invariant.getLiquidityTicks(poolKey, tickIndexes)
+
+    assert.equal(result.length, tickLimit)
 
     for (let i = -390n; i <= 390n; i++) {
       if (i !== 0n) {
@@ -72,41 +86,50 @@ describe('get-liquidity-ticks', async () => {
     }
   })
 
-  it('should get liquidity ticks with offset', async () => {
-    await invariant.createPosition(account, poolKey, -10n, 10n, 10n, 1000000000000000000000000n, 0n)
-
-    const result1 = await invariant.getLiquidityTicks(poolKey, 0n)
-    assert.equal(result1.length, 2)
-
-    const result2 = await invariant.getLiquidityTicks(poolKey, 1n)
-    assert.equal(result2.length, 1)
-
-    objectEquals(result1[1], result2[0], [])
-  })
-
   it('should get liquidity ticks with multiple queries', async function () {
-    this.timeout(25000)
+    this.timeout(1200000)
 
     for (let i = 1n; i <= 400n; i++) {
       await invariant.createPosition(account, poolKey, -i, i, 10n, 1000000000000000000000000n, 0n)
     }
 
-    const liquidityTicks = await invariant.getLiquidityTicksAmount(poolKey)
+    const tickmap = await invariant.getFullTickmap(poolKey)
 
-    const promises: Promise<LiquidityTick[]>[] = []
-
-    for (let i = 0n; i < liquidityTicks; i += 780n) {
-      promises.push(invariant.getLiquidityTicks(poolKey, i))
+    const tickIndexes: bigint[] = []
+    for (const [chunkIndex, chunk] of tickmap.bitmap.entries()) {
+      for (let bit = 0n; bit < CHUNK_SIZE; bit++) {
+        const checkedBit = chunk & (1n << bit)
+        if (checkedBit) {
+          const tickIndex = positionToTick(chunkIndex, bit, poolKey.feeTier.tickSpacing)
+          tickIndexes.push(tickIndex)
+        }
+      }
     }
+    assert.equal(tickIndexes.length, 800)
 
-    const result = await Promise.all(promises)
+    const tickLimit = integerSafeCast(LIQUIDITY_TICKS_LIMIT)
+    const minTick = getMinTick(poolKey.feeTier.tickSpacing)
+    const maxTick = getMaxTick(poolKey.feeTier.tickSpacing)
 
-    let ticks = 0
+    const amountBelowZero = await invariant.getLiquidityTicksAmount(poolKey, minTick, 0n)
+    const amountAboveZero = await invariant.getLiquidityTicksAmount(poolKey, 1n, maxTick)
 
-    for (let i = 0; i < result.length; i++) {
-      ticks += result[i].length
+    const ticksAmount = amountBelowZero + amountAboveZero
+
+    const firstQuery = await invariant.getLiquidityTicks(poolKey, tickIndexes.slice(0, tickLimit))
+    const secondQuery = await invariant.getLiquidityTicks(
+      poolKey,
+      tickIndexes.slice(tickLimit, 800)
+    )
+
+    assert.equal(firstQuery.length, tickLimit)
+    assert.equal(secondQuery.length, 20)
+
+    const fullQuery = firstQuery.concat(secondQuery)
+    assert.equal(fullQuery.length, integerSafeCast(ticksAmount))
+
+    for (let i = 0; i < 800; i++) {
+      assert(fullQuery[i].index == tickIndexes[i])
     }
-
-    assert.equal(ticks, 800)
   })
 })
