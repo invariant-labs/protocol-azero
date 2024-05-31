@@ -821,6 +821,17 @@ export class Invariant {
     )
   }
 
+  withdrawAllWAZEROTx(address: string): SubmittableExtrinsic {
+    return createTx(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      0n,
+      InvariantTx.WithdrawAllWAZERO,
+      [address]
+    )
+  }
+
   async withdrawAllWAZERO(
     account: IKeyringPair,
     address: string,

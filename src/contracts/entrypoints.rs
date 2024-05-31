@@ -398,7 +398,7 @@ pub trait InvariantTrait {
     #[ink(message)]
     fn get_liquidity_ticks_amount(&self, pool_key: PoolKey) -> u32;
 
-    /// Transfers, withdraws and transfers back all wAZERO tokens from the caller.
+    /// Unwraps wAZERO tokens on behalf of a user. Transfers and withdraws wAZERO withdraws + transfers back all AZERO tokens to user.
     ///
     /// # Parameters
     /// - `address`: Address of wAZERO contract.

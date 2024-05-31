@@ -1142,15 +1142,17 @@ pub mod invariant {
             let mut wazero_wrapped_azero: contract_ref!(WrappedAZERO) = address.into();
 
             let balance = wazero_psp22.balance_of(caller);
-            wazero_psp22
-                .transfer_from(caller, contract, balance, vec![])
-                .map_err(|_| InvariantError::TransferError)?;
-            wazero_wrapped_azero
-                .withdraw(balance)
-                .map_err(|_| InvariantError::WAZEROWithdrawError)?;
-            self.env()
-                .transfer(caller, balance)
-                .map_err(|_| InvariantError::TransferError)?;
+            if balance > 0 {
+                wazero_psp22
+                    .transfer_from(caller, contract, balance, vec![])
+                    .map_err(|_| InvariantError::TransferError)?;
+                wazero_wrapped_azero
+                    .withdraw(balance)
+                    .map_err(|_| InvariantError::WAZEROWithdrawError)?;
+                self.env()
+                    .transfer(caller, balance)
+                    .map_err(|_| InvariantError::TransferError)?;
+            }
 
             Ok(())
         }
