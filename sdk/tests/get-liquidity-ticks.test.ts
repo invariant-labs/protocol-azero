@@ -93,6 +93,19 @@ describe('get-liquidity-ticks', async () => {
   it('should get liquidity ticks with multiple queries', async function () {
     this.timeout(1200000)
 
+    const minTick = getMinTick(poolKey.feeTier.tickSpacing)
+    const maxTick = getMaxTick(poolKey.feeTier.tickSpacing)
+
+    await delay(30000)
+    const amountBelowZero = await invariant.getLiquidityTicksAmount(poolKey, minTick, 0n)
+    console.log("first amount", amountBelowZero)
+    await delay(30000)
+
+    const amountAboveZero = await invariant.getLiquidityTicksAmount(poolKey, 1n, maxTick)
+    console.log("second amount", amountAboveZero)
+
+    const ticksAmount = amountBelowZero + amountAboveZero
+
     for (let i = 1n; i <= 400n; i++) {
       if (i === 200n) {
         await delay(10000)
@@ -115,17 +128,9 @@ describe('get-liquidity-ticks', async () => {
     assert.equal(tickIndexes.length, 800)
 
     const tickLimit = integerSafeCast(LIQUIDITY_TICKS_LIMIT)
-    const minTick = getMinTick(poolKey.feeTier.tickSpacing)
-    const maxTick = getMaxTick(poolKey.feeTier.tickSpacing)
 
-    await delay(10000)
-    const amountBelowZero = await invariant.getLiquidityTicksAmount(poolKey, minTick, 0n)
 
-    await delay(10000)
-    const amountAboveZero = await invariant.getLiquidityTicksAmount(poolKey, 1n, maxTick)
-
-    const ticksAmount = amountBelowZero + amountAboveZero
-
+    
     const firstQuery = await invariant.getLiquidityTicks(poolKey, tickIndexes.slice(0, tickLimit))
     const secondQuery = await invariant.getLiquidityTicks(
       poolKey,

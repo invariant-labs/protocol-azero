@@ -94,7 +94,7 @@ export async function sendQuery(
   if (result.isOk && output) {
     return parse(JSON.parse(output.toString()).ok)
   } else {
-    throw new Error(result.asErr.toHuman()?.toString())
+    throw new Error(JSON.stringify(result.asErr.toHuman())?.toString())
   }
 }
 
