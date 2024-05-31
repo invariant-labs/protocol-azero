@@ -115,7 +115,7 @@ pub fn simulate_invariant_swap(
                         }
                     }
                 } else {
-                    UpdatePoolTick::TickUninitialized(tick_index)
+                    UpdatePoolTick::TickUninitialized(tick_index as i64)
                 }
             } else {
                 UpdatePoolTick::NoTick

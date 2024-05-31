@@ -94,9 +94,3 @@ export interface LiquidityBreakpoint {
   liquidity: Liquidity
   index: bigint
 }
-
-export interface LiquidityTickWithNumberAsIndex {
-  index: number
-  liquidityChange: Liquidity
-  sign: boolean
-}

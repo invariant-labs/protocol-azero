@@ -43,14 +43,7 @@ import { abi as PSP22Abi } from './abis/psp22.js'
 import { abi as wrappedAZEROAbi } from './abis/wrapped-azero.js'
 import { CONCENTRATION_FACTOR, MAINNET, TESTNET } from './consts.js'
 import { Network } from './network.js'
-import {
-  EventTxResult,
-  LiquidityBreakpoint,
-  LiquidityTickWithNumberAsIndex,
-  Query,
-  Tx,
-  TxResult
-} from './schema.js'
+import { EventTxResult, LiquidityBreakpoint, Query, Tx, TxResult } from './schema.js'
 
 export const initPolkadotApi = async (network: Network, ws?: string): Promise<ApiPromise> => {
   if (network === Network.Local) {
@@ -524,7 +517,7 @@ export function simulateInvariantSwap(
   tickmap: Tickmap,
   feeTier: FeeTier,
   pool: Pool,
-  ticks: LiquidityTickWithNumberAsIndex[],
+  ticks: LiquidityTick[],
   xToY: boolean,
   amountIn: TokenAmount,
   byAmountIn: boolean,
@@ -704,12 +697,4 @@ export const calculateTokenAmountsWithSlippage = (
   const x = lowerX > upperX ? lowerX : upperX
   const y = lowerY > upperY ? lowerY : upperY
   return [x, y]
-}
-
-export const parseLiquidityTicks = (
-  liquidityTicks: LiquidityTick[]
-): LiquidityTickWithNumberAsIndex[] => {
-  return liquidityTicks.map(liquidityTick => {
-    return { ...liquidityTick, index: Number(liquidityTick.index) }
-  })
 }

@@ -117,9 +117,9 @@ impl Pool {
             _ => unreachable!(),
         };
         self.current_tick_index = if x_to_y && is_enough_amount_to_cross {
-            (tick_index - fee_tier.tick_spacing as i32) as i64
+            tick_index - fee_tier.tick_spacing as i64
         } else {
-            tick_index as i64
+            tick_index
         };
 
         Ok((total_amount, remaining_amount, has_crossed))
@@ -130,5 +130,5 @@ impl Pool {
 pub enum UpdatePoolTick {
     NoTick,
     TickInitialized(LiquidityTick),
-    TickUninitialized(i32),
+    TickUninitialized(i64),
 }

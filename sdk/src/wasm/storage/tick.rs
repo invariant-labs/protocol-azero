@@ -43,7 +43,7 @@ pub struct PositionTick {
 #[serde(rename_all = "camelCase")]
 pub struct LiquidityTick {
     #[tsify(type = "bigint")]
-    pub index: i32,
+    pub index: i64,
     pub liquidity_change: Liquidity,
     pub sign: bool,
 }
@@ -111,7 +111,7 @@ impl LiquidityTick {
         pool.last_timestamp = current_timestamp;
 
         // When going to higher tick net_liquidity should be added and for going lower subtracted
-        if (pool.current_tick_index >= self.index as i64) ^ self.sign {
+        if (pool.current_tick_index >= self.index) ^ self.sign {
             pool.liquidity = pool
                 .liquidity
                 .checked_add(self.liquidity_change)
