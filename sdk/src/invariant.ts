@@ -18,8 +18,8 @@ import {
   TokenAmount,
   calculateTick,
   getMaxSqrtPrice,
-  getMinSqrtPrice,
   getMaxTick,
+  getMinSqrtPrice,
   getMinTick
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { ApiPromise } from '@polkadot/api'
@@ -48,6 +48,7 @@ import {
   TxResult
 } from './schema.js'
 import {
+  assert,
   calculateSqrtPriceAfterSlippage,
   createSignAndSendTx,
   createTx,
@@ -55,8 +56,7 @@ import {
   getDeploymentData,
   parse,
   parseEvent,
-  sendQuery,
-  assert
+  sendQuery
 } from './utils.js'
 export class Invariant {
   contract: ContractPromise
@@ -836,5 +836,34 @@ export class Invariant {
     } else {
       throw new Error(result.err ? InvariantError[result.err] : result)
     }
+  }
+
+  withdrawAllWAZEROTx(address: string): SubmittableExtrinsic {
+    return createTx(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      0n,
+      InvariantTx.WithdrawAllWAZERO,
+      [address]
+    )
+  }
+
+  async withdrawAllWAZERO(
+    account: IKeyringPair,
+    address: string,
+    block: boolean = true
+  ): Promise<any> {
+    return createSignAndSendTx(
+      this.contract,
+      this.gasLimit,
+      this.storageDepositLimit,
+      0n,
+      account,
+      InvariantTx.WithdrawAllWAZERO,
+      [address],
+      this.waitForFinalization,
+      block
+    )
   }
 }

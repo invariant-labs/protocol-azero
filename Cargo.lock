@@ -2199,6 +2199,7 @@ dependencies = [
  "test_helpers",
  "token",
  "traceable_result",
+ "wrapped-azero",
 ]
 
 [[package]]
@@ -3065,6 +3066,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5787f7cda34e3033a72192c018bc5883100330f362ef279a8cbccfce8bb4e874"
 dependencies = [
  "cc",
+]
+
+[[package]]
+name = "psp22"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5a9bdae21c2e17b9501b2c3f8597a679cfbe2f81ec5432091bd8d4b156f66194"
+dependencies = [
+ "ink",
+ "parity-scale-codec",
 ]
 
 [[package]]
@@ -5559,6 +5570,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a3b801d0e0a6726477cc207f60162da452f3a95adb368399bef20a946e06f65c"
 dependencies = [
  "memchr",
+]
+
+[[package]]
+name = "wrapped-azero"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cb0b7c41606ed0ee160c24dc07a1600c6f43cd52ed3e50218ad01e677d24a28c"
+dependencies = [
+ "ink",
+ "parity-scale-codec",
+ "psp22",
 ]
 
 [[package]]

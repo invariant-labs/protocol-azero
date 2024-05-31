@@ -37,6 +37,7 @@ pub enum InvariantError {
     InvalidSize,
     InvalidTickIndex,
     TickLimitReached,
+    WAZEROWithdrawError,
 }
 #[ink::contract]
 pub mod invariant {
@@ -62,6 +63,8 @@ pub mod invariant {
     use ink::prelude::vec::Vec;
     use token::PSP22;
     use traceable_result::unwrap;
+
+    use wrapped_azero::WrappedAZERO;
 
     #[ink(event)]
     pub struct CreatePositionEvent {
@@ -1140,6 +1143,30 @@ pub mod invariant {
             }
 
             Ok(amount)
+        }
+
+        #[ink(message)]
+        fn withdraw_all_wazero(&self, address: AccountId) -> Result<(), InvariantError> {
+            let caller = self.env().caller();
+            let contract = self.env().account_id();
+
+            let mut wazero_psp22: contract_ref!(PSP22) = address.into();
+            let mut wazero_wrapped_azero: contract_ref!(WrappedAZERO) = address.into();
+
+            let balance = wazero_psp22.balance_of(caller);
+            if balance > 0 {
+                wazero_psp22
+                    .transfer_from(caller, contract, balance, vec![])
+                    .map_err(|_| InvariantError::TransferError)?;
+                wazero_wrapped_azero
+                    .withdraw(balance)
+                    .map_err(|_| InvariantError::WAZEROWithdrawError)?;
+                self.env()
+                    .transfer(caller, balance)
+                    .map_err(|_| InvariantError::TransferError)?;
+            }
+
+            Ok(())
         }
     }
 
