@@ -43,7 +43,7 @@ pub mod invariant {
     use crate::contracts::{
         get_max_chunk, get_min_chunk, tick_to_position, FeeTier, FeeTiers, InvariantConfig,
         InvariantTrait, LiquidityTick, Pool, PoolKey, PoolKeys, Pools, Position, PositionTick,
-        Positions, Tick, Tickmap, Ticks, UpdatePoolTick, LIQUIDITY_TICK_LIMIT,
+        Positions, Tick, Tickmap, Ticks, UpdatePoolTick, CHUNK_SIZE, LIQUIDITY_TICK_LIMIT,
         MAX_TICKMAP_QUERY_SIZE, POSITION_TICK_LIMIT,
     };
     use crate::math::calculate_min_amount_out;
@@ -1109,11 +1109,7 @@ pub mod invariant {
             let (max_chunk_index, max_bit) = tick_to_position(upper_tick, tick_spacing);
 
             let active_bits_in_range = |chunk, min_bit, max_bit| {
-                let mut amount = 0;
-                for bit in min_bit..=max_bit {
-                    amount += ((chunk >> bit) & 1) as u32;
-                }
-                amount
+                (((chunk >> min_bit) & ((1u64 << (max_bit - min_bit + 1)) - 1)) as u64).count_ones()
             };
 
             let min_chunk = self
@@ -1133,8 +1129,7 @@ pub mod invariant {
                 .unwrap_or(0);
 
             let mut amount: u32 = 0;
-
-            amount += active_bits_in_range(min_chunk, min_bit, 63);
+            amount += active_bits_in_range(min_chunk, min_bit, (CHUNK_SIZE - 1) as u8);
             amount += active_bits_in_range(max_chunk, 0, max_bit);
 
             for i in (min_chunk_index + 1)..max_chunk_index {

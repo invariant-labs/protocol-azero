@@ -791,13 +791,13 @@ export class Invariant {
     return { bitmap: storedTickmap }
   }
 
-  async getLiquidityTicks(poolKey: PoolKey, offset: bigint[]): Promise<LiquidityTick[]> {
+  async getLiquidityTicks(poolKey: PoolKey, ticks: bigint[]): Promise<LiquidityTick[]> {
     const result = await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       InvariantQuery.getLiquidityTicks,
-      [poolKey, offset]
+      [poolKey, ticks]
     )
 
     if (result.ok) {
