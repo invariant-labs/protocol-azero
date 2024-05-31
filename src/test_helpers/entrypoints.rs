@@ -548,9 +548,10 @@ macro_rules! get_liquidity_ticks {
 
 #[macro_export]
 macro_rules! get_liquidity_ticks_amount {
-    ($client:ident, $dex:ty, $dex_address:expr, $pool_key:expr) => {{
-        let message = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.get_liquidity_ticks_amount($pool_key));
+    ($client:ident, $dex:ty, $dex_address:expr, $pool_key:expr, $lower_tick:expr, $upper_tick:expr) => {{
+        let message = build_message::<$dex>($dex_address.clone()).call(|contract| {
+            contract.get_liquidity_ticks_amount($pool_key, $lower_tick, $upper_tick)
+        });
         $client
             .call_dry_run(&ink_e2e::alice(), &message, 0, None)
             .await

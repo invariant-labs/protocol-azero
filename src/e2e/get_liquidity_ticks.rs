@@ -1,7 +1,9 @@
 #[cfg(test)]
 pub mod e2e_tests {
     use crate::{
-        contracts::{entrypoints::InvariantTrait, FeeTier, PoolKey, LIQUIDITY_TICK_LIMIT},
+        contracts::{
+            entrypoints::InvariantTrait, position_to_tick, FeeTier, PoolKey, LIQUIDITY_TICK_LIMIT,
+        },
         invariant::InvariantRef,
         math::types::{
             liquidity::Liquidity,
@@ -13,7 +15,8 @@ pub mod e2e_tests {
     use ink_e2e::build_message;
     use test_helpers::{
         add_fee_tier, approve, create_dex, create_pool, create_position, create_tokens,
-        get_liquidity_ticks, get_liquidity_ticks_amount, get_tick, liquidity_tick_equals,
+        get_liquidity_ticks, get_liquidity_ticks_amount, get_tick, get_tickmap,
+        liquidity_tick_equals,
     };
     use token::{TokenRef, PSP22};
 
@@ -64,9 +67,28 @@ pub mod e2e_tests {
         )
         .unwrap();
 
-        let result = get_liquidity_ticks_amount!(client, InvariantRef, dex, pool_key);
-        assert_eq!(result, 2);
-        let result = get_liquidity_ticks!(client, InvariantRef, dex, pool_key, 0);
+        let ticks_amount =
+            get_liquidity_ticks_amount!(client, InvariantRef, dex, pool_key, -10, 10).unwrap();
+        assert_eq!(ticks_amount, 2);
+
+        let tickmap = get_tickmap!(client, InvariantRef, dex, pool_key, -10, 10, false, alice);
+        assert_eq!(tickmap.len(), 2);
+        let mut ticks = vec![];
+        tickmap.iter().for_each(|(chunk_index, chunk)| {
+            for i in 0..64 {
+                if chunk & (1 << i) != 0 {
+                    ticks.push(position_to_tick(
+                        *chunk_index,
+                        i,
+                        pool_key.fee_tier.tick_spacing,
+                    ));
+                }
+            }
+        });
+        assert_eq!(ticks, vec![-10i32, 10]);
+
+        let result =
+            get_liquidity_ticks!(client, InvariantRef, dex, pool_key, ticks.clone()).unwrap();
         assert_eq!(result.len(), 2);
 
         let lower_tick = get_tick!(client, InvariantRef, dex, pool_key, -10).unwrap();
@@ -157,14 +179,37 @@ pub mod e2e_tests {
         )
         .unwrap();
 
-        let result = get_liquidity_ticks_amount!(client, InvariantRef, dex, pool_key_1);
+        let start_index_1 = -10;
+        let end_index_1 = 30;
+
+        let start_index_2 = -20;
+        let end_index_2 = 40;
+        let result = get_liquidity_ticks_amount!(
+            client,
+            InvariantRef,
+            dex,
+            pool_key_1,
+            start_index_1,
+            end_index_1
+        )
+        .unwrap();
         assert_eq!(result, 2);
-        let result = get_liquidity_ticks!(client, InvariantRef, dex, pool_key_1, 0);
+        let result =
+            get_liquidity_ticks!(client, InvariantRef, dex, pool_key_1, vec![-10, 30]).unwrap();
         assert_eq!(result.len(), 2);
 
-        let result = get_liquidity_ticks_amount!(client, InvariantRef, dex, pool_key_2);
+        let result = get_liquidity_ticks_amount!(
+            client,
+            InvariantRef,
+            dex,
+            pool_key_2,
+            start_index_2,
+            end_index_2
+        )
+        .unwrap();
         assert_eq!(result, 2);
-        let result = get_liquidity_ticks!(client, InvariantRef, dex, pool_key_2, 0);
+        let result =
+            get_liquidity_ticks!(client, InvariantRef, dex, pool_key_2, vec![-20, 40]).unwrap();
         assert_eq!(result.len(), 2);
 
         Ok(())
@@ -201,7 +246,12 @@ pub mod e2e_tests {
         approve!(client, TokenRef, token_y, dex, initial_amount, alice).unwrap();
 
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
+
+        let mut ticks = vec![];
         for i in 1..=LIQUIDITY_TICK_LIMIT / 2 {
+            ticks.push(i as i32);
+            ticks.push(-(i as i32));
+
             create_position!(
                 client,
                 InvariantRef,
@@ -217,9 +267,18 @@ pub mod e2e_tests {
             .unwrap();
         }
 
-        let result = get_liquidity_ticks_amount!(client, InvariantRef, dex, pool_key);
+        let result = get_liquidity_ticks_amount!(
+            client,
+            InvariantRef,
+            dex,
+            pool_key,
+            -(LIQUIDITY_TICK_LIMIT as i32),
+            LIQUIDITY_TICK_LIMIT as i32
+        )
+        .unwrap();
         assert_eq!(result, LIQUIDITY_TICK_LIMIT as u32);
-        let result = get_liquidity_ticks!(client, InvariantRef, dex, pool_key, 0);
+        let result =
+            get_liquidity_ticks!(client, InvariantRef, dex, pool_key, ticks.clone()).unwrap();
         assert_eq!(result.len(), LIQUIDITY_TICK_LIMIT);
 
         Ok(())
@@ -259,8 +318,11 @@ pub mod e2e_tests {
 
         let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
         let spread = 64;
+        let mut ticks = vec![];
         for i in 1..=LIQUIDITY_TICK_LIMIT / 2 {
             let index = (i * spread) as i32;
+            ticks.push(index);
+            ticks.push(-index);
 
             create_position!(
                 client,
@@ -277,9 +339,18 @@ pub mod e2e_tests {
             .unwrap();
         }
 
-        let result = get_liquidity_ticks_amount!(client, InvariantRef, dex, pool_key);
+        let result = get_liquidity_ticks_amount!(
+            client,
+            InvariantRef,
+            dex,
+            pool_key,
+            -((LIQUIDITY_TICK_LIMIT * spread) as i32) / 2,
+            (LIQUIDITY_TICK_LIMIT * spread) as i32 / 2
+        )
+        .unwrap();
         assert_eq!(result, LIQUIDITY_TICK_LIMIT as u32);
-        let result = get_liquidity_ticks!(client, InvariantRef, dex, pool_key, 0);
+        let result =
+            get_liquidity_ticks!(client, InvariantRef, dex, pool_key, ticks.clone()).unwrap();
         assert_eq!(result.len(), LIQUIDITY_TICK_LIMIT);
 
         Ok(())
@@ -332,13 +403,15 @@ pub mod e2e_tests {
         )
         .unwrap();
 
-        let result = get_liquidity_ticks_amount!(client, InvariantRef, dex, pool_key);
+        let result =
+            get_liquidity_ticks_amount!(client, InvariantRef, dex, pool_key, -10, 10).unwrap();
         assert_eq!(result, 2);
 
-        let result_1 = get_liquidity_ticks!(client, InvariantRef, dex, pool_key, 0);
+        let result_1 =
+            get_liquidity_ticks!(client, InvariantRef, dex, pool_key, vec![-10i32, 10]).unwrap();
         assert_eq!(result_1.len(), 2);
 
-        let result_2 = get_liquidity_ticks!(client, InvariantRef, dex, pool_key, 1);
+        let result_2 = get_liquidity_ticks!(client, InvariantRef, dex, pool_key, vec![10]).unwrap();
         assert_eq!(result_2.len(), 1);
 
         assert_eq!(result_1[1], result_2[0]);

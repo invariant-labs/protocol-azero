@@ -42,10 +42,10 @@ pub enum InvariantError {
 #[ink::contract]
 pub mod invariant {
     use crate::contracts::{
-        get_bit_at_position, get_max_chunk, get_min_chunk, position_to_tick, tick_to_position,
-        FeeTier, FeeTiers, InvariantConfig, InvariantTrait, LiquidityTick, Pool, PoolKey, PoolKeys,
-        Pools, Position, PositionTick, Positions, Tick, Tickmap, Ticks, UpdatePoolTick, CHUNK_SIZE,
-        LIQUIDITY_TICK_LIMIT, MAX_TICKMAP_QUERY_SIZE, POSITION_TICK_LIMIT,
+        get_max_chunk, get_min_chunk, tick_to_position, FeeTier, FeeTiers, InvariantConfig,
+        InvariantTrait, LiquidityTick, Pool, PoolKey, PoolKeys, Pools, Position, PositionTick,
+        Positions, Tick, Tickmap, Ticks, UpdatePoolTick, CHUNK_SIZE, LIQUIDITY_TICK_LIMIT,
+        MAX_TICKMAP_QUERY_SIZE, POSITION_TICK_LIMIT,
     };
     use crate::math::calculate_min_amount_out;
     use crate::math::check_tick;
@@ -1060,54 +1060,24 @@ pub mod invariant {
         }
 
         #[ink(message)]
-        fn get_liquidity_ticks(&self, pool_key: PoolKey, offset: u16) -> Vec<LiquidityTick> {
-            let mut ticks = vec![];
-            let tick_spacing = pool_key.fee_tier.tick_spacing;
+        fn get_liquidity_ticks(
+            &self,
+            pool_key: PoolKey,
+            tickmap: Vec<i32>,
+        ) -> Result<Vec<LiquidityTick>, InvariantError> {
+            let mut liqudity_ticks: Vec<LiquidityTick> = vec![];
 
-            let max_tick = get_max_tick(tick_spacing);
-            let (chunk_limit, bit_limit) = tick_to_position(max_tick, tick_spacing);
-
-            let mut skipped_ticks = 0;
-
-            for i in 0..=chunk_limit {
-                let chunk = self.tickmap.bitmap.get((i, pool_key)).unwrap_or(0);
-
-                if chunk != 0 {
-                    let end = if chunk as u16 == chunk_limit {
-                        bit_limit
-                    } else {
-                        (CHUNK_SIZE - 1) as u8
-                    };
-
-                    for bit in 0..=end {
-                        if get_bit_at_position(chunk, bit) == 1 {
-                            if skipped_ticks < offset {
-                                skipped_ticks += 1;
-                                continue;
-                            }
-
-                            let tick_index = position_to_tick(i, bit, tick_spacing);
-
-                            self.ticks
-                                .get(pool_key, tick_index)
-                                .map(|tick| {
-                                    ticks.push(LiquidityTick {
-                                        index: tick.index,
-                                        liquidity_change: tick.liquidity_change,
-                                        sign: tick.sign,
-                                    })
-                                })
-                                .ok();
-
-                            if ticks.len() >= LIQUIDITY_TICK_LIMIT {
-                                return ticks;
-                            }
-                        }
-                    }
-                }
+            if tickmap.len() > LIQUIDITY_TICK_LIMIT {
+                return Err(InvariantError::TickLimitReached);
             }
 
-            ticks
+            for index in tickmap {
+                let tick = LiquidityTick::from(self.ticks.get(pool_key, index).unwrap());
+
+                liqudity_ticks.push(tick);
+            }
+
+            Ok(liqudity_ticks)
         }
 
         #[ink(message)]
@@ -1116,21 +1086,63 @@ pub mod invariant {
         }
 
         #[ink(message)]
-        fn get_liquidity_ticks_amount(&self, pool_key: PoolKey) -> u32 {
+        fn get_liquidity_ticks_amount(
+            &self,
+            pool_key: PoolKey,
+            lower_tick: i32,
+            upper_tick: i32,
+        ) -> Result<u32, InvariantError> {
             let tick_spacing = pool_key.fee_tier.tick_spacing;
+            if tick_spacing == 0 {
+                return Err(InvariantError::InvalidTickSpacing);
+            };
+
+            if lower_tick % (tick_spacing as i32) != 0 || upper_tick % (tick_spacing as i32) != 0 {
+                return Err(InvariantError::InvalidTickIndex);
+            }
 
             let max_tick = get_max_tick(tick_spacing);
-            let (chunk_limit, _) = tick_to_position(max_tick, tick_spacing);
+            let min_tick = get_min_tick(tick_spacing);
 
-            let mut amount = 0;
+            if lower_tick < min_tick || upper_tick > max_tick {
+                return Err(InvariantError::InvalidTickIndex);
+            };
 
-            for i in 0..=chunk_limit {
+            let (min_chunk_index, min_bit) = tick_to_position(lower_tick, tick_spacing);
+            let (max_chunk_index, max_bit) = tick_to_position(upper_tick, tick_spacing);
+
+            let active_bits_in_range = |chunk, min_bit, max_bit| {
+                let range: u64 = (chunk >> min_bit) & ((1u64 << (max_bit - min_bit + 1)) - 1);
+                range.count_ones()
+            };
+
+            let min_chunk = self
+                .tickmap
+                .bitmap
+                .get((min_chunk_index, pool_key))
+                .unwrap_or(0);
+
+            if max_chunk_index == min_chunk_index {
+                return Ok(active_bits_in_range(min_chunk, min_bit, max_bit));
+            }
+
+            let max_chunk = self
+                .tickmap
+                .bitmap
+                .get((max_chunk_index, pool_key))
+                .unwrap_or(0);
+
+            let mut amount: u32 = 0;
+            amount += active_bits_in_range(min_chunk, min_bit, (CHUNK_SIZE - 1) as u8);
+            amount += active_bits_in_range(max_chunk, 0, max_bit);
+
+            for i in (min_chunk_index + 1)..max_chunk_index {
                 let chunk = self.tickmap.bitmap.get((i, pool_key)).unwrap_or(0);
 
                 amount += chunk.count_ones();
             }
 
-            amount
+            Ok(amount)
         }
 
         #[ink(message)]

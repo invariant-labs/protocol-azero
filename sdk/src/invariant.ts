@@ -791,14 +791,20 @@ export class Invariant {
     return { bitmap: storedTickmap }
   }
 
-  async getLiquidityTicks(poolKey: PoolKey, offset: bigint): Promise<LiquidityTick[]> {
-    return sendQuery(
+  async getLiquidityTicks(poolKey: PoolKey, ticks: bigint[]): Promise<LiquidityTick[]> {
+    const result = await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       InvariantQuery.getLiquidityTicks,
-      [poolKey, offset]
+      [poolKey, ticks]
     )
+
+    if (result.ok) {
+      return parse(result.ok)
+    } else {
+      throw new Error(InvariantError[result.err])
+    }
   }
 
   async getUserPositionAmount(owner: string): Promise<bigint> {
@@ -811,14 +817,25 @@ export class Invariant {
     )
   }
 
-  async getLiquidityTicksAmount(poolKey: PoolKey): Promise<bigint> {
-    return sendQuery(
+  // Query needs to be split in the case where tickSpacing = 1, otherwise a single query will fit within the gas limit
+  async getLiquidityTicksAmount(
+    poolKey: PoolKey,
+    lowerTick: bigint,
+    upperTick: bigint
+  ): Promise<bigint> {
+    const result = await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       InvariantQuery.getLiquidityTicksAmount,
-      [poolKey]
+      [poolKey, lowerTick, upperTick]
     )
+
+    if (result.ok) {
+      return parse(result.ok)
+    } else {
+      throw new Error(result.err ? InvariantError[result.err] : result)
+    }
   }
 
   withdrawAllWAZEROTx(address: string): SubmittableExtrinsic {
