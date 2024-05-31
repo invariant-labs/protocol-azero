@@ -99,7 +99,7 @@ describe('get-liquidity-ticks', async () => {
       }
       await invariant.createPosition(account, poolKey, -i, i, 10n, 1000000000000000000000000n, 0n)
     }
-
+    const pool = await invariant.getPool(poolKey.tokenX, poolKey.tokenY, poolKey.feeTier);
     const tickmap = await invariant.getFullTickmap(poolKey)
 
     const tickIndexes: bigint[] = []
