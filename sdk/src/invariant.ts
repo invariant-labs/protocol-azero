@@ -33,6 +33,7 @@ import {
   CHUNK_SIZE,
   DEFAULT_PROOF_SIZE,
   DEFAULT_REF_TIME,
+  LIQUIDITY_TICKS_LIMIT,
   MAX_TICKMAP_QUERY_SIZE
 } from './consts.js'
 import { Network } from './network.js'
@@ -56,7 +57,9 @@ import {
   getDeploymentData,
   parse,
   parseEvent,
-  sendQuery
+  sendQuery,
+  positionToTick,
+  integerSafeCast
 } from './utils.js'
 export class Invariant {
   contract: ContractPromise
@@ -805,6 +808,27 @@ export class Invariant {
     } else {
       throw new Error(InvariantError[result.err])
     }
+  }
+
+  async getAllLiquidityTicks(poolKey: PoolKey, tickmap: Tickmap): Promise<LiquidityTick[]> {
+    const tickIndexes: bigint[] = []
+    for (const [chunkIndex, chunk] of tickmap.bitmap.entries()) {
+      for (let bit = 0n; bit < CHUNK_SIZE; bit++) {
+        const checkedBit = chunk & (1n << bit)
+        if (checkedBit) {
+          const tickIndex = positionToTick(chunkIndex, bit, poolKey.feeTier.tickSpacing)
+          tickIndexes.push(tickIndex)
+        }
+      }
+    }
+    const tickLimit = integerSafeCast(LIQUIDITY_TICKS_LIMIT)
+    const promises: Promise<LiquidityTick[]>[] = []
+    for (let i = 0; i < tickIndexes.length; i += tickLimit) {
+      promises.push(this.getLiquidityTicks(poolKey, tickIndexes.slice(i, i + tickLimit)))
+    }
+    
+    const tickResults = await Promise.all(promises);
+    return tickResults.flat(1);
   }
 
   async getUserPositionAmount(owner: string): Promise<bigint> {
