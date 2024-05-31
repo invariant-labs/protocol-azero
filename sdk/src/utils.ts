@@ -43,7 +43,14 @@ import { abi as PSP22Abi } from './abis/psp22.js'
 import { abi as wrappedAZEROAbi } from './abis/wrapped-azero.js'
 import { CONCENTRATION_FACTOR, MAINNET, TESTNET } from './consts.js'
 import { Network } from './network.js'
-import { EventTxResult, LiquidityBreakpoint, Query, Tx, TxResult } from './schema.js'
+import {
+  EventTxResult,
+  LiquidityBreakpoint,
+  LiquidityTickWithNumberAsIndex,
+  Query,
+  Tx,
+  TxResult
+} from './schema.js'
 
 export const initPolkadotApi = async (network: Network, ws?: string): Promise<ApiPromise> => {
   if (network === Network.Local) {
@@ -517,7 +524,7 @@ export function simulateInvariantSwap(
   tickmap: Tickmap,
   feeTier: FeeTier,
   pool: Pool,
-  ticks: Tick[],
+  ticks: LiquidityTickWithNumberAsIndex[],
   xToY: boolean,
   amountIn: TokenAmount,
   byAmountIn: boolean,
@@ -539,7 +546,11 @@ export function positionToTick(chunkIndex: bigint, bit: bigint, tickSpacing: big
   return _positionToTick(chunkIndex, bit, tickSpacing)
 }
 
-export function filterTicks(ticks: Tick[], tickIndex: bigint, xToY: boolean): Tick[] {
+export function filterTicks<T extends Tick | LiquidityTick>(
+  ticks: T[],
+  tickIndex: bigint,
+  xToY: boolean
+): T[] {
   const filteredTicks = new Array(...ticks)
   const maxTicksCross = getMaxTickCross()
   let tickCount = 0
@@ -672,7 +683,7 @@ export const calculateTokenAmountsWithSlippage = (
   const upperBound = calculateSqrtPriceAfterSlippage(currentSqrtPrice, slippage, true)
 
   const currentTickIndex = calculateTick(currentSqrtPrice, tickSpacing)
-  
+
   const [lowerX, lowerY] = calculateAmountDelta(
     currentTickIndex,
     lowerBound,
@@ -693,4 +704,12 @@ export const calculateTokenAmountsWithSlippage = (
   const x = lowerX > upperX ? lowerX : upperX
   const y = lowerY > upperY ? lowerY : upperY
   return [x, y]
+}
+
+export const parseLiquidityTicks = (
+  liquidityTicks: LiquidityTick[]
+): LiquidityTickWithNumberAsIndex[] => {
+  return liquidityTicks.map(liquidityTick => {
+    return { ...liquidityTick, index: Number(liquidityTick.index) }
+  })
 }
