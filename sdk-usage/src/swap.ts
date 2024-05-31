@@ -58,8 +58,6 @@ const main = async () => {
     SWAP_AMOUNT,
     positionBefore.poolKey.tokenY
   )
-
-  const protocolFee = await invariant.getProtocolFee()
   const {
     tickmap: tickmapBeforeFirstSwap,
     ticks: ticksBeforeFirstSwap,
@@ -68,7 +66,6 @@ const main = async () => {
 
   const firstSimualtion = simulateInvariantSwap(
     tickmapBeforeFirstSwap,
-    protocolFee,
     positionBefore.poolKey.feeTier,
     poolBeforeFirstSwap,
     ticksBeforeFirstSwap,
@@ -103,7 +100,6 @@ const main = async () => {
 
   const secondSimulation = simulateInvariantSwap(
     tickmapBeforeSecondSwap,
-    protocolFee,
     positionBefore.poolKey.feeTier,
     poolBeforeSecondSwap,
     ticksBeforeSecondSwap,

@@ -28,7 +28,7 @@ const main = async () => {
   const TOKEN_1_ADDRESS = TESTNET_BTC_ADDRESS
   const POOL_KEY = newPoolKey(TOKEN_0_ADDRESS, TOKEN_1_ADDRESS, FEE_TIER)
 
-  const invariant = await Invariant.load(api, network, "5Cvo6E251UF7qj7Qo5HrZDayUbKhinRxj5crpix2KbhTsTG9", {
+  const invariant = await Invariant.load(api, network, TESTNET_INVARIANT_ADDRESS, {
     storageDepositLimit: 100000000000,
     refTime: 100000000000,
     proofSize: 100000000000
