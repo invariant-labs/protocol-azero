@@ -515,7 +515,6 @@ export function highestActiveBit(num: bigint) {
 
 export function simulateInvariantSwap(
   tickmap: Tickmap,
-  protocolFee: TokenAmount,
   feeTier: FeeTier,
   pool: Pool,
   ticks: Tick[],
@@ -526,7 +525,6 @@ export function simulateInvariantSwap(
 ): CalculateSwapResult {
   return _simulateInvariantSwap(
     tickmap,
-    protocolFee,
     feeTier,
     pool,
     ticks,

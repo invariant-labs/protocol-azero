@@ -95,7 +95,6 @@ describe('simulateInvariantSwap', async () => {
 
       const simulation = simulateInvariantSwap(
         tickmap,
-        protocolFee,
         feeTier,
         pool,
         ticks,
@@ -139,7 +138,6 @@ describe('simulateInvariantSwap', async () => {
 
       const simulation = simulateInvariantSwap(
         tickmap,
-        protocolFee,
         feeTier,
         pool,
         ticks,
@@ -174,7 +172,6 @@ describe('simulateInvariantSwap', async () => {
 
       const simulation = simulateInvariantSwap(
         tickmap,
-        protocolFee,
         feeTier,
         pool,
         ticks,
@@ -218,7 +215,6 @@ describe('simulateInvariantSwap', async () => {
 
       const simulation = simulateInvariantSwap(
         tickmap,
-        protocolFee,
         feeTier,
         pool,
         ticks,
@@ -264,7 +260,6 @@ describe('simulateInvariantSwap', async () => {
 
       const simulation = simulateInvariantSwap(
         tickmap,
-        protocolFee,
         feeTier,
         pool,
         ticks,
@@ -322,7 +317,6 @@ describe('simulateInvariantSwap', async () => {
 
       const simulation = simulateInvariantSwap(
         tickmap,
-        protocolFee,
         feeTier,
         pool,
         ticks,
@@ -371,7 +365,6 @@ describe('simulateInvariantSwap', async () => {
 
       const simulation = simulateInvariantSwap(
         tickmap,
-        protocolFee,
         feeTier,
         pool,
         ticks,
@@ -428,7 +421,6 @@ describe('simulateInvariantSwap', async () => {
 
       const simulation = simulateInvariantSwap(
         tickmap,
-        protocolFee,
         feeTier,
         pool,
         ticks,
@@ -496,7 +488,6 @@ describe('simulateInvariantSwap', async () => {
 
       const simulation = simulateInvariantSwap(
         tickmap,
-        protocolFee,
         feeTier,
         pool,
         ticks,
@@ -550,7 +541,6 @@ describe('simulateInvariantSwap', async () => {
 
       const simulation = simulateInvariantSwap(
         tickmap,
-        protocolFee,
         feeTier,
         pool,
         ticks,
@@ -600,7 +590,6 @@ describe('simulateInvariantSwap', async () => {
 
       const simulation = simulateInvariantSwap(
         tickmap,
-        protocolFee,
         feeTier,
         pool,
         ticks,
@@ -668,7 +657,6 @@ describe('simulateInvariantSwap', async () => {
 
     const simulation = simulateInvariantSwap(
       tickmap,
-      protocolFee,
       feeTier,
       pool,
       ticks,
