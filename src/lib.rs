@@ -1109,7 +1109,8 @@ pub mod invariant {
             let (max_chunk_index, max_bit) = tick_to_position(upper_tick, tick_spacing);
 
             let active_bits_in_range = |chunk, min_bit, max_bit| {
-                (((chunk >> min_bit) & ((1u64 << (max_bit - min_bit + 1)) - 1)) as u64).count_ones()
+                let range: u64 = (chunk >> min_bit) & ((1u64 << (max_bit - min_bit + 1)) - 1);
+                range.count_ones()
             };
 
             let min_chunk = self
