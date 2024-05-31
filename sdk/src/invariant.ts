@@ -844,18 +844,18 @@ export class Invariant {
   // Query needs to be split in the case where tickSpacing = 1, otherwise a single query will fit within the gas limit
   async getLiquidityTicksAmount(
     poolKey: PoolKey,
-    lowerTick: bigint,
-    upperTick: bigint
+    lower_index: bigint,
+    upper_index: bigint
   ): Promise<bigint> {
     const result = await sendQuery(
       this.contract,
       this.gasLimit,
       this.storageDepositLimit,
       InvariantQuery.getLiquidityTicksAmount,
-      [poolKey, lowerTick, upperTick]
+      [poolKey, lower_index, upper_index]
     )
 
-    if (result.ok) {
+    if (Object.hasOwn(result, 'ok')) {
       return parse(result.ok)
     } else {
       throw new Error(result.err ? InvariantError[result.err] : result)

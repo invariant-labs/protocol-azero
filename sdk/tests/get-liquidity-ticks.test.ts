@@ -9,7 +9,7 @@ import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
 import { objectEquals } from '../src/testUtils'
-import { delay, initPolkadotApi, integerSafeCast, newFeeTier, newPoolKey } from '../src/utils'
+import { initPolkadotApi, integerSafeCast, newFeeTier, newPoolKey } from '../src/utils'
 import { CHUNK_SIZE, LIQUIDITY_TICKS_LIMIT } from '../src/consts'
 
 const network = Network.Local
@@ -93,26 +93,10 @@ describe('get-liquidity-ticks', async () => {
   it('should get liquidity ticks with multiple queries', async function () {
     this.timeout(1200000)
 
-    const minTick = getMinTick(poolKey.feeTier.tickSpacing)
-    const maxTick = getMaxTick(poolKey.feeTier.tickSpacing)
-
-    await delay(30000)
-    const amountBelowZero = await invariant.getLiquidityTicksAmount(poolKey, minTick, 0n)
-    console.log("first amount", amountBelowZero)
-    await delay(30000)
-
-    const amountAboveZero = await invariant.getLiquidityTicksAmount(poolKey, 1n, maxTick)
-    console.log("second amount", amountAboveZero)
-
-    const ticksAmount = amountBelowZero + amountAboveZero
-
     for (let i = 1n; i <= 400n; i++) {
-      if (i === 200n) {
-        await delay(10000)
-      }
       await invariant.createPosition(account, poolKey, -i, i, 10n, 1000000000000000000000000n, 0n)
     }
-    await invariant.getPool(poolKey.tokenX, poolKey.tokenY, poolKey.feeTier);
+
     const tickmap = await invariant.getFullTickmap(poolKey)
 
     const tickIndexes: bigint[] = []
@@ -128,9 +112,14 @@ describe('get-liquidity-ticks', async () => {
     assert.equal(tickIndexes.length, 800)
 
     const tickLimit = integerSafeCast(LIQUIDITY_TICKS_LIMIT)
+    const minTick = getMinTick(poolKey.feeTier.tickSpacing)
+    const maxTick = getMaxTick(poolKey.feeTier.tickSpacing)
 
+    const amountBelowZero = await invariant.getLiquidityTicksAmount(poolKey, minTick, 0n)
+    const amountAboveZero = await invariant.getLiquidityTicksAmount(poolKey, 1n, maxTick)
 
-    
+    const ticksAmount = amountBelowZero + amountAboveZero
+
     const firstQuery = await invariant.getLiquidityTicks(poolKey, tickIndexes.slice(0, tickLimit))
     const secondQuery = await invariant.getLiquidityTicks(
       poolKey,
