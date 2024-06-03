@@ -3,6 +3,7 @@ export {
   CrossTickEvent,
   FeeGrowth,
   FeeTier,
+  LiquidityTick,
   Pool,
   PoolKey,
   Position,
