@@ -38,12 +38,12 @@ pub struct PositionTick {
     pub seconds_outside: u64,
 }
 
-#[derive(Debug, Copy, Clone, Serialize, Deserialize, Tsify)]
+#[derive(Eq, PartialEq, Debug, Copy, Clone, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 #[serde(rename_all = "camelCase")]
 pub struct LiquidityTick {
     #[tsify(type = "bigint")]
-    pub index: i32,
+    pub index: i64,
     pub liquidity_change: Liquidity,
     pub sign: bool,
 }
@@ -77,6 +77,37 @@ impl Tick {
             .ok_or_else(|| err!("current_timestamp - pool.start_timestamp underflow"))?;
         self.seconds_outside = seconds_passed.wrapping_sub(self.seconds_outside);
 
+        pool.last_timestamp = current_timestamp;
+
+        // When going to higher tick net_liquidity should be added and for going lower subtracted
+        if (pool.current_tick_index >= self.index) ^ self.sign {
+            pool.liquidity = pool
+                .liquidity
+                .checked_add(self.liquidity_change)
+                .map_err(|_| err!("pool.liquidity + tick.liquidity_change overflow"))?;
+        } else {
+            pool.liquidity = pool
+                .liquidity
+                .checked_sub(self.liquidity_change)
+                .map_err(|_| err!("pool.liquidity - tick.liquidity_change underflow"))?
+        }
+
+        Ok(())
+    }
+}
+
+impl Default for LiquidityTick {
+    fn default() -> Self {
+        LiquidityTick {
+            index: 0,
+            liquidity_change: Liquidity::new(0),
+            sign: false,
+        }
+    }
+}
+
+impl LiquidityTick {
+    pub fn cross(&mut self, pool: &mut Pool, current_timestamp: u64) -> TrackableResult<()> {
         pool.last_timestamp = current_timestamp;
 
         // When going to higher tick net_liquidity should be added and for going lower subtracted

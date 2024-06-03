@@ -1,10 +1,8 @@
 use crate::alloc::string::ToString;
 use crate::clamm::{calculate_amount_delta, is_enough_amount_to_change_price, SwapResult};
 use crate::fee_growth::FeeGrowth;
-use crate::{get_tick_at_sqrt_price, FeeTier, Tick};
-use crate::types::{
-    liquidity::Liquidity, sqrt_price::SqrtPrice, token_amount::TokenAmount,
-};
+use crate::types::{liquidity::Liquidity, sqrt_price::SqrtPrice, token_amount::TokenAmount};
+use crate::{get_tick_at_sqrt_price, FeeTier, LiquidityTick};
 use decimal::CheckedOps;
 use serde::{Deserialize, Serialize};
 use traceable_result::*;
@@ -104,7 +102,7 @@ impl Pool {
             UpdatePoolTick::TickInitialized(tick) => {
                 if !x_to_y || is_enough_amount_to_cross {
                     tick.cross(self, current_timestamp)?;
-                    
+
                     has_crossed = true;
                 } else if !remaining_amount.is_zero() {
                     if by_amount_in {
@@ -115,7 +113,7 @@ impl Pool {
 
                 tick.index
             }
-            UpdatePoolTick::TickUninitialized(index) => *index as i64,
+            UpdatePoolTick::TickUninitialized(index) => *index,
             _ => unreachable!(),
         };
         self.current_tick_index = if x_to_y && is_enough_amount_to_cross {
@@ -131,6 +129,6 @@ impl Pool {
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub enum UpdatePoolTick {
     NoTick,
-    TickInitialized(Tick),
-    TickUninitialized(i32),
+    TickInitialized(LiquidityTick),
+    TickUninitialized(i64),
 }

@@ -2,9 +2,10 @@ use crate::clamm::compute_swap_step;
 use crate::sqrt_price::{get_max_tick, get_min_tick, SqrtPrice};
 use crate::token_amount::TokenAmount;
 use crate::{
-    CalculateSwapResult, FeeTier, Tickmap, UpdatePoolTick, MAX_SQRT_PRICE, MAX_TICK_CROSS, MIN_SQRT_PRICE
+    CalculateSwapResult, FeeTier, Tickmap, UpdatePoolTick, MAX_SQRT_PRICE, MAX_TICK_CROSS,
+    MIN_SQRT_PRICE,
 };
-use crate::{Pool, Tick};
+use crate::{LiquidityTick, Pool};
 use decimal::Decimal;
 use traceable_result::TrackableResult;
 use traceable_result::*;
@@ -12,20 +13,19 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
 use wasm_wrapper::wasm_wrapper;
 
-type Ticks = Vec<Tick>;
+type LiquidityTicks = Vec<LiquidityTick>;
 
 #[wasm_wrapper]
 pub fn simulate_invariant_swap(
     tickmap: Tickmap,
     fee_tier: FeeTier,
     mut pool: Pool,
-    ticks: Ticks,
+    ticks: LiquidityTicks,
     x_to_y: bool,
     amount: TokenAmount,
     by_amount_in: bool,
     sqrt_price_limit: SqrtPrice,
 ) -> TrackableResult<CalculateSwapResult> {
-
     if amount.is_zero() {
         return Err(err!("Amount is zero"));
     }
@@ -53,7 +53,7 @@ pub fn simulate_invariant_swap(
     let mut state_outdated = false;
     let mut max_ticks_crossed = false;
 
-    let mut crossed_ticks: Vec<Tick> = vec![];
+    let mut crossed_ticks: Vec<LiquidityTick> = vec![];
     let mut remaining_amount = amount;
     let mut total_amount_in = TokenAmount(0);
     let mut total_amount_out = TokenAmount(0);
@@ -105,19 +105,17 @@ pub fn simulate_invariant_swap(
         let mut tick_update = {
             if let Some((tick_index, is_initialized)) = limiting_tick {
                 if is_initialized {
-                    let tick = ticks
-                        .iter()
-                        .find(|t| t.index as i32 == tick_index );
+                    let tick = ticks.iter().find(|t| t.index as i32 == tick_index);
 
                     match tick {
                         Some(tick) => UpdatePoolTick::TickInitialized(*tick),
                         None => {
                             state_outdated = true;
                             break;
-                        },
-                    }    
+                        }
+                    }
                 } else {
-                    UpdatePoolTick::TickUninitialized(tick_index)
+                    UpdatePoolTick::TickUninitialized(tick_index as i64)
                 }
             } else {
                 UpdatePoolTick::NoTick
@@ -134,13 +132,14 @@ pub fn simulate_invariant_swap(
             pool.last_timestamp,
             fee_tier,
         );
-        let (amount_to_add, amount_after_tick_update, has_crossed) = if let Ok(tick_update_return) = tick_update_return {
-            tick_update_return
-        } else {
-            state_outdated = true;
-            break;
-        };
-        
+        let (amount_to_add, amount_after_tick_update, has_crossed) =
+            if let Ok(tick_update_return) = tick_update_return {
+                tick_update_return
+            } else {
+                state_outdated = true;
+                break;
+            };
+
         remaining_amount = amount_after_tick_update;
         total_amount_in += amount_to_add;
 
@@ -174,6 +173,6 @@ pub fn simulate_invariant_swap(
         crossed_ticks,
         global_insufficient_liquidity,
         state_outdated,
-        max_ticks_crossed
+        max_ticks_crossed,
     })
 }

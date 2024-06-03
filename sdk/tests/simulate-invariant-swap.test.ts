@@ -1,3 +1,8 @@
+import {
+  SwapEvent,
+  getMaxSqrtPrice,
+  getMinSqrtPrice
+} from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { Keyring } from '@polkadot/api'
 import { expect } from 'chai'
 import { Invariant } from '../src/invariant'
@@ -5,21 +10,14 @@ import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
 import { assertThrowsAsync } from '../src/testUtils'
 import {
-  simulateInvariantSwap,
+  delay,
+  filterTickmap,
+  filterTicks,
   initPolkadotApi,
   newFeeTier,
   newPoolKey,
-  filterTickmap,
-  filterTicks,
-  delay
+  simulateInvariantSwap
 } from '../src/utils'
-import {
-  Tick,
-  getMinSqrtPrice,
-  getMaxSqrtPrice,
-  Tickmap,
-  SwapEvent
-} from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 
 const api = await initPolkadotApi(Network.Local)
 
@@ -52,8 +50,18 @@ describe('simulateInvariantSwap', async () => {
 
     await invariant.createPool(account, poolKey, 1000000000000000000000000n)
 
-    await psp22.approve(account, invariant.contract.address.toString(), 10000000000000n, token0Address)
-    await psp22.approve(account, invariant.contract.address.toString(), 10000000000000n, token1Address)
+    await psp22.approve(
+      account,
+      invariant.contract.address.toString(),
+      10000000000000n,
+      token0Address
+    )
+    await psp22.approve(
+      account,
+      invariant.contract.address.toString(),
+      10000000000000n,
+      token1Address
+    )
 
     await invariant.createPosition(
       account,
@@ -80,15 +88,15 @@ describe('simulateInvariantSwap', async () => {
       const byAmountIn = true
       const xToY = true
 
-      const ticks = filterTicks(
-        await Promise.all([invariant.getTick(poolKey, 10n), invariant.getTick(poolKey, -10n)]),
+      const tickmap = filterTickmap(
+        await invariant.getFullTickmap(poolKey),
+        poolKey.feeTier.tickSpacing,
         pool.currentTickIndex,
         xToY
       )
 
-      const tickmap = filterTickmap(
-        await invariant.getFullTickmap(poolKey),
-        poolKey.feeTier.tickSpacing,
+      const ticks = filterTicks(
+        await invariant.getAllLiquidityTicks(poolKey, tickmap),
         pool.currentTickIndex,
         xToY
       )
@@ -123,15 +131,15 @@ describe('simulateInvariantSwap', async () => {
       const byAmountIn = true
       const xToY = false
 
-      const ticks = filterTicks(
-        await Promise.all([invariant.getTick(poolKey, 10n), invariant.getTick(poolKey, -10n)]),
+      const tickmap = filterTickmap(
+        await invariant.getFullTickmap(poolKey),
+        poolKey.feeTier.tickSpacing,
         pool.currentTickIndex,
         xToY
       )
 
-      const tickmap = filterTickmap(
-        await invariant.getFullTickmap(poolKey),
-        poolKey.feeTier.tickSpacing,
+      const ticks = filterTicks(
+        await invariant.getAllLiquidityTicks(poolKey, tickmap),
         pool.currentTickIndex,
         xToY
       )
@@ -160,15 +168,22 @@ describe('simulateInvariantSwap', async () => {
     it('Y to X', async () => {
       const poolKey = newPoolKey(token0Address, token1Address, feeTier)
       const pool = await invariant.getPool(token0Address, token1Address, feeTier)
-      const ticks = await Promise.all([
-        invariant.getTick(poolKey, 10n),
-        invariant.getTick(poolKey, -10n)
-      ])
-      const tickmap: Tickmap = await invariant.getFullTickmap(poolKey)
       const sqrtPriceLimit = getMaxSqrtPrice(feeTier.tickSpacing)
       const amountIn = 5000n
       const byAmountIn = false
       const xToY = false
+      const tickmap = filterTickmap(
+        await invariant.getFullTickmap(poolKey),
+        poolKey.feeTier.tickSpacing,
+        pool.currentTickIndex,
+        xToY
+      )
+
+      const ticks = filterTicks(
+        await invariant.getAllLiquidityTicks(poolKey, tickmap),
+        pool.currentTickIndex,
+        xToY
+      )
 
       const simulation = simulateInvariantSwap(
         tickmap,
@@ -200,15 +215,15 @@ describe('simulateInvariantSwap', async () => {
       const byAmountIn = false
       const xToY = true
 
-      const ticks = filterTicks(
-        await Promise.all([invariant.getTick(poolKey, 10n), invariant.getTick(poolKey, -10n)]),
+      const tickmap = filterTickmap(
+        await invariant.getFullTickmap(poolKey),
+        poolKey.feeTier.tickSpacing,
         pool.currentTickIndex,
         xToY
       )
 
-      const tickmap = filterTickmap(
-        await invariant.getFullTickmap(poolKey),
-        poolKey.feeTier.tickSpacing,
+      const ticks = filterTicks(
+        await invariant.getAllLiquidityTicks(poolKey, tickmap),
         pool.currentTickIndex,
         xToY
       )
@@ -245,15 +260,15 @@ describe('simulateInvariantSwap', async () => {
       const byAmountIn = true
       const xToY = false
 
-      const ticks = filterTicks(
-        await Promise.all([invariant.getTick(poolKey, 10n), invariant.getTick(poolKey, -10n)]),
+      const tickmap = filterTickmap(
+        await invariant.getFullTickmap(poolKey),
+        poolKey.feeTier.tickSpacing,
         pool.currentTickIndex,
         xToY
       )
 
-      const tickmap = filterTickmap(
-        await invariant.getFullTickmap(poolKey),
-        poolKey.feeTier.tickSpacing,
+      const ticks = filterTicks(
+        await invariant.getAllLiquidityTicks(poolKey, tickmap),
         pool.currentTickIndex,
         xToY
       )
@@ -302,15 +317,15 @@ describe('simulateInvariantSwap', async () => {
       const byAmountIn = true
       const xToY = false
 
-      const ticks = filterTicks(
-        await Promise.all([invariant.getTick(poolKey, 10n), invariant.getTick(poolKey, -10n)]),
+      const tickmap = filterTickmap(
+        await invariant.getFullTickmap(poolKey),
+        poolKey.feeTier.tickSpacing,
         pool.currentTickIndex,
         xToY
       )
 
-      const tickmap = filterTickmap(
-        await invariant.getFullTickmap(poolKey),
-        poolKey.feeTier.tickSpacing,
+      const ticks = filterTicks(
+        await invariant.getAllLiquidityTicks(poolKey, tickmap),
         pool.currentTickIndex,
         xToY
       )
@@ -352,16 +367,24 @@ describe('simulateInvariantSwap', async () => {
     it('Y to X', async () => {
       const poolKey = newPoolKey(token0Address, token1Address, feeTier)
       const pool = await invariant.getPool(token0Address, token1Address, feeTier)
-      const ticks = await Promise.all([
-        invariant.getTick(poolKey, 10n),
-        invariant.getTick(poolKey, -10n)
-      ])
-      const tickmap: Tickmap = await invariant.getFullTickmap(poolKey)
       const sqrtPriceLimit = getMaxSqrtPrice(feeTier.tickSpacing)
 
       const amountIn = 4888n
       const byAmountIn = false
       const xToY = false
+
+      const tickmap = filterTickmap(
+        await invariant.getFullTickmap(poolKey),
+        poolKey.feeTier.tickSpacing,
+        pool.currentTickIndex,
+        xToY
+      )
+
+      const ticks = filterTicks(
+        await invariant.getAllLiquidityTicks(poolKey, tickmap),
+        pool.currentTickIndex,
+        xToY
+      )
 
       const simulation = simulateInvariantSwap(
         tickmap,
@@ -406,15 +429,15 @@ describe('simulateInvariantSwap', async () => {
       const byAmountIn = false
       const xToY = true
 
-      const ticks = filterTicks(
-        await Promise.all([invariant.getTick(poolKey, 10n), invariant.getTick(poolKey, -10n)]),
+      const tickmap = filterTickmap(
+        await invariant.getFullTickmap(poolKey),
+        poolKey.feeTier.tickSpacing,
         pool.currentTickIndex,
         xToY
       )
 
-      const tickmap = filterTickmap(
-        await invariant.getFullTickmap(poolKey),
-        poolKey.feeTier.tickSpacing,
+      const ticks = filterTicks(
+        await invariant.getAllLiquidityTicks(poolKey, tickmap),
         pool.currentTickIndex,
         xToY
       )
@@ -473,15 +496,15 @@ describe('simulateInvariantSwap', async () => {
         0n
       )
 
-      const ticks = filterTicks(
-        await Promise.all([invariant.getTick(poolKey, 10n), invariant.getTick(poolKey, -10n)]),
+      const tickmap = filterTickmap(
+        await invariant.getFullTickmap(poolKey),
+        poolKey.feeTier.tickSpacing,
         pool.currentTickIndex,
         xToY
       )
 
-      const tickmap = filterTickmap(
-        await invariant.getFullTickmap(poolKey),
-        poolKey.feeTier.tickSpacing,
+      const ticks = filterTicks(
+        await invariant.getAllLiquidityTicks(poolKey, tickmap),
         pool.currentTickIndex,
         xToY
       )
@@ -530,11 +553,7 @@ describe('simulateInvariantSwap', async () => {
       )
 
       const ticks = filterTicks(
-        await Promise.all([
-          invariant.getTick(poolKey, 10n),
-          invariant.getTick(poolKey, -10n),
-          invariant.getTick(poolKey, -20n)
-        ]),
+        await invariant.getAllLiquidityTicks(poolKey, tickmap),
         pool.currentTickIndex,
         xToY
       )
@@ -576,7 +595,7 @@ describe('simulateInvariantSwap', async () => {
 
       const pool = await invariant.getPool(token0Address, token1Address, feeTier)
       const ticks = filterTicks(
-        await Promise.all([invariant.getTick(poolKey, 10n), invariant.getTick(poolKey, -10n)]),
+        await invariant.getLiquidityTicks(poolKey, [10n, -10n]),
         pool.currentTickIndex,
         xToY
       )
@@ -639,18 +658,17 @@ describe('simulateInvariantSwap', async () => {
       )
     }
 
-    const promises: Promise<Tick>[] = []
-
-    for (const index of indexes) {
-      promises.push(invariant.getTick(poolKey, index))
-    }
-    const ticks: Tick[] = await Promise.all(promises)
-
     const pool = await invariant.getPool(token0Address, token1Address, feeTier)
 
-    const tickmap: Tickmap = filterTickmap(
+    const tickmap = filterTickmap(
       await invariant.getFullTickmap(poolKey),
       poolKey.feeTier.tickSpacing,
+      pool.currentTickIndex,
+      xToY
+    )
+
+    const ticks = filterTicks(
+      await invariant.getAllLiquidityTicks(poolKey, tickmap),
       pool.currentTickIndex,
       xToY
     )

@@ -517,7 +517,7 @@ export function simulateInvariantSwap(
   tickmap: Tickmap,
   feeTier: FeeTier,
   pool: Pool,
-  ticks: Tick[],
+  ticks: LiquidityTick[],
   xToY: boolean,
   amountIn: TokenAmount,
   byAmountIn: boolean,
@@ -539,7 +539,11 @@ export function positionToTick(chunkIndex: bigint, bit: bigint, tickSpacing: big
   return _positionToTick(chunkIndex, bit, tickSpacing)
 }
 
-export function filterTicks(ticks: Tick[], tickIndex: bigint, xToY: boolean): Tick[] {
+export function filterTicks<T extends Tick | LiquidityTick>(
+  ticks: T[],
+  tickIndex: bigint,
+  xToY: boolean
+): T[] {
   const filteredTicks = new Array(...ticks)
   const maxTicksCross = getMaxTickCross()
   let tickCount = 0
@@ -672,7 +676,7 @@ export const calculateTokenAmountsWithSlippage = (
   const upperBound = calculateSqrtPriceAfterSlippage(currentSqrtPrice, slippage, true)
 
   const currentTickIndex = calculateTick(currentSqrtPrice, tickSpacing)
-  
+
   const [lowerX, lowerY] = calculateAmountDelta(
     currentTickIndex,
     lowerBound,
