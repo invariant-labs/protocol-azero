@@ -55,11 +55,11 @@ import {
   createTx,
   getAbi,
   getDeploymentData,
+  integerSafeCast,
   parse,
   parseEvent,
-  sendQuery,
   positionToTick,
-  integerSafeCast
+  sendQuery
 } from './utils.js'
 export class Invariant {
   contract: ContractPromise
@@ -198,11 +198,21 @@ export class Invariant {
     )
   }
 
-  changeProtocolFeeTx(fee: Percentage): SubmittableExtrinsic {
+  changeProtocolFeeTx(
+    fee: Percentage,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): SubmittableExtrinsic {
     return createTx(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       0n,
       InvariantTx.ChangeProtocolFee,
       [fee]
@@ -212,12 +222,20 @@ export class Invariant {
   async changeProtocolFee(
     account: IKeyringPair,
     fee: Percentage,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    },
     block: boolean = true
   ): Promise<TxResult> {
     return createSignAndSendTx(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       0n,
       account,
       InvariantTx.ChangeProtocolFee,
@@ -227,11 +245,21 @@ export class Invariant {
     )
   }
 
-  addFeeTierTx(feeTier: FeeTier): SubmittableExtrinsic {
+  addFeeTierTx(
+    feeTier: FeeTier,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): SubmittableExtrinsic {
     return createTx(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       0n,
       InvariantTx.AddFeeTier,
       [feeTier]
@@ -241,12 +269,20 @@ export class Invariant {
   async addFeeTier(
     account: IKeyringPair,
     feeTier: FeeTier,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    },
     block: boolean = true
   ): Promise<TxResult> {
     return createSignAndSendTx(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       0n,
       account,
       InvariantTx.AddFeeTier,
@@ -256,11 +292,21 @@ export class Invariant {
     )
   }
 
-  removeFeeTierTx(feeTier: FeeTier): SubmittableExtrinsic {
+  removeFeeTierTx(
+    feeTier: FeeTier,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): SubmittableExtrinsic {
     return createTx(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       0n,
       InvariantTx.RemoveFeeTier,
       [feeTier]
@@ -270,12 +316,20 @@ export class Invariant {
   async removeFeeTier(
     account: IKeyringPair,
     feeTier: FeeTier,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    },
     block: boolean = true
   ): Promise<TxResult> {
     return createSignAndSendTx(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       0n,
       account,
       InvariantTx.RemoveFeeTier,
@@ -295,21 +349,42 @@ export class Invariant {
     )
   }
 
-  async feeTierExist(feeTier: FeeTier): Promise<boolean> {
+  async feeTierExist(
+    feeTier: FeeTier,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): Promise<boolean> {
     return sendQuery(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       InvariantQuery.FeeTierExist,
       [feeTier]
     )
   }
 
-  changeFeeReceiverTx(poolKey: PoolKey, feeReceiver: string): SubmittableExtrinsic {
+  changeFeeReceiverTx(
+    poolKey: PoolKey,
+    feeReceiver: string,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): SubmittableExtrinsic {
     return createTx(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       0n,
       InvariantTx.ChangeFeeReceiver,
       [poolKey, feeReceiver]
@@ -320,12 +395,20 @@ export class Invariant {
     account: IKeyringPair,
     poolKey: PoolKey,
     feeReceiver: string,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    },
     block: boolean = true
   ): Promise<TxResult> {
     return createSignAndSendTx(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       0n,
       account,
       InvariantTx.ChangeFeeReceiver,
@@ -335,11 +418,21 @@ export class Invariant {
     )
   }
 
-  withdrawProtocolFeeTx(poolKey: PoolKey): SubmittableExtrinsic {
+  withdrawProtocolFeeTx(
+    poolKey: PoolKey,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): SubmittableExtrinsic {
     return createTx(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       0n,
       InvariantTx.WithdrawProtocolFee,
       [poolKey]
@@ -349,12 +442,20 @@ export class Invariant {
   async withdrawProtocolFee(
     account: IKeyringPair,
     poolKey: PoolKey,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    },
     block: boolean = true
   ): Promise<TxResult> {
     return createSignAndSendTx(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       0n,
       account,
       InvariantTx.WithdrawProtocolFee,
@@ -364,11 +465,22 @@ export class Invariant {
     )
   }
 
-  async getPosition(owner: string, index: bigint): Promise<Position> {
+  async getPosition(
+    owner: string,
+    index: bigint,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): Promise<Position> {
     const result = await sendQuery(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       InvariantQuery.GetPosition,
       [owner, index]
     )
@@ -380,11 +492,21 @@ export class Invariant {
     }
   }
 
-  async getPositions(owner: string): Promise<Position[]> {
+  async getPositions(
+    owner: string,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): Promise<Position[]> {
     return sendQuery(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       InvariantQuery.GetAllPositions,
       [owner]
     )
@@ -396,7 +518,12 @@ export class Invariant {
     upperTick: bigint,
     liquidityDelta: Liquidity,
     spotSqrtPrice: SqrtPrice,
-    slippageTolerance: Percentage
+    slippageTolerance: Percentage,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
   ): SubmittableExtrinsic {
     const slippageLimitLower = calculateSqrtPriceAfterSlippage(
       spotSqrtPrice,
@@ -411,8 +538,11 @@ export class Invariant {
 
     return createTx(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       0n,
       InvariantTx.CreatePosition,
       [poolKey, lowerTick, upperTick, liquidityDelta, slippageLimitLower, slippageLimitUpper]
@@ -427,6 +557,11 @@ export class Invariant {
     liquidityDelta: Liquidity,
     spotSqrtPrice: SqrtPrice,
     slippageTolerance: Percentage,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    },
     block: boolean = true
   ): Promise<CreatePositionTxResult> {
     const slippageLimitLower = calculateSqrtPriceAfterSlippage(
@@ -442,8 +577,11 @@ export class Invariant {
 
     return createSignAndSendTx(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       0n,
       account,
       InvariantTx.CreatePosition,
@@ -453,11 +591,22 @@ export class Invariant {
     ) as Promise<CreatePositionTxResult>
   }
 
-  transferPositionTx(index: bigint, receiver: string): SubmittableExtrinsic {
+  transferPositionTx(
+    index: bigint,
+    receiver: string,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): SubmittableExtrinsic {
     return createTx(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       0n,
       InvariantTx.TransferPosition,
       [index, receiver]
@@ -468,12 +617,20 @@ export class Invariant {
     account: IKeyringPair,
     index: bigint,
     receiver: string,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    },
     block: boolean = true
   ): Promise<TxResult> {
     return createSignAndSendTx(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       0n,
       account,
       InvariantTx.TransferPosition,
@@ -483,11 +640,21 @@ export class Invariant {
     )
   }
 
-  removePositionTx(index: bigint): SubmittableExtrinsic {
+  removePositionTx(
+    index: bigint,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): SubmittableExtrinsic {
     return createTx(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       0n,
       InvariantTx.RemovePosition,
       [index]
@@ -497,12 +664,20 @@ export class Invariant {
   async removePosition(
     account: IKeyringPair,
     index: bigint,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    },
     block: boolean = true
   ): Promise<RemovePositionTxResult> {
     return createSignAndSendTx(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       0n,
       account,
       InvariantTx.RemovePosition,
@@ -512,22 +687,44 @@ export class Invariant {
     ) as Promise<RemovePositionTxResult>
   }
 
-  claimFeeTx(index: bigint): SubmittableExtrinsic {
+  claimFeeTx(
+    index: bigint,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): SubmittableExtrinsic {
     return createTx(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       0n,
       InvariantTx.ClaimFee,
       [index]
     )
   }
 
-  async claimFee(account: IKeyringPair, index: bigint, block: boolean = true): Promise<TxResult> {
+  async claimFee(
+    account: IKeyringPair,
+    index: bigint,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    },
+    block: boolean = true
+  ): Promise<TxResult> {
     return createSignAndSendTx(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       0n,
       account,
       InvariantTx.ClaimFee,
@@ -537,11 +734,22 @@ export class Invariant {
     )
   }
 
-  async getTick(key: PoolKey, index: bigint): Promise<Tick> {
+  async getTick(
+    key: PoolKey,
+    index: bigint,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): Promise<Tick> {
     const result = await sendQuery(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       InvariantQuery.GetTick,
       [key, index]
     )
@@ -553,21 +761,44 @@ export class Invariant {
     }
   }
 
-  async isTickInitialized(key: PoolKey, index: bigint): Promise<boolean> {
+  async isTickInitialized(
+    key: PoolKey,
+    index: bigint,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): Promise<boolean> {
     return sendQuery(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       InvariantQuery.IsTickInitialized,
       [key, index]
     )
   }
 
-  async getPool(token0: string, token1: string, feeTier: FeeTier): Promise<Pool> {
+  async getPool(
+    token0: string,
+    token1: string,
+    feeTier: FeeTier,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): Promise<Pool> {
     const result = await sendQuery(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       InvariantQuery.GetPool,
       [token0, token1, feeTier]
     )
@@ -579,11 +810,22 @@ export class Invariant {
     }
   }
 
-  async getPoolKeys(size: bigint, offset: bigint): Promise<PoolKey[]> {
+  async getPoolKeys(
+    size: bigint,
+    offset: bigint,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): Promise<PoolKey[]> {
     const result = await sendQuery(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       InvariantQuery.GetPools,
       [size, offset]
     )
@@ -594,13 +836,24 @@ export class Invariant {
     }
   }
 
-  createPoolTx(poolKey: PoolKey, initSqrtPrice: SqrtPrice): SubmittableExtrinsic {
+  createPoolTx(
+    poolKey: PoolKey,
+    initSqrtPrice: SqrtPrice,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): SubmittableExtrinsic {
     const initTick = calculateTick(initSqrtPrice, poolKey.feeTier.tickSpacing)
 
     return createTx(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       0n,
       InvariantTx.CreatePool,
       [poolKey.tokenX, poolKey.tokenY, poolKey.feeTier, initSqrtPrice, initTick]
@@ -611,14 +864,22 @@ export class Invariant {
     account: IKeyringPair,
     poolKey: PoolKey,
     initSqrtPrice: SqrtPrice,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    },
     block: boolean = true
   ): Promise<TxResult> {
     const initTick = calculateTick(initSqrtPrice, poolKey.feeTier.tickSpacing)
 
     return createSignAndSendTx(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       0n,
       account,
       InvariantTx.CreatePool,
@@ -632,7 +893,12 @@ export class Invariant {
     poolKey: PoolKey,
     xToY: boolean,
     amount: TokenAmount,
-    byAmountIn: boolean
+    byAmountIn: boolean,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
   ): Promise<QuoteResult> {
     const sqrtPriceLimit: SqrtPrice = xToY
       ? getMinSqrtPrice(poolKey.feeTier.tickSpacing)
@@ -640,8 +906,11 @@ export class Invariant {
 
     const result = await sendQuery(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       InvariantQuery.Quote,
       [poolKey, xToY, amount, byAmountIn, sqrtPriceLimit]
     )
@@ -653,11 +922,22 @@ export class Invariant {
     }
   }
 
-  async quoteRoute(amountIn: TokenAmount, swaps: SwapHop[]): Promise<TokenAmount> {
+  async quoteRoute(
+    amountIn: TokenAmount,
+    swaps: SwapHop[],
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): Promise<TokenAmount> {
     return sendQuery(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       InvariantQuery.QuoteRoute,
       [amountIn, swaps]
     )
@@ -668,15 +948,24 @@ export class Invariant {
     xToY: boolean,
     amount: TokenAmount,
     byAmountIn: boolean,
-    sqrtPriceLimit: SqrtPrice
+    sqrtPriceLimit: SqrtPrice,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
   ): SubmittableExtrinsic {
-    return createTx(this.contract, this.gasLimit, this.storageDepositLimit, 0n, InvariantTx.Swap, [
-      poolKey,
-      xToY,
-      amount,
-      byAmountIn,
-      sqrtPriceLimit
-    ])
+    return createTx(
+      this.contract,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
+      0n,
+      InvariantTx.Swap,
+      [poolKey, xToY, amount, byAmountIn, sqrtPriceLimit]
+    )
   }
 
   async swap(
@@ -686,12 +975,20 @@ export class Invariant {
     amount: TokenAmount,
     byAmountIn: boolean,
     sqrtPriceLimit: SqrtPrice,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    },
     block: boolean = true
   ): Promise<SwapTxResult> {
     return createSignAndSendTx(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       0n,
       account,
       InvariantTx.Swap,
@@ -707,12 +1004,20 @@ export class Invariant {
     expectedAmountOut: TokenAmount,
     slippage: Percentage,
     swaps: SwapHop[],
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    },
     block: boolean = true
   ): Promise<SwapRouteTxResult> {
     return createSignAndSendTx(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       0n,
       account,
       InvariantTx.SwapRoute,
@@ -722,11 +1027,22 @@ export class Invariant {
     ) as Promise<SwapRouteTxResult>
   }
 
-  async getPositionTicks(owner: string, offset: bigint): Promise<PositionTick[]> {
+  async getPositionTicks(
+    owner: string,
+    offset: bigint,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): Promise<PositionTick[]> {
     return sendQuery(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       InvariantQuery.getPositionTicks,
       [owner, offset]
     )
@@ -735,12 +1051,20 @@ export class Invariant {
     poolKey: PoolKey,
     lowerTick: bigint,
     upperTick: bigint,
-    xToY: boolean
+    xToY: boolean,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
   ): Promise<[bigint, bigint][]> {
     return await sendQuery(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       InvariantQuery.GetTickmap,
       [poolKey, lowerTick, upperTick, xToY]
     )
@@ -794,11 +1118,22 @@ export class Invariant {
     return { bitmap: storedTickmap }
   }
 
-  async getLiquidityTicks(poolKey: PoolKey, ticks: bigint[]): Promise<LiquidityTick[]> {
+  async getLiquidityTicks(
+    poolKey: PoolKey,
+    ticks: bigint[],
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): Promise<LiquidityTick[]> {
     const result = await sendQuery(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       InvariantQuery.getLiquidityTicks,
       [poolKey, ticks]
     )
@@ -826,16 +1161,26 @@ export class Invariant {
     for (let i = 0; i < tickIndexes.length; i += tickLimit) {
       promises.push(this.getLiquidityTicks(poolKey, tickIndexes.slice(i, i + tickLimit)))
     }
-    
-    const tickResults = await Promise.all(promises);
-    return tickResults.flat(1);
+
+    const tickResults = await Promise.all(promises)
+    return tickResults.flat(1)
   }
 
-  async getUserPositionAmount(owner: string): Promise<bigint> {
+  async getUserPositionAmount(
+    owner: string,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): Promise<bigint> {
     return sendQuery(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       InvariantQuery.getUserPositionAmount,
       [owner]
     )
@@ -845,12 +1190,20 @@ export class Invariant {
   async getLiquidityTicksAmount(
     poolKey: PoolKey,
     lowerTick: bigint,
-    upperTick: bigint
+    upperTick: bigint,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
   ): Promise<bigint> {
     const result = await sendQuery(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       InvariantQuery.getLiquidityTicksAmount,
       [poolKey, lowerTick, upperTick]
     )
@@ -862,11 +1215,21 @@ export class Invariant {
     }
   }
 
-  withdrawAllWAZEROTx(address: string): SubmittableExtrinsic {
+  withdrawAllWAZEROTx(
+    address: string,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): SubmittableExtrinsic {
     return createTx(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       0n,
       InvariantTx.WithdrawAllWAZERO,
       [address]
@@ -876,12 +1239,20 @@ export class Invariant {
   async withdrawAllWAZERO(
     account: IKeyringPair,
     address: string,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    },
     block: boolean = true
   ): Promise<any> {
     return createSignAndSendTx(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       0n,
       account,
       InvariantTx.WithdrawAllWAZERO,
