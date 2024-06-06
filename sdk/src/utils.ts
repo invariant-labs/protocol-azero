@@ -331,6 +331,10 @@ export const calculateSqrtPriceAfterSlippage = (
   slippage: Percentage,
   up: boolean
 ): SqrtPrice => {
+  if (slippage === 0n) {
+    return sqrtPrice
+  }
+
   const multiplier = getPercentageDenominator() + (up ? slippage : -slippage)
   const price = sqrtPriceToPrice(sqrtPrice)
   const priceWithSlippage = price * multiplier * getPercentageDenominator()
