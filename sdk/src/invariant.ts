@@ -998,6 +998,87 @@ export class Invariant {
     ) as Promise<SwapTxResult>
   }
 
+  swapWithSlippageTx(
+    poolKey: PoolKey,
+    xToY: boolean,
+    amount: TokenAmount,
+    byAmountIn: boolean,
+    estimatedSqrtPrice: SqrtPrice,
+    slippage: Percentage,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): SubmittableExtrinsic {
+    const sqrtPriceAfterSlippage = calculateSqrtPriceAfterSlippage(
+      estimatedSqrtPrice,
+      slippage,
+      !xToY
+    )
+
+    return createTx(
+      this.contract,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
+      0n,
+      InvariantTx.Swap,
+      [
+        poolKey,
+        xToY,
+        amount,
+        byAmountIn,
+        xToY ? sqrtPriceAfterSlippage - 1n : sqrtPriceAfterSlippage + 1n
+      ]
+    )
+  }
+
+  async swapWithSlippage(
+    account: IKeyringPair,
+    poolKey: PoolKey,
+    xToY: boolean,
+    amount: TokenAmount,
+    byAmountIn: boolean,
+    estimatedSqrtPrice: SqrtPrice,
+    slippage: Percentage,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    },
+    block: boolean = true
+  ): Promise<SwapTxResult> {
+    const sqrtPriceAfterSlippage = calculateSqrtPriceAfterSlippage(
+      estimatedSqrtPrice,
+      slippage,
+      !xToY
+    )
+
+    return createSignAndSendTx(
+      this.contract,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
+      0n,
+      account,
+      InvariantTx.Swap,
+      [
+        poolKey,
+        xToY,
+        amount,
+        byAmountIn,
+        xToY ? sqrtPriceAfterSlippage - 1n : sqrtPriceAfterSlippage + 1n
+      ],
+      this.waitForFinalization,
+      block
+    ) as Promise<SwapTxResult>
+  }
+
   async swapRoute(
     account: IKeyringPair,
     amountIn: TokenAmount,
