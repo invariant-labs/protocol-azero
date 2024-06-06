@@ -1,3 +1,4 @@
+import { PoolKey } from '@invariant-labs/a0-sdk-wasm'
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
 import { Invariant } from '../src/invariant'
@@ -10,18 +11,16 @@ const api = await initPolkadotApi(Network.Local)
 const keyring = new Keyring({ type: 'sr25519' })
 const account = await keyring.addFromUri('//Alice')
 
-let invariant = await Invariant.deploy(api, Network.Local, account, 10000000000n)
-let token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
-let token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
-let token2Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
+let invariant: Invariant
+let token0Address: string
+let token1Address: string
+let poolKey0: PoolKey
+let poolKey1: PoolKey
 
 const psp22 = await PSP22.load(api, Network.Local)
 
 const feeTier10ts = newFeeTier(6000000000n, 10n)
 const feeTier20ts = newFeeTier(6000000000n, 20n)
-
-let poolKey0 = newPoolKey(token0Address, token1Address, feeTier10ts)
-let poolKey1 = newPoolKey(token0Address, token1Address, feeTier20ts)
 
 describe('query-on-pair', async () => {
   before(async () => {
