@@ -1297,13 +1297,11 @@ export class Invariant {
         ? length / MAX_POOL_KEYS_RETURNED + 1n
         : length / MAX_POOL_KEYS_RETURNED
 
-    const promises = []
-    for (let i = 0n; i < iterations; i++) {
-      const offset = i * MAX_POOL_KEYS_RETURNED
-      promises.push(this.getPoolKeys(MAX_POOL_KEYS_RETURNED, offset, options))
-    }
+    const promises = Array.from({ length: integerSafeCast(iterations) }, (_, i) =>
+      this.getPoolKeys(MAX_POOL_KEYS_RETURNED, BigInt(i) * MAX_POOL_KEYS_RETURNED, options)
+    )
 
-    const allPoolKeys = (await Promise.all(promises)).flat(1)
+    const allPoolKeys = (await Promise.all(promises)).flat()
 
     const matchingPoolKeys = allPoolKeys.filter(
       key =>
@@ -1328,7 +1326,7 @@ export class Invariant {
       await Promise.all(
         poolKeys.map(key => this.getPool(key.tokenX, key.tokenY, key.feeTier, options))
       )
-    ).flat(1)
+    ).flat()
 
     return pools
   }
