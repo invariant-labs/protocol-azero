@@ -36,7 +36,7 @@
     "docs:copy": "cp ../README.md README.md",
     "build:copy-wasm": "cd target && mkdir wasm && cp -r ../src/wasm/pkg ./wasm/pkg",
     "test:all": "ts-mocha",
-    "test:local": "npm run test:utils && npm run test:wazero && npm run test:psp22 && npm run test:protocol-fee  && npm run test:math && npm run test:invariant && npm run test:example && npm run test:events && npm run test:tx && npm run test:position && npm run test:get-liquidity-ticks && npm run test:query-on-pair",
+    "test:local": "npm run test:utils && npm run test:wazero && npm run test:psp22 && npm run test:protocol-fee  && npm run test:math && npm run test:invariant && npm run test:example && npm run test:events && npm run test:tx && npm run test:position && npm run test:query-on-pair && npm run test:get-liquidity-ticks",
     "test:utils": "mocha ./tests/utils.test.ts -g utils",
     "test:wazero": "mocha ./tests/wrapped-azero.test.ts -g wrapped-azero",
     "test:psp22": "mocha ./tests/psp22.test.ts -g psp22",

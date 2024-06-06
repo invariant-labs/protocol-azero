@@ -979,13 +979,13 @@ pub mod invariant {
             &self,
             token0: AccountId,
             token1: AccountId,
-        ) -> Result<Vec<Pool>, InvariantError> {
+        ) -> Result<Vec<(FeeTier, Pool)>, InvariantError> {
             let fee_tiers = self.fee_tiers.get_all();
-            let mut pools: Vec<Pool> = vec![];
+            let mut pools: Vec<(FeeTier, Pool)> = vec![];
             for fee_tier in fee_tiers {
                 let pool_key = PoolKey::new(token0, token1, fee_tier)?;
                 if let Ok(pool) = self.pools.get(pool_key) {
-                    pools.push(pool);
+                    pools.push((fee_tier, pool));
                 }
             }
             Ok(pools)
