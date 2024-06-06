@@ -9,15 +9,13 @@ import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
 const api = await initPolkadotApi(Network.Local)
 
 const keyring = new Keyring({ type: 'sr25519' })
-const account = await keyring.addFromUri('//Alice')
+const account = keyring.addFromUri('//Alice')
 
 let invariant: Invariant
 let token0Address: string
 let token1Address: string
 let poolKey0: PoolKey
 let poolKey1: PoolKey
-
-const psp22 = await PSP22.load(api, Network.Local)
 
 const feeTier10ts = newFeeTier(6000000000n, 10n)
 const feeTier20ts = newFeeTier(6000000000n, 20n)
