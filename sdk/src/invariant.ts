@@ -34,6 +34,7 @@ import {
   DEFAULT_PROOF_SIZE,
   DEFAULT_REF_TIME,
   LIQUIDITY_TICKS_LIMIT,
+  MAX_POOL_KEYS_RETURNED,
   MAX_TICKMAP_QUERY_SIZE
 } from './consts.js'
 import { Network } from './network.js'
@@ -1260,5 +1261,75 @@ export class Invariant {
       this.waitForFinalization,
       block
     )
+  }
+
+  async getPoolKeysLength(
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): Promise<bigint> {
+    return await sendQuery(
+      this.contract,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
+      InvariantQuery.getPoolKeysLength,
+      []
+    )
+  }
+
+  async getAllPoolKeysForPair(
+    token0: string,
+    token1: string,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): Promise<PoolKey[]> {
+    const length = await this.getPoolKeysLength(options)
+    const iterations =
+      length % MAX_POOL_KEYS_RETURNED !== 0n
+        ? length / MAX_POOL_KEYS_RETURNED + 1n
+        : length / MAX_POOL_KEYS_RETURNED
+
+    const promises = []
+    for (let i = 0n; i < iterations; i++) {
+      const offset = i * MAX_POOL_KEYS_RETURNED
+      promises.push(this.getPoolKeys(MAX_POOL_KEYS_RETURNED, offset, options))
+    }
+
+    const allPoolKeys = (await Promise.all(promises)).flat(1)
+
+    const matchingPoolKeys = allPoolKeys.filter(
+      key =>
+        (key.tokenX === token0 && key.tokenY === token1) ||
+        (key.tokenX === token1 && key.tokenY === token0)
+    )
+
+    return matchingPoolKeys
+  }
+
+  async getAllPoolsForPair(
+    token0: string,
+    token1: string,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): Promise<Pool[]> {
+    const poolKeys = await this.getAllPoolKeysForPair(token0, token1, options)
+    const pools: Pool[] = (
+      await Promise.all(
+        poolKeys.map(key => this.getPool(key.tokenX, key.tokenY, key.feeTier, options))
+      )
+    ).flat(1)
+
+    return pools
   }
 }

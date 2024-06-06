@@ -9,6 +9,7 @@ import {
   getLiquidityDenominator,
   getLiquidityScale,
   getLiquidityTicksLimit,
+  getMaxPoolKeysReturned,
   getMaxTickCross,
   getMaxTickmapQuerySize,
   getPercentageDenominator,
@@ -63,3 +64,4 @@ export const CHUNK_SIZE = getChunkSize()
 export const MAX_TICKMAP_QUERY_SIZE = getMaxTickmapQuerySize()
 export const MAX_TICK_CROSS = getMaxTickCross()
 export const LIQUIDITY_TICKS_LIMIT = getLiquidityTicksLimit()
+export const MAX_POOL_KEYS_RETURNED = getMaxPoolKeysReturned()

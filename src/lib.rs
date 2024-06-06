@@ -975,6 +975,11 @@ pub mod invariant {
         }
 
         #[ink(message)]
+        fn get_pool_keys_length(&self) -> u16 {
+            self.pool_keys.get_length()
+        }
+
+        #[ink(message)]
         fn get_tick(&self, key: PoolKey, index: i32) -> Result<Tick, InvariantError> {
             self.ticks.get(key, index)
         }

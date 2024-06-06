@@ -9,7 +9,9 @@ pub mod e2e_tests {
     };
     use decimal::*;
     use ink_e2e::build_message;
-    use test_helpers::{add_fee_tier, create_dex, create_pool, create_tokens, get_pool};
+    use test_helpers::{
+        add_fee_tier, create_dex, create_pool, create_tokens, get_pool, get_pool_keys_length,
+    };
     use token::TokenRef;
 
     type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
@@ -343,6 +345,9 @@ pub mod e2e_tests {
             assert!(result.is_ok());
             get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
         }
+
+        let pool_keys_length = get_pool_keys_length!(client, InvariantRef, dex);
+        assert_eq!(pool_keys_length, amount_of_pools_to_create);
 
         Ok(())
     }

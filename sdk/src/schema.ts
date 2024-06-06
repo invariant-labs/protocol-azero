@@ -22,7 +22,8 @@ export enum InvariantQuery {
   getUserPositionAmount = 'invariantTrait::getUserPositionAmount',
   GetTickmap = 'invariantTrait::getTickmap',
   getLiquidityTicks = 'invariantTrait::getLiquidityTicks',
-  getLiquidityTicksAmount = 'invariantTrait::getLiquidityTicksAmount'
+  getLiquidityTicksAmount = 'invariantTrait::getLiquidityTicksAmount',
+  getPoolKeysLength = 'invariantTrait::getPoolKeysLength'
 }
 
 export enum InvariantTx {
