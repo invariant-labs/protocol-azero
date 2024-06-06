@@ -9,9 +9,7 @@ pub mod e2e_tests {
     };
     use decimal::*;
     use ink_e2e::build_message;
-    use test_helpers::{
-        add_fee_tier, create_dex, create_pool, create_tokens, get_pool, get_pool_keys_length,
-    };
+    use test_helpers::{add_fee_tier, create_dex, create_pool, create_tokens, get_pool};
     use token::TokenRef;
 
     type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
