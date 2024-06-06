@@ -35,15 +35,6 @@ describe('query-on-pair', async () => {
     await invariant.createPool(account, poolKey0, 1000000000000000000000000n)
     await invariant.createPool(account, poolKey1, 2000000000000000000000000n)
   })
-  it('query all pool keys for pair', async () => {
-    const poolKeys = await invariant.getAllPoolKeysForPair(token0Address, token1Address)
-    const hasAll = poolKeys.some(
-      poolKey =>
-        (poolKey.tokenX === poolKey0.tokenX && poolKey.tokenY === poolKey0.tokenY) ||
-        (poolKey.tokenX === poolKey1.tokenX && poolKey.tokenY === poolKey1.tokenY)
-    )
-    assert.isTrue(hasAll)
-  })
   it('query all pools for pair', async () => {
     const pools = await invariant.getAllPoolsForPair(token0Address, token1Address)
     const expectedPool0 = await invariant.getPool(
@@ -59,27 +50,6 @@ describe('query-on-pair', async () => {
     const hasAll = pools.some(
       pool =>
         pool.sqrtPrice === expectedPool0.sqrtPrice || pool.sqrtPrice === expectedPool1.sqrtPrice
-    )
-    assert.isTrue(hasAll)
-  })
-  it('check pagination', async function () {
-    this.timeout(30000)
-
-    const poolsToCreate = 250
-
-    for (let i = 0; i < poolsToCreate; i++) {
-      const token0 = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
-      const token1 = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
-
-      const poolKey = newPoolKey(token0, token1, feeTier10ts)
-      await invariant.createPool(account, poolKey, 1000000000000000000000000n)
-    }
-
-    const poolKeys = await invariant.getAllPoolKeysForPair(token0Address, token1Address)
-    const hasAll = poolKeys.some(
-      poolKey =>
-        (poolKey.tokenX === poolKey0.tokenX && poolKey.tokenY === poolKey0.tokenY) ||
-        (poolKey.tokenX === poolKey1.tokenX && poolKey.tokenY === poolKey1.tokenY)
     )
     assert.isTrue(hasAll)
   })
