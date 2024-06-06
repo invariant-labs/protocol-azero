@@ -1342,4 +1342,31 @@ export class Invariant {
       block
     )
   }
+
+  async getAllPoolsForPair(
+    token0: string,
+    token1: string,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): Promise<Pool[]> {
+    const result = await sendQuery(
+      this.contract,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
+      InvariantQuery.getAllPoolsForPair,
+      [token0, token1]
+    )
+
+    if (result.ok) {
+      return parse(result.ok)
+    } else {
+      throw new Error(result.err ? InvariantError[result.err] : result)
+    }
+  }
 }

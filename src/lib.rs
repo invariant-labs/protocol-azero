@@ -975,6 +975,23 @@ pub mod invariant {
         }
 
         #[ink(message)]
+        fn get_all_pools_for_pair(
+            &self,
+            token0: AccountId,
+            token1: AccountId,
+        ) -> Result<Vec<Pool>, InvariantError> {
+            let fee_tiers = self.fee_tiers.get_all();
+            let mut pools: Vec<Pool> = vec![];
+            for fee_tier in fee_tiers {
+                let pool_key = PoolKey::new(token0, token1, fee_tier)?;
+                if let Ok(pool) = self.pools.get(pool_key) {
+                    pools.push(pool);
+                }
+            }
+            Ok(pools)
+        }
+
+        #[ink(message)]
         fn get_tick(&self, key: PoolKey, index: i32) -> Result<Tick, InvariantError> {
             self.ticks.get(key, index)
         }

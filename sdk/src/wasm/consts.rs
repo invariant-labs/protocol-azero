@@ -18,6 +18,8 @@ pub const MAX_TICKMAP_QUERY_SIZE: usize = MAX_RESULT_SIZE / (16 + 64);
 
 pub const LIQUIDITY_TICK_LIMIT: usize = MAX_RESULT_SIZE / (32 + 128 + 8);
 
+pub const MAX_POOL_KEYS_RETURNED: u16 = 220;
+
 #[wasm_wrapper]
 pub fn get_global_max_sqrt_price() -> u128 {
     MAX_SQRT_PRICE
@@ -59,4 +61,9 @@ pub fn get_max_tickmap_query_size() -> u64 {
 #[wasm_wrapper]
 pub fn get_liquidity_ticks_limit() -> u64 {
     LIQUIDITY_TICK_LIMIT as u64
+}
+
+#[wasm_wrapper]
+pub fn get_max_pool_keys_returned() -> u16 {
+    MAX_POOL_KEYS_RETURNED
 }
