@@ -975,11 +975,6 @@ pub mod invariant {
         }
 
         #[ink(message)]
-        fn get_pool_keys_length(&self) -> u16 {
-            self.pool_keys.get_length()
-        }
-
-        #[ink(message)]
         fn get_all_pools_for_pair(
             &self,
             token0: AccountId,

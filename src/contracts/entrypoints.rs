@@ -358,10 +358,6 @@ pub trait InvariantTrait {
         token1: AccountId,
     ) -> Result<Vec<Pool>, InvariantError>;
 
-    /// Retrieves amount of listed pool keys
-    #[ink(message)]
-    fn get_pool_keys_length(&self) -> u16;
-
     /// Retrieves available fee tiers
     #[ink(message)]
     fn get_fee_tiers(&self) -> Vec<FeeTier>;

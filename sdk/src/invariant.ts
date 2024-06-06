@@ -1262,25 +1262,6 @@ export class Invariant {
     )
   }
 
-  async getPoolKeysLength(
-    options: ContractOptions = {
-      storageDepositLimit: this.storageDepositLimit,
-      refTime: this.gasLimit.refTime.toNumber(),
-      proofSize: this.gasLimit.proofSize.toNumber()
-    }
-  ): Promise<bigint> {
-    return await sendQuery(
-      this.contract,
-      this.api.registry.createType('WeightV2', {
-        refTime: options.refTime,
-        proofSize: options.proofSize
-      }) as WeightV2,
-      options.storageDepositLimit,
-      InvariantQuery.getPoolKeysLength,
-      []
-    )
-  }
-
   async getAllPoolsForPair(
     token0: string,
     token1: string,
