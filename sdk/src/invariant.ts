@@ -964,7 +964,7 @@ export class Invariant {
       options.storageDepositLimit,
       0n,
       InvariantTx.Swap,
-      [poolKey, xToY, amount, byAmountIn, xToY ? sqrtPriceLimit - 1n : sqrtPriceLimit + 1n]
+      [poolKey, xToY, amount, byAmountIn, sqrtPriceLimit]
     )
   }
 
@@ -992,7 +992,7 @@ export class Invariant {
       0n,
       account,
       InvariantTx.Swap,
-      [poolKey, xToY, amount, byAmountIn, xToY ? sqrtPriceLimit - 1n : sqrtPriceLimit + 1n],
+      [poolKey, xToY, amount, byAmountIn, sqrtPriceLimit],
       this.waitForFinalization,
       block
     ) as Promise<SwapTxResult>
