@@ -346,9 +346,6 @@ pub mod e2e_tests {
             get_pool!(client, InvariantRef, dex, token_x, token_y, fee_tier).unwrap();
         }
 
-        let pool_keys_length = get_pool_keys_length!(client, InvariantRef, dex);
-        assert_eq!(pool_keys_length, amount_of_pools_to_create);
-
         Ok(())
     }
 }

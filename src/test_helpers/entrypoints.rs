@@ -474,18 +474,6 @@ macro_rules! get_pool {
 }
 
 #[macro_export]
-macro_rules! get_pool_keys_length {
-    ($client:ident, $dex:ty, $dex_address:expr) => {{
-        let message = build_message::<$dex>($dex_address.clone())
-            .call(|contract| contract.get_pool_keys_length());
-        $client
-            .call_dry_run(&ink_e2e::alice(), &message, 0, None)
-            .await
-            .return_value()
-    }};
-}
-
-#[macro_export]
 macro_rules! get_tick {
     ($client:ident, $dex:ty, $dex_address:expr, $key:expr, $index:expr) => {{
         let message = build_message::<$dex>($dex_address.clone())
