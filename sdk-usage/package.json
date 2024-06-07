@@ -11,6 +11,7 @@
     "deploy-invariant": "npx tsc && node --experimental-wasm-modules target/deploy-invariant.js",
     "create-position": "npx tsc && node --experimental-wasm-modules target/create-position.js",
     "create-pool": "npx tsc && node --experimental-wasm-modules target/create-pool.js",
+    "query-tickmap": "npx tsc && node --experimental-wasm-modules target/query-tickmap.js",
     "swap": "npx tsc && node --experimental-wasm-modules target/swap.js"
   },
   "keywords": [],
