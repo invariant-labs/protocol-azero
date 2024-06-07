@@ -47,10 +47,10 @@ describe('query-on-pair', async () => {
       poolKey1.tokenY,
       poolKey1.feeTier
     )
-    const hasAll = pools.some(
-      pool =>
-        pool.sqrtPrice === expectedPool0.sqrtPrice || pool.sqrtPrice === expectedPool1.sqrtPrice
-    )
-    assert.isTrue(hasAll)
+
+    assert.deepEqual(pools, [
+      [poolKey0.feeTier, expectedPool0],
+      [poolKey1.feeTier, expectedPool1]
+    ])
   })
 })
