@@ -1,8 +1,6 @@
 import {
   Invariant,
-  Keyring,
   Network,
-  PSP22,
   TESTNET_INVARIANT_ADDRESS,
   Tickmap,
   getMaxTick,
@@ -30,30 +28,16 @@ const POOL_KEY_ONE = newPoolKey(TESTNET_TOKEN_0, TESTNET_TOKEN_1, FEE_TIER_ONE)
 const POOL_KEY_TWO = newPoolKey(TESTNET_TOKEN_0, TESTNET_TOKEN_2, FEE_TIER_ONE)
 const POOL_KEY_THREE = newPoolKey(TESTNET_TOKEN_1, TESTNET_TOKEN_2, FEE_TIER_ONE)
 const POOL_KEY_FOUR = newPoolKey(TESTNET_TOKEN_0, TESTNET_TOKEN_1, FEE_TIER_TWO)
-const AMOUNT = 1000000000000000000n
 
 const main = async () => {
   const network = Network.Testnet
   const api = await initPolkadotApi(network)
-
-  const keyring = new Keyring({ type: 'sr25519' })
-  const mnemonic = process.env.DEPLOYER_MNEMONIC ?? ''
-  const account = keyring.addFromMnemonic(mnemonic)
 
   const invariant = await Invariant.load(api, network, TESTNET_INVARIANT_ADDRESS, {
     storageDepositLimit: 100000000000,
     refTime: 100000000000,
     proofSize: 100000000000
   })
-
-  const psp22 = await PSP22.load(api, network, {
-    storageDepositLimit: 100000000000,
-    refTime: 100000000000,
-    proofSize: 100000000000
-  })
-
-  const tickAmount = 10000n
-  const liquidityDelta = AMOUNT / tickAmount
 
   // 200 ticks initialized
   {
@@ -185,22 +169,3 @@ const pairTicks = (ticks: bigint[]): { lowerTickIndex: bigint; upperTickIndex: b
 }
 
 main()
-
-// for (const [index, tickPair] of ticks.entries()) {
-//   try {
-//     const query = await invariant.getPosition(account.address, BigInt(index))
-//     console.log('Query at index', index, 'is successful')
-//   } catch (e) {
-//     console.log('Creating position...')
-//     await invariant.createPosition(
-//       account,
-//       poolKey,
-//       tickPair.lowerTickIndex,
-//       tickPair.upperTickIndex,
-//       liquidityDelta,
-//       1000000000000000000000000n,
-//       0n
-//     )
-//   }
-// }
-// console.log('ticks initialized')
