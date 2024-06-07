@@ -25,7 +25,6 @@ import {
 import { ApiPromise } from '@polkadot/api'
 import { Abi, ContractPromise } from '@polkadot/api-contract'
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types'
-import { Bytes } from '@polkadot/types'
 import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
 import { deployContract } from '@scio-labs/use-inkathon'
@@ -157,7 +156,7 @@ export class Invariant {
               return
             }
 
-            const decoded = this.abi.decodeEvent(contract_evt as Bytes)
+            const decoded = this.abi.decodeEvent(contract_evt as any)
 
             if (!decoded) {
               return
