@@ -1,4 +1,23 @@
 export {
+  calculateSqrtPrice,
+  getLiquidityByX,
+  getLiquidityByY,
+  getMaxChunk,
+  getMaxSqrtPrice,
+  getMaxTick,
+  getMinSqrtPrice,
+  getMinTick,
+  isTokenX,
+  toFeeGrowth,
+  toFixedPoint,
+  toLiquidity,
+  toPercentage,
+  toPrice,
+  toSecondsPerLiquidity,
+  toSqrtPrice,
+  toTokenAmount
+} from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
+export type {
   CreatePositionEvent,
   CrossTickEvent,
   FeeGrowth,
@@ -17,24 +36,7 @@ export {
   SwapResult,
   Tick,
   Tickmap,
-  TokenAmount,
-  calculateSqrtPrice,
-  getLiquidityByX,
-  getLiquidityByY,
-  getMaxChunk,
-  getMaxSqrtPrice,
-  getMaxTick,
-  getMinSqrtPrice,
-  getMinTick,
-  isTokenX,
-  toFeeGrowth,
-  toFixedPoint,
-  toLiquidity,
-  toPercentage,
-  toPrice,
-  toSecondsPerLiquidity,
-  toSqrtPrice,
-  toTokenAmount
+  TokenAmount
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 export { Keyring } from '@polkadot/api'
 export { CONCENTRATION_ARRAY, FEE_TIERS } from './computed-consts.js'

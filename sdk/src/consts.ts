@@ -10,6 +10,7 @@ import {
   getLiquidityScale,
   getLiquidityTicksLimit,
   getMaxPoolKeysReturned,
+  getMaxPoolPairsReturned,
   getMaxTickCross,
   getMaxTickmapQuerySize,
   getPercentageDenominator,
@@ -23,7 +24,6 @@ import {
   getTokenAmountDenominator,
   getTokenAmountScale
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
-import { getMaxPoolPairsReturned } from './wasm/pkg/invariant_a0_wasm'
 
 export const MAX_REF_TIME = 259058343000
 export const DEFAULT_REF_TIME = 1250000000000
