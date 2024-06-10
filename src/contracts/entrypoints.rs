@@ -356,7 +356,7 @@ pub trait InvariantTrait {
         &self,
         token0: AccountId,
         token1: AccountId,
-    ) -> Result<Vec<Pool>, InvariantError>;
+    ) -> Result<Vec<(FeeTier, Pool)>, InvariantError>;
 
     /// Retrieves available fee tiers
     #[ink(message)]
