@@ -272,12 +272,16 @@ pub fn get_next_sqrt_price_y_down(
         .map_err(|_| err!("extending liquidity overflow"))?;
 
     if add_y {
-        let quotient =
-            ok_or_mark_trace!(SqrtPrice::checked_big_div_values(numerator, denominator))?;
+        let quotient = SqrtPrice::checked_big_div_values(numerator, denominator)
+            .unwrap_or(SqrtPrice::new(2u128.pow(64) - 1));
+        // let quotient =
+        //     ok_or_mark_trace!(SqrtPrice::checked_big_div_values(numerator, denominator))?;
         from_result!(starting_sqrt_price.checked_add(quotient))
     } else {
-        let quotient =
-            ok_or_mark_trace!(SqrtPrice::checked_big_div_values_up(numerator, denominator))?;
+        let quotient = SqrtPrice::checked_big_div_values_up(numerator, denominator)
+            .unwrap_or(SqrtPrice::new(2u128.pow(64) - 1));
+        // let quotient =
+        //     ok_or_mark_trace!(SqrtPrice::checked_big_div_values_up(numerator, denominator))?;
         from_result!(starting_sqrt_price.checked_sub(quotient))
     }
 }
