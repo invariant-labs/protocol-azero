@@ -26,12 +26,18 @@ pub mod invariant {
 
     use crate::contracts::InvariantError;
     use crate::math::{compute_swap_step, MAX_SQRT_PRICE, MIN_SQRT_PRICE};
+    use crate::{transfer_from_v1, transfer_v1};
     use decimal::*;
+
+    use ink::codegen::TraitCallBuilder;
+
     use ink::contract_ref;
     use ink::prelude::vec;
     use ink::prelude::vec::Vec;
     use token::PSP22;
     use traceable_result::unwrap;
+
+    type PSP22Wrapper = contract_ref!(PSP22);
 
     #[ink(storage)]
     #[derive(Default)]
@@ -418,14 +424,17 @@ pub mod invariant {
             let (fee_protocol_token_x, fee_protocol_token_y) = pool.withdraw_protocol_fee(pool_key);
             self.pools.update(pool_key, &pool)?;
 
-            let mut token_x: contract_ref!(PSP22) = pool_key.token_x.into();
-            token_x
-                .transfer(pool.fee_receiver, fee_protocol_token_x.get(), vec![])
-                .map_err(|_| InvariantError::TransferError)?;
-            let mut token_y: contract_ref!(PSP22) = pool_key.token_y.into();
-            token_y
-                .transfer(pool.fee_receiver, fee_protocol_token_y.get(), vec![])
-                .map_err(|_| InvariantError::TransferError)?;
+            transfer_v1!(
+                pool_key.token_x,
+                pool.fee_receiver,
+                fee_protocol_token_x.get()
+            );
+
+            transfer_v1!(
+                pool_key.token_y,
+                pool.fee_receiver,
+                fee_protocol_token_y.get()
+            );
 
             Ok(())
         }
@@ -517,14 +526,8 @@ pub mod invariant {
             self.ticks.update(pool_key, lower_tick.index, &lower_tick)?;
             self.ticks.update(pool_key, upper_tick.index, &upper_tick)?;
 
-            let mut token_x: contract_ref!(PSP22) = pool_key.token_x.into();
-            token_x
-                .transfer_from(caller, contract, x.get(), vec![])
-                .map_err(|_| InvariantError::TransferError)?;
-            let mut token_y: contract_ref!(PSP22) = pool_key.token_y.into();
-            token_y
-                .transfer_from(caller, contract, y.get(), vec![])
-                .map_err(|_| InvariantError::TransferError)?;
+            transfer_from_v1!(pool_key.token_x, caller, contract, x.get());
+            transfer_from_v1!(pool_key.token_y, caller, contract, y.get());
 
             self.emit_create_position_event(
                 caller,
@@ -566,33 +569,29 @@ pub mod invariant {
             self.pools.update(pool_key, &calculate_swap_result.pool)?;
 
             if x_to_y {
-                let mut token_x: contract_ref!(PSP22) = pool_key.token_x.into();
-                token_x
-                    .transfer_from(
-                        caller,
-                        contract,
-                        calculate_swap_result.amount_in.get(),
-                        vec![],
-                    )
-                    .map_err(|_| InvariantError::TransferError)?;
-                let mut token_y: contract_ref!(PSP22) = pool_key.token_y.into();
-                token_y
-                    .transfer(caller, calculate_swap_result.amount_out.get(), vec![])
-                    .map_err(|_| InvariantError::TransferError)?;
+                transfer_from_v1!(
+                    pool_key.token_x,
+                    caller,
+                    contract,
+                    calculate_swap_result.amount_in.get()
+                );
+                transfer_v1!(
+                    pool_key.token_y,
+                    caller,
+                    calculate_swap_result.amount_out.get()
+                );
             } else {
-                let mut token_y: contract_ref!(PSP22) = pool_key.token_y.into();
-                token_y
-                    .transfer_from(
-                        caller,
-                        contract,
-                        calculate_swap_result.amount_in.get(),
-                        vec![],
-                    )
-                    .map_err(|_| InvariantError::TransferError)?;
-                let mut token_x: contract_ref!(PSP22) = pool_key.token_x.into();
-                token_x
-                    .transfer(caller, calculate_swap_result.amount_out.get(), vec![])
-                    .map_err(|_| InvariantError::TransferError)?;
+                transfer_from_v1!(
+                    pool_key.token_y,
+                    caller,
+                    contract,
+                    calculate_swap_result.amount_in.get()
+                );
+                transfer_v1!(
+                    pool_key.token_x,
+                    caller,
+                    calculate_swap_result.amount_out.get()
+                );
             };
 
             self.emit_swap_event(
@@ -718,17 +717,11 @@ pub mod invariant {
                 .update(position.pool_key, lower_tick.index, &lower_tick)?;
 
             if x.get() > 0 {
-                let mut token_x: contract_ref!(PSP22) = position.pool_key.token_x.into();
-                token_x
-                    .transfer(caller, x.get(), vec![])
-                    .map_err(|_| InvariantError::TransferError)?;
+                transfer_v1!(position.pool_key.token_x, caller, x.get());
             }
 
             if y.get() > 0 {
-                let mut token_y: contract_ref!(PSP22) = position.pool_key.token_y.into();
-                token_y
-                    .transfer(caller, y.get(), vec![])
-                    .map_err(|_| InvariantError::TransferError)?;
+                transfer_v1!(position.pool_key.token_y, caller, y.get());
             }
 
             Ok((x, y))
@@ -782,14 +775,8 @@ pub mod invariant {
 
             self.positions.remove(caller, index)?;
 
-            let mut token_x: contract_ref!(PSP22) = position.pool_key.token_x.into();
-            token_x
-                .transfer(caller, amount_x.get(), vec![])
-                .map_err(|_| InvariantError::TransferError)?;
-            let mut token_y: contract_ref!(PSP22) = position.pool_key.token_y.into();
-            token_y
-                .transfer(caller, amount_y.get(), vec![])
-                .map_err(|_| InvariantError::TransferError)?;
+            transfer_v1!(position.pool_key.token_x, caller, amount_x.get());
+            transfer_v1!(position.pool_key.token_y, caller, amount_y.get());
 
             self.emit_remove_position_event(
                 caller,

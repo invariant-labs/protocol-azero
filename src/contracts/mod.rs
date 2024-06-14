@@ -3,6 +3,7 @@ pub mod entrypoints;
 pub mod error;
 pub mod events;
 pub mod logic;
+pub mod macros;
 pub mod storage;
 pub mod swap_structs;
 
