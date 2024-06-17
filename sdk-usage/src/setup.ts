@@ -1,4 +1,5 @@
 import {
+  FEE_TIERS,
   Invariant,
   Keyring,
   Network,
@@ -8,7 +9,6 @@ import {
   WrappedAZERO,
   calculateTick,
   initPolkadotApi,
-  newFeeTier,
   newPoolKey,
   priceToSqrtPrice,
   toPercentage
@@ -33,11 +33,7 @@ const main = async () => {
   })
   console.log(`Invariant: ${invariant.contract.address.toString()}`)
 
-  const hundredthOfPercentage = toPercentage(1n, 4n)
-  const feeTiers = [1n, 2n, 5n, 10n, 30n, 100n].map(tickCount =>
-    newFeeTier(tickCount * hundredthOfPercentage, tickCount)
-  )
-  for (const feeTier of feeTiers) {
+  for (const feeTier of FEE_TIERS) {
     await invariant.addFeeTier(account, feeTier)
   }
   console.log('Successfully added fee tiers')
@@ -68,12 +64,12 @@ const main = async () => {
   )
 
   const poolKeys: [PoolKey, bigint][] = [
-    [newPoolKey(TESTNET_WAZERO_ADDRESS, BTCAddress, feeTiers[1]), 10804609546189987720n],
-    [newPoolKey(TESTNET_WAZERO_ADDRESS, ETHAddress, feeTiers[1]), 4711830510277394610468n],
-    [newPoolKey(TESTNET_WAZERO_ADDRESS, USDCAddress, feeTiers[1]), 272063075569508447756n],
-    [newPoolKey(BTCAddress, ETHAddress, feeTiers[1]), 130559235944405760n],
-    [newPoolKey(BTCAddress, USDCAddress, feeTiers[1]), 7865049221247086n],
-    [newPoolKey(ETHAddress, USDCAddress, feeTiers[1]), 3454809855596621497n]
+    [newPoolKey(TESTNET_WAZERO_ADDRESS, BTCAddress, FEE_TIERS[1]), 10804609546189987720n],
+    [newPoolKey(TESTNET_WAZERO_ADDRESS, ETHAddress, FEE_TIERS[1]), 4711830510277394610468n],
+    [newPoolKey(TESTNET_WAZERO_ADDRESS, USDCAddress, FEE_TIERS[1]), 272063075569508447756n],
+    [newPoolKey(BTCAddress, ETHAddress, FEE_TIERS[1]), 130559235944405760n],
+    [newPoolKey(BTCAddress, USDCAddress, FEE_TIERS[1]), 7865049221247086n],
+    [newPoolKey(ETHAddress, USDCAddress, FEE_TIERS[1]), 3454809855596621497n]
   ]
   for (const [poolKey] of poolKeys) {
     const price =
@@ -127,8 +123,8 @@ const main = async () => {
     const upperSqrtPrice = priceToSqrtPrice(BigInt(Math.round(price * 1.05)))
     const poolSqrtPrice = priceToSqrtPrice(BigInt(Math.round(price)))
     try {
-      const lowerTick = calculateTick(lowerSqrtPrice, feeTiers[1].tickSpacing)
-      const upperTick = calculateTick(upperSqrtPrice, feeTiers[1].tickSpacing)
+      const lowerTick = calculateTick(lowerSqrtPrice, FEE_TIERS[1].tickSpacing)
+      const upperTick = calculateTick(upperSqrtPrice, FEE_TIERS[1].tickSpacing)
       await invariant.createPosition(
         account,
         poolKey,
