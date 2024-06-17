@@ -1,5 +1,4 @@
 import {
-  FEE_TIERS,
   Invariant,
   Keyring,
   Network,
@@ -44,11 +43,11 @@ const main = async () => {
   console.log('Successfully added fee tiers')
 
   const BTCAddress = await PSP22.deploy(api, account, 0n, 'Bitcoin', 'BTC', 8n)
-  const ETHAddress = await PSP22.deploy(api, account, 0n, 'Ether', 'ETH', 18n)
+  const ETHAddress = await PSP22.deploy(api, account, 0n, 'Ether', 'ETH', 12n)
   const USDCAddress = await PSP22.deploy(api, account, 0n, 'USDC', 'USDC', 6n)
   const decimals = {
     [BTCAddress]: 8n,
-    [ETHAddress]: 18n,
+    [ETHAddress]: 12n,
     [USDCAddress]: 6n,
     [TESTNET_WAZERO_ADDRESS]: 12n
   }
@@ -64,23 +63,17 @@ const main = async () => {
     [USDCAddress]: 1,
     [TESTNET_WAZERO_ADDRESS]: data.find((coin: any) => coin.id === 'aleph-zero').current_price
   }
-  const amounts = {
-    [BTCAddress]: 100000n,
-    [ETHAddress]: 20000000000000000n,
-    [USDCAddress]: 50000000n,
-    [TESTNET_WAZERO_ADDRESS]: 0n
-  }
   console.log(
     `BTC: ${prices[BTCAddress]}, ETH: ${prices[ETHAddress]}, USDC: ${prices[USDCAddress]}, AZERO: ${prices[TESTNET_WAZERO_ADDRESS]}`
   )
 
   const poolKeys: [PoolKey, bigint][] = [
-    [newPoolKey(TESTNET_WAZERO_ADDRESS, BTCAddress, feeTiers[0]), 10804609546189987720n],
-    [newPoolKey(TESTNET_WAZERO_ADDRESS, ETHAddress, feeTiers[0]), 4574229672299832700010386n],
-    [newPoolKey(TESTNET_WAZERO_ADDRESS, USDCAddress, feeTiers[0]), 272063075569508447756n],
-    [newPoolKey(BTCAddress, ETHAddress, feeTiers[0]), 0n],
-    [newPoolKey(BTCAddress, USDCAddress, feeTiers[0]), 7865049221247086n],
-    [newPoolKey(ETHAddress, USDCAddress, feeTiers[0]), 3366947614329393483549n]
+    [newPoolKey(TESTNET_WAZERO_ADDRESS, BTCAddress, feeTiers[1]), 10804609546189987720n],
+    [newPoolKey(TESTNET_WAZERO_ADDRESS, ETHAddress, feeTiers[1]), 4711830510277394610468n],
+    [newPoolKey(TESTNET_WAZERO_ADDRESS, USDCAddress, feeTiers[1]), 272063075569508447756n],
+    [newPoolKey(BTCAddress, ETHAddress, feeTiers[1]), 130559235944405760n],
+    [newPoolKey(BTCAddress, USDCAddress, feeTiers[1]), 7865049221247086n],
+    [newPoolKey(ETHAddress, USDCAddress, feeTiers[1]), 3454809855596621497n]
   ]
   for (const [poolKey] of poolKeys) {
     const price =
@@ -101,22 +94,24 @@ const main = async () => {
     refTime: 100000000000,
     proofSize: 100000000000
   })
-  await psp22.mint(account, 10n ** 24n, BTCAddress)
-  await psp22.mint(account, 10n ** 24n, ETHAddress)
-  await psp22.mint(account, 10n ** 24n, USDCAddress)
-  await psp22.approve(account, invariant.contract.address.toString(), 10n ** 24n, BTCAddress)
-  await psp22.approve(account, invariant.contract.address.toString(), 10n ** 24n, ETHAddress)
-  await psp22.approve(account, invariant.contract.address.toString(), 10n ** 24n, USDCAddress)
+  await psp22.mint(account, 2n ** 128n - 1n, BTCAddress)
+  await psp22.mint(account, 2n ** 128n - 1n, ETHAddress)
+  await psp22.mint(account, 2n ** 128n - 1n, USDCAddress)
+  await psp22.approve(account, invariant.contract.address.toString(), 2n ** 128n - 1n, BTCAddress)
+  await psp22.approve(account, invariant.contract.address.toString(), 2n ** 128n - 1n, ETHAddress)
+  await psp22.approve(account, invariant.contract.address.toString(), 2n ** 128n - 1n, USDCAddress)
   const wazero = await WrappedAZERO.load(api, network, TESTNET_WAZERO_ADDRESS, {
     storageDepositLimit: 100000000000,
     refTime: 100000000000,
     proofSize: 100000000000
   })
-  await wazero.deposit(account, 50000n * 10n ** 12n)
+  const wazeroBalance = await wazero.balanceOf(account.address)
+  await wazero.withdraw(account, wazeroBalance)
+  await wazero.deposit(account, 40000n * 10n ** 12n)
   await psp22.approve(
     account,
     invariant.contract.address.toString(),
-    10n ** 24n,
+    2n ** 128n - 1n,
     TESTNET_WAZERO_ADDRESS
   )
   const BTCBefore = await psp22.balanceOf(account.address, BTCAddress)
@@ -132,8 +127,8 @@ const main = async () => {
     const upperSqrtPrice = priceToSqrtPrice(BigInt(Math.round(price * 1.05)))
     const poolSqrtPrice = priceToSqrtPrice(BigInt(Math.round(price)))
     try {
-      const lowerTick = calculateTick(lowerSqrtPrice, FEE_TIERS[0].tickSpacing)
-      const upperTick = calculateTick(upperSqrtPrice, FEE_TIERS[0].tickSpacing)
+      const lowerTick = calculateTick(lowerSqrtPrice, feeTiers[1].tickSpacing)
+      const upperTick = calculateTick(upperSqrtPrice, feeTiers[1].tickSpacing)
       await invariant.createPosition(
         account,
         poolKey,
