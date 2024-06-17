@@ -19,9 +19,10 @@ pub mod e2e_tests {
     use decimal::*;
     use ink_e2e::ContractsBackend;
     use test_helpers::{
-        add_fee_tier, address_of, approve, create_dex, create_pool, create_position, create_tokens,
-        get_pool, get_tick, mint, swap,
+        add_fee_tier, approve, create_dex, create_pool, create_position, create_tokens, get_pool,
+        get_tick, mint, swap,
     };
+    use token::PSP22Mintable;
     use token::Token;
     use token::{TokenRef, PSP22};
 
@@ -31,6 +32,7 @@ pub mod e2e_tests {
     async fn test_cross_both_side(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
         let alice = ink_e2e::alice();
+        let bob = ink_e2e::bob();
         let init_tick = 0;
         let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
         let initial_mint = 10u128.pow(10);
@@ -58,7 +60,7 @@ pub mod e2e_tests {
         let upper_tick_index = 10;
 
         let mint_amount = 10u128.pow(5);
-        mint!(client, token_x, address_of!(Bob), mint_amount, alice).unwrap();
+        mint!(client, token_x, address_of!(Bob), mint_amount, bob).unwrap();
         mint!(client, token_y, address_of!(Alice), mint_amount, alice).unwrap();
 
         approve!(client, token_x, dex.account_id, mint_amount, alice).unwrap();

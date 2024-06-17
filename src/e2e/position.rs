@@ -23,6 +23,7 @@ pub mod e2e_tests {
         create_tokens, get_pool, get_position, get_tick, is_tick_initialized, mint,
         remove_position, swap,
     };
+    use token::PSP22Mintable;
     use token::Token;
     use token::TokenRef;
     use token::PSP22;
@@ -236,7 +237,7 @@ pub mod e2e_tests {
         }
 
         let amount = 1000;
-        mint!(client, token_x, address_of!(Bob), amount, alice).unwrap();
+        mint!(client, token_x, address_of!(Bob), amount, bob).unwrap();
         let amount_x = balance_of!(client, token_x, address_of!(Bob));
         assert_eq!(amount_x, amount);
 

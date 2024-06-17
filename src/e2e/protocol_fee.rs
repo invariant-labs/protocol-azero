@@ -24,6 +24,7 @@ pub mod e2e_tests {
         init_basic_position, init_basic_swap, init_dex_and_tokens, mint, swap,
         withdraw_protocol_fee,
     };
+    use token::PSP22Mintable;
     use token::Token;
     use token::{TokenRef, PSP22};
 

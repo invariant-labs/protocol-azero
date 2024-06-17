@@ -16,7 +16,8 @@ pub mod e2e_tests {
         create_pool, create_position, get_pool, init_dex_and_3_tokens, mint, quote_route,
         swap_route,
     };
-    use token::Token;
+    use token::token::Token;
+    use token::PSP22Mintable;
     use token::{TokenRef, PSP22};
 
     type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
@@ -32,7 +33,7 @@ pub mod e2e_tests {
 
         let amount = 1000;
         let bob = ink_e2e::bob();
-        mint!(client, token_x, address_of!(Bob), amount, alice).unwrap();
+        mint!(client, token_x, address_of!(Bob), amount, bob).unwrap();
         approve!(client, token_x, dex.account_id, amount, bob).unwrap();
         approve!(client, token_y, dex.account_id, u64::MAX as u128, bob).unwrap();
 

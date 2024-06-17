@@ -23,6 +23,7 @@ pub mod e2e_tests {
         create_position, create_tokens, get_pool, get_position, init_basic_pool,
         init_basic_position, init_basic_swap, init_dex_and_tokens, mint, swap,
     };
+    use token::PSP22Mintable;
     use token::Token;
     use token::TokenRef;
     use token::PSP22;

@@ -1,7 +1,7 @@
 export const abi = `
 {
   "source": {
-    "hash": "0xc2b685002f9a177097c9576548de1a2d36fff1f4239e5d16ca6b95fd8f11922d",
+    "hash": "0x7035afadc4eeee662f45e7afd58945e1498b485004c825a8f874fae7d5231057",
     "language": "ink! 5.0.0",
     "compiler": "rustc 1.77.0",
     "build_info": {
@@ -74,13 +74,13 @@ export const abi = `
         "displayName": [
           "ChainExtension"
         ],
-        "type": 99
+        "type": 100
       },
       "hash": {
         "displayName": [
           "Hash"
         ],
-        "type": 98
+        "type": 99
       },
       "maxEventTopics": 4,
       "staticBufferSize": 16384,
@@ -420,6 +420,104 @@ export const abi = `
         "label": "SwapEvent",
         "module_path": "invariant::contracts::events",
         "signature_topic": "0xa2fa68a09109e5201d1e015005173040754b008fc2dc7203c0da57236f0ba81e"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Account providing allowance."
+            ],
+            "indexed": true,
+            "label": "owner",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [
+              "Allowance beneficiary."
+            ],
+            "indexed": true,
+            "label": "spender",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [
+              "New allowance amount."
+            ],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 11
+            }
+          }
+        ],
+        "docs": [
+          "Event emitted when allowance by 'owner' to 'spender' changes."
+        ],
+        "label": "Approval",
+        "module_path": "token::events",
+        "signature_topic": "0x25cdb6c93882e925abbfc9a8b7c85884b73c038c03a2492f238a5e5ba3fbff8c"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Transfer sender. 'None' in case of minting new tokens."
+            ],
+            "indexed": true,
+            "label": "from",
+            "type": {
+              "displayName": [
+                "Option"
+              ],
+              "type": 98
+            }
+          },
+          {
+            "docs": [
+              "Transfer recipient. 'None' in case of burning tokens."
+            ],
+            "indexed": true,
+            "label": "to",
+            "type": {
+              "displayName": [
+                "Option"
+              ],
+              "type": 98
+            }
+          },
+          {
+            "docs": [
+              "Amount of tokens transferred (or minted/burned)."
+            ],
+            "indexed": false,
+            "label": "value",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 11
+            }
+          }
+        ],
+        "docs": [
+          "Event emitted when transfer of tokens occurs."
+        ],
+        "label": "Transfer",
+        "module_path": "token::events",
+        "signature_topic": "0x990df076cb1e9527aa102cd100c1481efe393eeabb5825f9af1f5e58221864de"
       }
     ],
     "lang_error": {
@@ -5049,6 +5147,39 @@ export const abi = `
       "id": 98,
       "type": {
         "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "None"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 2
+                  }
+                ],
+                "index": 1,
+                "name": "Some"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 2
+          }
+        ],
+        "path": [
+          "Option"
+        ]
+      }
+    },
+    {
+      "id": 99,
+      "type": {
+        "def": {
           "composite": {
             "fields": [
               {
@@ -5066,7 +5197,7 @@ export const abi = `
       }
     },
     {
-      "id": 99,
+      "id": 100,
       "type": {
         "def": {
           "variant": {}

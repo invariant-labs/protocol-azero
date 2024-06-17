@@ -30,7 +30,6 @@ pub mod invariant {
     use decimal::*;
 
     use ink::codegen::TraitCallBuilder;
-
     use ink::contract_ref;
     use ink::prelude::vec;
     use ink::prelude::vec::Vec;

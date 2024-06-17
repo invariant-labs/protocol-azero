@@ -21,6 +21,7 @@ pub mod e2e_tests {
         add_fee_tier, address_of, approve, balance_of, create_dex, create_pool, create_position,
         create_tokens, get_pool, mint, quote, swap,
     };
+    use token::PSP22Mintable;
     use token::Token;
     use token::{TokenRef, PSP22};
 
@@ -100,7 +101,7 @@ pub mod e2e_tests {
         assert_eq!(pool_state.liquidity, liquidity_delta);
 
         let mint_amount = 10067;
-        mint!(client, token_x, address_of!(Bob), mint_amount, alice).unwrap();
+        mint!(client, token_x, address_of!(Bob), mint_amount, bob).unwrap();
 
         approve!(client, token_x, dex.account_id, mint_amount, bob).unwrap();
 
@@ -232,7 +233,7 @@ pub mod e2e_tests {
         .unwrap();
 
         let swap_amount = TokenAmount::new(5000);
-        mint!(client, token_x, address_of!(Bob), swap_amount.get(), alice).unwrap();
+        mint!(client, token_x, address_of!(Bob), swap_amount.get(), bob).unwrap();
 
         approve!(client, token_x, dex.account_id, swap_amount.get(), bob).unwrap();
 

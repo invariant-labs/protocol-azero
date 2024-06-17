@@ -23,7 +23,7 @@ macro_rules! balance_of {
 macro_rules! mint {
     ($client:ident, $token:ident, $to:expr, $value:expr, $caller:ident) => {{
         let mut call_builder = $token.call_builder::<Token>();
-        let call = call_builder.mint($to, $value);
+        let call = call_builder.mint($value);
         let result = $client
             .call(&$caller, &call)
             .dry_run()

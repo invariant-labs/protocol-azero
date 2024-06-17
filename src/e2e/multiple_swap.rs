@@ -21,6 +21,7 @@ pub mod e2e_tests {
         create_tokens, get_pool, init_dex_and_tokens, mint, multiple_swap, quote, swap,
         swap_exact_limit,
     };
+    use token::PSP22Mintable;
     use token::Token;
     use token::{TokenRef, PSP22};
 

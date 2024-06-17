@@ -9,14 +9,16 @@ pub mod e2e_tests {
     };
     use decimal::*;
     use ink_e2e::ContractsBackend;
-    use test_helpers::{add_fee_tier, create_dex, create_pool, create_tokens, get_pool};
     use token::TokenRef;
+
+    use test_helpers::{add_fee_tier, create_dex, create_pool, create_tokens, get_pool};
 
     type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
     #[ink_e2e::test]
     async fn test_create_pool(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let dex = create_dex!(client, Percentage::new(0));
+
         let (token_x, token_y) = create_tokens!(client, 500, 500);
 
         let fee_tier = FeeTier::new(Percentage::from_scale(5, 1), 100).unwrap();

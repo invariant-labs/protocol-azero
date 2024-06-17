@@ -22,6 +22,7 @@ pub mod e2e_tests {
         init_slippage_dex_and_tokens, init_slippage_pool_with_liquidity, mint, quote, swap,
         swap_exact_limit,
     };
+    use token::PSP22Mintable;
     use token::Token;
     use token::{TokenRef, PSP22};
 
@@ -112,8 +113,8 @@ pub mod e2e_tests {
 
         let amount = 1000;
         let bob = ink_e2e::bob();
-        let alice = ink_e2e::alice();
-        mint!(client, token_x, address_of!(Bob), amount, alice).unwrap();
+
+        mint!(client, token_x, address_of!(Bob), amount, bob).unwrap();
         let amount_x = balance_of!(client, token_x, address_of!(Bob));
         assert_eq!(amount_x, amount);
         approve!(client, token_x, dex.account_id, amount, bob).unwrap();

@@ -19,6 +19,7 @@ pub mod e2e_tests {
         create_tokens, get_pool, get_tick, init_basic_pool, init_basic_position, init_basic_swap,
         init_dex_and_tokens, is_tick_initialized, mint, quote, swap,
     };
+    use token::PSP22Mintable;
     use token::Token;
     use token::{TokenRef, PSP22};
 
@@ -40,6 +41,7 @@ pub mod e2e_tests {
         let (token_x, token_y) = create_tokens!(client, initial_amount, initial_amount);
 
         let alice = ink_e2e::alice();
+        let bob = ink_e2e::bob();
 
         let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
 
@@ -109,8 +111,8 @@ pub mod e2e_tests {
 
         let amount = 1000;
         let swap_amount = TokenAmount(amount);
-        let bob = ink_e2e::bob();
-        mint!(client, token_x, address_of!(Bob), amount, alice).unwrap();
+
+        mint!(client, token_x, address_of!(Bob), amount, bob).unwrap();
         approve!(client, token_x, dex.account_id, amount, bob).unwrap();
 
         let slippage = SqrtPrice::new(MIN_SQRT_PRICE);
@@ -196,6 +198,7 @@ pub mod e2e_tests {
         let (token_x, token_y) = create_tokens!(client, initial_amount, initial_amount);
 
         let alice = ink_e2e::alice();
+        let bob = ink_e2e::bob();
 
         let fee_tier = FeeTier::new(Percentage::from_scale(6, 3), 10).unwrap();
 
@@ -265,8 +268,8 @@ pub mod e2e_tests {
 
         let amount = 1000;
         let swap_amount = TokenAmount(amount);
-        let bob = ink_e2e::bob();
-        mint!(client, token_y, address_of!(Bob), amount, alice).unwrap();
+
+        mint!(client, token_y, address_of!(Bob), amount, bob).unwrap();
         approve!(client, token_y, dex.account_id, amount, bob).unwrap();
 
         let target_sqrt_price = SqrtPrice::new(MAX_SQRT_PRICE);
