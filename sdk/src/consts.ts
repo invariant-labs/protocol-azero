@@ -36,10 +36,10 @@ export const DEFAULT_LOCAL = 'ws://127.0.0.1:9944'
 
 export const TESTNET_WAZERO_ADDRESS = '5EFDb7mKbougLtr5dnwd5KDfZ3wK55JPGPLiryKq4uRMPR46'
 
-export const TESTNET_INVARIANT_ADDRESS = '5F5AV5bfcW24mXUdUHtcea46bdTbUEkXwTL4PgoQ4e8ZDp5p'
-export const TESTNET_BTC_ADDRESS = '5HBziiU3YsnD9FHxXVGZiwZZj24obB7HMLUiYjvX76VLvbdN'
-export const TESTNET_ETH_ADDRESS = '5GMVEb4WiJELkJeJXrwGWKtSSSKDhwe6yctuKoWwNpR1uVqf'
-export const TESTNET_USDC_ADDRESS = '5G8fYvtRfv5jGR5oLwTrcKmCY5zhnopwCcseiJTiPdepJqaP'
+export const TESTNET_INVARIANT_ADDRESS = '5FNWFjX15bR1Fu5PPHtQ6nHsg6gFFkq7EFudRfCTqjjcUwxi'
+export const TESTNET_BTC_ADDRESS = '5CtSjbAAkUvUSgTomBYqN6iWnDNTKwftcpDg2znCJV52q6w2'
+export const TESTNET_ETH_ADDRESS = '5HJu69WLhv2xuwiwBVpVvfiUeDLdkcs4Ai3BcBn1pKMr2n3m'
+export const TESTNET_USDC_ADDRESS = '5DSrd3ytNLkkvSJzdKJEf2BZwTPmmez4YJGwHg1vJZdR8gvk'
 
 export const FEE_GROWTH_DENOMINATOR = getFeeGrowthDenominator()
 export const FIXED_POINT_DENOMINATOR = getFixedPointDenominator()
