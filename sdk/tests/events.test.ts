@@ -1,5 +1,3 @@
-import { Keyring } from '@polkadot/api'
-import { assert } from 'chai'
 import {
   CreatePositionEvent,
   CrossTickEvent,
@@ -9,6 +7,9 @@ import {
   toPercentage,
   toSqrtPrice
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
+import { Keyring } from '@polkadot/api'
+import { assert } from 'chai'
+import 'mocha'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
@@ -101,8 +102,18 @@ describe('events', async () => {
   })
 
   it('cross tick and swap event', async () => {
-    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000n, token0Address)
-    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000n, token1Address)
+    await psp22.approve(
+      account,
+      invariant.contract.address.toString(),
+      1000000000000n,
+      token0Address
+    )
+    await psp22.approve(
+      account,
+      invariant.contract.address.toString(),
+      1000000000000n,
+      token1Address
+    )
 
     await invariant.createPosition(
       account,
@@ -168,8 +179,18 @@ describe('events', async () => {
       objectEquals(event, expectedSwapEvent, ['timestamp'])
     })
 
-    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000n, token0Address)
-    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000n, token1Address)
+    await psp22.approve(
+      account,
+      invariant.contract.address.toString(),
+      1000000000000n,
+      token0Address
+    )
+    await psp22.approve(
+      account,
+      invariant.contract.address.toString(),
+      1000000000000n,
+      token1Address
+    )
 
     const result = await invariant.swap(
       account,
@@ -190,8 +211,18 @@ describe('events', async () => {
   it('remove position event', async () => {
     let wasFired = false
 
-    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000n, token0Address)
-    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000n, token1Address)
+    await psp22.approve(
+      account,
+      invariant.contract.address.toString(),
+      1000000000000n,
+      token0Address
+    )
+    await psp22.approve(
+      account,
+      invariant.contract.address.toString(),
+      1000000000000n,
+      token1Address
+    )
 
     await invariant.createPosition(
       account,
@@ -235,8 +266,18 @@ describe('events', async () => {
 
     invariant.on(InvariantEvent.CreatePositionEvent, handler)
 
-    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000n, token0Address)
-    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000n, token1Address)
+    await psp22.approve(
+      account,
+      invariant.contract.address.toString(),
+      1000000000000n,
+      token0Address
+    )
+    await psp22.approve(
+      account,
+      invariant.contract.address.toString(),
+      1000000000000n,
+      token1Address
+    )
 
     await invariant.createPosition(
       account,

@@ -22,7 +22,7 @@ describe('tx', function () {
     const balanceBefore = await psp22.balanceOf(account.address, token0Address)
 
     const mintAmount = 500n
-    const mintTx = psp22.mintTx(mintAmount, token0Address)
+    const mintTx = psp22.mintTx(account.address, mintAmount, token0Address)
     const hash = await sendTx(mintTx)
 
     expect(hash).to.not.be.undefined

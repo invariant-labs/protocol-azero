@@ -90,12 +90,12 @@ const main = async () => {
     refTime: 100000000000,
     proofSize: 100000000000
   })
-  await psp22.mint(account, 2n ** 128n - 1n, BTCAddress)
-  await psp22.mint(account, 2n ** 128n - 1n, ETHAddress)
-  await psp22.mint(account, 2n ** 128n - 1n, USDCAddress)
-  await psp22.approve(account, invariant.contract.address.toString(), 2n ** 128n - 1n, BTCAddress)
-  await psp22.approve(account, invariant.contract.address.toString(), 2n ** 128n - 1n, ETHAddress)
-  await psp22.approve(account, invariant.contract.address.toString(), 2n ** 128n - 1n, USDCAddress)
+  await psp22.mint(account, account.address, 2n ** 96n - 1n, BTCAddress)
+  await psp22.mint(account, account.address, 2n ** 96n - 1n, ETHAddress)
+  await psp22.mint(account, account.address, 2n ** 96n - 1n, USDCAddress)
+  await psp22.approve(account, invariant.contract.address.toString(), 2n ** 96n - 1n, BTCAddress)
+  await psp22.approve(account, invariant.contract.address.toString(), 2n ** 96n - 1n, ETHAddress)
+  await psp22.approve(account, invariant.contract.address.toString(), 2n ** 96n - 1n, USDCAddress)
   const wazero = await WrappedAZERO.load(api, network, TESTNET_WAZERO_ADDRESS, {
     storageDepositLimit: 100000000000,
     refTime: 100000000000,
@@ -103,11 +103,11 @@ const main = async () => {
   })
   const wazeroBalance = await wazero.balanceOf(account.address)
   await wazero.withdraw(account, wazeroBalance)
-  await wazero.deposit(account, 40000n * 10n ** 12n)
+  await wazero.deposit(account, 30000n * 10n ** 12n)
   await psp22.approve(
     account,
     invariant.contract.address.toString(),
-    2n ** 128n - 1n,
+    2n ** 96n - 1n,
     TESTNET_WAZERO_ADDRESS
   )
   const BTCBefore = await psp22.balanceOf(account.address, BTCAddress)

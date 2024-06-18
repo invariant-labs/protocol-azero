@@ -19,7 +19,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@invariant-labs/a0-sdk": "file:../sdk",
+    "@invariant-labs/a0-sdk": "^0.2.3",
     "dotenv": "^16.4.5"
   },
   "devDependencies": {
