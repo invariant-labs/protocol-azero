@@ -12,13 +12,14 @@
     "create-position": "npx tsc && node --experimental-wasm-modules target/create-position.js",
     "create-pool": "npx tsc && node --experimental-wasm-modules target/create-pool.js",
     "query-tickmap": "npx tsc && node --experimental-wasm-modules target/query-tickmap.js",
-    "swap": "npx tsc && node --experimental-wasm-modules target/swap.js"
+    "swap": "npx tsc && node --experimental-wasm-modules target/swap.js",
+    "setup": "npx tsc && node --experimental-wasm-modules target/setup.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@invariant-labs/a0-sdk": "0.1.45",
+    "@invariant-labs/a0-sdk": "^0.2.3",
     "dotenv": "^16.4.5"
   },
   "devDependencies": {

@@ -1,5 +1,6 @@
 export {
   calculateSqrtPrice,
+  calculateTick,
   getLiquidityByX,
   getLiquidityByY,
   getMaxChunk,
@@ -48,6 +49,8 @@ export {
   LIQUIDITY_TICKS_LIMIT,
   MAINNET,
   MAX_REF_TIME,
+  MAX_SQRT_PRICE,
+  MIN_SQRT_PRICE,
   TESTNET,
   TESTNET_BTC_ADDRESS,
   TESTNET_ETH_ADDRESS,

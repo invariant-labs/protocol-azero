@@ -175,7 +175,7 @@ describe('position', async () => {
       const amount: TokenAmount = 1000n
       const swapper = keyring.addFromUri('//Bob')
 
-      await psp22.mint(swapper, amount, tokenX)
+      await psp22.mint(swapper, swapper.address, amount, tokenX)
       await psp22.approve(swapper, invariant.contract.address.toString(), amount, tokenX)
 
       const poolBefore = await invariant.getPool(token0Address, token1Address, feeTier)

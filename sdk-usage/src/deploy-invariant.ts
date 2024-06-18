@@ -1,15 +1,12 @@
 import {
+  DEFAULT_PROOF_SIZE,
+  FeeTier,
+  Invariant,
   Keyring,
   Network,
-  Invariant,
   initPolkadotApi,
   newFeeTier,
-  toPercentage,
-  FeeTier,
-  DEFAULT_PROOF_SIZE,
-  newPoolKey,
-  TESTNET_ETH_ADDRESS,
-  TESTNET_USDC_ADDRESS
+  toPercentage
 } from '@invariant-labs/a0-sdk'
 import { ContractOptions } from '@invariant-labs/a0-sdk/target/schema'
 import dotenv from 'dotenv'
@@ -62,15 +59,15 @@ const main = async () => {
     console.log(`Fee tier added: ${feeTier.fee}, ${feeTier.tickSpacing}`)
   }
 
-  await INVARIANT.createPool(
-    account,
-    newPoolKey(TESTNET_USDC_ADDRESS, TESTNET_ETH_ADDRESS, feeTiers[0]),
-    1000000000000000000000000n
-  ).catch(err => {
-    console.error(err), process.exit(1)
-  })
+  // await INVARIANT.createPool(
+  //   account,
+  //   newPoolKey(TESTNET_USDC_ADDRESS, TESTNET_ETH_ADDRESS, feeTiers[0]),
+  //   1000000000000000000000000n
+  // ).catch(err => {
+  //   console.error(err), process.exit(1)
+  // })
 
-  console.log(`Pool added ${TESTNET_USDC_ADDRESS}, ${TESTNET_ETH_ADDRESS}`)
+  // console.log(`Pool added ${TESTNET_USDC_ADDRESS}, ${TESTNET_ETH_ADDRESS}`)
   process.exit(0)
 }
 

@@ -1,6 +1,6 @@
 {
   "name": "@invariant-labs/a0-sdk",
-  "version": "0.1.45",
+  "version": "0.2.3",
   "collaborators": [
     "Invariant Labs"
   ],
@@ -32,7 +32,7 @@
     "wasm:build": "cd src/wasm && wasm-pack build --features tsify/js",
     "node:start": "substrate-contracts-node purge-chain -y && substrate-contracts-node --rpc-port 9944 --dev",
     "node:stop": "ps aux | grep substrate-contracts-node | tr -s ' ' | cut -d ' ' -f 2 | head -n 1 | xargs -r kill -9",
-    "contract:build": "cd .. && cargo contract build --release && cd sdk",
+    "contract:build": "cd .. && cargo contract build --release && cd src/token && cargo contract build --release && cd ../../sdk",
     "docs:copy": "cp ../README.md README.md",
     "build:copy-wasm": "cd target && mkdir wasm && cp -r ../src/wasm/pkg ./wasm/pkg",
     "test:all": "ts-mocha",
