@@ -7,10 +7,9 @@ import {
   SwapEvent,
   TESTNET_INVARIANT_ADDRESS,
   calculateFee,
-  getMinTick,
   initPolkadotApi,
-  simulateInvariantSwap,
-  positionToTick
+  positionToTick,
+  simulateInvariantSwap
 } from '@invariant-labs/a0-sdk'
 import { CHUNK_SIZE } from '@invariant-labs/a0-sdk/target/consts.js'
 import assert from 'assert'
@@ -43,7 +42,7 @@ const main = async () => {
 
   console.log(`Deployer: ${account.address}, Uri: ${mnemonic}`)
 
-  await psp22.mint(account, SWAP_AMOUNT, positionBefore.poolKey.tokenX)
+  await psp22.mint(account, account.address, SWAP_AMOUNT, positionBefore.poolKey.tokenX)
   await psp22.approve(
     account,
     TESTNET_INVARIANT_ADDRESS,
@@ -51,7 +50,7 @@ const main = async () => {
     positionBefore.poolKey.tokenX
   )
 
-  await psp22.mint(account, SWAP_AMOUNT, positionBefore.poolKey.tokenY)
+  await psp22.mint(account, account.address, SWAP_AMOUNT, positionBefore.poolKey.tokenY)
   await psp22.approve(
     account,
     TESTNET_INVARIANT_ADDRESS,

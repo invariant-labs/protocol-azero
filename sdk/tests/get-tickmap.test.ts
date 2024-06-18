@@ -1,17 +1,17 @@
-import { Keyring } from '@polkadot/api'
-import { assert, expect } from 'chai'
 import {
+  Tick,
+  Tickmap,
   getMaxChunk,
   getMaxTick,
-  getMinTick,
-  Tick, 
-  Tickmap
+  getMinTick
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
+import { Keyring } from '@polkadot/api'
+import { assert, expect } from 'chai'
+import { CHUNK_SIZE, MAX_TICKMAP_QUERY_SIZE } from '../src/consts'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
 import { delay, getActiveBitsCount64, initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
-import { CHUNK_SIZE, MAX_TICKMAP_QUERY_SIZE } from '../src/consts'
 
 const api = await initPolkadotApi(Network.Local)
 
@@ -44,8 +44,18 @@ describe('tickmap test', async () => {
 
     await invariant.createPool(account, poolKey, 1000000000000000000000000n)
 
-    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000000000n, token0Address)
-    await psp22.approve(account, invariant.contract.address.toString(), 1000000000000000000n, token1Address)
+    await psp22.approve(
+      account,
+      invariant.contract.address.toString(),
+      1000000000000000000n,
+      token0Address
+    )
+    await psp22.approve(
+      account,
+      invariant.contract.address.toString(),
+      1000000000000000000n,
+      token1Address
+    )
   })
 
   it('get tickmap', async () => {
@@ -153,9 +163,9 @@ describe('tickmap test', async () => {
     const poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
     const mintAmount = 1n << 120n
-    await psp22.mint(account, mintAmount, token0Address)
+    await psp22.mint(account, account.address, mintAmount, token0Address)
     await psp22.approve(account, invariant.contract.address.toString(), mintAmount, token0Address)
-    await psp22.mint(account, mintAmount,token1Address)
+    await psp22.mint(account, account.address, mintAmount, token1Address)
     await psp22.approve(account, invariant.contract.address.toString(), mintAmount, token1Address)
 
     const liquidityDelta = 10000000n * 10n ** 6n
