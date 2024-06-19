@@ -5,6 +5,7 @@ import {
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { Keyring } from '@polkadot/api'
 import { expect } from 'chai'
+import { MAX_SQRT_PRICE, MIN_SQRT_PRICE } from '../src/consts'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
@@ -687,5 +688,165 @@ describe('simulateInvariantSwap', async () => {
     expect(simulation.globalInsufficientLiquidity).to.equal(false)
     expect(simulation.stateOutdated).to.equal(false)
     expect(simulation.maxTicksCrossed).to.equal(true)
+  })
+
+  it('max token amount - X to Y - amount in', async () => {
+    const poolKey = newPoolKey(token0Address, token1Address, feeTier)
+    const pool = await invariant.getPool(token0Address, token1Address, feeTier)
+
+    const amountIn = 2n ** 128n - 1n
+    const byAmountIn = true
+    const xToY = true
+
+    const tickmap = filterTickmap(
+      await invariant.getFullTickmap(poolKey),
+      poolKey.feeTier.tickSpacing,
+      pool.currentTickIndex,
+      xToY
+    )
+    const ticks = filterTicks(
+      await invariant.getAllLiquidityTicks(poolKey, tickmap),
+      pool.currentTickIndex,
+      xToY
+    )
+
+    const simulation = simulateInvariantSwap(
+      tickmap,
+      feeTier,
+      pool,
+      ticks,
+      xToY,
+      amountIn,
+      byAmountIn,
+      MIN_SQRT_PRICE
+    )
+    expect(simulation.stateOutdated).to.equal(false)
+    expect(simulation.maxTicksCrossed).to.equal(false)
+    expect(simulation.globalInsufficientLiquidity).to.equal(true)
+    expect(simulation.crossedTicks.length).to.equal(1)
+
+    await assertThrowsAsync(
+      invariant.swap(account, poolKey, xToY, amountIn, byAmountIn, MIN_SQRT_PRICE)
+    )
+  })
+
+  it('max token amount - X to Y - amount out', async () => {
+    const poolKey = newPoolKey(token0Address, token1Address, feeTier)
+    const pool = await invariant.getPool(token0Address, token1Address, feeTier)
+
+    const amountIn = 2n ** 128n - 1n
+    const byAmountIn = false
+    const xToY = true
+
+    const tickmap = filterTickmap(
+      await invariant.getFullTickmap(poolKey),
+      poolKey.feeTier.tickSpacing,
+      pool.currentTickIndex,
+      xToY
+    )
+    const ticks = filterTicks(
+      await invariant.getAllLiquidityTicks(poolKey, tickmap),
+      pool.currentTickIndex,
+      xToY
+    )
+
+    const simulation = simulateInvariantSwap(
+      tickmap,
+      feeTier,
+      pool,
+      ticks,
+      xToY,
+      amountIn,
+      byAmountIn,
+      MIN_SQRT_PRICE
+    )
+    expect(simulation.stateOutdated).to.equal(false)
+    expect(simulation.maxTicksCrossed).to.equal(false)
+    expect(simulation.globalInsufficientLiquidity).to.equal(true)
+    expect(simulation.crossedTicks.length).to.equal(1)
+
+    await assertThrowsAsync(
+      invariant.swap(account, poolKey, xToY, amountIn, byAmountIn, MIN_SQRT_PRICE)
+    )
+  })
+
+  it('max token amount - Y to X - amount in', async () => {
+    const poolKey = newPoolKey(token0Address, token1Address, feeTier)
+    const pool = await invariant.getPool(token0Address, token1Address, feeTier)
+
+    const amountIn = 2n ** 128n - 1n
+    const byAmountIn = true
+    const xToY = false
+
+    const tickmap = filterTickmap(
+      await invariant.getFullTickmap(poolKey),
+      poolKey.feeTier.tickSpacing,
+      pool.currentTickIndex,
+      xToY
+    )
+    const ticks = filterTicks(
+      await invariant.getAllLiquidityTicks(poolKey, tickmap),
+      pool.currentTickIndex,
+      xToY
+    )
+
+    const simulation = simulateInvariantSwap(
+      tickmap,
+      feeTier,
+      pool,
+      ticks,
+      xToY,
+      amountIn,
+      byAmountIn,
+      MAX_SQRT_PRICE
+    )
+    expect(simulation.stateOutdated).to.equal(false)
+    expect(simulation.maxTicksCrossed).to.equal(false)
+    expect(simulation.globalInsufficientLiquidity).to.equal(true)
+    expect(simulation.crossedTicks.length).to.equal(1)
+
+    await assertThrowsAsync(
+      invariant.swap(account, poolKey, xToY, amountIn, byAmountIn, MAX_SQRT_PRICE)
+    )
+  })
+
+  it('max token amount - Y to X - amount out', async () => {
+    const poolKey = newPoolKey(token0Address, token1Address, feeTier)
+    const pool = await invariant.getPool(token0Address, token1Address, feeTier)
+
+    const amountIn = 2n ** 128n - 1n
+    const byAmountIn = false
+    const xToY = false
+
+    const tickmap = filterTickmap(
+      await invariant.getFullTickmap(poolKey),
+      poolKey.feeTier.tickSpacing,
+      pool.currentTickIndex,
+      xToY
+    )
+    const ticks = filterTicks(
+      await invariant.getAllLiquidityTicks(poolKey, tickmap),
+      pool.currentTickIndex,
+      xToY
+    )
+
+    const simulation = simulateInvariantSwap(
+      tickmap,
+      feeTier,
+      pool,
+      ticks,
+      xToY,
+      amountIn,
+      byAmountIn,
+      MAX_SQRT_PRICE
+    )
+    expect(simulation.stateOutdated).to.equal(false)
+    expect(simulation.maxTicksCrossed).to.equal(false)
+    expect(simulation.globalInsufficientLiquidity).to.equal(true)
+    expect(simulation.crossedTicks.length).to.equal(1)
+
+    await assertThrowsAsync(
+      invariant.swap(account, poolKey, xToY, amountIn, byAmountIn, MAX_SQRT_PRICE)
+    )
   })
 })

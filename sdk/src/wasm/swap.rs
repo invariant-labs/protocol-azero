@@ -13,6 +13,9 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
 use wasm_wrapper::wasm_wrapper;
 
+extern crate console_error_panic_hook;
+use std::panic;
+
 type LiquidityTicks = Vec<LiquidityTick>;
 
 #[wasm_wrapper]
@@ -26,6 +29,8 @@ pub fn simulate_invariant_swap(
     by_amount_in: bool,
     sqrt_price_limit: SqrtPrice,
 ) -> TrackableResult<CalculateSwapResult> {
+    panic::set_hook(Box::new(console_error_panic_hook::hook));
+
     if amount.is_zero() {
         return Err(err!("Amount is zero"));
     }
