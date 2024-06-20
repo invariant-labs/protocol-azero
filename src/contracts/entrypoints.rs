@@ -346,7 +346,7 @@ pub trait InvariantTrait {
     /// - `size`: Amount of pool keys to retrive
     /// - `offset`: The offset from which retrive pools.
     #[ink(message)]
-    fn get_pools(&self, size: u8, offset: u16) -> Result<Vec<PoolKey>, InvariantError>;
+    fn get_pools(&self, size: u8, offset: u16) -> Result<(Vec<PoolKey>, u16), InvariantError>;
 
     /// Retrieves listed pools for provided token pair
     /// - `token0`: Address of first token

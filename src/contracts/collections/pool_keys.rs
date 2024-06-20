@@ -66,6 +66,10 @@ impl PoolKeys {
         }
         Ok(pool_keys)
     }
+
+    pub fn count(&self) -> u16 {
+        self.pool_keys_length
+    }
 }
 
 #[cfg(test)]
