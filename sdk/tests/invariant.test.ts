@@ -148,7 +148,8 @@ describe('invariant', async function () {
 
     await invariant.createPool(account, poolKey, initSqrtPrice)
     const pools = await invariant.getPoolKeys(1n, 0n)
-    assert.deepEqual(pools.length, 1)
+    assert.deepEqual(pools[0].length, 1)
+    assert.deepEqual(pools[1], 1n)
     const pool = await invariant.getPool(token0Address, token1Address, feeTier)
     assert.deepEqual(pool, {
       liquidity: 0n,
@@ -192,7 +193,8 @@ describe('invariant', async function () {
       await invariant.createPool(account, poolKey, initSqrtPrice)
 
       const pools = await invariant.getPoolKeys(1n, 0n)
-      assert.deepEqual(pools.length, 1)
+      assert.deepEqual(pools[0].length, 1)
+      assert.deepEqual(pools[1], 1n)
       const pool = await invariant.getPool(token0Address, token1Address, feeTier)
       assert.deepEqual(pool, {
         liquidity: 0n,
@@ -213,7 +215,8 @@ describe('invariant', async function () {
       await assertThrowsAsync(invariant.createPool(account, poolKey, initSqrtPrice))
     }
     const pools = await invariant.getPoolKeys(1n, 0n)
-    assert.deepEqual(pools.length, 1)
+    assert.deepEqual(pools[0].length, 1)
+    assert.deepEqual(pools[1], 1n)
   })
 
   it('withdraw all wazero works', async () => {

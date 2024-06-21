@@ -817,7 +817,7 @@ export class Invariant {
       refTime: this.gasLimit.refTime.toNumber(),
       proofSize: this.gasLimit.proofSize.toNumber()
     }
-  ): Promise<PoolKey[]> {
+  ): Promise<[PoolKey[], bigint]> {
     const result = await sendQuery(
       this.contract,
       this.api.registry.createType('WeightV2', {
