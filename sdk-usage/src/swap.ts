@@ -7,10 +7,9 @@ import {
   SwapEvent,
   TESTNET_INVARIANT_ADDRESS,
   calculateFee,
-  getMinTick,
   initPolkadotApi,
-  simulateInvariantSwap,
-  positionToTick
+  positionToTick,
+  simulateInvariantSwap
 } from '@invariant-labs/a0-sdk'
 import { CHUNK_SIZE } from '@invariant-labs/a0-sdk/target/consts.js'
 import assert from 'assert'
@@ -43,7 +42,7 @@ const main = async () => {
 
   console.log(`Deployer: ${account.address}, Uri: ${mnemonic}`)
 
-  await psp22.mint(account, SWAP_AMOUNT, positionBefore.poolKey.tokenX)
+  await psp22.mint(account, account.address, SWAP_AMOUNT, positionBefore.poolKey.tokenX)
   await psp22.approve(
     account,
     TESTNET_INVARIANT_ADDRESS,
@@ -51,15 +50,13 @@ const main = async () => {
     positionBefore.poolKey.tokenX
   )
 
-  await psp22.mint(account, SWAP_AMOUNT, positionBefore.poolKey.tokenY)
+  await psp22.mint(account, account.address, SWAP_AMOUNT, positionBefore.poolKey.tokenY)
   await psp22.approve(
     account,
     TESTNET_INVARIANT_ADDRESS,
     SWAP_AMOUNT,
     positionBefore.poolKey.tokenY
   )
-
-  const protocolFee = await invariant.getProtocolFee()
   const {
     tickmap: tickmapBeforeFirstSwap,
     ticks: ticksBeforeFirstSwap,
@@ -68,7 +65,6 @@ const main = async () => {
 
   const firstSimualtion = simulateInvariantSwap(
     tickmapBeforeFirstSwap,
-    protocolFee,
     positionBefore.poolKey.feeTier,
     poolBeforeFirstSwap,
     ticksBeforeFirstSwap,
@@ -103,7 +99,6 @@ const main = async () => {
 
   const secondSimulation = simulateInvariantSwap(
     tickmapBeforeSecondSwap,
-    protocolFee,
     positionBefore.poolKey.feeTier,
     poolBeforeSecondSwap,
     ticksBeforeSecondSwap,

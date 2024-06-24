@@ -347,7 +347,17 @@ pub trait InvariantTrait {
     /// - `size`: Amount of pool keys to retrive
     /// - `offset`: The offset from which retrive pools.
     #[ink(message)]
-    fn get_pools(&self, size: u8, offset: u16) -> Result<Vec<PoolKey>, InvariantError>;
+    fn get_pools(&self, size: u8, offset: u16) -> Result<(Vec<PoolKey>, u16), InvariantError>;
+
+    /// Retrieves listed pools for provided token pair
+    /// - `token0`: Address of first token
+    /// - `token1`: Address of second token
+    #[ink(message)]
+    fn get_all_pools_for_pair(
+        &self,
+        token0: AccountId,
+        token1: AccountId,
+    ) -> Result<Vec<(FeeTier, Pool)>, InvariantError>;
 
     /// Retrieves available fee tiers
     #[ink(message)]
@@ -388,14 +398,40 @@ pub trait InvariantTrait {
     ///
     /// # Parameters
     /// - `pool_key`: A unique key that identifies the specified pool.
-    /// - `offset`: The offset from which ticks will be retrieved.
+    /// - `tick_indexes`: Indexes of the tick to be retrieved.
+    ///
+    /// # Errors
+    /// - Fails if tick_indexes are too large
+    /// - Fails if tick is not found
+    ///
     #[ink(message)]
-    fn get_liquidity_ticks(&self, pool_key: PoolKey, offset: u16) -> Vec<LiquidityTick>;
-
+    fn get_liquidity_ticks(
+        &self,
+        pool_key: PoolKey,
+        tick_indexes: Vec<i32>,
+    ) -> Result<Vec<LiquidityTick>, InvariantError>;
     /// Retrieves the amount of liquidity ticks of a specified pool.
     ///
     /// # Parameters
-    /// - `pool_key`: A unique key that identifies the specified pool.
+    /// - `pool_key`: A unique key that identifies the specified pool. For poolkeys with tick_spacing equal to 1 the query has to be split into 2 smaller queries
+    /// - `lower_tick`: index to start counting from(inclusive)
+    /// - `upper_tick`: index to stop counting after(inclusive)
+    ///
+    /// # Errors
+    /// - Fails if lower_tick or upper_tick are invalid
+    /// - Fails if tick_spacing is invalid
     #[ink(message)]
-    fn get_liquidity_ticks_amount(&self, pool_key: PoolKey) -> u32;
+    fn get_liquidity_ticks_amount(
+        &self,
+        pool_key: PoolKey,
+        lower_tick: i32,
+        upper_tick: i32,
+    ) -> Result<u32, InvariantError>;
+
+    // /// Unwraps wAZERO tokens on behalf of a user. Transfers and withdraws wAZERO withdraws + transfers back all AZERO tokens to user.
+    // ///
+    // /// # Parameters
+    // /// - `address`: Address of wAZERO contract.
+    // #[ink(message)]
+    // fn withdraw_all_wazero(&self, address: AccountId) -> Result<(), InvariantError>;
 }

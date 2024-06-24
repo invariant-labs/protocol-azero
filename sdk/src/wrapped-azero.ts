@@ -81,22 +81,44 @@ export class WrappedAZERO {
     )
   }
 
-  depositTx(value: bigint): SubmittableExtrinsic {
+  depositTx(
+    value: bigint,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): SubmittableExtrinsic {
     return createTx(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       value,
       WrappedAZEROTx.Deposit,
       []
     )
   }
 
-  async deposit(account: IKeyringPair, value: bigint, block: boolean = true): Promise<TxResult> {
+  async deposit(
+    account: IKeyringPair,
+    value: bigint,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    },
+    block: boolean = true
+  ): Promise<TxResult> {
     return createSignAndSendTx(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       value,
       account,
       WrappedAZEROTx.Deposit,
@@ -106,22 +128,44 @@ export class WrappedAZERO {
     )
   }
 
-  withdrawTx(value: bigint): SubmittableExtrinsic {
+  withdrawTx(
+    value: bigint,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): SubmittableExtrinsic {
     return createTx(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       0n,
       WrappedAZEROTx.Withdraw,
       [value]
     )
   }
 
-  async withdraw(account: IKeyringPair, value: bigint, block: boolean = true): Promise<TxResult> {
+  async withdraw(
+    account: IKeyringPair,
+    value: bigint,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    },
+    block: boolean = true
+  ): Promise<TxResult> {
     return createSignAndSendTx(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       0n,
       account,
       WrappedAZEROTx.Withdraw,
@@ -131,23 +175,46 @@ export class WrappedAZERO {
     )
   }
 
-  approveTx(spender: string, value: bigint): SubmittableExtrinsic {
-    return createTx(this.contract, this.gasLimit, this.storageDepositLimit, 0n, PSP22Tx.Approve, [
-      spender,
-      value
-    ])
+  approveTx(
+    spender: string,
+    value: bigint,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): SubmittableExtrinsic {
+    return createTx(
+      this.contract,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
+      0n,
+      PSP22Tx.Approve,
+      [spender, value]
+    )
   }
 
   async approve(
     account: IKeyringPair,
     spender: string,
     value: bigint,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    },
     block: boolean = true
   ): Promise<TxResult> {
     return createSignAndSendTx(
       this.contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       0n,
       account,
       PSP22Tx.Approve,
@@ -157,7 +224,7 @@ export class WrappedAZERO {
     )
   }
 
-  async balanceOf(owner: string): Promise<unknown> {
+  async balanceOf(owner: string): Promise<bigint> {
     return sendQuery(this.contract, this.gasLimit, this.storageDepositLimit, PSP22Query.BalanceOf, [
       owner
     ])

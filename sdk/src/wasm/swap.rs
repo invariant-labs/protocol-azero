@@ -1,33 +1,36 @@
 use crate::clamm::compute_swap_step;
-use crate::percentage::Percentage;
 use crate::sqrt_price::{get_max_tick, get_min_tick, SqrtPrice};
 use crate::token_amount::TokenAmount;
 use crate::{
     CalculateSwapResult, FeeTier, Tickmap, UpdatePoolTick, MAX_SQRT_PRICE, MAX_TICK_CROSS,
     MIN_SQRT_PRICE,
 };
-use crate::{Pool, Tick};
-use decimal::*;
+use crate::{LiquidityTick, Pool};
+use decimal::Decimal;
 use traceable_result::TrackableResult;
 use traceable_result::*;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
 use wasm_wrapper::wasm_wrapper;
 
-type Ticks = Vec<Tick>;
+extern crate console_error_panic_hook;
+use std::panic;
+
+type LiquidityTicks = Vec<LiquidityTick>;
 
 #[wasm_wrapper]
 pub fn simulate_invariant_swap(
     tickmap: Tickmap,
-    protocol_fee: Percentage,
     fee_tier: FeeTier,
     mut pool: Pool,
-    ticks: Ticks,
+    ticks: LiquidityTicks,
     x_to_y: bool,
     amount: TokenAmount,
     by_amount_in: bool,
     sqrt_price_limit: SqrtPrice,
 ) -> TrackableResult<CalculateSwapResult> {
+    panic::set_hook(Box::new(console_error_panic_hook::hook));
+
     if amount.is_zero() {
         return Err(err!("Amount is zero"));
     }
@@ -55,7 +58,7 @@ pub fn simulate_invariant_swap(
     let mut state_outdated = false;
     let mut max_ticks_crossed = false;
 
-    let mut crossed_ticks: Vec<Tick> = vec![];
+    let mut crossed_ticks: Vec<LiquidityTick> = vec![];
     let mut remaining_amount = amount;
     let mut total_amount_in = TokenAmount(0);
     let mut total_amount_out = TokenAmount(0);
@@ -171,7 +174,7 @@ pub fn simulate_invariant_swap(
                         }
                     }
                 } else {
-                    UpdatePoolTick::TickUninitialized(tick_index)
+                    UpdatePoolTick::TickUninitialized(tick_index as i64)
                 }
             } else {
                 UpdatePoolTick::NoTick
@@ -186,7 +189,6 @@ pub fn simulate_invariant_swap(
             by_amount_in,
             x_to_y,
             pool.last_timestamp,
-            protocol_fee,
             fee_tier,
         );
         let (amount_to_add, amount_after_tick_update, has_crossed) =

@@ -69,41 +69,85 @@ export class PSP22 {
     )
   }
 
-  mintTx(value: bigint, tokenAddress: string): SubmittableExtrinsic {
+  mintTx(
+    to: string,
+    value: bigint,
+    tokenAddress: string,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): SubmittableExtrinsic {
     const contract = new ContractPromise(this.api, this.abi, tokenAddress)
 
-    return createTx(contract, this.gasLimit, this.storageDepositLimit, 0n, PSP22Tx.Mint, [value])
+    return createTx(
+      contract,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
+      0n,
+      PSP22Tx.Mint,
+      [to, value]
+    )
   }
 
   async mint(
     account: IKeyringPair,
+    to: string,
     value: bigint,
     tokenAddress: string,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    },
     block: boolean = true
   ): Promise<TxResult> {
     const contract = new ContractPromise(this.api, this.abi, tokenAddress)
 
     return createSignAndSendTx(
       contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       0n,
       account,
       PSP22Tx.Mint,
-      [value],
+      [to, value],
       this.waitForFinalization,
       block
     )
   }
 
-  transferTx(to: string, value: bigint, data: Bytes, tokenAddress: string): SubmittableExtrinsic {
+  transferTx(
+    to: string,
+    value: bigint,
+    data: Bytes,
+    tokenAddress: string,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): SubmittableExtrinsic {
     const contract = new ContractPromise(this.api, this.abi, tokenAddress)
 
-    return createTx(contract, this.gasLimit, this.storageDepositLimit, 0n, PSP22Tx.Transfer, [
-      to,
-      value,
-      data
-    ])
+    return createTx(
+      contract,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
+      0n,
+      PSP22Tx.Transfer,
+      [to, value, data]
+    )
   }
 
   async transfer(
@@ -112,14 +156,22 @@ export class PSP22 {
     value: bigint,
     data: Bytes,
     tokenAddress: string,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    },
     block: boolean = true
   ): Promise<TxResult> {
     const contract = new ContractPromise(this.api, this.abi, tokenAddress)
 
     return createSignAndSendTx(
       contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       0n,
       account,
       PSP22Tx.Transfer,
@@ -129,13 +181,29 @@ export class PSP22 {
     )
   }
 
-  approveTx(spender: string, value: bigint, tokenAddress: string): SubmittableExtrinsic {
+  approveTx(
+    spender: string,
+    value: bigint,
+    tokenAddress: string,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): SubmittableExtrinsic {
     const contract = new ContractPromise(this.api, this.abi, tokenAddress)
 
-    return createTx(contract, this.gasLimit, this.storageDepositLimit, 0n, PSP22Tx.Approve, [
-      spender,
-      value
-    ])
+    return createTx(
+      contract,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
+      0n,
+      PSP22Tx.Approve,
+      [spender, value]
+    )
   }
 
   async approve(
@@ -143,14 +211,22 @@ export class PSP22 {
     spender: string,
     value: bigint,
     tokenAddress: string,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    },
     block: boolean = true
   ): Promise<TxResult> {
     const contract = new ContractPromise(this.api, this.abi, tokenAddress)
 
     return createSignAndSendTx(
       contract,
-      this.gasLimit,
-      this.storageDepositLimit,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
       0n,
       account,
       PSP22Tx.Approve,
@@ -208,8 +284,8 @@ export class PSP22 {
   }
 
   async getAllBalances(tokens: string[], owner: string): Promise<Map<string, bigint>> {
-    const balancePromises = await Promise.all(tokens.map(token => this.balanceOf(owner, token)));
-    
-    return new Map(tokens.map((token, i) => [token, balancePromises[i]]));
+    const balancePromises = await Promise.all(tokens.map(token => this.balanceOf(owner, token)))
+
+    return new Map(tokens.map((token, i) => [token, balancePromises[i]]))
   }
 }

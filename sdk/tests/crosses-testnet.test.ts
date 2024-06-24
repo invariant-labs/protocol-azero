@@ -34,9 +34,9 @@ describe('testnet-crosses-limitations', async () => {
     await invariant.createPool(deployer, poolKey, 1000000000000000000000000n)
 
     const mintAmount = 1n << 110n
-    await psp22.mint(deployer, mintAmount, token0Address)
+    await psp22.mint(deployer, deployer.address, mintAmount, token0Address)
     await psp22.approve(deployer, invariant.contract.address.toString(), mintAmount, token0Address)
-    await psp22.mint(deployer, mintAmount, token1Address)
+    await psp22.mint(deployer, deployer.address, mintAmount, token1Address)
     await psp22.approve(deployer, invariant.contract.address.toString(), mintAmount, token1Address)
 
     const liquidityDelta = 10000000n * 10n ** 6n
@@ -58,7 +58,7 @@ describe('testnet-crosses-limitations', async () => {
     const swapAmount = 909000n
     const tokenX = isTokenX(token0Address, token1Address) ? token0Address : token1Address
 
-    await psp22.mint(swapper, swapAmount, tokenX)
+    await psp22.mint(swapper, swapper.address, swapAmount, tokenX)
     await psp22.approve(swapper, invariant.contract.address.toString(), swapAmount, tokenX)
 
     const quote = await invariant.quote(poolKey, true, swapAmount, true)

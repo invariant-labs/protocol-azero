@@ -331,6 +331,10 @@ export const calculateSqrtPriceAfterSlippage = (
   slippage: Percentage,
   up: boolean
 ): SqrtPrice => {
+  if (slippage === 0n) {
+    return sqrtPrice
+  }
+
   const multiplier = getPercentageDenominator() + (up ? slippage : -slippage)
   const price = sqrtPriceToPrice(sqrtPrice)
   const priceWithSlippage = price * multiplier * getPercentageDenominator()
@@ -521,10 +525,9 @@ export function highestActiveBit(num: bigint) {
 
 export function simulateInvariantSwap(
   tickmap: Tickmap,
-  protocolFee: TokenAmount,
   feeTier: FeeTier,
   pool: Pool,
-  ticks: Tick[],
+  ticks: LiquidityTick[],
   xToY: boolean,
   amountIn: TokenAmount,
   byAmountIn: boolean,
@@ -532,7 +535,6 @@ export function simulateInvariantSwap(
 ): CalculateSwapResult {
   return _simulateInvariantSwap(
     tickmap,
-    protocolFee,
     feeTier,
     pool,
     ticks,
@@ -547,7 +549,11 @@ export function positionToTick(chunkIndex: bigint, bit: bigint, tickSpacing: big
   return _positionToTick(chunkIndex, bit, tickSpacing)
 }
 
-export function filterTicks(ticks: Tick[], tickIndex: bigint, xToY: boolean): Tick[] {
+export function filterTicks<T extends Tick | LiquidityTick>(
+  ticks: T[],
+  tickIndex: bigint,
+  xToY: boolean
+): T[] {
   const filteredTicks = new Array(...ticks)
   const maxTicksCross = getMaxTickCross()
   let tickCount = 0
@@ -680,7 +686,7 @@ export const calculateTokenAmountsWithSlippage = (
   const upperBound = calculateSqrtPriceAfterSlippage(currentSqrtPrice, slippage, true)
 
   const currentTickIndex = calculateTick(currentSqrtPrice, tickSpacing)
-  
+
   const [lowerX, lowerY] = calculateAmountDelta(
     currentTickIndex,
     lowerBound,

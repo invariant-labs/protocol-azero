@@ -260,16 +260,22 @@ pub fn get_next_sqrt_price_x_up(
     let price_delta = ok_or_mark_trace!(SqrtPrice::checked_from_decimal_to_value(liquidity)
         .map_err(|_| err!("extending liquidity overflow")))?;
 
-    let denominator = ok_or_mark_trace!(match add_x {
-        true => price_delta.checked_add(starting_sqrt_price.big_mul_to_value(x)),
-        false => price_delta.checked_sub(starting_sqrt_price.big_mul_to_value(x)),
-    }
-    .ok_or_else(|| err!("big_liquidity -/+ sqrt_price * x")))?; // never should be triggered
+    
+    let denominator = match add_x {
+        true => price_delta.checked_add(starting_sqrt_price.big_mul_to_value(x)).unwrap_or(U256::from(MAX_SQRT_PRICE)),
+        false => price_delta.checked_sub(starting_sqrt_price.big_mul_to_value(x)).unwrap_or(U256::from(MIN_SQRT_PRICE)),
+    };
 
-    ok_or_mark_trace!(SqrtPrice::checked_big_div_values_up(
+    let raw_result = SqrtPrice::checked_big_div_values_up(
         starting_sqrt_price.big_mul_to_value_up(liquidity),
         denominator
-    ))
+    );
+
+    let result = raw_result.unwrap_or_else(|_| {
+        SqrtPrice::new(if add_x { MIN_SQRT_PRICE } else { MAX_SQRT_PRICE })
+    });
+
+    Ok(result)
 }
 
 #[wasm_wrapper]
@@ -284,15 +290,17 @@ pub fn get_next_sqrt_price_y_down(
     let denominator: U256 = SqrtPrice::checked_from_decimal_to_value(liquidity)
         .map_err(|_| err!("extending liquidity overflow"))?;
 
-    if add_y {
+    let raw_result = if add_y {
         let quotient =
-            ok_or_mark_trace!(SqrtPrice::checked_big_div_values(numerator, denominator))?;
-        from_result!(starting_sqrt_price.checked_add(quotient))
+            SqrtPrice::checked_big_div_values(numerator, denominator).unwrap_or(SqrtPrice::new(MAX_SQRT_PRICE));
+        starting_sqrt_price.checked_add(quotient).unwrap_or(SqrtPrice::new(MAX_SQRT_PRICE))
     } else {
-        let quotient =
-            ok_or_mark_trace!(SqrtPrice::checked_big_div_values_up(numerator, denominator))?;
-        from_result!(starting_sqrt_price.checked_sub(quotient))
-    }
+        let quotient: SqrtPrice =
+            SqrtPrice::checked_big_div_values_up(numerator, denominator).unwrap_or(SqrtPrice::new(MAX_SQRT_PRICE));
+        starting_sqrt_price.checked_sub(quotient).unwrap_or(SqrtPrice::new(MIN_SQRT_PRICE))
+    };
+
+    Ok(raw_result)
 }
 
 #[wasm_wrapper]

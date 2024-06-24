@@ -1,11 +1,9 @@
 use crate::alloc::string::ToString;
 use crate::clamm::{calculate_amount_delta, is_enough_amount_to_change_price, SwapResult};
-use crate::percentage::Percentage;
-use crate::types::{
-    fee_growth::FeeGrowth, liquidity::Liquidity, sqrt_price::SqrtPrice, token_amount::TokenAmount,
-};
-use crate::{get_tick_at_sqrt_price, FeeTier, Tick};
-use decimal::{BigOps, CheckedOps};
+use crate::fee_growth::FeeGrowth;
+use crate::types::{liquidity::Liquidity, sqrt_price::SqrtPrice, token_amount::TokenAmount};
+use crate::{get_tick_at_sqrt_price, FeeTier, LiquidityTick};
+use decimal::CheckedOps;
 use serde::{Deserialize, Serialize};
 use traceable_result::*;
 use tsify::Tsify;
@@ -111,7 +109,6 @@ impl Pool {
         by_amount_in: bool,
         x_to_y: bool,
         current_timestamp: u64,
-        protocol_fee: Percentage,
         fee_tier: FeeTier,
     ) -> TrackableResult<(TokenAmount, TokenAmount, bool)> {
         let mut has_crossed = false;
@@ -142,7 +139,6 @@ impl Pool {
                     has_crossed = true;
                 } else if !remaining_amount.is_zero() {
                     if by_amount_in {
-                        unwrap!(self.add_fee(remaining_amount, x_to_y, protocol_fee));
                         total_amount = remaining_amount;
                     }
                     remaining_amount = TokenAmount(0);
@@ -150,7 +146,7 @@ impl Pool {
 
                 tick.index
             }
-            UpdatePoolTick::TickUninitialized(index) => *index as i64,
+            UpdatePoolTick::TickUninitialized(index) => *index,
             _ => unreachable!(),
         };
 
@@ -169,6 +165,6 @@ impl Pool {
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub enum UpdatePoolTick {
     NoTick,
-    TickInitialized(Tick),
-    TickUninitialized(i32),
+    TickInitialized(LiquidityTick),
+    TickUninitialized(i64),
 }

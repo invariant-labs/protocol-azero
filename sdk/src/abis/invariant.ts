@@ -1249,6 +1249,41 @@ export const abi = `
       {
         "args": [
           {
+            "label": "token0",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 1
+            }
+          },
+          {
+            "label": "token1",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 1
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "InvariantTrait::get_all_pools_for_pair",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 48
+        },
+        "selector": "0xb62aa10d"
+      },
+      {
+        "args": [
+          {
             "label": "key",
             "type": {
               "displayName": [
@@ -1467,10 +1502,10 @@ export const abi = `
             }
           },
           {
-            "label": "offset",
+            "label": "tickmap",
             "type": {
               "displayName": [
-                "u16"
+                "Vec"
               ],
               "type": 10
             }
@@ -1526,6 +1561,24 @@ export const abi = `
               ],
               "type": 16
             }
+          },
+          {
+            "label": "lower_tick",
+            "type": {
+              "displayName": [
+                "i32"
+              ],
+              "type": 7
+            }
+          },
+          {
+            "label": "upper_tick",
+            "type": {
+              "displayName": [
+                "i32"
+              ],
+              "type": 7
+            }
           }
         ],
         "default": false,
@@ -1541,6 +1594,32 @@ export const abi = `
           "type": 96
         },
         "selector": "0xf360dea7"
+      },
+      {
+        "args": [
+          {
+            "label": "address",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 1
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "InvariantTrait::withdraw_all_wazero",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 17
+        },
+        "selector": "0x06099ca3"
       }
     ]
   },
@@ -3897,7 +3976,7 @@ export const abi = `
               {
                 "fields": [
                   {
-                    "type": 61
+                    "type": 67
                   }
                 ],
                 "index": 0,
@@ -3918,7 +3997,7 @@ export const abi = `
         "params": [
           {
             "name": "T",
-            "type": 61
+            "type": 67
           },
           {
             "name": "E",
@@ -3931,7 +4010,49 @@ export const abi = `
       }
     },
     {
-      "id": 61,
+      "id": 67,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 68
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 19
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 68
+          },
+          {
+            "name": "E",
+            "type": 19
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 68,
       "type": {
         "def": {
           "variant": {
@@ -3973,7 +4094,7 @@ export const abi = `
       }
     },
     {
-      "id": 62,
+      "id": 69,
       "type": {
         "def": {
           "variant": {
@@ -5140,7 +5261,20 @@ export const abi = `
           "sequence": {
             "type": 12
           }
-        }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 72
+          },
+          {
+            "name": "E",
+            "type": 14
+          }
+        ],
+        "path": [
+          "Result"
+        ]
       }
     },
     {

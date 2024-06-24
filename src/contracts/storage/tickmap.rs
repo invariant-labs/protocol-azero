@@ -68,7 +68,7 @@ pub fn tick_to_position(tick: i32, tick_spacing: u16) -> (u16, u8) {
 
     (chunk, bit)
 }
-
+#[allow(dead_code)]
 pub fn position_to_tick(chunk: u16, bit: u8, tick_spacing: u16) -> i32 {
     let tick_range_limit = MAX_TICK
         .checked_sub(MAX_TICK.checked_rem(tick_spacing as i32).unwrap())

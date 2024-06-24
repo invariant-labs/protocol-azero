@@ -562,9 +562,9 @@ macro_rules! get_liquidity_ticks {
 
 #[macro_export]
 macro_rules! get_liquidity_ticks_amount {
-    ($client:ident, $dex:ident, $pool_key:expr) => {{
+    ($client:ident, $dex:ident, $pool_key:expr, $lower_tick:expr, $upper_tick:expr) => {{
         let mut call_builder = $dex.call_builder::<Invariant>();
-        let call = call_builder.get_liquidity_ticks_amount($pool_key);
+        let call = call_builder.get_liquidity_ticks_amount($pool_key, $lower_tick, $upper_tick);
         $client
             .call(&ink_e2e::alice(), &call)
             .dry_run()

@@ -32,10 +32,26 @@ jobs:
         run: |
           sudo apt-get install -y protobuf-compiler libprotobuf-dev
 
+      - name: Install cargo-dylint
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args:
+            --version 3.0.0 --locked cargo-dylint
+
+      - name: Install dylint-link
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args:
+            --version 3.0.0 --locked dylint-link
+      
       - name: Install substrate-contracts-node
-        run: |
-          cargo install cargo-dylint dylint-link
-          cargo install --version 0.31.0 --force --locked contracts-node
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args:
+            --version 0.39.0 --locked contracts-node
 
       - name: Run unit tests
         uses: actions-rs/cargo@v1
@@ -68,10 +84,26 @@ jobs:
         run: |
           sudo apt-get install -y protobuf-compiler libprotobuf-dev
 
+      - name: Install cargo-dylint
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args:
+            --version 3.0.0 --locked cargo-dylint
+
+      - name: Install dylint-link
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args:
+            --version 3.0.0 --locked dylint-link
+      
       - name: Install substrate-contracts-node
-        run: |
-          cargo install cargo-dylint dylint-link
-          cargo install --version 0.31.0 --force --locked contracts-node
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args:
+            --version 0.39.0 --locked contracts-node
 
       - name: Install cargo contract
         uses: actions-rs/cargo@v1
@@ -122,10 +154,26 @@ jobs:
         run: |
           sudo apt-get install -y protobuf-compiler libprotobuf-dev
 
+      - name: Install cargo-dylint
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args:
+            --version 3.0.0 --locked cargo-dylint
+
+      - name: Install dylint-link
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args:
+            --version 3.0.0 --locked dylint-link
+      
       - name: Install substrate-contracts-node
-        run: |
-          cargo install cargo-dylint dylint-link
-          cargo install --version 0.31.0 --force --locked contracts-node
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args:
+            --version 0.39.0 --locked contracts-node
 
       - name: Install cargo contract
         uses: actions-rs/cargo@v1

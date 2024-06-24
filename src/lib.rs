@@ -9,7 +9,7 @@ pub mod math;
 #[ink::contract]
 pub mod invariant {
     use crate::contracts::{
-        get_bit_at_position, get_max_chunk, get_min_chunk, position_to_tick, tick_to_position,
+        get_max_chunk, get_min_chunk, tick_to_position,
         CalculateSwapResult, CreatePositionEvent, CrossTickEvent, FeeTier, FeeTiers,
         InvariantConfig, InvariantTrait, LiquidityTick, Pool, PoolKey, PoolKeys, Pools, Position,
         PositionTick, Positions, QuoteResult, RemovePositionEvent, SwapEvent, SwapHop, Tick,
@@ -877,6 +877,23 @@ pub mod invariant {
         }
 
         #[ink(message)]
+        fn get_all_pools_for_pair(
+            &self,
+            token0: AccountId,
+            token1: AccountId,
+        ) -> Result<Vec<(FeeTier, Pool)>, InvariantError> {
+            let fee_tiers = self.fee_tiers.get_all();
+            let mut pools: Vec<(FeeTier, Pool)> = vec![];
+            for fee_tier in fee_tiers {
+                let pool_key = PoolKey::new(token0, token1, fee_tier)?;
+                if let Ok(pool) = self.pools.get(pool_key) {
+                    pools.push((fee_tier, pool));
+                }
+            }
+            Ok(pools)
+        }
+
+        #[ink(message)]
         fn get_tick(&self, key: PoolKey, index: i32) -> Result<Tick, InvariantError> {
             self.ticks.get(key, index)
         }
@@ -887,8 +904,10 @@ pub mod invariant {
         }
 
         #[ink(message)]
-        fn get_pools(&self, size: u8, offset: u16) -> Result<Vec<PoolKey>, InvariantError> {
-            self.pool_keys.get_all(size, offset)
+        fn get_pools(&self, size: u8, offset: u16) -> Result<(Vec<PoolKey>, u16), InvariantError> {
+            let pool_keys = self.pool_keys.get_all(size, offset)?;
+            let pool_keys_count = self.pool_keys.count();
+            Ok((pool_keys, pool_keys_count))
         }
 
         #[ink(message)]
@@ -962,54 +981,24 @@ pub mod invariant {
         }
 
         #[ink(message)]
-        fn get_liquidity_ticks(&self, pool_key: PoolKey, offset: u16) -> Vec<LiquidityTick> {
-            let mut ticks = vec![];
-            let tick_spacing = pool_key.fee_tier.tick_spacing;
+        fn get_liquidity_ticks(
+            &self,
+            pool_key: PoolKey,
+            tickmap: Vec<i32>,
+        ) -> Result<Vec<LiquidityTick>, InvariantError> {
+            let mut liqudity_ticks: Vec<LiquidityTick> = vec![];
 
-            let max_tick = get_max_tick(tick_spacing);
-            let (chunk_limit, bit_limit) = tick_to_position(max_tick, tick_spacing);
-
-            let mut skipped_ticks = 0;
-
-            for i in 0..=chunk_limit {
-                let chunk = self.tickmap.bitmap.get((i, pool_key)).unwrap_or(0);
-
-                if chunk != 0 {
-                    let end = if chunk as u16 == chunk_limit {
-                        bit_limit
-                    } else {
-                        (CHUNK_SIZE - 1) as u8
-                    };
-
-                    for bit in 0..=end {
-                        if get_bit_at_position(chunk, bit) == 1 {
-                            if skipped_ticks < offset {
-                                skipped_ticks = skipped_ticks.checked_add(1).unwrap();
-                                continue;
-                            }
-
-                            let tick_index = position_to_tick(i, bit, tick_spacing);
-
-                            self.ticks
-                                .get(pool_key, tick_index)
-                                .map(|tick| {
-                                    ticks.push(LiquidityTick {
-                                        index: tick.index,
-                                        liquidity_change: tick.liquidity_change,
-                                        sign: tick.sign,
-                                    })
-                                })
-                                .ok();
-
-                            if ticks.len() >= LIQUIDITY_TICK_LIMIT {
-                                return ticks;
-                            }
-                        }
-                    }
-                }
+            if tickmap.len() > LIQUIDITY_TICK_LIMIT {
+                return Err(InvariantError::TickLimitReached);
             }
 
-            ticks
+            for index in tickmap {
+                let tick = LiquidityTick::from(self.ticks.get(pool_key, index).unwrap());
+
+                liqudity_ticks.push(tick);
+            }
+
+            Ok(liqudity_ticks)
         }
 
         #[ink(message)]
@@ -1018,22 +1007,88 @@ pub mod invariant {
         }
 
         #[ink(message)]
-        fn get_liquidity_ticks_amount(&self, pool_key: PoolKey) -> u32 {
+        fn get_liquidity_ticks_amount(
+            &self,
+            pool_key: PoolKey,
+            lower_tick: i32,
+            upper_tick: i32,
+        ) -> Result<u32, InvariantError> {
             let tick_spacing = pool_key.fee_tier.tick_spacing;
+            if tick_spacing == 0 {
+                return Err(InvariantError::InvalidTickSpacing);
+            };
+
+            if lower_tick.checked_rem(tick_spacing as i32).unwrap() != 0 || upper_tick.checked_rem(tick_spacing as i32).unwrap() != 0 {
+                return Err(InvariantError::InvalidTickIndex);
+            }
 
             let max_tick = get_max_tick(tick_spacing);
-            let (chunk_limit, _) = tick_to_position(max_tick, tick_spacing);
+            let min_tick = get_min_tick(tick_spacing);
+
+            if lower_tick < min_tick || upper_tick > max_tick {
+                return Err(InvariantError::InvalidTickIndex);
+            };
+
+            let (min_chunk_index, min_bit) = tick_to_position(lower_tick, tick_spacing);
+            let (max_chunk_index, max_bit) = tick_to_position(upper_tick, tick_spacing);
+
+            let active_bits_in_range = |chunk: u64, min_bit: u8, max_bit: u8| {
+                let range: u64 = (chunk >> min_bit) & ((1u64.checked_shl((max_bit as u32).checked_sub(min_bit as u32).unwrap().checked_add(1).unwrap()).unwrap()).checked_sub(1).unwrap());
+                range.count_ones()
+            };
+
+            let min_chunk = self
+                .tickmap
+                .bitmap
+                .get((min_chunk_index, pool_key))
+                .unwrap_or(0);
+
+            if max_chunk_index == min_chunk_index {
+                return Ok(active_bits_in_range(min_chunk, min_bit, max_bit));
+            }
+
+            let max_chunk = self
+                .tickmap
+                .bitmap
+                .get((max_chunk_index, pool_key))
+                .unwrap_or(0);
 
             let mut amount: u32 = 0;
+            amount = amount.checked_add(active_bits_in_range(min_chunk, min_bit, (CHUNK_SIZE - 1) as u8)).unwrap();
+            amount = amount.checked_add(active_bits_in_range(max_chunk, 0, max_bit)).unwrap();
 
-            for i in 0..=chunk_limit {
+            for i in (min_chunk_index.checked_add(1).unwrap())..max_chunk_index {
                 let chunk = self.tickmap.bitmap.get((i, pool_key)).unwrap_or(0);
 
                 amount = amount.checked_add(chunk.count_ones()).unwrap();
             }
 
-            amount
+            Ok(amount)
         }
+
+        // #[ink(message)]
+        // fn withdraw_all_wazero(&self, address: AccountId) -> Result<(), InvariantError> {
+        //     let caller = self.env().caller();
+        //     let contract = self.env().account_id();
+
+        //     let mut wazero_psp22: contract_ref!(PSP22) = address.into();
+        //     let mut wazero_wrapped_azero: contract_ref!(WrappedAZERO) = address.into();
+
+        //     let balance = wazero_psp22.balance_of(caller);
+        //     if balance > 0 {
+        //         wazero_psp22
+        //             .transfer_from(caller, contract, balance, vec![])
+        //             .map_err(|_| InvariantError::TransferError)?;
+        //         wazero_wrapped_azero
+        //             .withdraw(balance)
+        //             .map_err(|_| InvariantError::WAZEROWithdrawError)?;
+        //         self.env()
+        //             .transfer(caller, balance)
+        //             .map_err(|_| InvariantError::TransferError)?;
+        //     }
+
+        //     Ok(())
+        // }
     }
 
     #[cfg(test)]

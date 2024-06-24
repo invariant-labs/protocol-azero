@@ -25,7 +25,7 @@ describe('psp22', function () {
   })
 
   it('should mint tokens', async () => {
-    await psp22.mint(account, 500n, token0Address)
+    await psp22.mint(account, account.address, 500n, token0Address)
     expect(await psp22.balanceOf(account.address, token0Address)).to.equal(1500n)
   })
 
@@ -55,11 +55,10 @@ describe('psp22', function () {
     const token2Address = await PSP22.deploy(api, account, 0n, 'Coin', 'COIN', 12n)
     const token3Address = await PSP22.deploy(api, account, 0n, 'Coin', 'COIN', 12n)
 
-    await psp22.mint(account, 100n, token0Address)
-    await psp22.mint(account, 200n, token1Address)
-    await psp22.mint(account, 300n, token2Address)
-    await psp22.mint(account, 400n, token3Address)
-    
+    await psp22.mint(account, account.address, 100n, token0Address)
+    await psp22.mint(account, account.address, 200n, token1Address)
+    await psp22.mint(account, account.address, 300n, token2Address)
+    await psp22.mint(account, account.address, 400n, token3Address)
 
     const balances = await psp22.getAllBalances(
       [token0Address, token1Address, token2Address, token3Address],

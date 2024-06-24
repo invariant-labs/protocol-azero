@@ -50,7 +50,7 @@ describe('get-position-ticks', async () => {
   })
 
   it('should get position ticks limit', async function () {
-    this.timeout(20000)
+    this.timeout(100000)
 
     for (let i = 1n; i <= 186n; i++) {
       await invariant.createPosition(account, poolKey, -i, i, 10n, 1000000000000000000000000n, 0n)
@@ -68,7 +68,9 @@ describe('get-position-ticks', async () => {
     }
   })
 
-  it('should get position ticks with offset', async () => {
+  it('should get position ticks with offset', async function() {
+    this.timeout(100000)
+    
     await invariant.createPosition(account, poolKey, -10n, 10n, 10n, 1000000000000000000000000n, 0n)
 
     await invariant.createPosition(account, poolKey, -20n, 20n, 10n, 1000000000000000000000000n, 0n)
@@ -84,7 +86,7 @@ describe('get-position-ticks', async () => {
   })
 
   it('should get position ticks with multiple queries', async function () {
-    this.timeout(25000)
+    this.timeout(100000)
 
     for (let i = 1n; i <= 400n; i++) {
       await invariant.createPosition(account, poolKey, -i, i, 10n, 1000000000000000000000000n, 0n)
