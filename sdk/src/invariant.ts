@@ -165,6 +165,7 @@ export class Invariant {
 
             const parsedEvent = parseEvent(decoded)
 
+            // console.log(this.eventListeners, parsedEvent)
             this.eventListeners.map(eventListener => {
               if (eventListener.identifier === decoded.event.identifier) {
                 eventListener.listener(parsedEvent)

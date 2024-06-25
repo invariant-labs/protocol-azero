@@ -41,7 +41,7 @@ export enum InvariantTx {
   WithdrawProtocolFee = `${invariantActionPrefix}withdrawProtocolFee`,
   Swap = `${invariantActionPrefix}swap`,
   SwapRoute = `${invariantActionPrefix}swapRoute`,
-  WithdrawAllWAZERO = `${invariantActionPrefix}withdrawAllWAZERO`
+  WithdrawAllWAZERO = `${invariantActionPrefix}withdrawAllWazero`
 }
 
 export enum PSP22Query {
@@ -84,10 +84,10 @@ export interface EventTxResult<T> extends TxResult {
   events: T
 }
 
-export type CreatePositionTxResult = EventTxResult<[CreatePositionEvent]>
-export type RemovePositionTxResult = EventTxResult<[RemovePositionEvent]>
-export type SwapTxResult = EventTxResult<[CrossTickEvent, SwapEvent] | [SwapEvent]>
-export type SwapRouteTxResult = EventTxResult<(CrossTickEvent | SwapEvent)[]>
+export type CreatePositionTxResult = EventTxResult<object[]>
+export type RemovePositionTxResult = EventTxResult<object[]>
+export type SwapTxResult = EventTxResult<object[]>
+export type SwapRouteTxResult = EventTxResult<object[]>
 
 export type ContractOptions = {
   storageDepositLimit: number | null
