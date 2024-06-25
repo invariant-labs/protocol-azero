@@ -6,7 +6,7 @@ use crate::{
     MIN_SQRT_PRICE,
 };
 use crate::{LiquidityTick, Pool};
-use decimal::Decimal;
+use decimal::*;
 use traceable_result::TrackableResult;
 use traceable_result::*;
 use wasm_bindgen::prelude::*;
@@ -118,7 +118,7 @@ pub fn simulate_invariant_swap(
                 })?;
         }
 
-        pool.add_fee(result.fee_amount, x_to_y, protocol_fee)?;
+        // pool.add_fee(result.fee_amount, x_to_y, protocol_fee)?;
         total_fee_amount = total_fee_amount
             .checked_add(result.fee_amount)
             .map_err(|_| {

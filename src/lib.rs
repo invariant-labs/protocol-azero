@@ -9,12 +9,11 @@ pub mod math;
 #[ink::contract]
 pub mod invariant {
     use crate::contracts::{
-        get_max_chunk, get_min_chunk, tick_to_position,
-        CalculateSwapResult, CreatePositionEvent, CrossTickEvent, FeeTier, FeeTiers,
-        InvariantConfig, InvariantTrait, LiquidityTick, Pool, PoolKey, PoolKeys, Pools, Position,
-        PositionTick, Positions, QuoteResult, RemovePositionEvent, SwapEvent, SwapHop, Tick,
-        Tickmap, Ticks, UpdatePoolTick, CHUNK_SIZE, LIQUIDITY_TICK_LIMIT, MAX_TICKMAP_QUERY_SIZE,
-        POSITION_TICK_LIMIT,
+        get_max_chunk, get_min_chunk, tick_to_position, CalculateSwapResult, CreatePositionEvent,
+        CrossTickEvent, FeeTier, FeeTiers, InvariantConfig, InvariantTrait, LiquidityTick, Pool,
+        PoolKey, PoolKeys, Pools, Position, PositionTick, Positions, QuoteResult,
+        RemovePositionEvent, SwapEvent, SwapHop, Tick, Tickmap, Ticks, UpdatePoolTick, CHUNK_SIZE,
+        LIQUIDITY_TICK_LIMIT, MAX_TICKMAP_QUERY_SIZE, POSITION_TICK_LIMIT,
     };
     use crate::math::calculate_min_amount_out;
     use crate::math::check_tick;
@@ -1018,7 +1017,9 @@ pub mod invariant {
                 return Err(InvariantError::InvalidTickSpacing);
             };
 
-            if lower_tick.checked_rem(tick_spacing as i32).unwrap() != 0 || upper_tick.checked_rem(tick_spacing as i32).unwrap() != 0 {
+            if lower_tick.checked_rem(tick_spacing as i32).unwrap() != 0
+                || upper_tick.checked_rem(tick_spacing as i32).unwrap() != 0
+            {
                 return Err(InvariantError::InvalidTickIndex);
             }
 
@@ -1033,7 +1034,18 @@ pub mod invariant {
             let (max_chunk_index, max_bit) = tick_to_position(upper_tick, tick_spacing);
 
             let active_bits_in_range = |chunk: u64, min_bit: u8, max_bit: u8| {
-                let range: u64 = (chunk >> min_bit) & ((1u64.checked_shl((max_bit as u32).checked_sub(min_bit as u32).unwrap().checked_add(1).unwrap()).unwrap()).checked_sub(1).unwrap());
+                let range: u64 = (chunk >> min_bit)
+                    & ((1u64
+                        .checked_shl(
+                            (max_bit as u32)
+                                .checked_sub(min_bit as u32)
+                                .unwrap()
+                                .checked_add(1)
+                                .unwrap(),
+                        )
+                        .unwrap())
+                    .checked_sub(1)
+                    .unwrap());
                 range.count_ones()
             };
 
@@ -1054,8 +1066,16 @@ pub mod invariant {
                 .unwrap_or(0);
 
             let mut amount: u32 = 0;
-            amount = amount.checked_add(active_bits_in_range(min_chunk, min_bit, (CHUNK_SIZE - 1) as u8)).unwrap();
-            amount = amount.checked_add(active_bits_in_range(max_chunk, 0, max_bit)).unwrap();
+            amount = amount
+                .checked_add(active_bits_in_range(
+                    min_chunk,
+                    min_bit,
+                    (CHUNK_SIZE - 1) as u8,
+                ))
+                .unwrap();
+            amount = amount
+                .checked_add(active_bits_in_range(max_chunk, 0, max_bit))
+                .unwrap();
 
             for i in (min_chunk_index.checked_add(1).unwrap())..max_chunk_index {
                 let chunk = self.tickmap.bitmap.get((i, pool_key)).unwrap_or(0);

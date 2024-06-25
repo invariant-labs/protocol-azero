@@ -87,14 +87,14 @@ describe('get-liquidity-by-x', async () => {
         true
       )
 
-      await psp22.mint(positionOwner, positionOwner.address, providedAmount, tokenX)
+      await psp22.mint(positionOwner, providedAmount, tokenX)
       await psp22.approve(
         positionOwner,
         invariant.contract.address.toString(),
         providedAmount,
         tokenX
       )
-      await psp22.mint(positionOwner, positionOwner.address, amount, tokenY)
+      await psp22.mint(positionOwner, amount, tokenY)
       await psp22.approve(positionOwner, invariant.contract.address.toString(), amount, tokenY)
 
       await invariant.createPosition(
@@ -139,7 +139,7 @@ describe('get-liquidity-by-x', async () => {
 
       assert.deepEqual(amount, 0n)
 
-      await psp22.mint(positionOwner, positionOwner.address, providedAmount, tokenX)
+      await psp22.mint(positionOwner, providedAmount, tokenX)
       await psp22.approve(
         positionOwner,
         invariant.contract.address.toString(),
@@ -225,7 +225,7 @@ describe('get-liquidity-by-y', async () => {
 
       assert.deepEqual(amount, 0n)
 
-      await psp22.mint(positionOwner, positionOwner.address, providedAmount, tokenY)
+      await psp22.mint(positionOwner, providedAmount, tokenY)
       await psp22.approve(
         positionOwner,
         invariant.contract.address.toString(),
@@ -272,14 +272,14 @@ describe('get-liquidity-by-y', async () => {
         true
       )
 
-      await psp22.mint(positionOwner, positionOwner.address, providedAmount, tokenY)
+      await psp22.mint(positionOwner, providedAmount, tokenY)
       await psp22.approve(
         positionOwner,
         invariant.contract.address.toString(),
         providedAmount,
         tokenY
       )
-      await psp22.mint(positionOwner, positionOwner.address, amount, tokenX)
+      await psp22.mint(positionOwner, amount, tokenX)
       await psp22.approve(positionOwner, invariant.contract.address.toString(), amount, tokenX)
 
       await invariant.createPosition(

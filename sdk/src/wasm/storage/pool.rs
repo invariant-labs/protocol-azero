@@ -30,39 +30,39 @@ pub struct Pool {
 }
 
 impl Pool {
-    pub fn add_fee(
-        &mut self,
-        amount: TokenAmount,
-        in_x: bool,
-        protocol_fee: Percentage,
-    ) -> TrackableResult<()> {
-        let protocol_fee = amount.big_mul_up(protocol_fee);
+    // pub fn add_fee(
+    //     &mut self,
+    //     amount: TokenAmount,
+    //     in_x: bool,
+    //     protocol_fee: Percentage,
+    // ) -> TrackableResult<()> {
+    //     let protocol_fee = amount.big_mul_up(protocol_fee);
 
-        let pool_fee = amount
-            .checked_sub(protocol_fee)
-            .map_err(|_| err!("Underflow while calculating pool fee"))?;
+    //     let pool_fee = amount
+    //         .checked_sub(protocol_fee)
+    //         .map_err(|_| err!("Underflow while calculating pool fee"))?;
 
-        if (pool_fee.is_zero() && protocol_fee.is_zero()) || self.liquidity.is_zero() {
-            return Ok(());
-        }
+    //     if (pool_fee.is_zero() && protocol_fee.is_zero()) || self.liquidity.is_zero() {
+    //         return Ok(());
+    //     }
 
-        let fee_growth = ok_or_mark_trace!(FeeGrowth::from_fee(self.liquidity, pool_fee))?;
+    //     let fee_growth = ok_or_mark_trace!(FeeGrowth::from_fee(self.liquidity, pool_fee))?;
 
-        if in_x {
-            self.fee_growth_global_x = self.fee_growth_global_x.unchecked_add(fee_growth);
-            self.fee_protocol_token_x = self
-                .fee_protocol_token_x
-                .checked_add(protocol_fee)
-                .map_err(|_| err!("Overflow while calculating fee protocol token X"))?;
-        } else {
-            self.fee_growth_global_y = self.fee_growth_global_y.unchecked_add(fee_growth);
-            self.fee_protocol_token_y = self
-                .fee_protocol_token_y
-                .checked_add(protocol_fee)
-                .map_err(|_| err!("Overflow while calculating fee protocol token Y"))?;
-        }
-        Ok(())
-    }
+    //     if in_x {
+    //         self.fee_growth_global_x = self.fee_growth_global_x.unchecked_add(fee_growth);
+    //         self.fee_protocol_token_x = self
+    //             .fee_protocol_token_x
+    //             .checked_add(protocol_fee)
+    //             .map_err(|_| err!("Overflow while calculating fee protocol token X"))?;
+    //     } else {
+    //         self.fee_growth_global_y = self.fee_growth_global_y.unchecked_add(fee_growth);
+    //         self.fee_protocol_token_y = self
+    //             .fee_protocol_token_y
+    //             .checked_add(protocol_fee)
+    //             .map_err(|_| err!("Overflow while calculating fee protocol token Y"))?;
+    //     }
+    //     Ok(())
+    // }
 
     pub fn update_liquidity(
         &mut self,

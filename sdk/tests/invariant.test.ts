@@ -4,14 +4,14 @@ import {
   SqrtPrice
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { Keyring } from '@polkadot/api'
-import { getBalance } from '@scio-labs/use-inkathon'
+// import { getBalance } from '@scio-labs/use-inkathon'
 import { assert } from 'chai'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
 import { assertThrowsAsync } from '../src/testUtils'
 import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
-import { WrappedAZERO } from '../src/wrapped-azero'
+// import { WrappedAZERO } from '../src/wrapped-azero'
 
 const api = await initPolkadotApi(Network.Local)
 

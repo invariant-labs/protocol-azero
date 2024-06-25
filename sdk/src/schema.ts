@@ -53,7 +53,7 @@ export enum PSP22Query {
 }
 
 export enum PSP22Tx {
-  Mint = 'mint',
+  Mint = 'psp22Mintable::mint',
   Transfer = 'psp22::transfer',
   Approve = 'psp22::approve'
 }
