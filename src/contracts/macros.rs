@@ -25,6 +25,15 @@ macro_rules! transfer_from_v1 {
 }
 
 #[macro_export]
+macro_rules! balance_of_v1 {
+    ($token: expr, $owner: expr) => {{
+        let psp22: PSP22Wrapper = $token.into();
+        let builder = psp22.call();
+        builder.balance_of($owner).call_v1().invoke()
+    }};
+}
+
+#[macro_export]
 macro_rules! withdraw_v1 {
     ($token: expr, $amount: expr) => {
         let wazero: WrappedAZEROWrapper = $token.into();

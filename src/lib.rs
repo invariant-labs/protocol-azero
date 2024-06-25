@@ -25,7 +25,7 @@ pub mod invariant {
 
     use crate::contracts::InvariantError;
     use crate::math::{compute_swap_step, MAX_SQRT_PRICE, MIN_SQRT_PRICE};
-    use crate::{transfer_from_v1, transfer_v1, withdraw_v1};
+    use crate::{balance_of_v1, transfer_from_v1, transfer_v1, withdraw_v1};
     use decimal::*;
 
     use ink::codegen::TraitCallBuilder;
@@ -1100,9 +1100,7 @@ pub mod invariant {
             let caller = self.env().caller();
             let contract = self.env().account_id();
 
-            let wazero_psp22: PSP22Wrapper = address.into();
-
-            let balance = wazero_psp22.balance_of(caller);
+            let balance = balance_of_v1!(address, caller);
             if balance > 0 {
                 transfer_from_v1!(address, caller, contract, balance);
                 withdraw_v1!(address, balance);
