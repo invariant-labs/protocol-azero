@@ -4,14 +4,14 @@ import {
   SqrtPrice
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { Keyring } from '@polkadot/api'
-// import { getBalance } from '@scio-labs/use-inkathon'
+import { getBalance } from '@scio-labs/use-inkathon'
 import { assert } from 'chai'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
 import { assertThrowsAsync } from '../src/testUtils'
 import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
-// import { WrappedAZERO } from '../src/wrapped-azero'
+import { WrappedAZERO } from '../src/wrapped-azero'
 
 const api = await initPolkadotApi(Network.Local)
 
@@ -219,24 +219,24 @@ describe('invariant', async function () {
     assert.deepEqual(pools[1], 1n)
   })
 
-  // it('withdraw all wazero works', async () => {
-  //   const wazero = await WrappedAZERO.deploy(api, Network.Local, account)
+  it('withdraw all wazero works', async () => {
+    const wazero = await WrappedAZERO.deploy(api, Network.Local, account)
 
-  //   const amount = 10n ** 12n
-  //   await wazero.deposit(account, amount)
-  //   await wazero.approve(account, invariant.contract.address.toString(), amount)
+    const amount = 10n ** 12n
+    await wazero.deposit(account, amount)
+    await wazero.approve(account, invariant.contract.address.toString(), amount)
 
-  //   const AZEROBalanceBefore = await getBalance(api, account.address)
-  //   const parsedAZEROBalanceBefore = BigInt(AZEROBalanceBefore.balance?.toString() ?? 0n)
-  //   const wAZEROBalanceBefore = await wazero.balanceOf(account.address)
+    const AZEROBalanceBefore = await getBalance(api, account.address)
+    const parsedAZEROBalanceBefore = BigInt(AZEROBalanceBefore.balance?.toString() ?? 0n)
+    const wAZEROBalanceBefore = await wazero.balanceOf(account.address)
 
-  //   await invariant.withdrawAllWAZERO(account, wazero.contract.address.toString())
+    await invariant.withdrawAllWAZERO(account, wazero.contract.address.toString())
 
-  //   const AZEROBalanceAfter = await getBalance(api, account.address)
-  //   const parsedAZEROBalanceAfter = BigInt(AZEROBalanceAfter.balance?.toString() ?? 0n)
-  //   const wAZEROBalanceAfter = await wazero.balanceOf(account.address)
+    const AZEROBalanceAfter = await getBalance(api, account.address)
+    const parsedAZEROBalanceAfter = BigInt(AZEROBalanceAfter.balance?.toString() ?? 0n)
+    const wAZEROBalanceAfter = await wazero.balanceOf(account.address)
 
-  //   assert.isTrue(parsedAZEROBalanceAfter > parsedAZEROBalanceBefore)
-  //   assert.equal(wAZEROBalanceAfter, wAZEROBalanceBefore - amount)
-  // })
+    assert.isTrue(parsedAZEROBalanceAfter > parsedAZEROBalanceBefore)
+    assert.equal(wAZEROBalanceAfter, wAZEROBalanceBefore - amount)
+  })
 })

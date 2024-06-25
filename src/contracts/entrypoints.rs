@@ -428,10 +428,10 @@ pub trait InvariantTrait {
         upper_tick: i32,
     ) -> Result<u32, InvariantError>;
 
-    // /// Unwraps wAZERO tokens on behalf of a user. Transfers and withdraws wAZERO withdraws + transfers back all AZERO tokens to user.
-    // ///
-    // /// # Parameters
-    // /// - `address`: Address of wAZERO contract.
-    // #[ink(message)]
-    // fn withdraw_all_wazero(&self, address: AccountId) -> Result<(), InvariantError>;
+    /// Unwraps wAZERO tokens on behalf of a user. Transfers and withdraws wAZERO withdraws + transfers back all AZERO tokens to user.
+    ///
+    /// # Parameters
+    /// - `address`: Address of wAZERO contract.
+    #[ink(message)]
+    fn withdraw_all_wazero(&self, address: AccountId) -> Result<(), InvariantError>;
 }

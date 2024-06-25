@@ -1296,52 +1296,52 @@ export class Invariant {
     }
   }
 
-  // withdrawAllWAZEROTx(
-  //   address: string,
-  //   options: ContractOptions = {
-  //     storageDepositLimit: this.storageDepositLimit,
-  //     refTime: this.gasLimit.refTime.toNumber(),
-  //     proofSize: this.gasLimit.proofSize.toNumber()
-  //   }
-  // ): SubmittableExtrinsic<'promise'> {
-  //   return createTx(
-  //     this.contract,
-  //     this.api.registry.createType('WeightV2', {
-  //       refTime: options.refTime,
-  //       proofSize: options.proofSize
-  //     }) as WeightV2,
-  //     options.storageDepositLimit,
-  //     0n,
-  //     InvariantTx.WithdrawAllWAZERO,
-  //     [address]
-  //   )
-  // }
+  withdrawAllWAZEROTx(
+    address: string,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): SubmittableExtrinsic<'promise'> {
+    return createTx(
+      this.contract,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
+      0n,
+      InvariantTx.WithdrawAllWAZERO,
+      [address]
+    )
+  }
 
-  // async withdrawAllWAZERO(
-  //   account: IKeyringPair,
-  //   address: string,
-  //   options: ContractOptions = {
-  //     storageDepositLimit: this.storageDepositLimit,
-  //     refTime: this.gasLimit.refTime.toNumber(),
-  //     proofSize: this.gasLimit.proofSize.toNumber()
-  //   },
-  //   block: boolean = true
-  // ): Promise<any> {
-  //   return createSignAndSendTx(
-  //     this.contract,
-  //     this.api.registry.createType('WeightV2', {
-  //       refTime: options.refTime,
-  //       proofSize: options.proofSize
-  //     }) as WeightV2,
-  //     options.storageDepositLimit,
-  //     0n,
-  //     account,
-  //     InvariantTx.WithdrawAllWAZERO,
-  //     [address],
-  //     this.waitForFinalization,
-  //     block
-  //   )
-  // }
+  async withdrawAllWAZERO(
+    account: IKeyringPair,
+    address: string,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    },
+    block: boolean = true
+  ): Promise<any> {
+    return createSignAndSendTx(
+      this.contract,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
+      0n,
+      account,
+      InvariantTx.WithdrawAllWAZERO,
+      [address],
+      this.waitForFinalization,
+      block
+    )
+  }
 
   async getAllPoolsForPair(
     token0: string,

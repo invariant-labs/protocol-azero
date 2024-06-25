@@ -34,4 +34,5 @@ pub enum InvariantError {
     SubUnderflow(u128, u128),
     MulOverflow,
     DivByZero,
+    WAZEROWithdrawError,
 }

@@ -32,10 +32,18 @@ pub mod invariant {
     use ink::contract_ref;
     use ink::prelude::vec;
     use ink::prelude::vec::Vec;
-    use token::PSP22;
+    use token::{PSP22Error, PSP22};
     use traceable_result::unwrap;
 
     type PSP22Wrapper = contract_ref!(PSP22);
+
+    #[ink::trait_definition]
+    pub trait WrappedAZERO {
+        #[ink(message, payable)]
+        fn deposit(&mut self) -> Result<(), PSP22Error>;
+        #[ink(message)]
+        fn withdraw(&mut self, value: u128) -> Result<(), PSP22Error>;
+    }
 
     #[ink(storage)]
     #[derive(Default)]
@@ -1086,29 +1094,29 @@ pub mod invariant {
             Ok(amount)
         }
 
-        // #[ink(message)]
-        // fn withdraw_all_wazero(&self, address: AccountId) -> Result<(), InvariantError> {
-        //     let caller = self.env().caller();
-        //     let contract = self.env().account_id();
+        #[ink(message)]
+        fn withdraw_all_wazero(&self, address: AccountId) -> Result<(), InvariantError> {
+            let caller = self.env().caller();
+            let contract = self.env().account_id();
 
-        //     let mut wazero_psp22: contract_ref!(PSP22) = address.into();
-        //     let mut wazero_wrapped_azero: contract_ref!(WrappedAZERO) = address.into();
+            let mut wazero_psp22: contract_ref!(PSP22) = address.into();
+            let mut wazero_wrapped_azero: contract_ref!(WrappedAZERO) = address.into();
 
-        //     let balance = wazero_psp22.balance_of(caller);
-        //     if balance > 0 {
-        //         wazero_psp22
-        //             .transfer_from(caller, contract, balance, vec![])
-        //             .map_err(|_| InvariantError::TransferError)?;
-        //         wazero_wrapped_azero
-        //             .withdraw(balance)
-        //             .map_err(|_| InvariantError::WAZEROWithdrawError)?;
-        //         self.env()
-        //             .transfer(caller, balance)
-        //             .map_err(|_| InvariantError::TransferError)?;
-        //     }
+            let balance = wazero_psp22.balance_of(caller);
+            if balance > 0 {
+                wazero_psp22
+                    .transfer_from(caller, contract, balance, vec![])
+                    .map_err(|_| InvariantError::TransferError)?;
+                wazero_wrapped_azero
+                    .withdraw(balance)
+                    .map_err(|_| InvariantError::WAZEROWithdrawError)?;
+                self.env()
+                    .transfer(caller, balance)
+                    .map_err(|_| InvariantError::TransferError)?;
+            }
 
-        //     Ok(())
-        // }
+            Ok(())
+        }
     }
 
     #[cfg(test)]

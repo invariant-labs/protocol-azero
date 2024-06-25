@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x8ee3715458636f1ef5136f501396656ea550e8941d84fbcc143bb31ab8b43e19",
+    "hash": "0x7180332a13c452874cdd0805e17a6a7c73915a3bdbe998320223e234f0cb7cd9",
     "language": "ink! 5.0.0",
     "compiler": "rustc 1.77.0",
     "build_info": {
@@ -1593,6 +1593,32 @@
           "type": 104
         },
         "selector": "0xf360dea7"
+      },
+      {
+        "args": [
+          {
+            "label": "address",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 2
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "InvariantTrait::withdraw_all_wazero",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 57
+        },
+        "selector": "0x06099ca3"
       }
     ]
   },
@@ -3928,6 +3954,10 @@
               {
                 "index": 32,
                 "name": "DivByZero"
+              },
+              {
+                "index": 33,
+                "name": "WAZEROWithdrawError"
               }
             ]
           }
