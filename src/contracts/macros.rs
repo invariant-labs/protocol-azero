@@ -23,3 +23,16 @@ macro_rules! transfer_from_v1 {
             .map_err(|_| InvariantError::TransferError)?;
     };
 }
+
+#[macro_export]
+macro_rules! withdraw_v1 {
+    ($token: expr, $amount: expr) => {
+        let wazero: WrappedAZEROWrapper = $token.into();
+        let mut builder = wazero.call().clone();
+        builder
+            .withdraw($amount)
+            .call_v1()
+            .invoke()
+            .map_err(|_| InvariantError::WAZEROWithdrawError)?;
+    };
+}

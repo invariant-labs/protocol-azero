@@ -25,7 +25,7 @@ pub mod invariant {
 
     use crate::contracts::InvariantError;
     use crate::math::{compute_swap_step, MAX_SQRT_PRICE, MIN_SQRT_PRICE};
-    use crate::{transfer_from_v1, transfer_v1};
+    use crate::{transfer_from_v1, transfer_v1, withdraw_v1};
     use decimal::*;
 
     use ink::codegen::TraitCallBuilder;
@@ -36,6 +36,7 @@ pub mod invariant {
     use traceable_result::unwrap;
 
     type PSP22Wrapper = contract_ref!(PSP22);
+    type WrappedAZEROWrapper = contract_ref!(WrappedAZERO);
 
     #[ink::trait_definition]
     pub trait WrappedAZERO {
@@ -1099,17 +1100,12 @@ pub mod invariant {
             let caller = self.env().caller();
             let contract = self.env().account_id();
 
-            let mut wazero_psp22: contract_ref!(PSP22) = address.into();
-            let mut wazero_wrapped_azero: contract_ref!(WrappedAZERO) = address.into();
+            let wazero_psp22: PSP22Wrapper = address.into();
 
             let balance = wazero_psp22.balance_of(caller);
             if balance > 0 {
-                wazero_psp22
-                    .transfer_from(caller, contract, balance, vec![])
-                    .map_err(|_| InvariantError::TransferError)?;
-                wazero_wrapped_azero
-                    .withdraw(balance)
-                    .map_err(|_| InvariantError::WAZEROWithdrawError)?;
+                transfer_from_v1!(address, caller, contract, balance);
+                withdraw_v1!(address, balance);
                 self.env()
                     .transfer(caller, balance)
                     .map_err(|_| InvariantError::TransferError)?;

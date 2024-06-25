@@ -70,7 +70,7 @@ describe('position', async () => {
       timestamp: 0n
     }
 
-    objectEquals(result.events[0], expectedCreatePositionEvent, ['timestamp'])
+    objectEquals(result.events[4], expectedCreatePositionEvent, ['timestamp'])
   })
 
   it('create position', async () => {
@@ -120,7 +120,8 @@ describe('position', async () => {
         timestamp: 0n
       }
 
-      objectEquals(result.events[0], expectedRemovePositionEvent, ['timestamp'])
+      console.log(result)
+      objectEquals(result.events[4], expectedRemovePositionEvent, ['timestamp'])
 
       assertThrowsAsync(invariant.getPosition(account.address, 0n), InvariantError.PositionNotFound)
       const positions = await invariant.getPositions(account.address)
