@@ -1,10 +1,4 @@
-import {
-  CreatePositionEvent,
-  CrossTickEvent,
-  Liquidity,
-  RemovePositionEvent,
-  SwapEvent
-} from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
+import { Liquidity } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 
 const invariantActionPrefix = 'invariantTrait::'
 
