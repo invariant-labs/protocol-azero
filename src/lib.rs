@@ -1044,17 +1044,14 @@ pub mod invariant {
 
             let active_bits_in_range = |chunk: u64, min_bit: u8, max_bit: u8| {
                 let range: u64 = (chunk >> min_bit)
-                    & ((1u64
-                        .checked_shl(
-                            (max_bit as u32)
-                                .checked_sub(min_bit as u32)
-                                .unwrap()
-                                .checked_add(1)
-                                .unwrap(),
-                        )
-                        .unwrap())
+                    & (1u64
+                        << (max_bit as u32)
+                            .checked_sub(min_bit as u32)
+                            .unwrap()
+                            .checked_add(1)
+                            .unwrap())
                     .checked_sub(1)
-                    .unwrap());
+                    .unwrap();
                 range.count_ones()
             };
 
