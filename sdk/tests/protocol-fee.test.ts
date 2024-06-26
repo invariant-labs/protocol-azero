@@ -6,6 +6,7 @@ import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
 import { assertThrowsAsync } from '../src/testUtils'
 import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
+import { describe, it } from 'mocha'
 
 const api = await initPolkadotApi(Network.Local)
 
@@ -32,8 +33,18 @@ describe('protocol-fee', async () => {
 
     await invariant.createPool(account, poolKey, 1000000000000000000000000n)
 
-    await psp22.approve(account, invariant.contract.address.toString(), 10000000000000n, token0Address)
-    await psp22.approve(account, invariant.contract.address.toString(), 10000000000000n, token1Address)
+    await psp22.approve(
+      account,
+      invariant.contract.address.toString(),
+      10000000000000n,
+      token0Address
+    )
+    await psp22.approve(
+      account,
+      invariant.contract.address.toString(),
+      10000000000000n,
+      token1Address
+    )
 
     await invariant.createPosition(
       account,
@@ -105,7 +116,7 @@ describe('protocol-fee', async () => {
     assert.deepEqual(poolAfter.feeProtocolTokenX, 0n)
     assert.deepEqual(poolAfter.feeProtocolTokenY, 0n)
 
-    const token0After = await psp22.balanceOf(testAccount.address.toString(), token0Address) 
+    const token0After = await psp22.balanceOf(testAccount.address.toString(), token0Address)
     const token1After = await psp22.balanceOf(testAccount.address.toString(), token1Address)
     if (poolKey.tokenX === token0Address) {
       assert.deepEqual(token0Before + 1n, token0After)

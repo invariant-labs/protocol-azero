@@ -5,6 +5,7 @@ import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
 import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
 import { assert } from 'chai'
+import { describe, it } from 'mocha'
 
 const api = await initPolkadotApi(Network.Local)
 

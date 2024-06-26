@@ -12,6 +12,7 @@ import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
 import { assertThrowsAsync, objectEquals } from '../src/testUtils'
 import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
+import { describe, it } from 'mocha'
 
 const api = await initPolkadotApi(Network.Local)
 

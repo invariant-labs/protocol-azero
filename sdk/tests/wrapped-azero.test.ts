@@ -3,6 +3,7 @@ import { expect } from 'chai'
 import { Network } from '../src/network'
 import { initPolkadotApi } from '../src/utils'
 import { WrappedAZERO } from '../src/wrapped-azero'
+import { describe, it } from 'mocha'
 
 const api = await initPolkadotApi(Network.Local)
 

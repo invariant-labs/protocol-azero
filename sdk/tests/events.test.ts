@@ -16,6 +16,7 @@ import { PSP22 } from '../src/psp22'
 import { InvariantEvent } from '../src/schema'
 import { objectEquals } from '../src/testUtils'
 import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
+import { describe, it } from 'mocha'
 
 const api = await initPolkadotApi(Network.Local)
 
