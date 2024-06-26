@@ -500,7 +500,7 @@ export class Invariant {
       refTime: this.gasLimit.refTime.toNumber(),
       proofSize: this.gasLimit.proofSize.toNumber()
     }
-  ): Promise<[Position[], Pool[], Tick[], bigint]> {
+  ): Promise<[[Position, Pool, Tick, Tick][], bigint]> {
     const result = await sendQuery(
       this.contract,
       this.api.registry.createType('WeightV2', {

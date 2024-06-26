@@ -46,36 +46,28 @@ describe('get-positions', async () => {
     const result = await invariant.getPositions(account.address, 2n, 0n)
 
     assert.equal(result[0].length, 2)
-    assert.equal(result[1].length, 2)
-    assert.equal(result[2].length, 4)
-    assert.equal(result[3], 2n)
+    assert.equal(result[1], 2n)
   })
 
   it('get positions less than exist', async () => {
     const result = await invariant.getPositions(account.address, 1n, 0n)
 
     assert.equal(result[0].length, 1)
-    assert.equal(result[1].length, 1)
-    assert.equal(result[2].length, 2)
-    assert.equal(result[3], 2n)
+    assert.equal(result[1], 2n)
   })
 
   it('get positions more than exist', async () => {
     const result = await invariant.getPositions(account.address, 3n, 0n)
 
     assert.equal(result[0].length, 2)
-    assert.equal(result[1].length, 2)
-    assert.equal(result[2].length, 4)
-    assert.equal(result[3], 2n)
+    assert.equal(result[1], 2n)
   })
 
   it('get positions with offset', async () => {
     const result = await invariant.getPositions(account.address, 1n, 1n)
 
     assert.equal(result[0].length, 1)
-    assert.equal(result[1].length, 1)
-    assert.equal(result[2].length, 2)
-    assert.equal(result[3], 2n)
+    assert.equal(result[1], 2n)
   })
 
   it('get positions with offset less than exist', async () => {
@@ -83,17 +75,13 @@ describe('get-positions', async () => {
     const result = await invariant.getPositions(account.address, 1n, 1n)
 
     assert.equal(result[0].length, 1)
-    assert.equal(result[1].length, 1)
-    assert.equal(result[2].length, 2)
-    assert.equal(result[3], 3n)
+    assert.equal(result[1], 3n)
   })
 
   it('get positions with offset more than exist', async () => {
     const result = await invariant.getPositions(account.address, 2n, 1n)
 
     assert.equal(result[0].length, 1)
-    assert.equal(result[1].length, 1)
-    assert.equal(result[2].length, 2)
-    assert.equal(result[3], 2n)
+    assert.equal(result[1], 2n)
   })
 })

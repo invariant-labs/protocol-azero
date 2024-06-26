@@ -234,7 +234,7 @@ pub trait InvariantTrait {
         owner_id: AccountId,
         size: u32,
         offset: u32,
-    ) -> Result<(Vec<Position>, Vec<Pool>, Vec<Tick>, u32), InvariantError>;
+    ) -> Result<(Vec<(Position, Pool, Tick, Tick)>, u32), InvariantError>;
 
     /// Allows an authorized user (owner of the position) to claim collected fees.
     ///

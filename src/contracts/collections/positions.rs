@@ -214,7 +214,6 @@ mod tests {
         };
 
         let result = positions.get_all(account_id, 1, 0);
-        println!("{:?}", result);
         assert_eq!(result, vec![]);
         assert_eq!(result.len(), 0);
         assert_eq!(positions.get_length(account_id), 0);
@@ -223,7 +222,6 @@ mod tests {
         positions.add(account_id, &new_position);
 
         let result = positions.get_all(account_id, 2, 0);
-        println!("{:?}", result);
         assert_eq!(result, vec![position, new_position]);
         assert_eq!(result.len(), 2);
         assert_eq!(positions.get_length(account_id), 2);

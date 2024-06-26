@@ -81,9 +81,7 @@ pub mod e2e_tests {
 
         let result = get_positions!(client, InvariantRef, dex, 2, 0, alice).unwrap();
         assert_eq!(result.0.len(), 2);
-        assert_eq!(result.1.len(), 2);
-        assert_eq!(result.2.len(), 4);
-        assert_eq!(result.3, 2);
+        assert_eq!(result.1, 2);
 
         Ok(())
     }
@@ -151,9 +149,7 @@ pub mod e2e_tests {
 
         let result = get_positions!(client, InvariantRef, dex, 1, 0, alice).unwrap();
         assert_eq!(result.0.len(), 1);
-        assert_eq!(result.1.len(), 1);
-        assert_eq!(result.2.len(), 2);
-        assert_eq!(result.3, 2);
+        assert_eq!(result.1, 2);
 
         Ok(())
     }
@@ -221,9 +217,7 @@ pub mod e2e_tests {
 
         let result = get_positions!(client, InvariantRef, dex, 3, 0, alice).unwrap();
         assert_eq!(result.0.len(), 2);
-        assert_eq!(result.1.len(), 2);
-        assert_eq!(result.2.len(), 4);
-        assert_eq!(result.3, 2);
+        assert_eq!(result.1, 2);
 
         Ok(())
     }
@@ -289,9 +283,7 @@ pub mod e2e_tests {
 
         let result = get_positions!(client, InvariantRef, dex, 1, 1, alice).unwrap();
         assert_eq!(result.0.len(), 1);
-        assert_eq!(result.1.len(), 1);
-        assert_eq!(result.2.len(), 2);
-        assert_eq!(result.3, 2);
+        assert_eq!(result.1, 2);
 
         Ok(())
     }
@@ -373,9 +365,7 @@ pub mod e2e_tests {
 
         let result = get_positions!(client, InvariantRef, dex, 1, 1, alice).unwrap();
         assert_eq!(result.0.len(), 1);
-        assert_eq!(result.1.len(), 1);
-        assert_eq!(result.2.len(), 2);
-        assert_eq!(result.3, 3);
+        assert_eq!(result.1, 3);
 
         Ok(())
     }
@@ -443,9 +433,7 @@ pub mod e2e_tests {
 
         let result = get_positions!(client, InvariantRef, dex, 2, 1, alice).unwrap();
         assert_eq!(result.0.len(), 1);
-        assert_eq!(result.1.len(), 1);
-        assert_eq!(result.2.len(), 2);
-        assert_eq!(result.3, 2);
+        assert_eq!(result.1, 2);
 
         Ok(())
     }

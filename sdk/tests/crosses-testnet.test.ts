@@ -6,6 +6,7 @@ import { Network } from '../src/network.js'
 import { PSP22 } from '../src/psp22.js'
 import { ContractOptions } from '../src/schema.js'
 import { initPolkadotApi, integerSafeCast, newFeeTier, newPoolKey } from '../src/utils.js'
+import 'mocha'
 
 describe('testnet-crosses-limitations', async () => {
   it('Validate limitation number of crosses in single atomic swap', async function () {
