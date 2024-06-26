@@ -53,6 +53,12 @@ jobs:
           args:
             --version 0.39.0 --locked contracts-node
 
+      - name: Build contract
+        uses: actions-rs/cargo@v1
+        with:
+          command: contract
+          args: build --release
+
       - name: Run unit tests
         uses: actions-rs/cargo@v1
         with:
