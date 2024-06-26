@@ -501,7 +501,7 @@ export class Invariant {
       proofSize: this.gasLimit.proofSize.toNumber()
     }
   ): Promise<[Position[], Pool[], Tick[], bigint]> {
-    return sendQuery(
+    const result = await sendQuery(
       this.contract,
       this.api.registry.createType('WeightV2', {
         refTime: options.refTime,
@@ -511,6 +511,12 @@ export class Invariant {
       InvariantQuery.GetPositions,
       [owner, size, offset]
     )
+
+    if (result.ok) {
+      return parse(result.ok)
+    } else {
+      throw new Error(InvariantError[result.err])
+    }
   }
 
   async getAllPositions(

@@ -82,9 +82,9 @@ describe('get-positions', async () => {
     await invariant.createPosition(account, poolKey, -30n, 30n, 1000000000000n, pool.sqrtPrice, 0n)
     const result = await invariant.getPositions(account.address, 1n, 1n)
 
-    assert.equal(result[0].length, 2)
-    assert.equal(result[1].length, 2)
-    assert.equal(result[2].length, 4)
+    assert.equal(result[0].length, 1)
+    assert.equal(result[1].length, 1)
+    assert.equal(result[2].length, 2)
     assert.equal(result[3], 3n)
   })
 
