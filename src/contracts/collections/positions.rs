@@ -81,8 +81,16 @@ impl Positions {
         Ok(position)
     }
 
-    pub fn get_all(&self, account_id: AccountId) -> Vec<Position> {
-        (0..self.get_length(account_id))
+    pub fn get_all(&self, account_id: AccountId, size: u32, offset: u32) -> Vec<Position> {
+        let length = self.get_length(account_id);
+
+        let max = if offset + size > length {
+            length
+        } else {
+            offset + size
+        };
+
+        (offset..max)
             .map(|index| self.positions.get((account_id, index)).unwrap())
             .collect()
     }
@@ -205,7 +213,8 @@ mod tests {
             ..Position::default()
         };
 
-        let result = positions.get_all(account_id);
+        let result = positions.get_all(account_id, 1, 0);
+        println!("{:?}", result);
         assert_eq!(result, vec![]);
         assert_eq!(result.len(), 0);
         assert_eq!(positions.get_length(account_id), 0);
@@ -213,7 +222,8 @@ mod tests {
         positions.add(account_id, &position);
         positions.add(account_id, &new_position);
 
-        let result = positions.get_all(account_id);
+        let result = positions.get_all(account_id, 2, 0);
+        println!("{:?}", result);
         assert_eq!(result, vec![position, new_position]);
         assert_eq!(result.len(), 2);
         assert_eq!(positions.get_length(account_id), 2);

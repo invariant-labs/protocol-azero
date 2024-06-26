@@ -493,6 +493,28 @@ export class Invariant {
 
   async getPositions(
     owner: string,
+    size: bigint,
+    offset: bigint,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): Promise<[Position[], Pool[], Tick[], bigint]> {
+    return sendQuery(
+      this.contract,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
+      InvariantQuery.GetPositions,
+      [owner, size, offset]
+    )
+  }
+
+  async getAllPositions(
+    owner: string,
     options: ContractOptions = {
       storageDepositLimit: this.storageDepositLimit,
       refTime: this.gasLimit.refTime.toNumber(),

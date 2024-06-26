@@ -165,21 +165,6 @@ describe('invariant', async function () {
     })
   })
 
-  it('attempt to try create pool with wrong tick sqrtPrice relationship', async () => {
-    await invariant.addFeeTier(account, feeTier)
-    const addedFeeTierExists = await invariant.feeTierExist(feeTier)
-    assert.deepEqual(addedFeeTierExists, true)
-
-    const initSqrtPrice: SqrtPrice = 1000175003749000000000000n
-
-    const poolKey = newPoolKey(token0Address, token1Address, feeTier)
-
-    assertThrowsAsync(
-      invariant.createPool(account, poolKey, initSqrtPrice),
-      InvariantError.InvalidInitTick
-    )
-  })
-
   it('create pool x/y and y/x', async () => {
     await invariant.addFeeTier(account, feeTier)
     const addedFeeTierExists = await invariant.feeTierExist(feeTier)

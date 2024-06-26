@@ -123,7 +123,7 @@ describe('position', async () => {
       objectEquals(result.events[0], expectedRemovePositionEvent, ['timestamp'])
 
       assertThrowsAsync(invariant.getPosition(account.address, 0n), InvariantError.PositionNotFound)
-      const positions = await invariant.getPositions(account.address)
+      const positions = await invariant.getAllPositions(account.address)
       assert.deepEqual(positions.length, 0)
     }
     {

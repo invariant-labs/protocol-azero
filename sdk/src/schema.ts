@@ -16,6 +16,7 @@ export enum InvariantQuery {
   IsTickInitialized = 'invariantTrait::isTickInitialized',
   GetPosition = 'invariantTrait::getPosition',
   GetAllPositions = 'invariantTrait::getAllPositions',
+  GetPositions = 'invariantTrait::getPositions',
   Quote = 'invariantTrait::quote',
   QuoteRoute = 'invariantTrait::quoteRoute',
   getPositionTicks = 'invariantTrait::getPositionTicks',

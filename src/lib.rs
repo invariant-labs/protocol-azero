@@ -767,7 +767,35 @@ pub mod invariant {
 
         #[ink(message)]
         fn get_all_positions(&mut self, owner_id: AccountId) -> Vec<Position> {
-            self.positions.get_all(owner_id)
+            self.positions
+                .get_all(owner_id, self.positions.get_length(owner_id), 0)
+        }
+
+        #[ink(message)]
+        fn get_positions(
+            &mut self,
+            owner_id: AccountId,
+            size: u32,
+            offset: u32,
+        ) -> Result<(Vec<Position>, Vec<Pool>, Vec<Tick>, u32), InvariantError> {
+            let positions = self.positions.get_all(owner_id, size, offset);
+            let mut pools = vec![];
+            let mut ticks = vec![];
+            let positions_length = self.positions.get_length(owner_id);
+
+            for position in &positions {
+                pools.push(self.pools.get(position.pool_key)?);
+                ticks.push(
+                    self.ticks
+                        .get(position.pool_key, position.lower_tick_index)?,
+                );
+                ticks.push(
+                    self.ticks
+                        .get(position.pool_key, position.upper_tick_index)?,
+                );
+            }
+
+            Ok((positions, pools, ticks, positions_length))
         }
 
         #[ink(message)]

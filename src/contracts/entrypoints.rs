@@ -218,6 +218,24 @@ pub trait InvariantTrait {
     #[ink(message)]
     fn get_all_positions(&mut self, owner_id: AccountId) -> Vec<Position>;
 
+    /// Retrieves a vector containing position with size and offset.
+    ///
+    /// # Parameters
+    /// - `owner_id`: An `AccountId` identifying the user who owns the positions.
+    /// - `size`: Amount of positions to retrive
+    /// - `offset`: The offset from which retrive positions.
+    ///
+    /// # Errors
+    /// - Fails if pool from position cannot be found
+    /// - Fails if ticks from position cannot be found
+    #[ink(message)]
+    fn get_positions(
+        &mut self,
+        owner_id: AccountId,
+        size: u32,
+        offset: u32,
+    ) -> Result<(Vec<Position>, Vec<Pool>, Vec<Tick>, u32), InvariantError>;
+
     /// Allows an authorized user (owner of the position) to claim collected fees.
     ///
     /// # Parameters
