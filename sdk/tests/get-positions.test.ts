@@ -21,7 +21,7 @@ const feeTier = newFeeTier(6000000000n, 10n)
 let poolKey = newPoolKey(token0Address, token1Address, feeTier)
 let pool: Pool
 
-describe('get positions', async () => {
+describe('get-positions', async () => {
   beforeEach(async () => {
     invariant = await Invariant.deploy(api, Network.Local, account, 10000000000n)
     token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
