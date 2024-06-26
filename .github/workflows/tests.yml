@@ -51,19 +51,7 @@ jobs:
         with:
           command: install
           args:
-            --version 0.39.0 --locked contracts-node
-
-      - name: Install cargo contract
-        uses: actions-rs/cargo@v1
-        with:
-          command: install
-          args: --version 4.0.2 --locked cargo-contract
-
-      - name: Build contract
-        uses: actions-rs/cargo@v1
-        with:
-          command: contract
-          args: build --release
+            --version 0.31.0 --locked contracts-node
 
       - name: Run unit tests
         uses: actions-rs/cargo@v1
