@@ -6,7 +6,7 @@ use crate::{
     MIN_SQRT_PRICE,
 };
 use crate::{LiquidityTick, Pool};
-use decimal::Decimal;
+use decimal::*;
 use traceable_result::TrackableResult;
 use traceable_result::*;
 use wasm_bindgen::prelude::*;
@@ -47,9 +47,9 @@ pub fn simulate_invariant_swap(
     }
 
     let tick_limit = if x_to_y {
-        get_min_tick(fee_tier.tick_spacing as u16)
+        get_min_tick(fee_tier.tick_spacing as u16)?
     } else {
-        get_max_tick(fee_tier.tick_spacing as u16)
+        get_max_tick(fee_tier.tick_spacing as u16)?
     };
 
     let start_sqrt_price = pool.sqrt_price;
@@ -89,17 +89,71 @@ pub fn simulate_invariant_swap(
 
         // make remaining amount smaller
         if by_amount_in {
-            remaining_amount -= result.amount_in + result.fee_amount;
+            let intermediate = result
+                .amount_in
+                .checked_add(result.fee_amount)
+                .map_err(|_| {
+                    err!(&format!(
+                        "InvariantError::AddOverflow({:?}, {:?})",
+                        result.amount_in.get(),
+                        result.fee_amount.get()
+                    ))
+                })?;
+            remaining_amount = remaining_amount.checked_sub(intermediate).map_err(|_| {
+                err!(&format!(
+                    "InvariantError::SubUnderflow({:?}, {:?})",
+                    remaining_amount.get(),
+                    intermediate.get()
+                ))
+            })?;
         } else {
-            remaining_amount -= result.amount_out;
+            remaining_amount = remaining_amount
+                .checked_sub(result.amount_out)
+                .map_err(|_| {
+                    err!(&format!(
+                        "InvariantError::SubUnderflow({:?}, {:?})",
+                        remaining_amount.get(),
+                        result.amount_out.get()
+                    ))
+                })?;
         }
 
-        total_fee_amount += result.fee_amount;
+        // pool.add_fee(result.fee_amount, x_to_y, protocol_fee)?;
+        total_fee_amount = total_fee_amount
+            .checked_add(result.fee_amount)
+            .map_err(|_| {
+                err!(&format!(
+                    "InvariantError::AddOverflow({:?}, {:?})",
+                    total_fee_amount.get(),
+                    result.fee_amount.get()
+                ))
+            })?;
 
         pool.sqrt_price = result.next_sqrt_price;
 
-        total_amount_in += result.amount_in + result.fee_amount;
-        total_amount_out += result.amount_out;
+        let intermediate = total_amount_in.checked_add(result.amount_in).map_err(|_| {
+            err!(&format!(
+                "InvariantError::AddOverflow({:?}, {:?})",
+                total_amount_in.get(),
+                result.amount_in.get()
+            ))
+        })?;
+        total_amount_in = intermediate.checked_add(result.fee_amount).map_err(|_| {
+            err!(&format!(
+                "InvariantError::AddOverflow({:?}, {:?})",
+                intermediate.get(),
+                result.fee_amount.get()
+            ))
+        })?;
+        total_amount_out = total_amount_out
+            .checked_add(result.amount_out)
+            .map_err(|_| {
+                err!(&format!(
+                    "InvariantError::AddOverflow({:?}, {:?})",
+                    total_amount_out.get(),
+                    result.amount_out.get()
+                ))
+            })?;
 
         // Fail if price would go over swap limit
         if pool.sqrt_price == sqrt_price_limit && !remaining_amount.is_zero() {
@@ -146,7 +200,13 @@ pub fn simulate_invariant_swap(
             };
 
         remaining_amount = amount_after_tick_update;
-        total_amount_in += amount_to_add;
+        total_amount_in = total_amount_in.checked_add(amount_to_add).map_err(|_| {
+            err!(&format!(
+                "InvariantError::AddOverflow({:?}, {:?})",
+                total_amount_in.get(),
+                amount_to_add.get()
+            ))
+        })?;
 
         if let UpdatePoolTick::TickInitialized(tick) = tick_update {
             if has_crossed {

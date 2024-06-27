@@ -2,50 +2,18 @@
 
 extern crate alloc;
 mod contracts;
+#[cfg(all(test, feature = "e2e-tests"))]
 pub mod e2e;
 pub mod math;
 
-#[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
-#[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
-pub enum InvariantError {
-    NotAdmin,
-    NotFeeReceiver,
-    PoolAlreadyExist,
-    PoolNotFound,
-    TickAlreadyExist,
-    InvalidTickIndexOrTickSpacing,
-    PositionNotFound,
-    TickNotFound,
-    FeeTierNotFound,
-    PoolKeyNotFound,
-    AmountIsZero,
-    WrongLimit,
-    PriceLimitReached,
-    NoGainSwap,
-    InvalidTickSpacing,
-    FeeTierAlreadyExist,
-    PoolKeyAlreadyExist,
-    UnauthorizedFeeReceiver,
-    ZeroLiquidity,
-    TransferError,
-    TokensAreSame,
-    AmountUnderMinimumAmountOut,
-    InvalidFee,
-    NotEmptyTickDeinitialization,
-    InvalidInitTick,
-    InvalidInitSqrtPrice,
-    InvalidSize,
-    InvalidTickIndex,
-    TickLimitReached,
-    WAZEROWithdrawError,
-}
 #[ink::contract]
 pub mod invariant {
     use crate::contracts::{
-        get_max_chunk, get_min_chunk, tick_to_position, FeeTier, FeeTiers, InvariantConfig,
-        InvariantTrait, LiquidityTick, Pool, PoolKey, PoolKeys, Pools, Position, PositionTick,
-        Positions, Tick, Tickmap, Ticks, UpdatePoolTick, CHUNK_SIZE, LIQUIDITY_TICK_LIMIT,
-        MAX_TICKMAP_QUERY_SIZE, POSITION_TICK_LIMIT,
+        get_max_chunk, get_min_chunk, tick_to_position, CalculateSwapResult, CreatePositionEvent,
+        CrossTickEvent, FeeTier, FeeTiers, InvariantConfig, InvariantTrait, LiquidityTick, Pool,
+        PoolKey, PoolKeys, Pools, Position, PositionTick, Positions, QuoteResult,
+        RemovePositionEvent, SwapEvent, SwapHop, Tick, Tickmap, Ticks, UpdatePoolTick, CHUNK_SIZE,
+        LIQUIDITY_TICK_LIMIT, MAX_TICKMAP_QUERY_SIZE, POSITION_TICK_LIMIT,
     };
     use crate::math::calculate_min_amount_out;
     use crate::math::check_tick;
@@ -55,96 +23,27 @@ pub mod invariant {
     use crate::math::token_amount::TokenAmount;
     use crate::math::types::liquidity::Liquidity;
 
+    use crate::contracts::InvariantError;
     use crate::math::{compute_swap_step, MAX_SQRT_PRICE, MIN_SQRT_PRICE};
-    use crate::InvariantError;
+    use crate::{balance_of_v1, transfer_from_v1, transfer_v1, withdraw_v1};
     use decimal::*;
+
+    use ink::codegen::TraitCallBuilder;
     use ink::contract_ref;
     use ink::prelude::vec;
     use ink::prelude::vec::Vec;
-    use token::PSP22;
+    use token::{PSP22Error, PSP22};
     use traceable_result::unwrap;
 
-    use wrapped_azero::WrappedAZERO;
+    type PSP22Wrapper = contract_ref!(PSP22);
+    type WrappedAZEROWrapper = contract_ref!(WrappedAZERO);
 
-    #[ink(event)]
-    pub struct CreatePositionEvent {
-        #[ink(topic)]
-        timestamp: u64,
-        address: AccountId,
-        pool: PoolKey,
-        liquidity: Liquidity,
-        lower_tick: i32,
-        upper_tick: i32,
-        current_sqrt_price: SqrtPrice,
-    }
-    #[ink(event)]
-    pub struct CrossTickEvent {
-        #[ink(topic)]
-        timestamp: u64,
-        address: AccountId,
-        pool: PoolKey,
-        indexes: Vec<i32>,
-    }
-
-    #[ink(event)]
-    pub struct RemovePositionEvent {
-        #[ink(topic)]
-        timestamp: u64,
-        address: AccountId,
-        pool: PoolKey,
-        liquidity: Liquidity,
-        lower_tick: i32,
-        upper_tick: i32,
-        current_sqrt_price: SqrtPrice,
-    }
-    #[ink(event)]
-    pub struct SwapEvent {
-        #[ink(topic)]
-        timestamp: u64,
-        address: AccountId,
-        pool: PoolKey,
-        amount_in: TokenAmount,
-        amount_out: TokenAmount,
-        fee: TokenAmount,
-        start_sqrt_price: SqrtPrice,
-        target_sqrt_price: SqrtPrice,
-        x_to_y: bool,
-    }
-
-    #[derive(scale::Decode, Default, scale::Encode, Clone, Debug, PartialEq)]
-    #[cfg_attr(
-        feature = "std",
-        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout,)
-    )]
-    pub struct CalculateSwapResult {
-        pub amount_in: TokenAmount,
-        pub amount_out: TokenAmount,
-        pub start_sqrt_price: SqrtPrice,
-        pub target_sqrt_price: SqrtPrice,
-        pub fee: TokenAmount,
-        pub pool: Pool,
-        pub ticks: Vec<Tick>,
-    }
-    #[derive(Default, Debug, scale::Decode, scale::Encode)]
-    #[cfg_attr(
-        feature = "std",
-        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
-    )]
-    pub struct QuoteResult {
-        pub amount_in: TokenAmount,
-        pub amount_out: TokenAmount,
-        pub target_sqrt_price: SqrtPrice,
-        pub ticks: Vec<Tick>,
-    }
-
-    #[derive(scale::Decode, Default, scale::Encode, Clone, Debug)]
-    #[cfg_attr(
-        feature = "std",
-        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout,)
-    )]
-    pub struct SwapHop {
-        pub pool_key: PoolKey,
-        pub x_to_y: bool,
+    #[ink::trait_definition]
+    pub trait WrappedAZERO {
+        #[ink(message, payable)]
+        fn deposit(&mut self) -> Result<(), PSP22Error>;
+        #[ink(message)]
+        fn withdraw(&mut self, value: u128) -> Result<(), PSP22Error>;
     }
 
     #[ink(storage)]
@@ -252,18 +151,60 @@ pub mod invariant {
 
                 // make remaining amount smaller
                 if by_amount_in {
-                    remaining_amount -= result.amount_in + result.fee_amount;
+                    let intermediate =
+                        result
+                            .amount_in
+                            .checked_add(result.fee_amount)
+                            .map_err(|_| {
+                                InvariantError::AddOverflow(
+                                    result.amount_in.get(),
+                                    result.fee_amount.get(),
+                                )
+                            })?;
+                    remaining_amount =
+                        remaining_amount.checked_sub(intermediate).map_err(|_| {
+                            InvariantError::SubUnderflow(remaining_amount.get(), intermediate.get())
+                        })?;
                 } else {
-                    remaining_amount -= result.amount_out;
+                    remaining_amount =
+                        remaining_amount
+                            .checked_sub(result.amount_out)
+                            .map_err(|_| {
+                                InvariantError::SubUnderflow(
+                                    remaining_amount.get(),
+                                    result.amount_out.get(),
+                                )
+                            })?;
                 }
 
                 unwrap!(pool.add_fee(result.fee_amount, x_to_y, self.config.protocol_fee));
-                event_fee_amount += result.fee_amount;
+                event_fee_amount =
+                    event_fee_amount
+                        .checked_add(result.fee_amount)
+                        .map_err(|_| {
+                            InvariantError::AddOverflow(
+                                event_fee_amount.get(),
+                                result.fee_amount.get(),
+                            )
+                        })?;
 
                 pool.sqrt_price = result.next_sqrt_price;
 
-                total_amount_in += result.amount_in + result.fee_amount;
-                total_amount_out += result.amount_out;
+                let intermediate = total_amount_in.checked_add(result.amount_in).map_err(|_| {
+                    InvariantError::AddOverflow(total_amount_in.get(), result.amount_in.get())
+                })?;
+                total_amount_in = intermediate.checked_add(result.fee_amount).map_err(|_| {
+                    InvariantError::AddOverflow(intermediate.get(), result.fee_amount.get())
+                })?;
+                total_amount_out =
+                    total_amount_out
+                        .checked_add(result.amount_out)
+                        .map_err(|_| {
+                            InvariantError::AddOverflow(
+                                total_amount_out.get(),
+                                result.amount_out.get(),
+                            )
+                        })?;
 
                 // Fail if price would go over swap limit
                 if pool.sqrt_price == sqrt_price_limit && !remaining_amount.is_zero() {
@@ -296,7 +237,7 @@ pub mod invariant {
                 );
 
                 remaining_amount = amount_after_tick_update;
-                total_amount_in += amount_to_add;
+                total_amount_in = total_amount_in.checked_add(amount_to_add).unwrap();
 
                 if let UpdatePoolTick::TickInitialized(tick) = tick_update {
                     if has_crossed {
@@ -381,20 +322,17 @@ pub mod invariant {
             x_to_y: bool,
         ) {
             let timestamp = self.get_timestamp();
-            ink::codegen::EmitEvent::<Invariant>::emit_event(
-                self.env(),
-                SwapEvent {
-                    timestamp,
-                    address,
-                    pool,
-                    amount_in,
-                    amount_out,
-                    fee,
-                    start_sqrt_price,
-                    target_sqrt_price,
-                    x_to_y,
-                },
-            );
+            self.env().emit_event(SwapEvent {
+                timestamp,
+                address,
+                pool,
+                amount_in,
+                amount_out,
+                fee,
+                start_sqrt_price,
+                target_sqrt_price,
+                x_to_y,
+            });
         }
 
         fn emit_create_position_event(
@@ -407,18 +345,15 @@ pub mod invariant {
             current_sqrt_price: SqrtPrice,
         ) {
             let timestamp = self.get_timestamp();
-            ink::codegen::EmitEvent::<Invariant>::emit_event(
-                self.env(),
-                CreatePositionEvent {
-                    timestamp,
-                    address,
-                    pool,
-                    liquidity,
-                    lower_tick,
-                    upper_tick,
-                    current_sqrt_price,
-                },
-            );
+            self.env().emit_event(CreatePositionEvent {
+                timestamp,
+                address,
+                pool,
+                liquidity,
+                lower_tick,
+                upper_tick,
+                current_sqrt_price,
+            });
         }
 
         fn emit_remove_position_event(
@@ -431,31 +366,25 @@ pub mod invariant {
             current_sqrt_price: SqrtPrice,
         ) {
             let timestamp = self.get_timestamp();
-            ink::codegen::EmitEvent::<Invariant>::emit_event(
-                self.env(),
-                RemovePositionEvent {
-                    timestamp,
-                    address,
-                    pool,
-                    liquidity,
-                    lower_tick,
-                    upper_tick,
-                    current_sqrt_price,
-                },
-            );
+            self.env().emit_event(RemovePositionEvent {
+                timestamp,
+                address,
+                pool,
+                liquidity,
+                lower_tick,
+                upper_tick,
+                current_sqrt_price,
+            });
         }
 
         fn emit_cross_tick_event(&self, address: AccountId, pool: PoolKey, indexes: Vec<i32>) {
             let timestamp = self.get_timestamp();
-            ink::codegen::EmitEvent::<Invariant>::emit_event(
-                self.env(),
-                CrossTickEvent {
-                    timestamp,
-                    address,
-                    pool,
-                    indexes,
-                },
-            );
+            self.env().emit_event(CrossTickEvent {
+                timestamp,
+                address,
+                pool,
+                indexes,
+            });
         }
 
         fn get_timestamp(&self) -> u64 {
@@ -502,14 +431,17 @@ pub mod invariant {
             let (fee_protocol_token_x, fee_protocol_token_y) = pool.withdraw_protocol_fee(pool_key);
             self.pools.update(pool_key, &pool)?;
 
-            let mut token_x: contract_ref!(PSP22) = pool_key.token_x.into();
-            token_x
-                .transfer(pool.fee_receiver, fee_protocol_token_x.get(), vec![])
-                .map_err(|_| InvariantError::TransferError)?;
-            let mut token_y: contract_ref!(PSP22) = pool_key.token_y.into();
-            token_y
-                .transfer(pool.fee_receiver, fee_protocol_token_y.get(), vec![])
-                .map_err(|_| InvariantError::TransferError)?;
+            transfer_v1!(
+                pool_key.token_x,
+                pool.fee_receiver,
+                fee_protocol_token_x.get()
+            );
+
+            transfer_v1!(
+                pool_key.token_y,
+                pool.fee_receiver,
+                fee_protocol_token_y.get()
+            );
 
             Ok(())
         }
@@ -601,14 +533,8 @@ pub mod invariant {
             self.ticks.update(pool_key, lower_tick.index, &lower_tick)?;
             self.ticks.update(pool_key, upper_tick.index, &upper_tick)?;
 
-            let mut token_x: contract_ref!(PSP22) = pool_key.token_x.into();
-            token_x
-                .transfer_from(caller, contract, x.get(), vec![])
-                .map_err(|_| InvariantError::TransferError)?;
-            let mut token_y: contract_ref!(PSP22) = pool_key.token_y.into();
-            token_y
-                .transfer_from(caller, contract, y.get(), vec![])
-                .map_err(|_| InvariantError::TransferError)?;
+            transfer_from_v1!(pool_key.token_x, caller, contract, x.get());
+            transfer_from_v1!(pool_key.token_y, caller, contract, y.get());
 
             self.emit_create_position_event(
                 caller,
@@ -650,33 +576,29 @@ pub mod invariant {
             self.pools.update(pool_key, &calculate_swap_result.pool)?;
 
             if x_to_y {
-                let mut token_x: contract_ref!(PSP22) = pool_key.token_x.into();
-                token_x
-                    .transfer_from(
-                        caller,
-                        contract,
-                        calculate_swap_result.amount_in.get(),
-                        vec![],
-                    )
-                    .map_err(|_| InvariantError::TransferError)?;
-                let mut token_y: contract_ref!(PSP22) = pool_key.token_y.into();
-                token_y
-                    .transfer(caller, calculate_swap_result.amount_out.get(), vec![])
-                    .map_err(|_| InvariantError::TransferError)?;
+                transfer_from_v1!(
+                    pool_key.token_x,
+                    caller,
+                    contract,
+                    calculate_swap_result.amount_in.get()
+                );
+                transfer_v1!(
+                    pool_key.token_y,
+                    caller,
+                    calculate_swap_result.amount_out.get()
+                );
             } else {
-                let mut token_y: contract_ref!(PSP22) = pool_key.token_y.into();
-                token_y
-                    .transfer_from(
-                        caller,
-                        contract,
-                        calculate_swap_result.amount_in.get(),
-                        vec![],
-                    )
-                    .map_err(|_| InvariantError::TransferError)?;
-                let mut token_x: contract_ref!(PSP22) = pool_key.token_x.into();
-                token_x
-                    .transfer(caller, calculate_swap_result.amount_out.get(), vec![])
-                    .map_err(|_| InvariantError::TransferError)?;
+                transfer_from_v1!(
+                    pool_key.token_y,
+                    caller,
+                    contract,
+                    calculate_swap_result.amount_in.get()
+                );
+                transfer_v1!(
+                    pool_key.token_x,
+                    caller,
+                    calculate_swap_result.amount_out.get()
+                );
             };
 
             self.emit_swap_event(
@@ -827,17 +749,11 @@ pub mod invariant {
                 .update(position.pool_key, lower_tick.index, &lower_tick)?;
 
             if x.get() > 0 {
-                let mut token_x: contract_ref!(PSP22) = position.pool_key.token_x.into();
-                token_x
-                    .transfer(caller, x.get(), vec![])
-                    .map_err(|_| InvariantError::TransferError)?;
+                transfer_v1!(position.pool_key.token_x, caller, x.get());
             }
 
             if y.get() > 0 {
-                let mut token_y: contract_ref!(PSP22) = position.pool_key.token_y.into();
-                token_y
-                    .transfer(caller, y.get(), vec![])
-                    .map_err(|_| InvariantError::TransferError)?;
+                transfer_v1!(position.pool_key.token_y, caller, y.get());
             }
 
             Ok((x, y))
@@ -891,14 +807,8 @@ pub mod invariant {
 
             self.positions.remove(caller, index)?;
 
-            let mut token_x: contract_ref!(PSP22) = position.pool_key.token_x.into();
-            token_x
-                .transfer(caller, amount_x.get(), vec![])
-                .map_err(|_| InvariantError::TransferError)?;
-            let mut token_y: contract_ref!(PSP22) = position.pool_key.token_y.into();
-            token_y
-                .transfer(caller, amount_y.get(), vec![])
-                .map_err(|_| InvariantError::TransferError)?;
+            transfer_v1!(position.pool_key.token_x, caller, amount_x.get());
+            transfer_v1!(position.pool_key.token_y, caller, amount_y.get());
 
             self.emit_remove_position_event(
                 caller,
@@ -1141,7 +1051,9 @@ pub mod invariant {
                 return Err(InvariantError::InvalidTickSpacing);
             };
 
-            if lower_tick % (tick_spacing as i32) != 0 || upper_tick % (tick_spacing as i32) != 0 {
+            if lower_tick.checked_rem(tick_spacing as i32).unwrap() != 0
+                || upper_tick.checked_rem(tick_spacing as i32).unwrap() != 0
+            {
                 return Err(InvariantError::InvalidTickIndex);
             }
 
@@ -1155,8 +1067,16 @@ pub mod invariant {
             let (min_chunk_index, min_bit) = tick_to_position(lower_tick, tick_spacing);
             let (max_chunk_index, max_bit) = tick_to_position(upper_tick, tick_spacing);
 
-            let active_bits_in_range = |chunk, min_bit, max_bit| {
-                let range: u64 = (chunk >> min_bit) & ((1u64 << (max_bit - min_bit + 1)) - 1);
+            let active_bits_in_range = |chunk: u64, min_bit: u8, max_bit: u8| {
+                let range: u64 = (chunk >> min_bit)
+                    & (1u64
+                        << (max_bit as u32)
+                            .checked_sub(min_bit as u32)
+                            .unwrap()
+                            .checked_add(1)
+                            .unwrap())
+                    .checked_sub(1)
+                    .unwrap();
                 range.count_ones()
             };
 
@@ -1177,13 +1097,21 @@ pub mod invariant {
                 .unwrap_or(0);
 
             let mut amount: u32 = 0;
-            amount += active_bits_in_range(min_chunk, min_bit, (CHUNK_SIZE - 1) as u8);
-            amount += active_bits_in_range(max_chunk, 0, max_bit);
+            amount = amount
+                .checked_add(active_bits_in_range(
+                    min_chunk,
+                    min_bit,
+                    (CHUNK_SIZE - 1) as u8,
+                ))
+                .unwrap();
+            amount = amount
+                .checked_add(active_bits_in_range(max_chunk, 0, max_bit))
+                .unwrap();
 
-            for i in (min_chunk_index + 1)..max_chunk_index {
+            for i in (min_chunk_index.checked_add(1).unwrap())..max_chunk_index {
                 let chunk = self.tickmap.bitmap.get((i, pool_key)).unwrap_or(0);
 
-                amount += chunk.count_ones();
+                amount = amount.checked_add(chunk.count_ones()).unwrap();
             }
 
             Ok(amount)
@@ -1194,17 +1122,10 @@ pub mod invariant {
             let caller = self.env().caller();
             let contract = self.env().account_id();
 
-            let mut wazero_psp22: contract_ref!(PSP22) = address.into();
-            let mut wazero_wrapped_azero: contract_ref!(WrappedAZERO) = address.into();
-
-            let balance = wazero_psp22.balance_of(caller);
+            let balance = balance_of_v1!(address, caller);
             if balance > 0 {
-                wazero_psp22
-                    .transfer_from(caller, contract, balance, vec![])
-                    .map_err(|_| InvariantError::TransferError)?;
-                wazero_wrapped_azero
-                    .withdraw(balance)
-                    .map_err(|_| InvariantError::WAZEROWithdrawError)?;
+                transfer_from_v1!(address, caller, contract, balance);
+                withdraw_v1!(address, balance);
                 self.env()
                     .transfer(caller, balance)
                     .map_err(|_| InvariantError::TransferError)?;

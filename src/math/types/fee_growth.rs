@@ -3,11 +3,9 @@ use decimal::*;
 use traceable_result::*;
 
 #[decimal(28)]
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, scale::Decode, scale::Encode)]
-#[cfg_attr(
-    feature = "std",
-    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
-)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
+#[ink::scale_derive(Encode, Decode, TypeInfo)]
+#[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
 pub struct FeeGrowth(pub u128);
 
 impl FeeGrowth {
@@ -38,9 +36,9 @@ impl FeeGrowth {
             U256::from(self.get())
                 .checked_mul(liquidity.here())
                 .ok_or_else(|| err!(TrackableError::MUL))?
-                .checked_div(
-                    U256::from(10).pow(U256::from(FeeGrowth::scale() + Liquidity::scale())),
-                )
+                .checked_div(U256::from(10).pow(U256::from(
+                    FeeGrowth::scale().checked_add(Liquidity::scale()).unwrap(),
+                )))
                 .ok_or_else(|| err!(TrackableError::MUL))?
                 .try_into()
                 .map_err(|_| err!(TrackableError::cast::<TokenAmount>().as_str()))?,

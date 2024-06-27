@@ -1,9 +1,9 @@
 export const abi = `
 {
   "source": {
-    "hash": "0x66b5413348f7cabe1aad07ad860bdfbce7e03bf756efde99fc000a2775b023cd",
-    "language": "ink! 4.3.0",
-    "compiler": "rustc 1.74.0",
+    "hash": "0x5780048a3ef2f7119be25ae9aeaa055bfa86e43e7daff36643b60659f78a41c7",
+    "language": "ink! 5.0.0",
+    "compiler": "rustc 1.77.0",
     "build_info": {
       "build_mode": "Release",
       "cargo_contract_version": "3.2.0",
@@ -16,10 +16,14 @@ export const abi = `
   },
   "contract": {
     "name": "token",
-    "version": "0.2.0",
+    "version": "2.0.0",
     "authors": [
-      "Hans <michal.handzlik@cardinals.cc>"
-    ]
+      "Cardinal"
+    ],
+    "description": "Minimal implementation of PSP22 token standard in pure ink!",
+    "repository": "https://github.com/Cardinal-Cryptography/PSP22",
+    "homepage": "https://github.com/Cardinal-Cryptography/PSP22",
+    "license": "Apache-2.0"
   },
   "spec": {
     "constructors": [
@@ -40,7 +44,7 @@ export const abi = `
               "displayName": [
                 "Option"
               ],
-              "type": 3
+              "type": 16
             }
           },
           {
@@ -49,7 +53,7 @@ export const abi = `
               "displayName": [
                 "Option"
               ],
-              "type": 3
+              "type": 16
             }
           },
           {
@@ -58,7 +62,7 @@ export const abi = `
               "displayName": [
                 "u8"
               ],
-              "type": 2
+              "type": 4
             }
           }
         ],
@@ -71,7 +75,7 @@ export const abi = `
             "ink_primitives",
             "ConstructorResult"
           ],
-          "type": 4
+          "type": 17
         },
         "selector": "0x9bae9d5e"
       }
@@ -82,7 +86,7 @@ export const abi = `
         "displayName": [
           "AccountId"
         ],
-        "type": 7
+        "type": 2
       },
       "balance": {
         "displayName": [
@@ -94,55 +98,62 @@ export const abi = `
         "displayName": [
           "BlockNumber"
         ],
-        "type": 19
+        "type": 29
       },
       "chainExtension": {
         "displayName": [
           "ChainExtension"
         ],
-        "type": 20
+        "type": 30
       },
       "hash": {
         "displayName": [
           "Hash"
         ],
-        "type": 17
+        "type": 27
       },
       "maxEventTopics": 4,
+      "staticBufferSize": 16384,
       "timestamp": {
         "displayName": [
           "Timestamp"
         ],
-        "type": 18
+        "type": 28
       }
     },
     "events": [
       {
         "args": [
           {
-            "docs": [],
+            "docs": [
+              "Account providing allowance."
+            ],
             "indexed": true,
             "label": "owner",
             "type": {
               "displayName": [
                 "AccountId"
               ],
-              "type": 7
+              "type": 2
             }
           },
           {
-            "docs": [],
+            "docs": [
+              "Allowance beneficiary."
+            ],
             "indexed": true,
             "label": "spender",
             "type": {
               "displayName": [
                 "AccountId"
               ],
-              "type": 7
+              "type": 2
             }
           },
           {
-            "docs": [],
+            "docs": [
+              "New allowance amount."
+            ],
             "indexed": false,
             "label": "amount",
             "type": {
@@ -153,35 +164,45 @@ export const abi = `
             }
           }
         ],
-        "docs": [],
-        "label": "Approval"
+        "docs": [
+          "Event emitted when allowance by 'owner' to 'spender' changes."
+        ],
+        "label": "Approval",
+        "module_path": "token::events",
+        "signature_topic": "0x25cdb6c93882e925abbfc9a8b7c85884b73c038c03a2492f238a5e5ba3fbff8c"
       },
       {
         "args": [
           {
-            "docs": [],
+            "docs": [
+              "Transfer sender. 'None' in case of minting new tokens."
+            ],
             "indexed": true,
             "label": "from",
             "type": {
               "displayName": [
                 "Option"
               ],
-              "type": 16
+              "type": 26
             }
           },
           {
-            "docs": [],
+            "docs": [
+              "Transfer recipient. 'None' in case of burning tokens."
+            ],
             "indexed": true,
             "label": "to",
             "type": {
               "displayName": [
                 "Option"
               ],
-              "type": 16
+              "type": 26
             }
           },
           {
-            "docs": [],
+            "docs": [
+              "Amount of tokens transferred (or minted/burned)."
+            ],
             "indexed": false,
             "label": "value",
             "type": {
@@ -192,8 +213,12 @@ export const abi = `
             }
           }
         ],
-        "docs": [],
-        "label": "Transfer"
+        "docs": [
+          "Event emitted when transfer of tokens occurs."
+        ],
+        "label": "Transfer",
+        "module_path": "token::events",
+        "signature_topic": "0x990df076cb1e9527aa102cd100c1481efe393eeabb5825f9af1f5e58221864de"
       }
     ],
     "lang_error": {
@@ -201,79 +226,9 @@ export const abi = `
         "ink",
         "LangError"
       ],
-      "type": 6
+      "type": 18
     },
     "messages": [
-      {
-        "args": [
-          {
-            "label": "to",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 7
-            }
-          },
-          {
-            "label": "value",
-            "type": {
-              "displayName": [
-                "u128"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "default": false,
-        "docs": [],
-        "label": "mint",
-        "mutates": true,
-        "payable": false,
-        "returnType": {
-          "displayName": [
-            "ink",
-            "MessageResult"
-          ],
-          "type": 9
-        },
-        "selector": "0xcfdd9aa2"
-      },
-      {
-        "args": [
-          {
-            "label": "from",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 7
-            }
-          },
-          {
-            "label": "value",
-            "type": {
-              "displayName": [
-                "u128"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "default": false,
-        "docs": [],
-        "label": "burn",
-        "mutates": true,
-        "payable": false,
-        "returnType": {
-          "displayName": [
-            "ink",
-            "MessageResult"
-          ],
-          "type": 9
-        },
-        "selector": "0xb1efc17b"
-      },
       {
         "args": [],
         "default": false,
@@ -286,7 +241,7 @@ export const abi = `
             "ink",
             "MessageResult"
           ],
-          "type": 12
+          "type": 19
         },
         "selector": "0x162df8c2"
       },
@@ -298,7 +253,7 @@ export const abi = `
               "displayName": [
                 "AccountId"
               ],
-              "type": 7
+              "type": 2
             }
           }
         ],
@@ -312,7 +267,7 @@ export const abi = `
             "ink",
             "MessageResult"
           ],
-          "type": 12
+          "type": 19
         },
         "selector": "0x6568382f"
       },
@@ -324,7 +279,7 @@ export const abi = `
               "displayName": [
                 "AccountId"
               ],
-              "type": 7
+              "type": 2
             }
           },
           {
@@ -333,7 +288,7 @@ export const abi = `
               "displayName": [
                 "AccountId"
               ],
-              "type": 7
+              "type": 2
             }
           }
         ],
@@ -347,7 +302,7 @@ export const abi = `
             "ink",
             "MessageResult"
           ],
-          "type": 12
+          "type": 19
         },
         "selector": "0x4d47d921"
       },
@@ -359,7 +314,7 @@ export const abi = `
               "displayName": [
                 "AccountId"
               ],
-              "type": 7
+              "type": 2
             }
           },
           {
@@ -377,7 +332,7 @@ export const abi = `
               "displayName": [
                 "Vec"
               ],
-              "type": 13
+              "type": 20
             }
           }
         ],
@@ -391,7 +346,7 @@ export const abi = `
             "ink",
             "MessageResult"
           ],
-          "type": 9
+          "type": 21
         },
         "selector": "0xdb20f9f5"
       },
@@ -403,7 +358,7 @@ export const abi = `
               "displayName": [
                 "AccountId"
               ],
-              "type": 7
+              "type": 2
             }
           },
           {
@@ -412,7 +367,7 @@ export const abi = `
               "displayName": [
                 "AccountId"
               ],
-              "type": 7
+              "type": 2
             }
           },
           {
@@ -430,7 +385,7 @@ export const abi = `
               "displayName": [
                 "Vec"
               ],
-              "type": 13
+              "type": 20
             }
           }
         ],
@@ -444,7 +399,7 @@ export const abi = `
             "ink",
             "MessageResult"
           ],
-          "type": 9
+          "type": 21
         },
         "selector": "0x54b3c76e"
       },
@@ -456,7 +411,7 @@ export const abi = `
               "displayName": [
                 "AccountId"
               ],
-              "type": 7
+              "type": 2
             }
           },
           {
@@ -479,7 +434,7 @@ export const abi = `
             "ink",
             "MessageResult"
           ],
-          "type": 9
+          "type": 21
         },
         "selector": "0xb20f1bbd"
       },
@@ -491,7 +446,7 @@ export const abi = `
               "displayName": [
                 "AccountId"
               ],
-              "type": 7
+              "type": 2
             }
           },
           {
@@ -514,7 +469,7 @@ export const abi = `
             "ink",
             "MessageResult"
           ],
-          "type": 9
+          "type": 21
         },
         "selector": "0x96d6b57a"
       },
@@ -526,7 +481,7 @@ export const abi = `
               "displayName": [
                 "AccountId"
               ],
-              "type": 7
+              "type": 2
             }
           },
           {
@@ -549,9 +504,35 @@ export const abi = `
             "ink",
             "MessageResult"
           ],
-          "type": 9
+          "type": 21
         },
         "selector": "0xfecb57d5"
+      },
+      {
+        "args": [
+          {
+            "label": "value",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "PSP22Mintable::mint",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 21
+        },
+        "selector": "0xfc3c75d4"
       },
       {
         "args": [],
@@ -565,7 +546,7 @@ export const abi = `
             "ink",
             "MessageResult"
           ],
-          "type": 14
+          "type": 24
         },
         "selector": "0x3d261bd4"
       },
@@ -581,7 +562,7 @@ export const abi = `
             "ink",
             "MessageResult"
           ],
-          "type": 14
+          "type": 24
         },
         "selector": "0x34205be5"
       },
@@ -597,7 +578,7 @@ export const abi = `
             "ink",
             "MessageResult"
           ],
-          "type": 15
+          "type": 25
         },
         "selector": "0x7271b782"
       }
@@ -626,11 +607,12 @@ export const abi = `
                         "root": {
                           "layout": {
                             "leaf": {
-                              "key": "0x45c746d4",
+                              "key": "0xd446c745",
                               "ty": 0
                             }
                           },
-                          "root_key": "0x45c746d4"
+                          "root_key": "0xd446c745",
+                          "ty": 1
                         }
                       },
                       "name": "balances"
@@ -640,11 +622,12 @@ export const abi = `
                         "root": {
                           "layout": {
                             "leaf": {
-                              "key": "0x00efb3a1",
+                              "key": "0xa1b3ef00",
                               "ty": 0
                             }
                           },
-                          "root_key": "0x00efb3a1"
+                          "root_key": "0xa1b3ef00",
+                          "ty": 9
                         }
                       },
                       "name": "allowances"
@@ -671,7 +654,7 @@ export const abi = `
                           "layout": {
                             "leaf": {
                               "key": "0x00000000",
-                              "ty": 1
+                              "ty": 13
                             }
                           },
                           "name": "0"
@@ -700,7 +683,7 @@ export const abi = `
                           "layout": {
                             "leaf": {
                               "key": "0x00000000",
-                              "ty": 1
+                              "ty": 13
                             }
                           },
                           "name": "0"
@@ -717,7 +700,7 @@ export const abi = `
               "layout": {
                 "leaf": {
                   "key": "0x00000000",
-                  "ty": 2
+                  "ty": 4
                 }
               },
               "name": "decimals"
@@ -726,7 +709,8 @@ export const abi = `
           "name": "Token"
         }
       },
-      "root_key": "0x00000000"
+      "root_key": "0x00000000",
+      "ty": 14
     }
   },
   "types": [
@@ -742,12 +726,63 @@ export const abi = `
       "id": 1,
       "type": {
         "def": {
-          "primitive": "str"
-        }
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "K",
+            "type": 2
+          },
+          {
+            "name": "V",
+            "type": 0
+          },
+          {
+            "name": "KeyType",
+            "type": 5
+          }
+        ],
+        "path": [
+          "ink_storage",
+          "lazy",
+          "mapping",
+          "Mapping"
+        ]
       }
     },
     {
       "id": 2,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "type": 3,
+                "typeName": "[u8; 32]"
+              }
+            ]
+          }
+        },
+        "path": [
+          "ink_primitives",
+          "types",
+          "AccountId"
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "type": {
+        "def": {
+          "array": {
+            "len": 32,
+            "type": 4
+          }
+        }
+      }
+    },
+    {
+      "id": 4,
       "type": {
         "def": {
           "primitive": "u8"
@@ -755,7 +790,226 @@ export const abi = `
       }
     },
     {
-      "id": 3,
+      "id": 5,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "L",
+            "type": 6
+          },
+          {
+            "name": "R",
+            "type": 7
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ResolverKey"
+        ]
+      }
+    },
+    {
+      "id": 6,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "AutoKey"
+        ]
+      }
+    },
+    {
+      "id": 7,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "ParentKey",
+            "type": 8
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ManualKey"
+        ]
+      }
+    },
+    {
+      "id": 8,
+      "type": {
+        "def": {
+          "tuple": []
+        }
+      }
+    },
+    {
+      "id": 9,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "K",
+            "type": 10
+          },
+          {
+            "name": "V",
+            "type": 0
+          },
+          {
+            "name": "KeyType",
+            "type": 11
+          }
+        ],
+        "path": [
+          "ink_storage",
+          "lazy",
+          "mapping",
+          "Mapping"
+        ]
+      }
+    },
+    {
+      "id": 10,
+      "type": {
+        "def": {
+          "tuple": [
+            2,
+            2
+          ]
+        }
+      }
+    },
+    {
+      "id": 11,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "L",
+            "type": 6
+          },
+          {
+            "name": "R",
+            "type": 12
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ResolverKey"
+        ]
+      }
+    },
+    {
+      "id": 12,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "ParentKey",
+            "type": 8
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ManualKey"
+        ]
+      }
+    },
+    {
+      "id": 13,
+      "type": {
+        "def": {
+          "primitive": "str"
+        }
+      }
+    },
+    {
+      "id": 14,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "data",
+                "type": 15,
+                "typeName": "<PSP22Data as::ink::storage::traits::AutoStorableHint<::ink::storage::traits::ManualKey<1355527684u32, ()>,>>::Type"
+              },
+              {
+                "name": "name",
+                "type": 16,
+                "typeName": "<Option<String> as::ink::storage::traits::AutoStorableHint<::ink::storage::traits::ManualKey<2459941612u32, ()>,>>::Type"
+              },
+              {
+                "name": "symbol",
+                "type": 16,
+                "typeName": "<Option<String> as::ink::storage::traits::AutoStorableHint<::ink::storage::traits::ManualKey<1189101269u32, ()>,>>::Type"
+              },
+              {
+                "name": "decimals",
+                "type": 4,
+                "typeName": "<u8 as::ink::storage::traits::AutoStorableHint<::ink::storage::traits::ManualKey<2233024958u32, ()>,>>::Type"
+              }
+            ]
+          }
+        },
+        "path": [
+          "token",
+          "token",
+          "Token"
+        ]
+      }
+    },
+    {
+      "id": 15,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "total_supply",
+                "type": 0,
+                "typeName": "<u128 as::ink::storage::traits::AutoStorableHint<::ink::storage::traits::ManualKey<2948691470u32, ()>,>>::Type"
+              },
+              {
+                "name": "balances",
+                "type": 1,
+                "typeName": "<Mapping<AccountId, u128> as::ink::storage::traits::AutoStorableHint<::ink::storage::traits::ManualKey<1170687700u32,()>,>>::Type"
+              },
+              {
+                "name": "allowances",
+                "type": 9,
+                "typeName": "<Mapping<(AccountId, AccountId), u128> as::ink::storage::traits::AutoStorableHint<::ink::storage::traits::ManualKey<15709089u32, ()>,>>::Type"
+              }
+            ]
+          }
+        },
+        "path": [
+          "token",
+          "data",
+          "PSP22Data"
+        ]
+      }
+    },
+    {
+      "id": 16,
       "type": {
         "def": {
           "variant": {
@@ -767,7 +1021,7 @@ export const abi = `
               {
                 "fields": [
                   {
-                    "type": 1
+                    "type": 13
                   }
                 ],
                 "index": 1,
@@ -779,7 +1033,7 @@ export const abi = `
         "params": [
           {
             "name": "T",
-            "type": 1
+            "type": 13
           }
         ],
         "path": [
@@ -788,7 +1042,7 @@ export const abi = `
       }
     },
     {
-      "id": 4,
+      "id": 17,
       "type": {
         "def": {
           "variant": {
@@ -796,7 +1050,7 @@ export const abi = `
               {
                 "fields": [
                   {
-                    "type": 5
+                    "type": 8
                   }
                 ],
                 "index": 0,
@@ -805,7 +1059,7 @@ export const abi = `
               {
                 "fields": [
                   {
-                    "type": 6
+                    "type": 18
                   }
                 ],
                 "index": 1,
@@ -817,11 +1071,11 @@ export const abi = `
         "params": [
           {
             "name": "T",
-            "type": 5
+            "type": 8
           },
           {
             "name": "E",
-            "type": 6
+            "type": 18
           }
         ],
         "path": [
@@ -830,15 +1084,7 @@ export const abi = `
       }
     },
     {
-      "id": 5,
-      "type": {
-        "def": {
-          "tuple": []
-        }
-      }
-    },
-    {
-      "id": 6,
+      "id": 18,
       "type": {
         "def": {
           "variant": {
@@ -857,38 +1103,59 @@ export const abi = `
       }
     },
     {
-      "id": 7,
+      "id": 19,
       "type": {
         "def": {
-          "composite": {
-            "fields": [
+          "variant": {
+            "variants": [
               {
-                "type": 8,
-                "typeName": "[u8; 32]"
+                "fields": [
+                  {
+                    "type": 0
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 18
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
               }
             ]
           }
         },
+        "params": [
+          {
+            "name": "T",
+            "type": 0
+          },
+          {
+            "name": "E",
+            "type": 18
+          }
+        ],
         "path": [
-          "ink_primitives",
-          "types",
-          "AccountId"
+          "Result"
         ]
       }
     },
     {
-      "id": 8,
+      "id": 20,
       "type": {
         "def": {
-          "array": {
-            "len": 32,
-            "type": 2
+          "sequence": {
+            "type": 4
           }
         }
       }
     },
     {
-      "id": 9,
+      "id": 21,
       "type": {
         "def": {
           "variant": {
@@ -896,7 +1163,7 @@ export const abi = `
               {
                 "fields": [
                   {
-                    "type": 10
+                    "type": 22
                   }
                 ],
                 "index": 0,
@@ -905,7 +1172,7 @@ export const abi = `
               {
                 "fields": [
                   {
-                    "type": 6
+                    "type": 18
                   }
                 ],
                 "index": 1,
@@ -917,11 +1184,11 @@ export const abi = `
         "params": [
           {
             "name": "T",
-            "type": 10
+            "type": 22
           },
           {
             "name": "E",
-            "type": 6
+            "type": 18
           }
         ],
         "path": [
@@ -930,7 +1197,7 @@ export const abi = `
       }
     },
     {
-      "id": 10,
+      "id": 22,
       "type": {
         "def": {
           "variant": {
@@ -938,7 +1205,7 @@ export const abi = `
               {
                 "fields": [
                   {
-                    "type": 5
+                    "type": 8
                   }
                 ],
                 "index": 0,
@@ -947,7 +1214,7 @@ export const abi = `
               {
                 "fields": [
                   {
-                    "type": 11
+                    "type": 23
                   }
                 ],
                 "index": 1,
@@ -959,11 +1226,11 @@ export const abi = `
         "params": [
           {
             "name": "T",
-            "type": 5
+            "type": 8
           },
           {
             "name": "E",
-            "type": 11
+            "type": 23
           }
         ],
         "path": [
@@ -972,7 +1239,7 @@ export const abi = `
       }
     },
     {
-      "id": 11,
+      "id": 23,
       "type": {
         "def": {
           "variant": {
@@ -980,7 +1247,7 @@ export const abi = `
               {
                 "fields": [
                   {
-                    "type": 1,
+                    "type": 13,
                     "typeName": "String"
                   }
                 ],
@@ -1006,7 +1273,7 @@ export const abi = `
               {
                 "fields": [
                   {
-                    "type": 1,
+                    "type": 13,
                     "typeName": "String"
                   }
                 ],
@@ -1024,7 +1291,7 @@ export const abi = `
       }
     },
     {
-      "id": 12,
+      "id": 24,
       "type": {
         "def": {
           "variant": {
@@ -1032,7 +1299,7 @@ export const abi = `
               {
                 "fields": [
                   {
-                    "type": 0
+                    "type": 16
                   }
                 ],
                 "index": 0,
@@ -1041,7 +1308,7 @@ export const abi = `
               {
                 "fields": [
                   {
-                    "type": 6
+                    "type": 18
                   }
                 ],
                 "index": 1,
@@ -1053,11 +1320,11 @@ export const abi = `
         "params": [
           {
             "name": "T",
-            "type": 0
+            "type": 16
           },
           {
             "name": "E",
-            "type": 6
+            "type": 18
           }
         ],
         "path": [
@@ -1066,17 +1333,7 @@ export const abi = `
       }
     },
     {
-      "id": 13,
-      "type": {
-        "def": {
-          "sequence": {
-            "type": 2
-          }
-        }
-      }
-    },
-    {
-      "id": 14,
+      "id": 25,
       "type": {
         "def": {
           "variant": {
@@ -1084,7 +1341,7 @@ export const abi = `
               {
                 "fields": [
                   {
-                    "type": 3
+                    "type": 4
                   }
                 ],
                 "index": 0,
@@ -1093,7 +1350,7 @@ export const abi = `
               {
                 "fields": [
                   {
-                    "type": 6
+                    "type": 18
                   }
                 ],
                 "index": 1,
@@ -1105,11 +1362,11 @@ export const abi = `
         "params": [
           {
             "name": "T",
-            "type": 3
+            "type": 4
           },
           {
             "name": "E",
-            "type": 6
+            "type": 18
           }
         ],
         "path": [
@@ -1118,49 +1375,7 @@ export const abi = `
       }
     },
     {
-      "id": 15,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 2
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 6
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 2
-          },
-          {
-            "name": "E",
-            "type": 6
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 16,
+      "id": 26,
       "type": {
         "def": {
           "variant": {
@@ -1172,7 +1387,7 @@ export const abi = `
               {
                 "fields": [
                   {
-                    "type": 7
+                    "type": 2
                   }
                 ],
                 "index": 1,
@@ -1184,7 +1399,7 @@ export const abi = `
         "params": [
           {
             "name": "T",
-            "type": 7
+            "type": 2
           }
         ],
         "path": [
@@ -1193,13 +1408,13 @@ export const abi = `
       }
     },
     {
-      "id": 17,
+      "id": 27,
       "type": {
         "def": {
           "composite": {
             "fields": [
               {
-                "type": 8,
+                "type": 3,
                 "typeName": "[u8; 32]"
               }
             ]
@@ -1213,7 +1428,7 @@ export const abi = `
       }
     },
     {
-      "id": 18,
+      "id": 28,
       "type": {
         "def": {
           "primitive": "u64"
@@ -1221,7 +1436,7 @@ export const abi = `
       }
     },
     {
-      "id": 19,
+      "id": 29,
       "type": {
         "def": {
           "primitive": "u32"
@@ -1229,7 +1444,7 @@ export const abi = `
       }
     },
     {
-      "id": 20,
+      "id": 30,
       "type": {
         "def": {
           "variant": {}
@@ -1242,5 +1457,5 @@ export const abi = `
       }
     }
   ],
-  "version": "4"
+  "version": 5
 }`

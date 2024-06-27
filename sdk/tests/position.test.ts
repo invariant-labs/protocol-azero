@@ -71,7 +71,7 @@ describe('position', async () => {
       timestamp: 0n
     }
 
-    objectEquals(result.events[0], expectedCreatePositionEvent, ['timestamp'])
+    objectEquals(result.events[4], expectedCreatePositionEvent, ['timestamp'])
   })
 
   it('create position', async () => {
@@ -121,7 +121,8 @@ describe('position', async () => {
         timestamp: 0n
       }
 
-      objectEquals(result.events[0], expectedRemovePositionEvent, ['timestamp'])
+      console.log(result)
+      objectEquals(result.events[4], expectedRemovePositionEvent, ['timestamp'])
 
       assertThrowsAsync(invariant.getPosition(account.address, 0n), InvariantError.PositionNotFound)
       const positions = await invariant.getAllPositions(account.address)
@@ -176,7 +177,7 @@ describe('position', async () => {
       const amount: TokenAmount = 1000n
       const swapper = keyring.addFromUri('//Bob')
 
-      await psp22.mint(swapper, swapper.address, amount, tokenX)
+      await psp22.mint(swapper, amount, tokenX)
       await psp22.approve(swapper, invariant.contract.address.toString(), amount, tokenX)
 
       const poolBefore = await invariant.getPool(token0Address, token1Address, feeTier)

@@ -97,8 +97,8 @@ describe('events', async () => {
       0n
     )
 
-    assert.deepEqual(result.events.length, 1)
-    objectEquals(result.events[0], expectedCreatePositionEvent, ['timestamp'])
+    assert.deepEqual(result.events.length, 5)
+    objectEquals(result.events[4], expectedCreatePositionEvent, ['timestamp'])
     assert.deepEqual(wasFired, true)
   })
 
@@ -202,9 +202,9 @@ describe('events', async () => {
       getGlobalMinSqrtPrice()
     )
 
-    assert.deepEqual(result.events.length, 2)
+    assert.deepEqual(result.events.length, 5)
     objectEquals(result.events[0] as CrossTickEvent, expectedCrossTickEvent, ['timestamp'])
-    objectEquals(result.events[1] as SwapEvent, expectedSwapEvent, ['timestamp'])
+    objectEquals(result.events[4] as SwapEvent, expectedSwapEvent, ['timestamp'])
     assert.deepEqual(wasCrossTickEventFired, true)
     assert.deepEqual(wasSwapEventFired, true)
   })
@@ -253,8 +253,8 @@ describe('events', async () => {
 
     const result = await invariant.removePosition(account, 0n)
 
-    assert.deepEqual(result.events.length, 1)
-    objectEquals(result.events[0], expectedRemovePositionEvent, ['timestamp'])
+    assert.deepEqual(result.events.length, 3)
+    objectEquals(result.events[2], expectedRemovePositionEvent, ['timestamp'])
     assert.deepEqual(wasFired, true)
   })
 

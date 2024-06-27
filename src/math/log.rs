@@ -17,13 +17,22 @@ const LOG2_ACCURACY: u64 = 1u64 << (31 - LOG2_MIN_BINARY_POSITION);
 const SQRT_PRICE_DENOMINATOR: u128 = 1_000000_000000_000000_000000;
 
 fn sqrt_price_to_x32(decimal: SqrtPrice) -> u64 {
-    (decimal.get() * LOG2_ONE / SQRT_PRICE_DENOMINATOR) as u64
+    (decimal
+        .get()
+        .checked_mul(LOG2_ONE)
+        .unwrap()
+        .checked_div(SQRT_PRICE_DENOMINATOR)
+        .unwrap()) as u64
 }
 
 fn align_tick_to_spacing(accurate_tick: i32, tick_spacing: i32) -> i32 {
     match accurate_tick > 0 {
-        true => accurate_tick - (accurate_tick % tick_spacing),
-        false => accurate_tick - (accurate_tick.rem_euclid(tick_spacing)),
+        true => accurate_tick
+            .checked_sub(accurate_tick.checked_rem(tick_spacing).unwrap())
+            .unwrap(),
+        false => accurate_tick
+            .checked_sub(accurate_tick.rem_euclid(tick_spacing))
+            .unwrap(),
     }
 }
 
@@ -62,7 +71,9 @@ fn log2_iterative_approximation_x32(mut sqrt_price_x32: u64) -> (bool, u64) {
     // log2(x) = -log2(1/x), when x < 1
     if (sqrt_price_x32 as u128) < LOG2_ONE {
         sign = false;
-        sqrt_price_x32 = (LOG2_DOUBLE_ONE / (sqrt_price_x32 as u128 + 1)) as u64
+        sqrt_price_x32 = (LOG2_DOUBLE_ONE
+            .checked_div((sqrt_price_x32 as u128).checked_add(1).unwrap()))
+        .unwrap() as u64
     }
     let log2_floor = log2_floor_x32(sqrt_price_x32 >> LOG2_SCALE);
     let mut result = log2_floor << LOG2_SCALE;
@@ -73,7 +84,7 @@ fn log2_iterative_approximation_x32(mut sqrt_price_x32: u64) -> (bool, u64) {
     };
     let mut delta: u64 = LOG2_HALF;
     while delta > LOG2_ACCURACY {
-        y = y * y / LOG2_ONE;
+        y = y.checked_mul(y).unwrap() / LOG2_ONE;
         if y >= LOG2_TWO {
             result |= delta;
             y >>= 1;
@@ -92,17 +103,23 @@ pub fn get_tick_at_sqrt_price(sqrt_price: SqrtPrice, tick_spacing: u16) -> Track
     let (log2_sign, log2_sqrt_price) = log2_iterative_approximation_x32(sqrt_price_x32);
 
     let abs_floor_tick: i32 = match log2_sign {
-        true => log2_sqrt_price / LOG2_SQRT_10001,
-        false => (log2_sqrt_price + LOG2_NEGATIVE_MAX_LOSE) / LOG2_SQRT_10001,
+        true => log2_sqrt_price.checked_div(LOG2_SQRT_10001).unwrap(),
+        false => (log2_sqrt_price.checked_add(LOG2_NEGATIVE_MAX_LOSE).unwrap())
+            .checked_div(LOG2_SQRT_10001)
+            .unwrap(),
     } as i32;
 
     let nearer_tick = match log2_sign {
         true => abs_floor_tick,
-        false => -abs_floor_tick,
+        false => 0i32.checked_sub(abs_floor_tick).unwrap(),
     };
     let farther_tick = match log2_sign {
-        true => abs_floor_tick + 1,
-        false => -abs_floor_tick - 1,
+        true => abs_floor_tick.checked_add(1).unwrap(),
+        false => 0i32
+            .checked_sub(abs_floor_tick)
+            .unwrap()
+            .checked_sub(1)
+            .unwrap(),
     };
     let farther_tick_with_spacing = align_tick_to_spacing(farther_tick, tick_spacing as i32);
     let nearer_tick_with_spacing = align_tick_to_spacing(nearer_tick, tick_spacing as i32);
