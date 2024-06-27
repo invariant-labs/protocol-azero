@@ -1,1 +1,10 @@
-src/wasm/target/
+src/
+tests/
+.eslintrc
+.mocharc.json
+build.sh
+package.sh
+prebuild.sh
+publish-wasm.sh
+tests.sh
+tsconfig.json

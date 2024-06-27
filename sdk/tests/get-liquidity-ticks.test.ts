@@ -11,6 +11,7 @@ import { PSP22 } from '../src/psp22'
 import { objectEquals } from '../src/testUtils'
 import { initPolkadotApi, integerSafeCast, newFeeTier, newPoolKey } from '../src/utils'
 import { CHUNK_SIZE, LIQUIDITY_TICKS_LIMIT } from '../src/consts'
+import { describe, it } from 'mocha'
 
 const network = Network.Local
 const api = await initPolkadotApi(network)
@@ -76,9 +77,17 @@ describe('get-liquidity-ticks', async () => {
         const tick = await invariant.getTick(poolKey, i)
 
         if (i > 0n) {
-          objectEquals(singleQueryLiquidityTicks[integerSafeCast(i) + 390 - 1], tick, ['index', 'liquidity', 'sign' ])
+          objectEquals(singleQueryLiquidityTicks[integerSafeCast(i) + 390 - 1], tick, [
+            'index',
+            'liquidity',
+            'sign'
+          ])
         } else {
-          objectEquals(singleQueryLiquidityTicks[integerSafeCast(i) + 390], tick, ['index', 'liquidity', 'sign' ])
+          objectEquals(singleQueryLiquidityTicks[integerSafeCast(i) + 390], tick, [
+            'index',
+            'liquidity',
+            'sign'
+          ])
         }
       }
     }

@@ -12,6 +12,7 @@ import { PSP22 } from '../src/psp22'
 import { assertThrowsAsync } from '../src/testUtils'
 import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
 import { WrappedAZERO } from '../src/wrapped-azero'
+import { describe, it } from 'mocha'
 
 const api = await initPolkadotApi(Network.Local)
 
