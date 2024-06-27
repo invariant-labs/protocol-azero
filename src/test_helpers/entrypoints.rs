@@ -299,6 +299,21 @@ macro_rules! get_all_positions {
 }
 
 #[macro_export]
+macro_rules! get_positions {
+    ($client:ident, $dex:ident, $size:expr, $offset:expr, $caller:ident) => {{
+        let owner = AccountId::from($caller.public_key().0);
+        let mut call_builder = $dex.call_builder::<Invariant>();
+        let call = call_builder.get_positions(owner, $size, $offset);
+        $client
+            .call(&ink_e2e::alice(), &call)
+            .dry_run()
+            .await
+            .unwrap()
+            .return_value()
+    }};
+}
+
+#[macro_export]
 macro_rules! update_position_seconds_per_liquidity {
     ($client:ident, $dex:ty, $dex_address:expr, $index:expr, $pool_key:expr, $caller:ident) => {{
         let message = build_message::<$dex>($dex_address.clone())

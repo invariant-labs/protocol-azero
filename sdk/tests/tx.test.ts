@@ -4,6 +4,7 @@ import { expect } from 'chai'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
 import { initPolkadotApi } from '../src/utils'
+import { describe, it } from 'mocha'
 
 const api = await initPolkadotApi(Network.Local)
 

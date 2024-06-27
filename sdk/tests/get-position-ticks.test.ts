@@ -6,6 +6,7 @@ import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
 import { objectEquals } from '../src/testUtils'
 import { initPolkadotApi, integerSafeCast, newFeeTier, newPoolKey } from '../src/utils'
+import { describe, it } from 'mocha'
 
 const api = await initPolkadotApi(Network.Local)
 
@@ -68,9 +69,9 @@ describe('get-position-ticks', async () => {
     }
   })
 
-  it('should get position ticks with offset', async function() {
+  it('should get position ticks with offset', async function () {
     this.timeout(100000)
-    
+
     await invariant.createPosition(account, poolKey, -10n, 10n, 10n, 1000000000000000000000000n, 0n)
 
     await invariant.createPosition(account, poolKey, -20n, 20n, 10n, 1000000000000000000000000n, 0n)

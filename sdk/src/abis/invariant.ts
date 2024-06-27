@@ -1,7 +1,7 @@
 export const abi = `
 {
   "source": {
-    "hash": "0x0a897c30e3b27b5a24e1b934427c77fc90d1dc812acec38d6fabba13c6090b46",
+    "hash": "0x86f442ed070586bbb8157cda6fdc259b84f953e62727d779806988f81937cd1f",
     "language": "ink! 5.0.0",
     "compiler": "rustc 1.77.0",
     "build_info": {
@@ -74,13 +74,13 @@ export const abi = `
         "displayName": [
           "ChainExtension"
         ],
-        "type": 108
+        "type": 113
       },
       "hash": {
         "displayName": [
           "Hash"
         ],
-        "type": 107
+        "type": 112
       },
       "maxEventTopics": 4,
       "staticBufferSize": 16384,
@@ -220,7 +220,7 @@ export const abi = `
               "displayName": [
                 "Vec"
               ],
-              "type": 98
+              "type": 103
             }
           }
         ],
@@ -482,7 +482,7 @@ export const abi = `
               "displayName": [
                 "Option"
               ],
-              "type": 106
+              "type": 111
             }
           },
           {
@@ -495,7 +495,7 @@ export const abi = `
               "displayName": [
                 "Option"
               ],
-              "type": 106
+              "type": 111
             }
           },
           {
@@ -1013,6 +1013,50 @@ export const abi = `
       {
         "args": [
           {
+            "label": "owner_id",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "label": "size",
+            "type": {
+              "displayName": [
+                "u32"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "label": "offset",
+            "type": {
+              "displayName": [
+                "u32"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "InvariantTrait::get_positions",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0xb2155f6b"
+      },
+      {
+        "args": [
+          {
             "label": "index",
             "type": {
               "displayName": [
@@ -1032,7 +1076,7 @@ export const abi = `
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 80
         },
         "selector": "0x4eb580e1"
       },
@@ -1058,7 +1102,7 @@ export const abi = `
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 80
         },
         "selector": "0xfe63d239"
       },
@@ -1136,7 +1180,7 @@ export const abi = `
             "ink",
             "MessageResult"
           ],
-          "type": 78
+          "type": 83
         },
         "selector": "0x4e9e07ce"
       },
@@ -1242,7 +1286,7 @@ export const abi = `
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 84
         },
         "selector": "0xf91e4a49"
       },
@@ -1277,7 +1321,7 @@ export const abi = `
             "ink",
             "MessageResult"
           ],
-          "type": 81
+          "type": 86
         },
         "selector": "0xb62aa10d"
       },
@@ -1312,7 +1356,7 @@ export const abi = `
             "ink",
             "MessageResult"
           ],
-          "type": 85
+          "type": 90
         },
         "selector": "0xeebd620b"
       },
@@ -1347,7 +1391,7 @@ export const abi = `
             "ink",
             "MessageResult"
           ],
-          "type": 78
+          "type": 83
         },
         "selector": "0xdbae15e5"
       },
@@ -1382,7 +1426,7 @@ export const abi = `
             "ink",
             "MessageResult"
           ],
-          "type": 87
+          "type": 92
         },
         "selector": "0x6dd2d776"
       },
@@ -1398,7 +1442,7 @@ export const abi = `
             "ink",
             "MessageResult"
           ],
-          "type": 91
+          "type": 96
         },
         "selector": "0xd05b6003"
       },
@@ -1433,7 +1477,7 @@ export const abi = `
             "ink",
             "MessageResult"
           ],
-          "type": 92
+          "type": 97
         },
         "selector": "0xcc9476e7"
       },
@@ -1486,7 +1530,7 @@ export const abi = `
             "ink",
             "MessageResult"
           ],
-          "type": 95
+          "type": 100
         },
         "selector": "0x3b83b256"
       },
@@ -1507,7 +1551,7 @@ export const abi = `
               "displayName": [
                 "Vec"
               ],
-              "type": 98
+              "type": 103
             }
           }
         ],
@@ -1521,7 +1565,7 @@ export const abi = `
             "ink",
             "MessageResult"
           ],
-          "type": 99
+          "type": 104
         },
         "selector": "0x8ef8d345"
       },
@@ -1547,7 +1591,7 @@ export const abi = `
             "ink",
             "MessageResult"
           ],
-          "type": 103
+          "type": 108
         },
         "selector": "0xd842f034"
       },
@@ -1591,7 +1635,7 @@ export const abi = `
             "ink",
             "MessageResult"
           ],
-          "type": 104
+          "type": 109
         },
         "selector": "0xf360dea7"
       },
@@ -4584,6 +4628,124 @@ export const abi = `
       "type": {
         "def": {
           "tuple": [
+            78,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "id": 78,
+      "type": {
+        "def": {
+          "sequence": {
+            "type": 79
+          }
+        }
+      }
+    },
+    {
+      "id": 79,
+      "type": {
+        "def": {
+          "tuple": [
+            15,
+            25,
+            36,
+            36
+          ]
+        }
+      }
+    },
+    {
+      "id": 80,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 81
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 55
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 81
+          },
+          {
+            "name": "E",
+            "type": 55
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 81,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 82
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 59
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 82
+          },
+          {
+            "name": "E",
+            "type": 59
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 82,
+      "type": {
+        "def": {
+          "tuple": [
             21,
             21
           ]
@@ -4591,7 +4753,7 @@ export const abi = `
       }
     },
     {
-      "id": 78,
+      "id": 83,
       "type": {
         "def": {
           "variant": {
@@ -4633,7 +4795,7 @@ export const abi = `
       }
     },
     {
-      "id": 79,
+      "id": 84,
       "type": {
         "def": {
           "variant": {
@@ -4641,7 +4803,7 @@ export const abi = `
               {
                 "fields": [
                   {
-                    "type": 80
+                    "type": 85
                   }
                 ],
                 "index": 0,
@@ -4662,7 +4824,7 @@ export const abi = `
         "params": [
           {
             "name": "T",
-            "type": 80
+            "type": 85
           },
           {
             "name": "E",
@@ -4675,7 +4837,7 @@ export const abi = `
       }
     },
     {
-      "id": 80,
+      "id": 85,
       "type": {
         "def": {
           "variant": {
@@ -4717,7 +4879,7 @@ export const abi = `
       }
     },
     {
-      "id": 81,
+      "id": 86,
       "type": {
         "def": {
           "variant": {
@@ -4725,7 +4887,7 @@ export const abi = `
               {
                 "fields": [
                   {
-                    "type": 82
+                    "type": 87
                   }
                 ],
                 "index": 0,
@@ -4746,7 +4908,7 @@ export const abi = `
         "params": [
           {
             "name": "T",
-            "type": 82
+            "type": 87
           },
           {
             "name": "E",
@@ -4759,7 +4921,7 @@ export const abi = `
       }
     },
     {
-      "id": 82,
+      "id": 87,
       "type": {
         "def": {
           "variant": {
@@ -4767,7 +4929,7 @@ export const abi = `
               {
                 "fields": [
                   {
-                    "type": 83
+                    "type": 88
                   }
                 ],
                 "index": 0,
@@ -4788,7 +4950,7 @@ export const abi = `
         "params": [
           {
             "name": "T",
-            "type": 83
+            "type": 88
           },
           {
             "name": "E",
@@ -4801,17 +4963,17 @@ export const abi = `
       }
     },
     {
-      "id": 83,
+      "id": 88,
       "type": {
         "def": {
           "sequence": {
-            "type": 84
+            "type": 89
           }
         }
       }
     },
     {
-      "id": 84,
+      "id": 89,
       "type": {
         "def": {
           "tuple": [
@@ -4822,7 +4984,7 @@ export const abi = `
       }
     },
     {
-      "id": 85,
+      "id": 90,
       "type": {
         "def": {
           "variant": {
@@ -4830,7 +4992,7 @@ export const abi = `
               {
                 "fields": [
                   {
-                    "type": 86
+                    "type": 91
                   }
                 ],
                 "index": 0,
@@ -4851,7 +5013,7 @@ export const abi = `
         "params": [
           {
             "name": "T",
-            "type": 86
+            "type": 91
           },
           {
             "name": "E",
@@ -4864,7 +5026,7 @@ export const abi = `
       }
     },
     {
-      "id": 86,
+      "id": 91,
       "type": {
         "def": {
           "variant": {
@@ -4898,153 +5060,6 @@ export const abi = `
           {
             "name": "E",
             "type": 59
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 87,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 88
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 55
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 88
-          },
-          {
-            "name": "E",
-            "type": 55
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 88,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 89
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 59
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 89
-          },
-          {
-            "name": "E",
-            "type": 59
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 89,
-      "type": {
-        "def": {
-          "tuple": [
-            90,
-            10
-          ]
-        }
-      }
-    },
-    {
-      "id": 90,
-      "type": {
-        "def": {
-          "sequence": {
-            "type": 16
-          }
-        }
-      }
-    },
-    {
-      "id": 91,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 39
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 55
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 39
-          },
-          {
-            "name": "E",
-            "type": 55
           }
         ],
         "path": [
@@ -5098,14 +5113,161 @@ export const abi = `
       "id": 93,
       "type": {
         "def": {
-          "sequence": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 94
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 59
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
             "type": 94
+          },
+          {
+            "name": "E",
+            "type": 59
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 94,
+      "type": {
+        "def": {
+          "tuple": [
+            95,
+            10
+          ]
+        }
+      }
+    },
+    {
+      "id": 95,
+      "type": {
+        "def": {
+          "sequence": {
+            "type": 16
           }
         }
       }
     },
     {
-      "id": 94,
+      "id": 96,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 39
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 55
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 39
+          },
+          {
+            "name": "E",
+            "type": 55
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 97,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 98
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 55
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 98
+          },
+          {
+            "name": "E",
+            "type": 55
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 98,
+      "type": {
+        "def": {
+          "sequence": {
+            "type": 99
+          }
+        }
+      }
+    },
+    {
+      "id": 99,
       "type": {
         "def": {
           "composite": {
@@ -5143,121 +5305,6 @@ export const abi = `
       }
     },
     {
-      "id": 95,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 96
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 55
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 96
-          },
-          {
-            "name": "E",
-            "type": 55
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 96,
-      "type": {
-        "def": {
-          "sequence": {
-            "type": 97
-          }
-        }
-      }
-    },
-    {
-      "id": 97,
-      "type": {
-        "def": {
-          "tuple": [
-            10,
-            9
-          ]
-        }
-      }
-    },
-    {
-      "id": 98,
-      "type": {
-        "def": {
-          "sequence": {
-            "type": 12
-          }
-        }
-      }
-    },
-    {
-      "id": 99,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 100
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 55
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 100
-          },
-          {
-            "name": "E",
-            "type": 55
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
       "id": 100,
       "type": {
         "def": {
@@ -5275,7 +5322,7 @@ export const abi = `
               {
                 "fields": [
                   {
-                    "type": 59
+                    "type": 55
                   }
                 ],
                 "index": 1,
@@ -5291,7 +5338,7 @@ export const abi = `
           },
           {
             "name": "E",
-            "type": 59
+            "type": 55
           }
         ],
         "path": [
@@ -5313,75 +5360,21 @@ export const abi = `
       "id": 102,
       "type": {
         "def": {
-          "composite": {
-            "fields": [
-              {
-                "name": "index",
-                "type": 12,
-                "typeName": "i32"
-              },
-              {
-                "name": "liquidity_change",
-                "type": 19,
-                "typeName": "Liquidity"
-              },
-              {
-                "name": "sign",
-                "type": 33,
-                "typeName": "bool"
-              }
-            ]
-          }
-        },
-        "path": [
-          "invariant",
-          "contracts",
-          "storage",
-          "tick",
-          "LiquidityTick"
-        ]
+          "tuple": [
+            10,
+            9
+          ]
+        }
       }
     },
     {
       "id": 103,
       "type": {
         "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 0
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 55
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
+          "sequence": {
+            "type": 12
           }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 0
-          },
-          {
-            "name": "E",
-            "type": 55
-          }
-        ],
-        "path": [
-          "Result"
-        ]
+        }
       }
     },
     {
@@ -5435,6 +5428,175 @@ export const abi = `
               {
                 "fields": [
                   {
+                    "type": 106
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 59
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 106
+          },
+          {
+            "name": "E",
+            "type": 59
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 106,
+      "type": {
+        "def": {
+          "sequence": {
+            "type": 107
+          }
+        }
+      }
+    },
+    {
+      "id": 107,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "index",
+                "type": 12,
+                "typeName": "i32"
+              },
+              {
+                "name": "liquidity_change",
+                "type": 19,
+                "typeName": "Liquidity"
+              },
+              {
+                "name": "sign",
+                "type": 33,
+                "typeName": "bool"
+              }
+            ]
+          }
+        },
+        "path": [
+          "invariant",
+          "contracts",
+          "storage",
+          "tick",
+          "LiquidityTick"
+        ]
+      }
+    },
+    {
+      "id": 108,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 0
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 55
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 0
+          },
+          {
+            "name": "E",
+            "type": 55
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 109,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 110
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 55
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 110
+          },
+          {
+            "name": "E",
+            "type": 55
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 110,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
                     "type": 0
                   }
                 ],
@@ -5469,7 +5631,7 @@ export const abi = `
       }
     },
     {
-      "id": 106,
+      "id": 111,
       "type": {
         "def": {
           "variant": {
@@ -5502,7 +5664,7 @@ export const abi = `
       }
     },
     {
-      "id": 107,
+      "id": 112,
       "type": {
         "def": {
           "composite": {
@@ -5522,7 +5684,7 @@ export const abi = `
       }
     },
     {
-      "id": 108,
+      "id": 113,
       "type": {
         "def": {
           "variant": {}
