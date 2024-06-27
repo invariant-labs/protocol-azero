@@ -88,6 +88,7 @@ describe('get-positions', async () => {
       feeGrowthOutsideX: 0n,
       feeGrowthOutsideY: 0n
     }
+
     objectEquals(result[0][0][0], firstExpectedPosition, ['lastBlockNumber'])
     objectEquals(result[0][0][1], firstExpectedPool, ['startTimestamp', 'lastTimestamp'])
     objectEquals(result[0][0][2], firstExpectedLowerTick, ['secondsOutside'])
@@ -131,6 +132,7 @@ describe('get-positions', async () => {
       feeGrowthOutsideX: 0n,
       feeGrowthOutsideY: 0n
     }
+
     objectEquals(result[0][1][0], secondExpectedPosition, ['lastBlockNumber'])
     objectEquals(result[0][1][1], secondExpectedPool, ['startTimestamp', 'lastTimestamp'])
     objectEquals(result[0][1][2], secondExpectedLowerTick, ['secondsOutside'])
