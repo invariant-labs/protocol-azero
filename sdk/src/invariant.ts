@@ -23,9 +23,7 @@ import {
   TokenAmount,
   calculateTick,
   getMaxSqrtPrice,
-  getMaxTick,
-  getMinSqrtPrice,
-  getMinTick
+  getMinSqrtPrice
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import {
   CHUNK_SIZE,
@@ -58,7 +56,9 @@ import {
   parse,
   parseEvent,
   positionToTick,
-  sendQuery
+  sendQuery,
+  getMaxTick,
+  getMinTick
 } from './utils.js'
 import { SubmittableExtrinsic } from '@polkadot/api/types/submittable'
 export class Invariant {
