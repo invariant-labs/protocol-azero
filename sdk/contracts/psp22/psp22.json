@@ -1,11 +1,11 @@
 {
   "source": {
-    "hash": "0x5780048a3ef2f7119be25ae9aeaa055bfa86e43e7daff36643b60659f78a41c7",
+    "hash": "0xb4082b7d4aedb8479925aa96a383ea722dc1a7e9b29ad5a4d5f95ad707db4e09",
     "language": "ink! 5.0.0",
     "compiler": "rustc 1.77.0",
     "build_info": {
       "build_mode": "Release",
-      "cargo_contract_version": "3.2.0",
+      "cargo_contract_version": "4.1.1",
       "rust_toolchain": "stable-x86_64-unknown-linux-gnu",
       "wasm_opt_settings": {
         "keep_debug_symbols": false,
@@ -24,6 +24,7 @@
     "homepage": "https://github.com/Cardinal-Cryptography/PSP22",
     "license": "Apache-2.0"
   },
+  "image": null,
   "spec": {
     "constructors": [
       {

@@ -1,11 +1,11 @@
 {
   "source": {
-    "hash": "0xcef1f27cccd47579e5683b42064d2920ecc30364bf1f1f42de0ca9d76b27177a",
+    "hash": "0x86f442ed070586bbb8157cda6fdc259b84f953e62727d779806988f81937cd1f",
     "language": "ink! 5.0.0",
     "compiler": "rustc 1.77.0",
     "build_info": {
       "build_mode": "Release",
-      "cargo_contract_version": "3.2.0",
+      "cargo_contract_version": "4.1.1",
       "rust_toolchain": "stable-x86_64-unknown-linux-gnu",
       "wasm_opt_settings": {
         "keep_debug_symbols": false,
@@ -20,6 +20,7 @@
       "Invariant Labs"
     ]
   },
+  "image": null,
   "spec": {
     "constructors": [
       {

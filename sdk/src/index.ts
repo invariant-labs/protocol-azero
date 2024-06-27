@@ -80,6 +80,7 @@ export {
   sendTx,
   signAndSendTx,
   simulateInvariantSwap,
-  sqrtPriceToPrice
+  sqrtPriceToPrice,
+  parseEvent
 } from './utils.js'
 export { WrappedAZERO } from './wrapped-azero.js'
