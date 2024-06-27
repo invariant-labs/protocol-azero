@@ -1,11 +1,12 @@
 use crate::{
-    contracts::{FeeTier, LiquidityTick, Pool, PoolKey, Position, PositionTick, Tick},
-    invariant::{CalculateSwapResult, QuoteResult, SwapHop},
+    contracts::{
+        CalculateSwapResult, FeeTier, InvariantError, LiquidityTick, Pool, PoolKey, Position,
+        PositionTick, QuoteResult, SwapHop, Tick,
+    },
     math::{
         liquidity::Liquidity, percentage::Percentage, sqrt_price::SqrtPrice,
         token_amount::TokenAmount,
     },
-    InvariantError,
 };
 use alloc::vec::Vec;
 use ink::primitives::AccountId;

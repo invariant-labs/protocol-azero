@@ -1,45 +1,41 @@
-import {
-  CreatePositionEvent,
-  CrossTickEvent,
-  Liquidity,
-  RemovePositionEvent,
-  SwapEvent
-} from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
+import { Liquidity } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
+
+const invariantActionPrefix = 'invariantTrait::'
 
 export enum InvariantQuery {
-  ProtocolFee = 'invariantTrait::getProtocolFee',
-  GetFeeTiers = 'invariantTrait::getFeeTiers',
-  FeeTierExist = 'invariantTrait::feeTierExist',
-  GetPool = 'invariantTrait::getPool',
-  GetPools = 'invariantTrait::getPools',
-  GetTick = 'invariantTrait::getTick',
-  IsTickInitialized = 'invariantTrait::isTickInitialized',
-  GetPosition = 'invariantTrait::getPosition',
-  GetAllPositions = 'invariantTrait::getAllPositions',
-  Quote = 'invariantTrait::quote',
-  QuoteRoute = 'invariantTrait::quoteRoute',
-  getPositionTicks = 'invariantTrait::getPositionTicks',
-  getUserPositionAmount = 'invariantTrait::getUserPositionAmount',
-  GetTickmap = 'invariantTrait::getTickmap',
-  getLiquidityTicks = 'invariantTrait::getLiquidityTicks',
-  getLiquidityTicksAmount = 'invariantTrait::getLiquidityTicksAmount',
-  getAllPoolsForPair = 'invariantTrait::getAllPoolsForPair'
+  ProtocolFee = `${invariantActionPrefix}getProtocolFee`,
+  GetFeeTiers = `${invariantActionPrefix}getFeeTiers`,
+  FeeTierExist = `${invariantActionPrefix}feeTierExist`,
+  GetPool = `${invariantActionPrefix}getPool`,
+  GetPools = `${invariantActionPrefix}getPools`,
+  GetTick = `${invariantActionPrefix}getTick`,
+  IsTickInitialized = `${invariantActionPrefix}isTickInitialized`,
+  GetPosition = `${invariantActionPrefix}getPosition`,
+  GetAllPositions = `${invariantActionPrefix}getAllPositions`,
+  Quote = `${invariantActionPrefix}quote`,
+  QuoteRoute = `${invariantActionPrefix}quoteRoute`,
+  GetPositionTicks = `${invariantActionPrefix}getPositionTicks`,
+  GetUserPositionAmount = `${invariantActionPrefix}getUserPositionAmount`,
+  GetTickmap = `${invariantActionPrefix}getTickmap`,
+  GetLiquidityTicks = `${invariantActionPrefix}getLiquidityTicks`,
+  GetLiquidityTicksAmount = `${invariantActionPrefix}getLiquidityTicksAmount`,
+  GetAllPoolsForPair = `${invariantActionPrefix}getAllPoolsForPair`
 }
 
 export enum InvariantTx {
-  ChangeProtocolFee = 'invariantTrait::changeProtocolFee',
-  CreatePool = 'invariantTrait::createPool',
-  CreatePosition = 'invariantTrait::createPosition',
-  TransferPosition = 'invariantTrait::transferPosition',
-  RemovePosition = 'invariantTrait::removePosition',
-  ClaimFee = 'invariantTrait::claimFee',
-  AddFeeTier = 'invariantTrait::addFeeTier',
-  RemoveFeeTier = 'invariantTrait::removeFeeTier',
-  ChangeFeeReceiver = 'invariantTrait::changeFeeReceiver',
-  WithdrawProtocolFee = 'invariantTrait::withdrawProtocolFee',
-  Swap = 'invariantTrait::swap',
-  SwapRoute = 'invariantTrait::swapRoute',
-  WithdrawAllWAZERO = 'invariantTrait::withdrawAllWazero'
+  ChangeProtocolFee = `${invariantActionPrefix}changeProtocolFee`,
+  CreatePool = `${invariantActionPrefix}createPool`,
+  CreatePosition = `${invariantActionPrefix}createPosition`,
+  TransferPosition = `${invariantActionPrefix}transferPosition`,
+  RemovePosition = `${invariantActionPrefix}removePosition`,
+  ClaimFee = `${invariantActionPrefix}claimFee`,
+  AddFeeTier = `${invariantActionPrefix}addFeeTier`,
+  RemoveFeeTier = `${invariantActionPrefix}removeFeeTier`,
+  ChangeFeeReceiver = `${invariantActionPrefix}changeFeeReceiver`,
+  WithdrawProtocolFee = `${invariantActionPrefix}withdrawProtocolFee`,
+  Swap = `${invariantActionPrefix}swap`,
+  SwapRoute = `${invariantActionPrefix}swapRoute`,
+  WithdrawAllWAZERO = `${invariantActionPrefix}withdrawAllWazero`
 }
 
 export enum PSP22Query {
@@ -52,7 +48,7 @@ export enum PSP22Query {
 }
 
 export enum PSP22Tx {
-  Mint = 'mint',
+  Mint = 'psp22Mintable::mint',
   Transfer = 'psp22::transfer',
   Approve = 'psp22::approve'
 }
@@ -65,11 +61,13 @@ export enum WrappedAZEROTx {
 export type Tx = InvariantTx | PSP22Tx | WrappedAZEROTx
 export type Query = InvariantQuery | PSP22Query
 
+const invariantEventPrefix = 'invariant::contracts::events::'
+
 export enum InvariantEvent {
-  CreatePositionEvent = 'CreatePositionEvent',
-  CrossTickEvent = 'CrossTickEvent',
-  RemovePositionEvent = 'RemovePositionEvent',
-  SwapEvent = 'SwapEvent'
+  CreatePositionEvent = `${invariantEventPrefix}CreatePositionEvent`,
+  CrossTickEvent = `${invariantEventPrefix}CrossTickEvent`,
+  RemovePositionEvent = `${invariantEventPrefix}RemovePositionEvent`,
+  SwapEvent = `${invariantEventPrefix}SwapEvent`
 }
 
 export type TxResult = {
@@ -80,10 +78,10 @@ export interface EventTxResult<T> extends TxResult {
   events: T
 }
 
-export type CreatePositionTxResult = EventTxResult<[CreatePositionEvent]>
-export type RemovePositionTxResult = EventTxResult<[RemovePositionEvent]>
-export type SwapTxResult = EventTxResult<[CrossTickEvent, SwapEvent] | [SwapEvent]>
-export type SwapRouteTxResult = EventTxResult<(CrossTickEvent | SwapEvent)[]>
+export type CreatePositionTxResult = EventTxResult<object[]>
+export type RemovePositionTxResult = EventTxResult<object[]>
+export type SwapTxResult = EventTxResult<object[]>
+export type SwapRouteTxResult = EventTxResult<object[]>
 
 export type ContractOptions = {
   storageDepositLimit: number | null

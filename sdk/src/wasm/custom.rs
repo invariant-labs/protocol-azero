@@ -10,7 +10,7 @@ use crate::{
     MAX_TICK,
 };
 use serde::{Deserialize, Serialize};
-use traceable_result::{function, location, ok_or_mark_trace, trace, TrackableResult};
+use traceable_result::*;
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;
 use wasm_wrapper::wasm_wrapper;
@@ -89,16 +89,23 @@ pub fn check_tick_to_sqrt_price_relationship(
     tick_spacing: u16,
     sqrt_price: SqrtPrice,
 ) -> TrackableResult<bool> {
-    if tick_index + tick_spacing as i32 > MAX_TICK {
-        let max_tick = get_max_tick(tick_spacing);
+    if tick_index
+        .checked_add(tick_spacing as i32)
+        .ok_or(err!(TrackableError::ADD))?
+        > MAX_TICK
+    {
+        let max_tick = get_max_tick(tick_spacing)?;
         let max_sqrt_price = ok_or_mark_trace!(SqrtPrice::from_tick(max_tick))?;
         if sqrt_price != max_sqrt_price {
             return Ok(false);
         }
     } else {
         let lower_bound = ok_or_mark_trace!(SqrtPrice::from_tick(tick_index))?;
-        let upper_bound =
-            ok_or_mark_trace!(SqrtPrice::from_tick(tick_index + tick_spacing as i32))?;
+        let upper_bound = ok_or_mark_trace!(SqrtPrice::from_tick(
+            tick_index
+                .checked_add(tick_spacing as i32)
+                .ok_or(err!(TrackableError::ADD))?
+        ))?;
         if sqrt_price >= upper_bound || sqrt_price < lower_bound {
             return Ok(false);
         }

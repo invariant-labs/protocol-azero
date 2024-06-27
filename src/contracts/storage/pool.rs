@@ -1,7 +1,7 @@
 use super::{FeeTier, Tick};
 use crate::math::types::sqrt_price::check_tick_to_sqrt_price_relationship;
 use crate::{
-    contracts::PoolKey,
+    contracts::{InvariantError, PoolKey},
     math::{
         clamm::*,
         log::get_tick_at_sqrt_price,
@@ -10,18 +10,15 @@ use crate::{
             sqrt_price::SqrtPrice, token_amount::TokenAmount,
         },
     },
-    InvariantError,
 };
 
 use decimal::*;
 use ink::primitives::AccountId;
 use traceable_result::*;
 
-#[derive(PartialEq, Debug, Clone, scale::Decode, scale::Encode)]
-#[cfg_attr(
-    feature = "std",
-    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
-)]
+#[derive(PartialEq, Debug, Clone)]
+#[ink::scale_derive(Encode, Decode, TypeInfo)]
+#[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
 pub struct Pool {
     pub liquidity: Liquidity,
     pub sqrt_price: SqrtPrice,
@@ -93,7 +90,9 @@ impl Pool {
     ) -> TrackableResult<()> {
         let protocol_fee = amount.big_mul_up(protocol_fee);
 
-        let pool_fee = amount - protocol_fee;
+        let pool_fee = amount
+            .checked_sub(protocol_fee)
+            .map_err(|_| err!("Underflow while calculating pool fee"))?;
 
         if (pool_fee.is_zero() && protocol_fee.is_zero()) || self.liquidity.is_zero() {
             return Ok(());
@@ -103,10 +102,16 @@ impl Pool {
 
         if in_x {
             self.fee_growth_global_x = self.fee_growth_global_x.unchecked_add(fee_growth);
-            self.fee_protocol_token_x += protocol_fee;
+            self.fee_protocol_token_x = self
+                .fee_protocol_token_x
+                .checked_add(protocol_fee)
+                .map_err(|_| err!("Overflow while calculating fee protocol token X"))?;
         } else {
             self.fee_growth_global_y = self.fee_growth_global_y.unchecked_add(fee_growth);
-            self.fee_protocol_token_y += protocol_fee;
+            self.fee_protocol_token_y = self
+                .fee_protocol_token_y
+                .checked_add(protocol_fee)
+                .map_err(|_| err!("Overflow while calculating fee protocol token Y"))?;
         }
         Ok(())
     }
@@ -200,7 +205,9 @@ impl Pool {
         };
 
         self.current_tick_index = if x_to_y && is_enough_amount_to_cross {
-            tick_index - fee_tier.tick_spacing as i32
+            tick_index
+                .checked_sub(fee_tier.tick_spacing as i32)
+                .unwrap()
         } else {
             tick_index
         };

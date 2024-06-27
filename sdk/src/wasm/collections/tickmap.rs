@@ -33,14 +33,20 @@ pub fn tick_to_position_js(tick: i32, tick_spacing: u16) -> TrackableResult<(u16
         )));
     }
 
-    if !(tick % tick_spacing as i32 == 0) {
+    if !(tick
+        .checked_rem(tick_spacing as i32)
+        .ok_or(err!("tick spacing is 0"))?
+        == 0)
+    {
         return Err(err!("tick not divisible by tick spacing"));
     }
 
-    let bitmap_index = (tick + MAX_TICK) / tick_spacing as i32;
+    let bitmap_index = (tick.checked_add(MAX_TICK).unwrap())
+        .checked_div(tick_spacing as i32)
+        .unwrap();
 
-    let chunk: u16 = (bitmap_index / CHUNK_SIZE) as u16;
-    let bit: u8 = (bitmap_index % CHUNK_SIZE) as u8;
+    let chunk: u16 = (bitmap_index.checked_div(CHUNK_SIZE).unwrap()) as u16;
+    let bit: u8 = (bitmap_index.checked_rem(CHUNK_SIZE).unwrap()) as u8;
 
     Ok((chunk, bit))
 }
@@ -54,23 +60,42 @@ pub fn tick_to_position(tick: i32, tick_spacing: u16) -> (u16, u8) {
     );
 
     assert_eq!(
-        (tick % tick_spacing as i32),
+        (tick.checked_rem(tick_spacing as i32).unwrap()),
         0,
         "tick not divisible by tick spacing"
     );
 
-    let bitmap_index = (tick + MAX_TICK) / tick_spacing as i32;
+    let bitmap_index = (tick.checked_add(MAX_TICK).unwrap())
+        .checked_div(tick_spacing as i32)
+        .unwrap();
 
-    let chunk: u16 = (bitmap_index / CHUNK_SIZE) as u16;
-    let bit: u8 = (bitmap_index % CHUNK_SIZE) as u8;
+    let chunk: u16 = (bitmap_index.checked_div(CHUNK_SIZE).unwrap()) as u16;
+    let bit: u8 = (bitmap_index.checked_rem(CHUNK_SIZE).unwrap()) as u8;
 
     (chunk, bit)
 }
 #[wasm_wrapper]
-pub fn position_to_tick(chunk: u16, bit: u8, tick_spacing: u16) -> i32 {
-    let tick_range_limit = MAX_TICK - MAX_TICK % tick_spacing as i32;
-    (chunk as i32 * CHUNK_SIZE * tick_spacing as i32 + bit as i32 * tick_spacing as i32)
-        - tick_range_limit
+pub fn position_to_tick(chunk: u16, bit: u8, tick_spacing: u16) -> TrackableResult<i32> {
+    let tick_range_limit = MAX_TICK
+        .checked_sub(
+            MAX_TICK
+                .checked_rem(tick_spacing as i32)
+                .ok_or(err!("tick spacing is zero"))?,
+        )
+        .ok_or(err!(TrackableError::SUB))?;
+    (chunk as i32)
+        .checked_mul(CHUNK_SIZE)
+        .ok_or(err!(TrackableError::MUL))?
+        .checked_mul(tick_spacing as i32)
+        .ok_or(err!(TrackableError::MUL))?
+        .checked_add(
+            (bit as i32)
+                .checked_mul(tick_spacing as i32)
+                .ok_or(err!(TrackableError::MUL))?,
+        )
+        .ok_or(err!(TrackableError::ADD))?
+        .checked_sub(tick_range_limit)
+        .ok_or(err!(TrackableError::SUB))
 }
 
 pub fn get_bit_at_position(value: u64, position: u8) -> u64 {
@@ -82,32 +107,36 @@ fn flip_bit_at_position(value: u64, position: u8) -> u64 {
 }
 
 pub fn get_search_limit(tick: i32, tick_spacing: u16, up: bool) -> i32 {
-    let index = tick / tick_spacing as i32;
+    let index = tick.checked_div(tick_spacing as i32).unwrap();
 
     // limit unscaled
     let limit = if up {
         // search range is limited to 256 at the time ...
-        let range_limit = index + TICK_SEARCH_RANGE;
+        let range_limit = index.checked_add(TICK_SEARCH_RANGE).unwrap();
         // ...also ticks for sqrt_prices over 2^64 aren't needed
-        let sqrt_price_limit = MAX_TICK / tick_spacing as i32;
+        let sqrt_price_limit = MAX_TICK.checked_div(tick_spacing as i32).unwrap();
 
         range_limit.min(sqrt_price_limit)
     } else {
-        let range_limit = index - TICK_SEARCH_RANGE;
-        let sqrt_price_limit = -MAX_TICK / tick_spacing as i32;
+        let range_limit = index.checked_sub(TICK_SEARCH_RANGE).unwrap();
+        let sqrt_price_limit = 0i32
+            .checked_sub(MAX_TICK)
+            .unwrap()
+            .checked_div(tick_spacing as i32)
+            .unwrap();
 
         range_limit.max(sqrt_price_limit)
     };
 
     // scaled by tick_spacing
-    limit * tick_spacing as i32
+    limit.checked_mul(tick_spacing as i32).unwrap()
 }
 
 impl Tickmap {
     pub fn next_initialized(&self, tick: i32, tick_spacing: u16) -> Option<i32> {
         let limit = get_search_limit(tick, tick_spacing, true);
 
-        if tick + tick_spacing as i32 > MAX_TICK {
+        if tick.checked_add(tick_spacing as i32).unwrap() > MAX_TICK {
             return None;
         }
 
@@ -128,11 +157,15 @@ impl Tickmap {
                 return if chunk < limiting_chunk || (chunk == limiting_chunk && bit <= limiting_bit)
                 {
                     // no possibility of overflow
-                    let index: i32 = (chunk as i32 * CHUNK_SIZE) + bit as i32;
+                    let index: i32 = (chunk as i32)
+                        .checked_mul(CHUNK_SIZE)
+                        .unwrap()
+                        .checked_add(bit as i32)
+                        .unwrap();
 
                     Some(
                         index
-                            .checked_sub(MAX_TICK / tick_spacing as i32)?
+                            .checked_sub(MAX_TICK.checked_div(tick_spacing as i32).unwrap())?
                             .checked_mul(tick_spacing.into())?,
                     )
                 } else {
@@ -177,11 +210,15 @@ impl Tickmap {
                 return if chunk > limiting_chunk || (chunk == limiting_chunk && bit >= limiting_bit)
                 {
                     // no possibility to overflow
-                    let index: i32 = (chunk as i32 * CHUNK_SIZE) + bit as i32;
+                    let index: i32 = (chunk as i32)
+                        .checked_mul(CHUNK_SIZE)
+                        .unwrap()
+                        .checked_add(bit as i32)
+                        .unwrap();
 
                     Some(
                         index
-                            .checked_sub(MAX_TICK / tick_spacing as i32)?
+                            .checked_sub(MAX_TICK.checked_div(tick_spacing as i32).unwrap())?
                             .checked_mul(tick_spacing.into())?,
                     )
                 } else {
@@ -196,7 +233,7 @@ impl Tickmap {
             } else {
                 return None;
             }
-            bit = CHUNK_SIZE as u8 - 1;
+            bit = (CHUNK_SIZE as u8).checked_sub(1).unwrap();
         }
 
         None

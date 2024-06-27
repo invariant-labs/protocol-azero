@@ -56,8 +56,8 @@
     "test:query-on-pair": "mocha ./tests/query-on-pair.test.ts -g query-on-pair"
   },
   "dependencies": {
-    "@polkadot/api": "^10.11.2",
-    "@polkadot/api-contract": "^10.11.2",
+    "@polkadot/api": "^10.12.4",
+    "@polkadot/api-contract": "^10.12.4",
     "@scio-labs/use-inkathon": "^0.6.3",
     "@invariant-labs/a0-sdk-wasm": "^0.1.16",
     "ts-node": "^10.9.2",

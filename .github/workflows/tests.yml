@@ -51,7 +51,7 @@ jobs:
         with:
           command: install
           args:
-            --version 0.39.0 --locked contracts-node
+            --version 0.31.0 --locked contracts-node
 
       - name: Run unit tests
         uses: actions-rs/cargo@v1
@@ -109,7 +109,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: install
-          args: --version 3.2.0 --locked cargo-contract
+          args: --version 4.0.2 --locked cargo-contract
 
       - name: Run cargo fmt
         uses: actions-rs/cargo@v1
@@ -179,7 +179,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: install
-          args: --version 3.2.0 --locked cargo-contract
+          args: --version 4.0.2 --locked cargo-contract
 
       - name: Install wasm-bindgen-cli
         uses: actions-rs/cargo@v1

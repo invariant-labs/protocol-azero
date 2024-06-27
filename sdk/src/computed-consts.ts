@@ -1,4 +1,4 @@
-import { FeeTier } from '@invariant-labs/a0-sdk-wasm'
+import { FeeTier } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { calculateFeeTierWithLinearRatio, getConcentrationArray, integerSafeCast } from './utils.js'
 
 export const FEE_TIERS: FeeTier[] = [

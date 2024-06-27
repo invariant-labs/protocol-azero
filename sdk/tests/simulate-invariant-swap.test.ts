@@ -635,9 +635,9 @@ describe('simulateInvariantSwap', async () => {
     const xToY = true
 
     const mintAmount = 1n << 120n
-    await psp22.mint(account, account.address, mintAmount, token0Address)
+    await psp22.mint(account, mintAmount, token0Address)
     await psp22.approve(account, invariant.contract.address.toString(), mintAmount, token0Address)
-    await psp22.mint(account, account.address, mintAmount, token1Address)
+    await psp22.mint(account, mintAmount, token1Address)
     await psp22.approve(account, invariant.contract.address.toString(), mintAmount, token1Address)
 
     const liquidityDelta = 10000000n * 10n ** 6n

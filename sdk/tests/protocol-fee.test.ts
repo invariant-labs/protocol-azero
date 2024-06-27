@@ -1,6 +1,5 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import { InvariantError } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
@@ -96,10 +95,7 @@ describe('protocol-fee', async () => {
     assert.deepEqual(poolBefore.feeProtocolTokenY, 0n)
 
     await invariant.withdrawProtocolFee(testAccount, poolKey)
-    assertThrowsAsync(
-      invariant.withdrawProtocolFee(account, poolKey),
-      InvariantError.NotFeeReceiver
-    )
+    await assertThrowsAsync(invariant.withdrawProtocolFee(account, poolKey))
 
     const poolAfter = await invariant.getPool(token0Address, token1Address, feeTier)
     assert.deepEqual(poolAfter.feeProtocolTokenX, 0n)

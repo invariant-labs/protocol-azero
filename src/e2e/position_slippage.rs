@@ -1,21 +1,22 @@
 #[cfg(test)]
 pub mod e2e_tests {
+    use crate::invariant::Invariant;
     use crate::{
-        contracts::{entrypoints::InvariantTrait, FeeTier, PoolKey},
+        contracts::{entrypoints::InvariantTrait, FeeTier, InvariantError, PoolKey},
         invariant::InvariantRef,
         math::types::{
             liquidity::Liquidity,
             percentage::Percentage,
             sqrt_price::{calculate_sqrt_price, SqrtPrice},
         },
-        InvariantError,
     };
     use decimal::*;
-    use ink_e2e::build_message;
+    use ink_e2e::ContractsBackend;
     use test_helpers::{
         add_fee_tier, approve, create_dex, create_pool, create_position, create_tokens, get_pool,
         init_slippage_dex_and_tokens, init_slippage_pool_with_liquidity,
     };
+    use token::Token;
     use token::{TokenRef, PSP22};
 
     type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
@@ -25,22 +26,14 @@ pub mod e2e_tests {
         mut client: ink_e2e::Client<C, E>,
     ) -> E2EResult<()> {
         let alice = ink_e2e::alice();
-        let (dex, token_x, token_y) = init_slippage_dex_and_tokens!(client, InvariantRef, TokenRef);
-        let pool_key = init_slippage_pool_with_liquidity!(
-            client,
-            InvariantRef,
-            TokenRef,
-            dex,
-            token_x,
-            token_y
-        );
+        let (dex, token_x, token_y) = init_slippage_dex_and_tokens!(client);
+        let pool_key = init_slippage_pool_with_liquidity!(client, dex, token_x, token_y);
 
         let pool = get_pool!(
             client,
-            InvariantRef,
             dex,
-            token_x,
-            token_y,
+            token_x.account_id,
+            token_y.account_id,
             pool_key.fee_tier
         )
         .unwrap();
@@ -52,7 +45,6 @@ pub mod e2e_tests {
             let tick = pool_key.fee_tier.tick_spacing as i32;
             create_position!(
                 client,
-                InvariantRef,
                 dex,
                 pool_key,
                 -tick,
@@ -74,7 +66,6 @@ pub mod e2e_tests {
 
             create_position!(
                 client,
-                InvariantRef,
                 dex,
                 pool_key,
                 -tick,
@@ -95,22 +86,14 @@ pub mod e2e_tests {
         mut client: ink_e2e::Client<C, E>,
     ) -> E2EResult<()> {
         let alice = ink_e2e::alice();
-        let (dex, token_x, token_y) = init_slippage_dex_and_tokens!(client, InvariantRef, TokenRef);
-        let pool_key = init_slippage_pool_with_liquidity!(
-            client,
-            InvariantRef,
-            TokenRef,
-            dex,
-            token_x,
-            token_y
-        );
+        let (dex, token_x, token_y) = init_slippage_dex_and_tokens!(client);
+        let pool_key = init_slippage_pool_with_liquidity!(client, dex, token_x, token_y);
 
         get_pool!(
             client,
-            InvariantRef,
             dex,
-            token_x,
-            token_y,
+            token_x.account_id,
+            token_y.account_id,
             pool_key.fee_tier
         )
         .unwrap();
@@ -121,7 +104,6 @@ pub mod e2e_tests {
         let tick = pool_key.fee_tier.tick_spacing as i32;
         let result = create_position!(
             client,
-            InvariantRef,
             dex,
             pool_key,
             -tick,
@@ -142,22 +124,14 @@ pub mod e2e_tests {
         mut client: ink_e2e::Client<C, E>,
     ) -> E2EResult<()> {
         let alice = ink_e2e::alice();
-        let (dex, token_x, token_y) = init_slippage_dex_and_tokens!(client, InvariantRef, TokenRef);
-        let pool_key = init_slippage_pool_with_liquidity!(
-            client,
-            InvariantRef,
-            TokenRef,
-            dex,
-            token_x,
-            token_y
-        );
+        let (dex, token_x, token_y) = init_slippage_dex_and_tokens!(client);
+        let pool_key = init_slippage_pool_with_liquidity!(client, dex, token_x, token_y);
 
         get_pool!(
             client,
-            InvariantRef,
             dex,
-            token_x,
-            token_y,
+            token_x.account_id,
+            token_y.account_id,
             pool_key.fee_tier
         )
         .unwrap();
@@ -168,7 +142,6 @@ pub mod e2e_tests {
         let tick = pool_key.fee_tier.tick_spacing as i32;
         let result = create_position!(
             client,
-            InvariantRef,
             dex,
             pool_key,
             -tick,

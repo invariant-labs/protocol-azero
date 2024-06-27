@@ -32,7 +32,9 @@ impl SecondsPerLiquidity {
         if current_timestamp <= last_timestamp {
             return Err(err!("current_timestamp > last_timestamp failed"));
         }
-        let delta_time = current_timestamp - last_timestamp;
+        let delta_time = current_timestamp
+            .checked_sub(last_timestamp)
+            .ok_or(err!("Underflow while calculating delta time"))?;
 
         Ok(Self::new(
             U256::from(delta_time)

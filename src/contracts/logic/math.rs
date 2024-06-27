@@ -130,12 +130,17 @@ pub fn get_liquidity_by_x_sqrt_price(
     if current_sqrt_price < lower_sqrt_price {
         let nominator =
             (lower_sqrt_price.big_mul(upper_sqrt_price)).big_div(SqrtPrice::from_integer(1));
-        let denominator = upper_sqrt_price - lower_sqrt_price;
+        let denominator = upper_sqrt_price
+            .checked_sub(lower_sqrt_price)
+            .map_err(|_| err!("Underflow while calculating denominator"))?;
         let liquidity = Liquidity::new(
             (U256::from(x.get())
-                * U256::from(nominator.get())
-                * U256::from(Liquidity::from_integer(1).get())
-                / U256::from(denominator.get()))
+                .checked_mul(U256::from(nominator.get()))
+                .ok_or_else(|| err!(TrackableError::MUL))?
+                .checked_mul(U256::from(Liquidity::from_integer(1).get()))
+                .ok_or_else(|| err!(TrackableError::MUL))?
+                .checked_div(U256::from(denominator.get()))
+                .ok_or_else(|| err!(TrackableError::DIV))?)
             .try_into()
             .map_err(|_| err!("Overflow in calculating liquidity"))?,
         );
@@ -148,17 +153,24 @@ pub fn get_liquidity_by_x_sqrt_price(
     let nominator = current_sqrt_price
         .big_mul(upper_sqrt_price)
         .big_div(SqrtPrice::from_integer(1));
-    let denominator = upper_sqrt_price - current_sqrt_price;
+    let denominator = upper_sqrt_price
+        .checked_sub(current_sqrt_price)
+        .map_err(|_| err!("Underflow while calculating denominator"))?;
     let liquidity = Liquidity::new(
         (U256::from(x.get())
-            * U256::from(nominator.get())
-            * U256::from(Liquidity::from_integer(1).get())
-            / U256::from(denominator.get()))
+            .checked_mul(U256::from(nominator.get()))
+            .ok_or_else(|| err!(TrackableError::MUL))?
+            .checked_mul(U256::from(Liquidity::from_integer(1).get()))
+            .ok_or_else(|| err!(TrackableError::MUL))?
+            .checked_div(U256::from(denominator.get()))
+            .ok_or_else(|| err!(TrackableError::DIV))?)
         .try_into()
         .map_err(|_| err!("Overflow in calculating liquidity"))?,
     );
 
-    let sqrt_price_diff = current_sqrt_price - lower_sqrt_price;
+    let sqrt_price_diff = current_sqrt_price
+        .checked_sub(lower_sqrt_price)
+        .map_err(|_| err!("Underflow while calculating sqrt price difference"))?;
     let y = calculate_y(sqrt_price_diff, liquidity, rounding_up)?;
     Ok(SingleTokenLiquidity {
         l: liquidity,
@@ -203,12 +215,17 @@ pub fn get_liquidity_by_y_sqrt_price(
     }
 
     if upper_sqrt_price <= current_sqrt_price {
-        let sqrt_price_diff = upper_sqrt_price - lower_sqrt_price;
+        let sqrt_price_diff = upper_sqrt_price
+            .checked_sub(lower_sqrt_price)
+            .map_err(|_| err!("Underflow while calculating sqrt price difference"))?;
         let liquidity = Liquidity::new(
             (U256::from(y.get())
-                * U256::from(SqrtPrice::from_integer(1).get())
-                * U256::from(Liquidity::from_integer(1).get())
-                / U256::from(sqrt_price_diff.get()))
+                .checked_mul(U256::from(SqrtPrice::from_integer(1).get()))
+                .ok_or_else(|| err!(TrackableError::MUL))?
+                .checked_mul(U256::from(Liquidity::from_integer(1).get()))
+                .ok_or_else(|| err!(TrackableError::MUL))?
+                .checked_div(U256::from(sqrt_price_diff.get()))
+                .ok_or_else(|| err!(TrackableError::DIV))?)
             .try_into()
             .map_err(|_| err!("Overflow while calculating liquidity"))?,
         );
@@ -218,18 +235,25 @@ pub fn get_liquidity_by_y_sqrt_price(
         });
     }
 
-    let sqrt_price_diff = current_sqrt_price - lower_sqrt_price;
+    let sqrt_price_diff = current_sqrt_price
+        .checked_sub(lower_sqrt_price)
+        .map_err(|_| err!("Underflow while calculating sqrt price difference"))?;
     let liquidity = Liquidity::new(
         (U256::from(y.get())
-            * U256::from(SqrtPrice::from_integer(1).get())
-            * U256::from(Liquidity::from_integer(1).get())
-            / U256::from(sqrt_price_diff.get()))
+            .checked_mul(U256::from(SqrtPrice::from_integer(1).get()))
+            .ok_or_else(|| err!(TrackableError::MUL))?
+            .checked_mul(U256::from(Liquidity::from_integer(1).get()))
+            .ok_or_else(|| err!(TrackableError::MUL))?
+            .checked_div(U256::from(sqrt_price_diff.get()))
+            .ok_or_else(|| err!(TrackableError::DIV))?)
         .try_into()
         .map_err(|_| err!("Overflow while calculating liquidity"))?,
     );
     let denominator =
         (current_sqrt_price.big_mul(upper_sqrt_price)).big_div(SqrtPrice::from_integer(1));
-    let nominator = upper_sqrt_price - current_sqrt_price;
+    let nominator = upper_sqrt_price
+        .checked_sub(current_sqrt_price)
+        .map_err(|_| err!("Underflow while calculating nominator"))?;
 
     let x = calculate_x(nominator, denominator, liquidity, rounding_up)?;
 
@@ -250,14 +274,20 @@ pub fn calculate_x(
 
     Ok(if rounding_up {
         TokenAmount::new(
-            ((U256::from(common) + U256::from(Liquidity::from_integer(1).get()) - U256::from(1))
-                / U256::from(Liquidity::from_integer(1).get()))
+            ((U256::from(common)
+                .checked_add(U256::from(Liquidity::from_integer(1).get()))
+                .ok_or_else(|| err!(TrackableError::ADD))?
+                .checked_sub(U256::from(1))
+                .ok_or_else(|| err!(TrackableError::SUB))?)
+            .checked_div(U256::from(Liquidity::from_integer(1).get())))
+            .ok_or_else(|| err!(TrackableError::DIV))?
             .try_into()
             .map_err(|_| err!("Overflow while casting to TokenAmount"))?,
         )
     } else {
         TokenAmount::new(
-            (U256::from(common) / U256::from(Liquidity::from_integer(1).get()))
+            (U256::from(common).checked_div(U256::from(Liquidity::from_integer(1).get())))
+                .ok_or_else(|| err!(TrackableError::DIV))?
                 .try_into()
                 .map_err(|_| err!("Overflow while casting to TokenAmount"))?,
         )
@@ -269,19 +299,33 @@ pub fn calculate_y(
     liquidity: Liquidity,
     rounding_up: bool,
 ) -> TrackableResult<TokenAmount> {
-    let shifted_liquidity = liquidity.get() / Liquidity::from_integer(1).get();
+    let shifted_liquidity = liquidity
+        .get()
+        .checked_div(Liquidity::from_integer(1).get())
+        .ok_or_else(|| err!(TrackableError::DIV))?;
     Ok(if rounding_up {
         TokenAmount::new(
-            (((U256::from(sqrt_price_diff.get()) * U256::from(shifted_liquidity))
-                + U256::from(SqrtPrice::from_integer(1).get() - 1))
-                / U256::from(SqrtPrice::from_integer(1).get()))
+            ((U256::from(sqrt_price_diff.get()).checked_mul(U256::from(shifted_liquidity)))
+                .ok_or_else(|| err!(TrackableError::MUL))?
+                .checked_add(U256::from(
+                    SqrtPrice::from_integer(1)
+                        .get()
+                        .checked_sub(1)
+                        .ok_or_else(|| err!("Overflow while calculating TokenAmount"))?,
+                ))
+                .ok_or_else(|| err!(TrackableError::ADD))?)
+            .checked_div(U256::from(SqrtPrice::from_integer(1).get()))
+            .ok_or_else(|| err!(TrackableError::DIV))?
             .try_into()
             .map_err(|_| err!("Overflow in calculating TokenAmount"))?,
         )
     } else {
         TokenAmount::new(
-            (U256::from(sqrt_price_diff.get()) * U256::from(shifted_liquidity)
-                / U256::from(SqrtPrice::from_integer(1).get()))
+            (U256::from(sqrt_price_diff.get())
+                .checked_mul(U256::from(shifted_liquidity))
+                .ok_or_else(|| err!(TrackableError::MUL))?
+                .checked_div(U256::from(SqrtPrice::from_integer(1).get()))
+                .ok_or_else(|| err!(TrackableError::DIV))?)
             .try_into()
             .map_err(|_| err!("Overflow in calculating TokenAmount"))?,
         )

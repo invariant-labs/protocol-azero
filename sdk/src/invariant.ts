@@ -1,5 +1,10 @@
 /* eslint camelcase: off */
 
+import { ApiPromise } from '@polkadot/api'
+import { Abi, ContractPromise } from '@polkadot/api-contract'
+import { WeightV2 } from '@polkadot/types/interfaces'
+import { IKeyringPair } from '@polkadot/types/types/interfaces'
+import { deployContract } from '@scio-labs/use-inkathon'
 import {
   FeeTier,
   InvariantError,
@@ -22,12 +27,6 @@ import {
   getMinSqrtPrice,
   getMinTick
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
-import { ApiPromise } from '@polkadot/api'
-import { Abi, ContractPromise } from '@polkadot/api-contract'
-import { SubmittableExtrinsic } from '@polkadot/api/promise/types'
-import { WeightV2 } from '@polkadot/types/interfaces'
-import { IKeyringPair } from '@polkadot/types/types/interfaces'
-import { deployContract } from '@scio-labs/use-inkathon'
 import {
   CHUNK_SIZE,
   DEFAULT_PROOF_SIZE,
@@ -53,6 +52,7 @@ import {
   createSignAndSendTx,
   createTx,
   getAbi,
+  extractError,
   getDeploymentData,
   integerSafeCast,
   parse,
@@ -60,6 +60,7 @@ import {
   positionToTick,
   sendQuery
 } from './utils.js'
+import { SubmittableExtrinsic } from '@polkadot/api/types/submittable'
 export class Invariant {
   contract: ContractPromise
   api: ApiPromise
@@ -150,13 +151,13 @@ export class Invariant {
               return
             }
 
-            const [account_id, contract_evt] = event.data
+            const [account_id] = event.data
 
             if (account_id.toString() !== this.contract?.address.toString()) {
               return
             }
 
-            const decoded = this.abi.decodeEvent(contract_evt as any)
+            const decoded = this.abi.decodeEvent(record)
 
             if (!decoded) {
               return
@@ -164,6 +165,7 @@ export class Invariant {
 
             const parsedEvent = parseEvent(decoded)
 
+            // console.log(this.eventListeners, parsedEvent)
             this.eventListeners.map(eventListener => {
               if (eventListener.identifier === decoded.event.identifier) {
                 eventListener.listener(parsedEvent)
@@ -204,7 +206,7 @@ export class Invariant {
       refTime: this.gasLimit.refTime.toNumber(),
       proofSize: this.gasLimit.proofSize.toNumber()
     }
-  ): SubmittableExtrinsic {
+  ): SubmittableExtrinsic<'promise'> {
     return createTx(
       this.contract,
       this.api.registry.createType('WeightV2', {
@@ -251,7 +253,7 @@ export class Invariant {
       refTime: this.gasLimit.refTime.toNumber(),
       proofSize: this.gasLimit.proofSize.toNumber()
     }
-  ): SubmittableExtrinsic {
+  ): SubmittableExtrinsic<'promise'> {
     return createTx(
       this.contract,
       this.api.registry.createType('WeightV2', {
@@ -298,7 +300,7 @@ export class Invariant {
       refTime: this.gasLimit.refTime.toNumber(),
       proofSize: this.gasLimit.proofSize.toNumber()
     }
-  ): SubmittableExtrinsic {
+  ): SubmittableExtrinsic<'promise'> {
     return createTx(
       this.contract,
       this.api.registry.createType('WeightV2', {
@@ -376,7 +378,7 @@ export class Invariant {
       refTime: this.gasLimit.refTime.toNumber(),
       proofSize: this.gasLimit.proofSize.toNumber()
     }
-  ): SubmittableExtrinsic {
+  ): SubmittableExtrinsic<'promise'> {
     return createTx(
       this.contract,
       this.api.registry.createType('WeightV2', {
@@ -424,7 +426,7 @@ export class Invariant {
       refTime: this.gasLimit.refTime.toNumber(),
       proofSize: this.gasLimit.proofSize.toNumber()
     }
-  ): SubmittableExtrinsic {
+  ): SubmittableExtrinsic<'promise'> {
     return createTx(
       this.contract,
       this.api.registry.createType('WeightV2', {
@@ -487,7 +489,7 @@ export class Invariant {
     if (result.ok) {
       return parse(result.ok)
     } else {
-      throw new Error(InvariantError[result.err])
+      throw new Error(extractError(result.err))
     }
   }
 
@@ -523,7 +525,7 @@ export class Invariant {
       refTime: this.gasLimit.refTime.toNumber(),
       proofSize: this.gasLimit.proofSize.toNumber()
     }
-  ): SubmittableExtrinsic {
+  ): SubmittableExtrinsic<'promise'> {
     const slippageLimitLower = calculateSqrtPriceAfterSlippage(
       spotSqrtPrice,
       slippageTolerance,
@@ -598,7 +600,7 @@ export class Invariant {
       refTime: this.gasLimit.refTime.toNumber(),
       proofSize: this.gasLimit.proofSize.toNumber()
     }
-  ): SubmittableExtrinsic {
+  ): SubmittableExtrinsic<'promise'> {
     return createTx(
       this.contract,
       this.api.registry.createType('WeightV2', {
@@ -646,7 +648,7 @@ export class Invariant {
       refTime: this.gasLimit.refTime.toNumber(),
       proofSize: this.gasLimit.proofSize.toNumber()
     }
-  ): SubmittableExtrinsic {
+  ): SubmittableExtrinsic<'promise'> {
     return createTx(
       this.contract,
       this.api.registry.createType('WeightV2', {
@@ -693,7 +695,7 @@ export class Invariant {
       refTime: this.gasLimit.refTime.toNumber(),
       proofSize: this.gasLimit.proofSize.toNumber()
     }
-  ): SubmittableExtrinsic {
+  ): SubmittableExtrinsic<'promise'> {
     return createTx(
       this.contract,
       this.api.registry.createType('WeightV2', {
@@ -756,7 +758,7 @@ export class Invariant {
     if (result.ok) {
       return parse(result.ok)
     } else {
-      throw new Error(InvariantError[result.err])
+      throw new Error(extractError(result.err))
     }
   }
 
@@ -805,7 +807,7 @@ export class Invariant {
     if (result.ok) {
       return parse(result.ok)
     } else {
-      throw new Error(InvariantError[result.err])
+      throw new Error(extractError(result.err))
     }
   }
 
@@ -831,7 +833,7 @@ export class Invariant {
     if (result.ok) {
       return parse(result.ok)
     } else {
-      throw new Error(InvariantError[result.err])
+      throw new Error(extractError(result.err))
     }
   }
 
@@ -843,7 +845,7 @@ export class Invariant {
       refTime: this.gasLimit.refTime.toNumber(),
       proofSize: this.gasLimit.proofSize.toNumber()
     }
-  ): SubmittableExtrinsic {
+  ): SubmittableExtrinsic<'promise'> {
     const initTick = calculateTick(initSqrtPrice, poolKey.feeTier.tickSpacing)
 
     return createTx(
@@ -917,7 +919,7 @@ export class Invariant {
     if (result.ok) {
       return parse(result.ok)
     } else {
-      throw new Error(InvariantError[result.err])
+      throw new Error(extractError(result.err))
     }
   }
 
@@ -953,7 +955,7 @@ export class Invariant {
       refTime: this.gasLimit.refTime.toNumber(),
       proofSize: this.gasLimit.proofSize.toNumber()
     }
-  ): SubmittableExtrinsic {
+  ): SubmittableExtrinsic<'promise'> {
     return createTx(
       this.contract,
       this.api.registry.createType('WeightV2', {
@@ -1009,7 +1011,7 @@ export class Invariant {
       refTime: this.gasLimit.refTime.toNumber(),
       proofSize: this.gasLimit.proofSize.toNumber()
     }
-  ): SubmittableExtrinsic {
+  ): SubmittableExtrinsic<'promise'> {
     const sqrtPriceAfterSlippage = calculateSqrtPriceAfterSlippage(
       estimatedSqrtPrice,
       slippage,
@@ -1123,7 +1125,7 @@ export class Invariant {
         proofSize: options.proofSize
       }) as WeightV2,
       options.storageDepositLimit,
-      InvariantQuery.getPositionTicks,
+      InvariantQuery.GetPositionTicks,
       [owner, offset]
     )
   }
@@ -1214,7 +1216,7 @@ export class Invariant {
         proofSize: options.proofSize
       }) as WeightV2,
       options.storageDepositLimit,
-      InvariantQuery.getLiquidityTicks,
+      InvariantQuery.GetLiquidityTicks,
       [poolKey, ticks]
     )
 
@@ -1261,7 +1263,7 @@ export class Invariant {
         proofSize: options.proofSize
       }) as WeightV2,
       options.storageDepositLimit,
-      InvariantQuery.getUserPositionAmount,
+      InvariantQuery.GetUserPositionAmount,
       [owner]
     )
   }
@@ -1284,7 +1286,7 @@ export class Invariant {
         proofSize: options.proofSize
       }) as WeightV2,
       options.storageDepositLimit,
-      InvariantQuery.getLiquidityTicksAmount,
+      InvariantQuery.GetLiquidityTicksAmount,
       [poolKey, lowerTick, upperTick]
     )
 
@@ -1302,7 +1304,7 @@ export class Invariant {
       refTime: this.gasLimit.refTime.toNumber(),
       proofSize: this.gasLimit.proofSize.toNumber()
     }
-  ): SubmittableExtrinsic {
+  ): SubmittableExtrinsic<'promise'> {
     return createTx(
       this.contract,
       this.api.registry.createType('WeightV2', {
@@ -1358,7 +1360,7 @@ export class Invariant {
         proofSize: options.proofSize
       }) as WeightV2,
       options.storageDepositLimit,
-      InvariantQuery.getAllPoolsForPair,
+      InvariantQuery.GetAllPoolsForPair,
       [token0, token1]
     )
 

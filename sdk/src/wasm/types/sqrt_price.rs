@@ -5,6 +5,7 @@ use core::convert::{TryFrom, TryInto};
 use decimal::*;
 use js_sys::BigInt;
 use serde::{Deserialize, Serialize};
+use std::ops::Mul;
 use traceable_result::*;
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;
@@ -54,7 +55,7 @@ impl SqrtPrice {
         let intermediate_u320 = nominator
             .checked_mul(Self::one::<U320>())
             .ok_or_else(|| err!(TrackableError::MUL))?
-            .checked_add(denominator - 1)
+            .checked_add(denominator.checked_sub(U320::from(1u32)).unwrap())
             .ok_or_else(|| err!(TrackableError::ADD))?
             .checked_div(denominator)
             .ok_or_else(|| err!(TrackableError::DIV))?;
@@ -135,58 +136,58 @@ pub fn calculate_sqrt_price(tick_index: i32) -> TrackableResult<SqrtPrice> {
     let mut sqrt_price = FixedPoint::from_integer(1);
 
     if tick & 0x1 != 0 {
-        sqrt_price *= FixedPoint::new(1000049998750);
+        sqrt_price = sqrt_price.mul(FixedPoint::new(1000049998750));
     }
     if tick & 0x2 != 0 {
-        sqrt_price *= FixedPoint::new(1000100000000);
+        sqrt_price = sqrt_price.mul(FixedPoint::new(1000100000000));
     }
     if tick & 0x4 != 0 {
-        sqrt_price *= FixedPoint::new(1000200010000);
+        sqrt_price = sqrt_price.mul(FixedPoint::new(1000200010000));
     }
     if tick & 0x8 != 0 {
-        sqrt_price *= FixedPoint::new(1000400060004);
+        sqrt_price = sqrt_price.mul(FixedPoint::new(1000400060004));
     }
     if tick & 0x10 != 0 {
-        sqrt_price *= FixedPoint::new(1000800280056);
+        sqrt_price = sqrt_price.mul(FixedPoint::new(1000800280056));
     }
     if tick & 0x20 != 0 {
-        sqrt_price *= FixedPoint::new(1001601200560);
+        sqrt_price = sqrt_price.mul(FixedPoint::new(1001601200560));
     }
     if tick & 0x40 != 0 {
-        sqrt_price *= FixedPoint::new(1003204964963);
+        sqrt_price = sqrt_price.mul(FixedPoint::new(1003204964963));
     }
     if tick & 0x80 != 0 {
-        sqrt_price *= FixedPoint::new(1006420201726);
+        sqrt_price = sqrt_price.mul(FixedPoint::new(1006420201726));
     }
     if tick & 0x100 != 0 {
-        sqrt_price *= FixedPoint::new(1012881622442);
+        sqrt_price = sqrt_price.mul(FixedPoint::new(1012881622442));
     }
     if tick & 0x200 != 0 {
-        sqrt_price *= FixedPoint::new(1025929181080);
+        sqrt_price = sqrt_price.mul(FixedPoint::new(1025929181080));
     }
     if tick & 0x400 != 0 {
-        sqrt_price *= FixedPoint::new(1052530684591);
+        sqrt_price = sqrt_price.mul(FixedPoint::new(1052530684591));
     }
     if tick & 0x800 != 0 {
-        sqrt_price *= FixedPoint::new(1107820842005);
+        sqrt_price = sqrt_price.mul(FixedPoint::new(1107820842005));
     }
     if tick & 0x1000 != 0 {
-        sqrt_price *= FixedPoint::new(1227267017980);
+        sqrt_price = sqrt_price.mul(FixedPoint::new(1227267017980));
     }
     if tick & 0x2000 != 0 {
-        sqrt_price *= FixedPoint::new(1506184333421);
+        sqrt_price = sqrt_price.mul(FixedPoint::new(1506184333421));
     }
     if tick & 0x4000 != 0 {
-        sqrt_price *= FixedPoint::new(2268591246242);
+        sqrt_price = sqrt_price.mul(FixedPoint::new(2268591246242));
     }
     if tick & 0x8000 != 0 {
-        sqrt_price *= FixedPoint::new(5146506242525);
+        sqrt_price = sqrt_price.mul(FixedPoint::new(5146506242525));
     }
     if tick & 0x0001_0000 != 0 {
-        sqrt_price *= FixedPoint::new(26486526504348);
+        sqrt_price = sqrt_price.mul(FixedPoint::new(26486526504348));
     }
     if tick & 0x0002_0000 != 0 {
-        sqrt_price *= FixedPoint::new(701536086265529);
+        sqrt_price = sqrt_price.mul(FixedPoint::new(701536086265529));
     }
 
     // Parsing to the Sqrt_price type by the end by convention (should always have 12 zeros at the end)
@@ -204,25 +205,32 @@ pub fn calculate_sqrt_price(tick_index: i32) -> TrackableResult<SqrtPrice> {
 }
 
 #[wasm_wrapper]
-pub fn get_max_tick(tick_spacing: u16) -> i32 {
+pub fn get_max_tick(tick_spacing: u16) -> TrackableResult<i32> {
     let tick_spacing = tick_spacing as i32;
-    MAX_TICK / tick_spacing * tick_spacing
+    MAX_TICK
+        .checked_div(tick_spacing)
+        .ok_or(err!(TrackableError::DIV))?
+        .checked_mul(tick_spacing)
+        .ok_or(err!(TrackableError::MUL))
 }
-
 #[wasm_wrapper]
-pub fn get_min_tick(tick_spacing: u16) -> i32 {
+pub fn get_min_tick(tick_spacing: u16) -> TrackableResult<i32> {
     let tick_spacing = tick_spacing as i32;
-    MIN_TICK / tick_spacing * tick_spacing
+    MIN_TICK
+        .checked_div(tick_spacing)
+        .ok_or(err!(TrackableError::DIV))?
+        .checked_mul(tick_spacing)
+        .ok_or(err!(TrackableError::MUL))
 }
 
 #[wasm_wrapper]
-pub fn get_max_sqrt_price(tick_spacing: u16) -> SqrtPrice {
-    let max_tick = get_max_tick(tick_spacing);
-    SqrtPrice::from_tick(max_tick).unwrap()
+pub fn get_max_sqrt_price(tick_spacing: u16) -> TrackableResult<SqrtPrice> {
+    let max_tick = get_max_tick(tick_spacing)?;
+    SqrtPrice::from_tick(max_tick)
 }
 
 #[wasm_wrapper]
-pub fn get_min_sqrt_price(tick_spacing: u16) -> SqrtPrice {
-    let min_tick = get_min_tick(tick_spacing);
-    SqrtPrice::from_tick(min_tick).unwrap()
+pub fn get_min_sqrt_price(tick_spacing: u16) -> TrackableResult<SqrtPrice> {
+    let min_tick = get_min_tick(tick_spacing)?;
+    SqrtPrice::from_tick(min_tick)
 }

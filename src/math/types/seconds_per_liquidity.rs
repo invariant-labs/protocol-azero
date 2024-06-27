@@ -4,11 +4,9 @@ use traceable_result::*;
 use crate::math::types::liquidity::Liquidity;
 
 #[decimal(24)]
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, scale::Decode, scale::Encode)]
-#[cfg_attr(
-    feature = "std",
-    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
-)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
+#[ink::scale_derive(Encode, Decode, TypeInfo)]
+#[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
 pub struct SecondsPerLiquidity(pub u128);
 
 impl SecondsPerLiquidity {
@@ -28,7 +26,9 @@ impl SecondsPerLiquidity {
         if current_timestamp <= last_timestamp {
             return Err(err!("current_timestamp > last_timestamp failed"));
         }
-        let delta_time = current_timestamp - last_timestamp;
+        let delta_time = current_timestamp
+            .checked_sub(last_timestamp)
+            .ok_or(err!("Underflow while calculating delta time"))?;
 
         Ok(Self::new(
             U256::from(delta_time)

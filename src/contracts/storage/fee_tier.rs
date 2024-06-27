@@ -1,10 +1,8 @@
-use crate::{math::types::percentage::Percentage, InvariantError};
+use crate::{contracts::InvariantError, math::types::percentage::Percentage};
 use decimal::*;
-#[derive(scale::Decode, scale::Encode, Debug, Copy, Clone, PartialEq)]
-#[cfg_attr(
-    feature = "std",
-    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
-)]
+#[derive(Debug, Copy, Clone, PartialEq)]
+#[ink::scale_derive(Encode, Decode, TypeInfo)]
+#[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
 pub struct FeeTier {
     pub fee: Percentage,
     pub tick_spacing: u16,

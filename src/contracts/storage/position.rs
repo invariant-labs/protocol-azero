@@ -1,5 +1,6 @@
 use super::{Pool, PoolKey, Tick};
 use crate::{
+    contracts::InvariantError,
     math::{
         clamm::*,
         types::{
@@ -9,15 +10,12 @@ use crate::{
             token_amount::TokenAmount,
         },
     },
-    InvariantError,
 };
 use decimal::*;
 use traceable_result::*;
-#[derive(PartialEq, Default, Debug, Copy, Clone, scale::Decode, scale::Encode)]
-#[cfg_attr(
-    feature = "std",
-    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
-)]
+#[derive(PartialEq, Default, Debug, Copy, Clone)]
+#[ink::scale_derive(Encode, Decode, TypeInfo)]
+#[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
 pub struct Position {
     pub pool_key: PoolKey,
     pub liquidity: Liquidity,
@@ -104,8 +102,14 @@ impl Position {
         self.fee_growth_inside_x = fee_growth_inside_x;
         self.fee_growth_inside_y = fee_growth_inside_y;
 
-        self.tokens_owed_x += tokens_owed_x;
-        self.tokens_owed_y += tokens_owed_y;
+        self.tokens_owed_x = self
+            .tokens_owed_x
+            .checked_add(tokens_owed_x)
+            .map_err(|_| err!("Overflow while calculating tokens owed X"))?;
+        self.tokens_owed_y = self
+            .tokens_owed_y
+            .checked_add(tokens_owed_y)
+            .map_err(|_| err!("Overflow while calculating tokens owed Y"))?;
         Ok(())
     }
 
@@ -218,8 +222,8 @@ impl Position {
             tick_spacing
         ));
 
-        amount_x += self.tokens_owed_x;
-        amount_y += self.tokens_owed_y;
+        amount_x = amount_x.checked_add(self.tokens_owed_x).unwrap();
+        amount_y = amount_y.checked_add(self.tokens_owed_y).unwrap();
 
         let deinitialize_lower_tick = lower_tick.liquidity_gross.is_zero();
         let deinitialize_upper_tick = upper_tick.liquidity_gross.is_zero();

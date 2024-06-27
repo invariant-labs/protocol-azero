@@ -477,6 +477,12 @@ export const calculateLiquidityBreakpoints = (
   })
 }
 
+export const extractError = (err: any) => {
+  const error = Object.keys(err)[0]
+  const parsedError = error[0].toUpperCase() + error.slice(1)
+  return InvariantError[parsedError as any]
+}
+
 export function getActiveBitsCount64(num: bigint) {
   let activeBits = 0n
   let bit = 0n

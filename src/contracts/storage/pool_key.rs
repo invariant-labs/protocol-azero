@@ -2,14 +2,12 @@ use decimal::Decimal;
 use ink::primitives::AccountId;
 
 use crate::contracts::FeeTier;
+use crate::contracts::InvariantError;
 use crate::math::percentage::Percentage;
-use crate::InvariantError;
 
-#[derive(scale::Decode, scale::Encode, Debug, Copy, Clone, PartialEq)]
-#[cfg_attr(
-    feature = "std",
-    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
-)]
+#[derive(Debug, Copy, Clone, PartialEq)]
+#[ink::scale_derive(Encode, Decode, TypeInfo)]
+#[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
 
 pub struct PoolKey {
     pub token_x: AccountId,

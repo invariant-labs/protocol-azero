@@ -10,20 +10,13 @@ decimal = { path = "src/decimal" }
 traceable_result = { path = "src/traceable_result" }
 
 # ink
-ink = { version = "4.2.0", default-features = false }
-scale = { package = "parity-scale-codec", version = "3", default-features = false, features = [
-  "derive",
-] }
-scale-info = { version = "2.6", default-features = false, features = [
-  "derive",
-], optional = true }
+ink = { version = "5.0.0", default-features = false }
 token = { path = "src/token", default-features = false, features = [
   "ink-as-dependency",
 ] }
-wrapped-azero = { version = "1.0", default-features = false, features = ["ink-as-dependency"] }
 
 [dev-dependencies]
-ink_e2e = "4.3.0"
+ink_e2e = "5.0.0"
 test_helpers = { path = "src/test_helpers", default-features = false }
 
 [lib]
@@ -32,7 +25,7 @@ path = "src/lib.rs"
 
 [features]
 default = ["std"]
-std = ["ink/std", "scale/std", "scale-info/std"]
+std = ["ink/std", "token/std"]
 ink-as-dependency = []
 e2e-tests = []
 

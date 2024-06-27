@@ -70,7 +70,6 @@ export class PSP22 {
   }
 
   mintTx(
-    to: string,
     value: bigint,
     tokenAddress: string,
     options: ContractOptions = {
@@ -90,13 +89,12 @@ export class PSP22 {
       options.storageDepositLimit,
       0n,
       PSP22Tx.Mint,
-      [to, value]
+      [value]
     )
   }
 
   async mint(
     account: IKeyringPair,
-    to: string,
     value: bigint,
     tokenAddress: string,
     options: ContractOptions = {
@@ -118,7 +116,7 @@ export class PSP22 {
       0n,
       account,
       PSP22Tx.Mint,
-      [to, value],
+      [value],
       this.waitForFinalization,
       block
     )
