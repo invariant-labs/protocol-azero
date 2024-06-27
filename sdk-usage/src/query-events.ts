@@ -1,6 +1,10 @@
-import { Invariant, TESTNET_INVARIANT_ADDRESS } from '@invariant-labs/a0-sdk'
-import { Network, initPolkadotApi } from '@invariant-labs/a0-sdk'
-import { parseEvent } from '@invariant-labs/a0-sdk/target/utils.js'
+import {
+  Network,
+  initPolkadotApi,
+  Invariant,
+  TESTNET_INVARIANT_ADDRESS,
+  parseEvent
+} from '@invariant-labs/a0-sdk'
 
 const main = async () => {
   const network = Network.Testnet
