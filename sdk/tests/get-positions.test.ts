@@ -5,6 +5,7 @@ import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
 import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
 import { assert } from 'chai'
+import { objectEquals } from '../src/testUtils'
 import { describe, it } from 'mocha'
 
 const api = await initPolkadotApi(Network.Local)
@@ -48,6 +49,92 @@ describe('get-positions', async () => {
 
     assert.equal(result[0].length, 2)
     assert.equal(result[1], 2n)
+
+    const firstExpectedPosition = {
+      poolKey,
+      liquidity: 1000000000000n,
+      lowerTickIndex: -10n,
+      upperTickIndex: 10n,
+      feeGrowthInsideX: 0n,
+      feeGrowthInsideY: 0n,
+      tokensOwedX: 0n,
+      tokensOwedY: 0n
+    }
+    const firstExpectedPool = {
+      liquidity: 2000000000000n,
+      sqrtPrice: 1000000000000000000000000n,
+      currentTickIndex: 0n,
+      feeGrowthGlobalX: 0n,
+      feeGrowthGlobalY: 0n,
+      feeProtocolTokenX: 0n,
+      feeProtocolTokenY: 0n,
+      feeReceiver: account.address
+    }
+    const firstExpectedLowerTick = {
+      index: -10n,
+      sign: true,
+      liquidityChange: 1000000000000n,
+      liquidityGross: 1000000000000n,
+      sqrtPrice: 999500149965000000000000n,
+      feeGrowthOutsideX: 0n,
+      feeGrowthOutsideY: 0n
+    }
+    const firstExpectedUpperTick = {
+      index: 10n,
+      sign: false,
+      liquidityChange: 1000000000000n,
+      liquidityGross: 1000000000000n,
+      sqrtPrice: 1000500100010000000000000n,
+      feeGrowthOutsideX: 0n,
+      feeGrowthOutsideY: 0n
+    }
+    objectEquals(result[0][0][0], firstExpectedPosition, ['lastBlockNumber'])
+    objectEquals(result[0][0][1], firstExpectedPool, ['startTimestamp', 'lastTimestamp'])
+    objectEquals(result[0][0][2], firstExpectedLowerTick, ['secondsOutside'])
+    objectEquals(result[0][0][3], firstExpectedUpperTick, ['secondsOutside'])
+
+    const secondExpectedPosition = {
+      poolKey,
+      liquidity: 1000000000000n,
+      lowerTickIndex: -20n,
+      upperTickIndex: 20n,
+      feeGrowthInsideX: 0n,
+      feeGrowthInsideY: 0n,
+      tokensOwedX: 0n,
+      tokensOwedY: 0n
+    }
+    const secondExpectedPool = {
+      liquidity: 2000000000000n,
+      sqrtPrice: 1000000000000000000000000n,
+      currentTickIndex: 0n,
+      feeGrowthGlobalX: 0n,
+      feeGrowthGlobalY: 0n,
+      feeProtocolTokenX: 0n,
+      feeProtocolTokenY: 0n,
+      feeReceiver: account.address
+    }
+    const secondExpectedLowerTick = {
+      index: -20n,
+      sign: true,
+      liquidityChange: 1000000000000n,
+      liquidityGross: 1000000000000n,
+      sqrtPrice: 999000549780000000000000n,
+      feeGrowthOutsideX: 0n,
+      feeGrowthOutsideY: 0n
+    }
+    const secondExpectedUpperTick = {
+      index: 20n,
+      sign: false,
+      liquidityChange: 1000000000000n,
+      liquidityGross: 1000000000000n,
+      sqrtPrice: 1001000450120000000000000n,
+      feeGrowthOutsideX: 0n,
+      feeGrowthOutsideY: 0n
+    }
+    objectEquals(result[0][1][0], secondExpectedPosition, ['lastBlockNumber'])
+    objectEquals(result[0][1][1], secondExpectedPool, ['startTimestamp', 'lastTimestamp'])
+    objectEquals(result[0][1][2], secondExpectedLowerTick, ['secondsOutside'])
+    objectEquals(result[0][1][3], secondExpectedUpperTick, ['secondsOutside'])
   })
 
   it('get positions less than exist', async () => {
