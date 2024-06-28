@@ -90,9 +90,9 @@ const main = async () => {
     refTime: 100000000000,
     proofSize: 100000000000
   })
-  await psp22.mint(account, account.address, 2n ** 96n - 1n, BTCAddress)
-  await psp22.mint(account, account.address, 2n ** 96n - 1n, ETHAddress)
-  await psp22.mint(account, account.address, 2n ** 96n - 1n, USDCAddress)
+  await psp22.mint(account, 2n ** 96n - 1n, BTCAddress)
+  await psp22.mint(account, 2n ** 96n - 1n, ETHAddress)
+  await psp22.mint(account, 2n ** 96n - 1n, USDCAddress)
   await psp22.approve(account, invariant.contract.address.toString(), 2n ** 96n - 1n, BTCAddress)
   await psp22.approve(account, invariant.contract.address.toString(), 2n ** 96n - 1n, ETHAddress)
   await psp22.approve(account, invariant.contract.address.toString(), 2n ** 96n - 1n, USDCAddress)
