@@ -5,9 +5,7 @@ export {
   getLiquidityByY,
   getMaxChunk,
   getMaxSqrtPrice,
-  getMaxTick,
   getMinSqrtPrice,
-  getMinTick,
   isTokenX,
   toFeeGrowth,
   toFixedPoint,
@@ -81,6 +79,8 @@ export {
   signAndSendTx,
   simulateInvariantSwap,
   sqrtPriceToPrice,
-  parseEvent
+  parseEvent,
+  getMinTick,
+  getMaxTick
 } from './utils.js'
 export { WrappedAZERO } from './wrapped-azero.js'

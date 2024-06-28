@@ -25,12 +25,13 @@ import {
   calculateAmountDeltaResult,
   calculateTick,
   getMaxChunk,
-  getMaxTick,
   getMaxTickCross,
   getPercentageDenominator,
   getSqrtPriceDenominator,
   tickIndexToPosition,
-  toPercentage
+  toPercentage,
+  getMinTick as _getMinTick,
+  getMaxTick as _getMaxTick
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { ApiPromise, SubmittableResult, WsProvider } from '@polkadot/api'
 import { ContractPromise } from '@polkadot/api-contract'
@@ -546,7 +547,7 @@ export function simulateInvariantSwap(
 }
 
 export function positionToTick(chunkIndex: bigint, bit: bigint, tickSpacing: bigint): bigint {
-  return _positionToTick(chunkIndex, bit, tickSpacing)
+  return BigInt(_positionToTick(chunkIndex, bit, tickSpacing))
 }
 
 export function filterTicks<T extends Tick | LiquidityTick>(
@@ -707,4 +708,12 @@ export const calculateTokenAmountsWithSlippage = (
   const x = lowerX > upperX ? lowerX : upperX
   const y = lowerY > upperY ? lowerY : upperY
   return [x, y]
+}
+
+export const getMinTick = (tickSpacing: bigint): bigint => {
+  return BigInt(_getMinTick(tickSpacing))
+}
+
+export const getMaxTick = (tickSpacing: bigint): bigint => {
+  return BigInt(_getMaxTick(tickSpacing))
 }

@@ -1,15 +1,18 @@
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
-import {
-  getMaxTick,
-  getMinTick,
-  positionToTick
-} from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
 import { objectEquals } from '../src/testUtils'
-import { initPolkadotApi, integerSafeCast, newFeeTier, newPoolKey } from '../src/utils'
+import {
+  getMaxTick,
+  getMinTick,
+  initPolkadotApi,
+  integerSafeCast,
+  newFeeTier,
+  newPoolKey,
+  positionToTick
+} from '../src/utils'
 import { CHUNK_SIZE, LIQUIDITY_TICKS_LIMIT } from '../src/consts'
 import { describe, it } from 'mocha'
 
