@@ -43,10 +43,10 @@ const main = async () => {
 
   console.log(`Deployer: ${account.address}, Uri: ${mnemonic}`)
 
-  await psp22.mint(account, account.address, AMOUNT, TOKEN_0_ADDRESS)
+  await psp22.mint(account, AMOUNT, TOKEN_0_ADDRESS)
   await psp22.approve(account, TESTNET_INVARIANT_ADDRESS, AMOUNT, TOKEN_0_ADDRESS)
 
-  await psp22.mint(account, account.address, AMOUNT, TOKEN_1_ADDRESS)
+  await psp22.mint(account, AMOUNT, TOKEN_1_ADDRESS)
   await psp22.approve(account, TESTNET_INVARIANT_ADDRESS, AMOUNT, TOKEN_1_ADDRESS)
 
   await invariant.createPosition(

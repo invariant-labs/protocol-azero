@@ -42,7 +42,7 @@ const main = async () => {
 
   console.log(`Deployer: ${account.address}, Uri: ${mnemonic}`)
 
-  await psp22.mint(account, account.address, SWAP_AMOUNT, positionBefore.poolKey.tokenX)
+  await psp22.mint(account, SWAP_AMOUNT, positionBefore.poolKey.tokenX)
   await psp22.approve(
     account,
     TESTNET_INVARIANT_ADDRESS,
@@ -50,7 +50,7 @@ const main = async () => {
     positionBefore.poolKey.tokenX
   )
 
-  await psp22.mint(account, account.address, SWAP_AMOUNT, positionBefore.poolKey.tokenY)
+  await psp22.mint(account, SWAP_AMOUNT, positionBefore.poolKey.tokenY)
   await psp22.approve(
     account,
     TESTNET_INVARIANT_ADDRESS,
