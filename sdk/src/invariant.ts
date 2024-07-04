@@ -30,7 +30,9 @@ import {
   DEFAULT_PROOF_SIZE,
   DEFAULT_REF_TIME,
   LIQUIDITY_TICKS_LIMIT,
-  MAX_TICKMAP_QUERY_SIZE
+  MAX_POOL_KEYS_RETURNED,
+  MAX_TICKMAP_QUERY_SIZE,
+  POSITIONS_ENTRIES_LIMIT
 } from './consts.js'
 import { Network } from './network.js'
 import {
@@ -528,6 +530,37 @@ export class Invariant {
       refTime: this.gasLimit.refTime.toNumber(),
       proofSize: this.gasLimit.proofSize.toNumber()
     }
+  ): Promise<[Position, Pool, Tick, Tick][]> {
+    const [positions, poolKeysCount] = await this.getPositions(
+      owner,
+      POSITIONS_ENTRIES_LIMIT,
+      0n,
+      options
+    )
+
+    const promises: Promise<[[Position, Pool, Tick, Tick][], bigint]>[] = []
+    for (let i = 1; i < Math.ceil(Number(poolKeysCount) / Number(POSITIONS_ENTRIES_LIMIT)); i++) {
+      promises.push(
+        this.getPositions(
+          owner,
+          POSITIONS_ENTRIES_LIMIT,
+          BigInt(i) * POSITIONS_ENTRIES_LIMIT,
+          options
+        )
+      )
+    }
+
+    const positionsEntries = await Promise.all(promises)
+    return [...positions, ...positionsEntries.map(([positions]) => positions).flat(1)]
+  }
+
+  async _getAllPositions(
+    owner: string,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
   ): Promise<Position[]> {
     return sendQuery(
       this.contract,
@@ -855,7 +888,7 @@ export class Invariant {
         proofSize: options.proofSize
       }) as WeightV2,
       options.storageDepositLimit,
-      InvariantQuery.GetPools,
+      InvariantQuery.GetPoolKeys,
       [size, offset]
     )
     if (result.ok) {
@@ -863,6 +896,27 @@ export class Invariant {
     } else {
       throw new Error(extractError(result.err))
     }
+  }
+
+  async getAllPoolKeys(
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): Promise<PoolKey[]> {
+    const [poolKeys, poolKeysCount] = await this.getPoolKeys(MAX_POOL_KEYS_RETURNED, 0n, options)
+
+    const promises: Promise<[PoolKey[], bigint]>[] = []
+    for (let i = 1; i < Math.ceil(Number(poolKeysCount) / Number(MAX_POOL_KEYS_RETURNED)); i++) {
+      promises.push(
+        this.getPoolKeys(MAX_POOL_KEYS_RETURNED, BigInt(i) * MAX_POOL_KEYS_RETURNED, options)
+      )
+    }
+
+    const poolKeysEntries = await Promise.all(promises)
+    console.log(poolKeysEntries)
+    return [...poolKeys, ...poolKeysEntries.map(([poolKeys]) => poolKeys).flat(1)]
   }
 
   createPoolTx(

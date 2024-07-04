@@ -15,6 +15,7 @@ import {
   getMaxTickmapQuerySize,
   getPercentageDenominator,
   getPercentageScale,
+  getPositionsEntriesLimit,
   getPriceDenominator,
   getPriceScale,
   getSecondsPerLiquidityDenominator,
@@ -67,3 +68,4 @@ export const MAX_TICK_CROSS = getMaxTickCross()
 export const LIQUIDITY_TICKS_LIMIT = getLiquidityTicksLimit()
 export const MAX_POOL_KEYS_RETURNED = getMaxPoolKeysReturned()
 export const MAX_POOL_PAIRS_RETURNED = getMaxPoolPairsReturned()
+export const POSITIONS_ENTRIES_LIMIT = getPositionsEntriesLimit()

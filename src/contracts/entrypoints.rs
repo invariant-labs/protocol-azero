@@ -361,11 +361,11 @@ pub trait InvariantTrait {
     #[ink(message)]
     fn is_tick_initialized(&self, key: PoolKey, index: i32) -> bool;
 
-    /// Retrieves listed pools
+    /// Retrieves listed pool keys
     /// - `size`: Amount of pool keys to retrive
     /// - `offset`: The offset from which retrive pools.
     #[ink(message)]
-    fn get_pools(&self, size: u8, offset: u16) -> Result<(Vec<PoolKey>, u16), InvariantError>;
+    fn get_pool_keys(&self, size: u16, offset: u16) -> Result<(Vec<PoolKey>, u16), InvariantError>;
 
     /// Retrieves listed pools for provided token pair
     /// - `token0`: Address of first token
