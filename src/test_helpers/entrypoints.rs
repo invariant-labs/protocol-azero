@@ -7,6 +7,7 @@ macro_rules! get_tickmap {
 
         $client
             .call(&$caller, &call)
+            .extra_gas_portion(1000)
             .dry_run()
             .await
             .unwrap()
@@ -35,6 +36,7 @@ macro_rules! withdraw_protocol_fee {
         let call = call_builder.withdraw_protocol_fee($pool_key);
         let result = $client
             .call(&$caller, &call)
+            .extra_gas_portion(1000)
             .dry_run()
             .await
             .unwrap()
@@ -43,6 +45,8 @@ macro_rules! withdraw_protocol_fee {
         if result.is_ok() {
             $client
                 .call(&$caller, &call)
+                .extra_gas_portion(1000)
+                .extra_gas_portion(1000)
                 .submit()
                 .await
                 .unwrap()
@@ -60,6 +64,7 @@ macro_rules! change_protocol_fee {
         let call = call_builder.change_protocol_fee($protocol_fee);
         let result = $client
             .call(&$caller, &call)
+            .extra_gas_portion(1000)
             .dry_run()
             .await
             .unwrap()
@@ -68,6 +73,7 @@ macro_rules! change_protocol_fee {
         if result.is_ok() {
             $client
                 .call(&$caller, &call)
+                .extra_gas_portion(1000)
                 .submit()
                 .await
                 .unwrap()
@@ -85,6 +91,7 @@ macro_rules! change_fee_receiver {
         let call = call_builder.change_fee_receiver($pool_key, $fee_receiver);
         let result = $client
             .call(&$caller, &call)
+            .extra_gas_portion(u64::MAX)
             .dry_run()
             .await
             .unwrap()
@@ -93,6 +100,7 @@ macro_rules! change_fee_receiver {
         if result.is_ok() {
             $client
                 .call(&$caller, &call)
+                .extra_gas_portion(1000)
                 .submit()
                 .await
                 .unwrap()
@@ -117,6 +125,7 @@ macro_rules! create_position {
         );
         let result = $client
             .call(&$caller, &call)
+            .extra_gas_portion(1000)
             .dry_run()
             .await
             .unwrap()
@@ -125,6 +134,7 @@ macro_rules! create_position {
         if result.is_ok() {
             $client
                 .call(&$caller, &call)
+                .extra_gas_portion(1000)
                 .submit()
                 .await
                 .unwrap()
@@ -148,6 +158,7 @@ macro_rules! swap {
         );
         let result = $client
             .call(&$caller, &call)
+            .extra_gas_portion(1000)
             .dry_run()
             .await
             .unwrap()
@@ -156,6 +167,7 @@ macro_rules! swap {
         if result.is_ok() {
             $client
                 .call(&$caller, &call)
+                .extra_gas_portion(1000)
                 .submit()
                 .await
                 .unwrap()
@@ -191,6 +203,7 @@ macro_rules! swap_route {
         let call = call_builder.swap_route($amount_in, $expected_amount_out, $slippage, $swaps);
         let result = $client
             .call(&$caller, &call)
+            .extra_gas_portion(1000)
             .dry_run()
             .await
             .unwrap()
@@ -199,6 +212,7 @@ macro_rules! swap_route {
         if result.is_ok() {
             $client
                 .call(&$caller, &call)
+                .extra_gas_portion(1000)
                 .submit()
                 .await
                 .unwrap()
@@ -250,6 +264,7 @@ macro_rules! transfer_position {
         let call = call_builder.transfer_position($index, $receiver);
         let result = $client
             .call(&$caller, &call)
+            .extra_gas_portion(1000)
             .dry_run()
             .await
             .unwrap()
@@ -258,6 +273,7 @@ macro_rules! transfer_position {
         if result.is_ok() {
             $client
                 .call(&$caller, &call)
+                .extra_gas_portion(1000)
                 .submit()
                 .await
                 .unwrap()
@@ -344,6 +360,7 @@ macro_rules! claim_fee {
         let call = call_builder.claim_fee($index);
         let result = $client
             .call(&$caller, &call)
+            .extra_gas_portion(1000)
             .dry_run()
             .await
             .unwrap()
@@ -352,6 +369,7 @@ macro_rules! claim_fee {
         if result.is_ok() {
             $client
                 .call(&$caller, &call)
+                .extra_gas_portion(1000)
                 .submit()
                 .await
                 .unwrap()
@@ -369,6 +387,7 @@ macro_rules! remove_position {
         let call = call_builder.remove_position($index);
         let result = $client
             .call(&$caller, &call)
+            .extra_gas_portion(1000)
             .dry_run()
             .await
             .unwrap()
@@ -377,6 +396,7 @@ macro_rules! remove_position {
         if result.is_ok() {
             $client
                 .call(&$caller, &call)
+                .extra_gas_portion(1000)
                 .submit()
                 .await
                 .unwrap()
@@ -394,6 +414,7 @@ macro_rules! add_fee_tier {
         let call = call_builder.add_fee_tier($fee_tier);
         let result = $client
             .call(&$caller, &call)
+            .extra_gas_portion(1000)
             .dry_run()
             .await
             .unwrap()
@@ -402,6 +423,7 @@ macro_rules! add_fee_tier {
         if result.is_ok() {
             $client
                 .call(&$caller, &call)
+                .extra_gas_portion(1000)
                 .submit()
                 .await
                 .unwrap()
@@ -433,6 +455,7 @@ macro_rules! remove_fee_tier {
         let call = call_builder.remove_fee_tier($fee_tier);
         let result = $client
             .call(&$caller, &call)
+            .extra_gas_portion(1000)
             .dry_run()
             .await
             .unwrap()
@@ -441,6 +464,7 @@ macro_rules! remove_fee_tier {
         if result.is_ok() {
             $client
                 .call(&$caller, &call)
+                .extra_gas_portion(1000)
                 .submit()
                 .await
                 .unwrap()
@@ -459,6 +483,7 @@ macro_rules! create_pool {
             call_builder.create_pool($token_0, $token_1, $fee_tier, $init_sqrt_price, $init_tick);
         let result = $client
             .call(&$caller, &call)
+            .extra_gas_portion(1000)
             .dry_run()
             .await
             .unwrap()
@@ -467,6 +492,7 @@ macro_rules! create_pool {
         if result.is_ok() {
             $client
                 .call(&$caller, &call)
+                .extra_gas_portion(1000)
                 .submit()
                 .await
                 .unwrap()

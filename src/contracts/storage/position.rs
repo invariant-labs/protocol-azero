@@ -6,6 +6,7 @@ use crate::{
         types::{
             fee_growth::{calculate_fee_growth_inside, FeeGrowth},
             liquidity::Liquidity,
+            seconds_per_liquidity::{calculate_seconds_per_liquidity_inside, SecondsPerLiquidity},
             sqrt_price::SqrtPrice,
             token_amount::TokenAmount,
         },
@@ -26,6 +27,7 @@ pub struct Position {
     pub last_block_number: u64,
     pub tokens_owed_x: TokenAmount,
     pub tokens_owed_y: TokenAmount,
+    pub seconds_per_liquidity_inside: SecondsPerLiquidity,
 }
 
 impl Position {
@@ -40,8 +42,11 @@ impl Position {
         current_timestamp: u64,
         tick_spacing: u16,
     ) -> TrackableResult<(TokenAmount, TokenAmount)> {
-        pool.last_timestamp = current_timestamp;
-
+        if !pool.liquidity.is_zero() {
+            ok_or_mark_trace!(pool.update_seconds_per_liquidity_global(current_timestamp))?;
+        } else {
+            pool.last_timestamp = current_timestamp;
+        }
         // calculate dynamically limit allows easy modification
         let max_liquidity_per_tick = calculate_max_liquidity_per_tick(tick_spacing);
 
@@ -188,6 +193,7 @@ impl Position {
             last_block_number: block_number,
             tokens_owed_x: TokenAmount::new(0),
             tokens_owed_y: TokenAmount::new(0),
+            seconds_per_liquidity_inside: SecondsPerLiquidity::new(0),
         };
 
         let (required_x, required_y) = unwrap!(position.modify(
@@ -234,6 +240,24 @@ impl Position {
             deinitialize_lower_tick,
             deinitialize_upper_tick,
         )
+    }
+
+    pub fn update_seconds_per_liquidity(
+        &mut self,
+        pool: Pool,
+        lower_tick: Tick,
+        upper_tick: Tick,
+        current_timestamp: u64,
+    ) {
+        self.seconds_per_liquidity_inside = unwrap!(calculate_seconds_per_liquidity_inside(
+            lower_tick.index,
+            upper_tick.index,
+            pool.current_tick_index,
+            lower_tick.seconds_per_liquidity_outside,
+            upper_tick.seconds_per_liquidity_outside,
+            pool.seconds_per_liquidity_global,
+        ));
+        self.last_block_number = current_timestamp;
     }
 }
 

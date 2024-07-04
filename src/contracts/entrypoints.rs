@@ -452,4 +452,11 @@ pub trait InvariantTrait {
     /// - `address`: Address of wAZERO contract.
     #[ink(message)]
     fn withdraw_all_wazero(&self, address: AccountId) -> Result<(), InvariantError>;
+
+    #[ink(message)]
+    fn update_position_seconds_per_liquidity(
+        &mut self,
+        index: u32,
+        pool_key: PoolKey,
+    ) -> Result<(), InvariantError>;
 }

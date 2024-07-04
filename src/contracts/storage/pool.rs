@@ -6,8 +6,12 @@ use crate::{
         clamm::*,
         log::get_tick_at_sqrt_price,
         types::{
-            fee_growth::FeeGrowth, liquidity::Liquidity, percentage::Percentage,
-            sqrt_price::SqrtPrice, token_amount::TokenAmount,
+            fee_growth::FeeGrowth,
+            liquidity::Liquidity,
+            percentage::Percentage,
+            seconds_per_liquidity::{calculate_seconds_per_liquidity_inside, SecondsPerLiquidity},
+            sqrt_price::SqrtPrice,
+            token_amount::TokenAmount,
         },
     },
 };
@@ -30,6 +34,7 @@ pub struct Pool {
     pub start_timestamp: u64,
     pub last_timestamp: u64,
     pub fee_receiver: AccountId,
+    pub seconds_per_liquidity_global: SecondsPerLiquidity,
 }
 
 #[derive(PartialEq, Eq, Debug, Clone)]
@@ -52,6 +57,7 @@ impl Default for Pool {
             start_timestamp: u64::default(),
             last_timestamp: u64::default(),
             fee_receiver: AccountId::from([0x0; 32]),
+            seconds_per_liquidity_global: SecondsPerLiquidity::default(),
         }
     }
 }
@@ -223,6 +229,48 @@ impl Pool {
         self.fee_protocol_token_y = TokenAmount(0);
 
         (fee_protocol_token_x, fee_protocol_token_y)
+    }
+
+    pub fn update_seconds_per_liquidity_global(
+        &mut self,
+        current_timestamp: u64,
+    ) -> TrackableResult<()> {
+        let seconds_per_liquidity_global =
+            SecondsPerLiquidity::calculate_seconds_per_liquidity_global(
+                self.liquidity,
+                current_timestamp,
+                self.last_timestamp,
+            )?;
+
+        self.seconds_per_liquidity_global = self
+            .seconds_per_liquidity_global
+            .unchecked_add(seconds_per_liquidity_global);
+        self.last_timestamp = current_timestamp;
+        Ok(())
+    }
+
+    pub fn update_seconds_per_liquidity_inside(
+        &mut self,
+        tick_lower: i32,
+        tick_lower_seconds_per_liquidity_outside: SecondsPerLiquidity,
+        tick_upper: i32,
+        tick_upper_seconds_per_liquidity_outside: SecondsPerLiquidity,
+        current_timestamp: u64,
+    ) -> TrackableResult<SecondsPerLiquidity> {
+        if !self.liquidity.is_zero() {
+            ok_or_mark_trace!(self.update_seconds_per_liquidity_global(current_timestamp))?;
+        } else {
+            self.last_timestamp = current_timestamp;
+        }
+
+        ok_or_mark_trace!(calculate_seconds_per_liquidity_inside(
+            tick_lower,
+            tick_upper,
+            self.current_tick_index,
+            tick_lower_seconds_per_liquidity_outside,
+            tick_upper_seconds_per_liquidity_outside,
+            self.seconds_per_liquidity_global,
+        ))
     }
 }
 
@@ -577,6 +625,168 @@ mod tests {
             assert_eq!(x, TokenAmount(2500375009372499999999997));
             assert_eq!(y, TokenAmount(5));
             assert_eq!(pool.liquidity, Liquidity::from_integer(5))
+        }
+    }
+
+    #[test]
+    fn test_update_seconds_per_liquidity_inside() {
+        let mut tick_lower = Tick {
+            index: 0,
+            seconds_per_liquidity_outside: SecondsPerLiquidity::new(3012300000),
+            ..Default::default()
+        };
+        let mut tick_upper = Tick {
+            index: 10,
+            seconds_per_liquidity_outside: SecondsPerLiquidity::new(2030400000),
+            ..Default::default()
+        };
+        let mut pool = Pool {
+            liquidity: Liquidity::from_integer(1000),
+            start_timestamp: 0,
+            last_timestamp: 0,
+            seconds_per_liquidity_global: SecondsPerLiquidity::new(0),
+            ..Default::default()
+        };
+        let mut current_timestamp = 0;
+
+        {
+            current_timestamp += 100;
+            pool.current_tick_index = -10;
+            let seconds_per_liquidity_inside = pool.update_seconds_per_liquidity_inside(
+                tick_lower.index,
+                tick_lower.seconds_per_liquidity_outside,
+                tick_upper.index,
+                tick_upper.seconds_per_liquidity_outside,
+                current_timestamp,
+            );
+            assert_eq!(seconds_per_liquidity_inside.unwrap().get(), 981900000);
+        }
+        {
+            current_timestamp += 100;
+            pool.current_tick_index = 0;
+            let seconds_per_liquidity_inside = pool.update_seconds_per_liquidity_inside(
+                tick_lower.index,
+                tick_lower.seconds_per_liquidity_outside,
+                tick_upper.index,
+                tick_upper.seconds_per_liquidity_outside,
+                current_timestamp,
+            );
+            assert_eq!(
+                seconds_per_liquidity_inside.unwrap().get(),
+                199999999999994957300000
+            );
+        }
+        {
+            current_timestamp += 100;
+            tick_lower.seconds_per_liquidity_outside = SecondsPerLiquidity::new(2012333200);
+            tick_upper.seconds_per_liquidity_outside = SecondsPerLiquidity::new(3012333310);
+            pool.current_tick_index = 20;
+            let seconds_per_liquidity_inside = pool.update_seconds_per_liquidity_inside(
+                tick_lower.index,
+                tick_lower.seconds_per_liquidity_outside,
+                tick_upper.index,
+                tick_upper.seconds_per_liquidity_outside,
+                current_timestamp,
+            );
+            assert_eq!(seconds_per_liquidity_inside.unwrap().get(), 1000000110);
+        }
+        {
+            current_timestamp += 100;
+            tick_lower.seconds_per_liquidity_outside = SecondsPerLiquidity::new(201233320000);
+            tick_upper.seconds_per_liquidity_outside = SecondsPerLiquidity::new(301233331000);
+            pool.current_tick_index = 20;
+            let seconds_per_liquidity_inside = pool.update_seconds_per_liquidity_inside(
+                tick_lower.index,
+                tick_lower.seconds_per_liquidity_outside,
+                tick_upper.index,
+                tick_upper.seconds_per_liquidity_outside,
+                current_timestamp,
+            );
+            assert_eq!(seconds_per_liquidity_inside.unwrap().get(), 100000011000);
+        }
+        {
+            current_timestamp += 100;
+            tick_lower.seconds_per_liquidity_outside = SecondsPerLiquidity::new(201233320000);
+            tick_upper.seconds_per_liquidity_outside = SecondsPerLiquidity::new(301233331000);
+            pool.current_tick_index = -20;
+            let seconds_per_liquidity_inside = pool.update_seconds_per_liquidity_inside(
+                tick_lower.index,
+                tick_lower.seconds_per_liquidity_outside,
+                tick_upper.index,
+                tick_upper.seconds_per_liquidity_outside,
+                current_timestamp,
+            );
+            assert_eq!(
+                seconds_per_liquidity_inside.unwrap().get(),
+                340282366920938463463374607331768200456
+            );
+            assert_eq!(
+                pool.seconds_per_liquidity_global.get(),
+                500000000000000000000000
+            );
+        }
+        // updates timestamp
+        {
+            current_timestamp += 100;
+            pool.liquidity = Liquidity::new(0);
+            let seconds_per_liquidity_inside = pool.update_seconds_per_liquidity_inside(
+                tick_lower.index,
+                tick_lower.seconds_per_liquidity_outside,
+                tick_upper.index,
+                tick_upper.seconds_per_liquidity_outside,
+                current_timestamp,
+            );
+            assert_eq!(pool.last_timestamp, current_timestamp);
+            assert_eq!(
+                seconds_per_liquidity_inside.unwrap().get(),
+                340282366920938463463374607331768200456
+            );
+            assert_eq!(
+                pool.seconds_per_liquidity_global.get(),
+                500000000000000000000000
+            );
+        }
+        // L > 0
+        {
+            current_timestamp += 100;
+            pool.liquidity = Liquidity::from_integer(1000);
+            let seconds_per_liquidity_inside = pool.update_seconds_per_liquidity_inside(
+                tick_lower.index,
+                tick_lower.seconds_per_liquidity_outside,
+                tick_upper.index,
+                tick_upper.seconds_per_liquidity_outside,
+                current_timestamp,
+            );
+            assert_eq!(pool.last_timestamp, current_timestamp);
+            assert_eq!(
+                seconds_per_liquidity_inside.unwrap().get(),
+                340282366920938463463374607331768200456
+            );
+            assert_eq!(
+                pool.seconds_per_liquidity_global.get(),
+                600000000000000000000000
+            );
+        }
+        // L == 0
+        {
+            current_timestamp += 100;
+            pool.liquidity = Liquidity::new(0);
+            let seconds_per_liquidity_inside = pool.update_seconds_per_liquidity_inside(
+                tick_lower.index,
+                tick_lower.seconds_per_liquidity_outside,
+                tick_upper.index,
+                tick_upper.seconds_per_liquidity_outside,
+                current_timestamp,
+            );
+            assert_eq!(pool.last_timestamp, current_timestamp);
+            assert_eq!(
+                seconds_per_liquidity_inside.unwrap().get(),
+                340282366920938463463374607331768200456
+            );
+            assert_eq!(
+                pool.seconds_per_liquidity_global.get(),
+                600000000000000000000000
+            );
         }
     }
 }

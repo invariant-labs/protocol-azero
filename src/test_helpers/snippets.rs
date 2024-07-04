@@ -880,6 +880,10 @@ macro_rules! positions_equals {
         assert_eq!($a.lower_tick_index, $b.lower_tick_index);
         assert_eq!($a.upper_tick_index, $b.upper_tick_index);
         assert_eq!($a.pool_key, $b.pool_key);
+        assert_eq!(
+            $a.seconds_per_liquidity_inside,
+            $b.seconds_per_liquidity_inside
+        );
         assert_eq!($a.tokens_owed_x, $b.tokens_owed_x);
         assert_eq!($a.tokens_owed_y, $b.tokens_owed_y);
     }};

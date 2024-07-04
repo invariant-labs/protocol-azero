@@ -1133,6 +1133,27 @@ pub mod invariant {
 
             Ok(())
         }
+
+        #[ink(message)]
+        fn update_position_seconds_per_liquidity(
+            &mut self,
+            index: u32,
+            pool_key: PoolKey,
+        ) -> Result<(), InvariantError> {
+            let caller = self.env().caller();
+            let current_timestamp = self.env().block_timestamp();
+
+            let mut position = self.positions.get(caller, index)?;
+
+            let lower_tick = self.ticks.get(pool_key, position.lower_tick_index)?;
+
+            let upper_tick = self.ticks.get(pool_key, position.upper_tick_index)?;
+
+            let pool = self.pools.get(pool_key)?;
+
+            position.update_seconds_per_liquidity(pool, lower_tick, upper_tick, current_timestamp);
+            Ok(())
+        }
     }
 
     #[cfg(test)]

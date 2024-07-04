@@ -1,7 +1,7 @@
 use super::Pool;
 use crate::math::types::{
-    fee_growth::FeeGrowth, liquidity::Liquidity, sqrt_price::calculate_sqrt_price,
-    sqrt_price::SqrtPrice,
+    fee_growth::FeeGrowth, liquidity::Liquidity, seconds_per_liquidity::SecondsPerLiquidity,
+    sqrt_price::calculate_sqrt_price, sqrt_price::SqrtPrice,
 };
 use decimal::*;
 use traceable_result::*;
@@ -18,6 +18,7 @@ pub struct Tick {
     pub fee_growth_outside_x: FeeGrowth,
     pub fee_growth_outside_y: FeeGrowth,
     pub seconds_outside: u64,
+    pub seconds_per_liquidity_outside: SecondsPerLiquidity,
 }
 
 pub const MAX_RESULT_SIZE: usize = 16 * 1024 * 8;
@@ -68,6 +69,7 @@ impl Default for Tick {
             fee_growth_outside_x: FeeGrowth::new(0),
             fee_growth_outside_y: FeeGrowth::new(0),
             seconds_outside: 0u64,
+            seconds_per_liquidity_outside: SecondsPerLiquidity::new(0),
         }
     }
 }
@@ -92,6 +94,10 @@ impl Tick {
                 true => current_timestamp.checked_sub(pool.start_timestamp).unwrap(),
                 false => 0,
             },
+            seconds_per_liquidity_outside: match below_current_tick {
+                true => pool.seconds_per_liquidity_global,
+                false => SecondsPerLiquidity::new(0),
+            },
             ..Self::default()
         }
     }
@@ -109,7 +115,15 @@ impl Tick {
             .ok_or_else(|| err!("current_timestamp - pool.start_timestamp underflow"))?;
         self.seconds_outside = seconds_passed.wrapping_sub(self.seconds_outside);
 
-        pool.last_timestamp = current_timestamp;
+        if !pool.liquidity.is_zero() {
+            ok_or_mark_trace!(pool.update_seconds_per_liquidity_global(current_timestamp))?;
+        } else {
+            pool.last_timestamp = current_timestamp;
+        }
+
+        self.seconds_per_liquidity_outside = pool
+            .seconds_per_liquidity_global
+            .unchecked_sub(self.seconds_per_liquidity_outside);
 
         // When going to higher tick net_liquidity should be added and for going lower subtracted
         if (pool.current_tick_index >= self.index) ^ self.sign {
@@ -235,6 +249,7 @@ mod tests {
                 last_timestamp: 315360015,
                 start_timestamp: 4,
                 current_tick_index: 7,
+                seconds_per_liquidity_global: SecondsPerLiquidity::from_integer(78840000),
                 ..Default::default()
             };
             let result_tick = Tick {
@@ -243,6 +258,7 @@ mod tests {
                 index: 3,
                 seconds_outside: 315360006,
                 liquidity_change: Liquidity::from_integer(1),
+                seconds_per_liquidity_outside: SecondsPerLiquidity::from_integer(78840000),
                 ..Default::default()
             };
             tick.cross(&mut pool, 315360015).ok();
@@ -318,6 +334,9 @@ mod tests {
                 last_timestamp: 31536000,
                 start_timestamp: 15,
                 current_tick_index: 9,
+                seconds_per_liquidity_global: SecondsPerLiquidity::new(
+                    2252570785714285714285714285714,
+                ),
                 ..Default::default()
             };
             let result_tick = Tick {
@@ -326,6 +345,9 @@ mod tests {
                 index: 45,
                 seconds_outside: 31535911,
                 liquidity_change: Liquidity::new(10),
+                seconds_per_liquidity_outside: SecondsPerLiquidity::new(
+                    2252570785714285714285714285714,
+                ),
                 ..Default::default()
             };
 
@@ -359,6 +381,9 @@ mod tests {
                 last_timestamp: 315360000,
                 start_timestamp: 15,
                 current_tick_index: 9,
+                seconds_per_liquidity_global: SecondsPerLiquidity::new(
+                    22525713142857142857142857142857142857,
+                ),
                 ..Default::default()
             };
             let result_tick = Tick {
@@ -367,6 +392,9 @@ mod tests {
                 index: 45,
                 seconds_outside: 315359911,
                 liquidity_change: Liquidity::new(10),
+                seconds_per_liquidity_outside: SecondsPerLiquidity::new(
+                    22525713142857142857142857142857142857,
+                ),
                 ..Default::default()
             };
 
