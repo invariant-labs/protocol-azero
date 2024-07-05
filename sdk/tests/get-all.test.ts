@@ -24,7 +24,9 @@ const feeTier = newFeeTier(6000000000n, 10n)
 let poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
 describe('get-all', async () => {
-  beforeEach(async () => {
+  beforeEach(async function () {
+    this.timeout(10000)
+
     invariant = await Invariant.deploy(api, Network.Local, account, toPercentage(1n, 2n))
     token0Address = await PSP22.deploy(api, account, 1000000000000n, 'Coin', 'COIN', 0n)
     token1Address = await PSP22.deploy(api, account, 1000000000000n, 'Coin', 'COIN', 0n)
