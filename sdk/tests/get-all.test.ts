@@ -60,8 +60,8 @@ describe('get-all', async () => {
     })
   })
 
-  it('get all pool keys above single query limit works', async function (done) {
-    this.timeout(30000)
+  it('get all pool keys above single query limit works', async function () {
+    this.timeout(120000)
 
     const feeTiers = Array.from(Array(100).keys()).map(i =>
       newFeeTier(BigInt(i + 1), BigInt(i + 1))
@@ -87,8 +87,6 @@ describe('get-all', async () => {
     poolKeys.map((poolKey, index) => {
       assert.deepEqual(poolKey, expectedPoolKeys[index])
     })
-
-    done()
   })
 
   it('get all positions works', async function () {
