@@ -293,5 +293,57 @@ describe('get-all', async () => {
         assert.deepEqual(upperTick, expectedUpperTick)
       }
     }
+
+    it('get all positions with positions count and skip pages', async function () {
+      this.timeout(300000)
+
+      await invariant.addFeeTier(account, feeTier)
+      await invariant.createPool(
+        account,
+        newPoolKey(token0Address, token1Address, feeTier),
+        SQRT_PRICE_DENOMINATOR
+      )
+      for (let i = 0; i < 100; i++) {
+        await invariant.createPosition(
+          account,
+          poolKey,
+          -BigInt((i + 1) * 10),
+          BigInt((i + 1) * 10),
+          1000000n,
+          SQRT_PRICE_DENOMINATOR,
+          0n
+        )
+      }
+
+      const pages = await invariant.getAllPositions(account.address, 90n, [1, 2])
+      assert.equal(pages.map(page => page.entries).flat(1).length, 32)
+
+      for (const { index, entries } of pages) {
+        for (const [positionIndex, [position, pool, lowerTick, upperTick]] of entries.entries()) {
+          const expectedPosition = await invariant.getPosition(
+            account.address,
+            BigInt((index - 1) * Number(POSITIONS_ENTRIES_LIMIT) + positionIndex)
+          )
+          const expectedPool = await invariant.getPool(
+            expectedPosition.poolKey.tokenX,
+            expectedPosition.poolKey.tokenY,
+            expectedPosition.poolKey.feeTier
+          )
+          const expectedLowerTick = await invariant.getTick(
+            expectedPosition.poolKey,
+            expectedPosition.lowerTickIndex
+          )
+          const expectedUpperTick = await invariant.getTick(
+            expectedPosition.poolKey,
+            expectedPosition.upperTickIndex
+          )
+
+          assert.deepEqual(position, expectedPosition)
+          assert.deepEqual(pool, expectedPool)
+          assert.deepEqual(lowerTick, expectedLowerTick)
+          assert.deepEqual(upperTick, expectedUpperTick)
+        }
+      }
+    })
   })
 })

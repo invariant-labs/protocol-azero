@@ -537,25 +537,34 @@ export class Invariant {
     }
   ): Promise<Page[]> {
     const pages: Page[] = []
+    let firstPageIndex = 0
+    let actualPositionsCount = positionsCount
+
+    for (let i = 1; i < Number.MAX_SAFE_INTEGER; i++) {
+      if (!skipPages?.includes(i)) {
+        firstPageIndex = i
+        break
+      }
+    }
 
     if (!positionsCount) {
       const [positionEntries, retrievedPositionCount] = await this.getPositions(
         owner,
         POSITIONS_ENTRIES_LIMIT,
-        0n,
+        BigInt(firstPageIndex - 1) * POSITIONS_ENTRIES_LIMIT,
         options
       )
 
       pages.push({ index: 1, entries: positionEntries })
-      positionsCount = retrievedPositionCount
+      actualPositionsCount = retrievedPositionCount
     }
 
     const promises: Promise<[[Position, Pool, Tick, Tick][], bigint]>[] = []
     const pageIds: number[] = []
 
     for (
-      let i = pages.length;
-      i < Math.ceil(Number(positionsCount) / Number(POSITIONS_ENTRIES_LIMIT));
+      let i = positionsCount ? firstPageIndex - 1 : firstPageIndex;
+      i < Math.ceil(Number(actualPositionsCount) / Number(POSITIONS_ENTRIES_LIMIT));
       i++
     ) {
       if (skipPages?.includes(i + 1)) {
