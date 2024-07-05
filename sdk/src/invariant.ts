@@ -536,10 +536,7 @@ export class Invariant {
       proofSize: this.gasLimit.proofSize.toNumber()
     }
   ): Promise<Page[]> {
-    const pages: Page[] = []
     let firstPageIndex = 0
-    let actualPositionsCount = positionsCount
-
     for (let i = 1; i < Number.MAX_SAFE_INTEGER; i++) {
       if (!skipPages?.includes(i)) {
         firstPageIndex = i
@@ -547,8 +544,10 @@ export class Invariant {
       }
     }
 
+    let pages: Page[] = []
+    let actualPositionsCount = positionsCount
     if (!positionsCount) {
-      const [positionEntries, retrievedPositionCount] = await this.getPositions(
+      const [positionEntries, positionsCount] = await this.getPositions(
         owner,
         POSITIONS_ENTRIES_LIMIT,
         BigInt(firstPageIndex - 1) * POSITIONS_ENTRIES_LIMIT,
@@ -556,11 +555,11 @@ export class Invariant {
       )
 
       pages.push({ index: 1, entries: positionEntries })
-      actualPositionsCount = retrievedPositionCount
+      actualPositionsCount = positionsCount
     }
 
     const promises: Promise<[[Position, Pool, Tick, Tick][], bigint]>[] = []
-    const pageIds: number[] = []
+    const pageIndexes: number[] = []
 
     for (
       let i = positionsCount ? firstPageIndex - 1 : firstPageIndex;
@@ -571,7 +570,7 @@ export class Invariant {
         continue
       }
 
-      pageIds.push(i + 1)
+      pageIndexes.push(i + 1)
       promises.push(
         this.getPositions(
           owner,
@@ -583,11 +582,14 @@ export class Invariant {
     }
 
     const positionsEntriesList = await Promise.all(promises)
-    const retrievedPages: Page[] = positionsEntriesList.map(([positionsEntries], index) => {
-      return { index: pageIds[index], entries: positionsEntries }
-    })
+    pages = [
+      ...pages,
+      ...positionsEntriesList.map(([positionsEntries], index) => {
+        return { index: pageIndexes[index], entries: positionsEntries }
+      })
+    ]
 
-    return [...pages, ...retrievedPages]
+    return pages
   }
 
   async _getAllPositions(
