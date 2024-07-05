@@ -6,7 +6,7 @@ import { PSP22 } from '../src/psp22'
 import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
 import { assert } from 'chai'
 import { describe, it } from 'mocha'
-import { SQRT_PRICE_DENOMINATOR } from '../src/consts'
+import { POSITIONS_ENTRIES_LIMIT, SQRT_PRICE_DENOMINATOR } from '../src/consts'
 
 const api = await initPolkadotApi(Network.Local)
 
@@ -38,7 +38,7 @@ describe('get-all', async () => {
   })
 
   it('get all pool keys works', async function () {
-    this.timeout(300000)
+    this.timeout(30000)
 
     const feeTiers = Array.from(Array(10).keys()).map(i => newFeeTier(BigInt(i + 1), BigInt(i + 1)))
     const expectedPoolKeys: PoolKey[] = []
@@ -59,7 +59,7 @@ describe('get-all', async () => {
   })
 
   it('get all pool keys above single query limit works', async function () {
-    this.timeout(300000)
+    this.timeout(30000)
 
     const feeTiers = Array.from(Array(100).keys()).map(i =>
       newFeeTier(BigInt(i + 1), BigInt(i + 1))
@@ -88,7 +88,7 @@ describe('get-all', async () => {
   })
 
   it('get all positions works', async function () {
-    this.timeout(300000)
+    this.timeout(30000)
 
     await invariant.addFeeTier(account, feeTier)
     await invariant.createPool(
@@ -100,41 +100,98 @@ describe('get-all', async () => {
       await invariant.createPosition(
         account,
         poolKey,
-        -10n,
-        10n,
+        -BigInt((i + 1) * 10),
+        BigInt((i + 1) * 10),
         1000000n,
         SQRT_PRICE_DENOMINATOR,
         0n
       )
     }
 
-    const positionsEntries = await invariant.getAllPositions(account.address)
-    assert.equal(positionsEntries.length, 10)
+    const pages = await invariant.getAllPositions(account.address)
+    assert.equal(pages.map(page => page.entries).flat(1).length, 10)
 
-    for (const [index, [position, pool, lowerTick, upperTick]] of positionsEntries.entries()) {
-      const expectedPosition = await invariant.getPosition(account.address, BigInt(index))
-      const expectedPool = await invariant.getPool(
-        expectedPosition.poolKey.tokenX,
-        expectedPosition.poolKey.tokenY,
-        expectedPosition.poolKey.feeTier
-      )
-      const expectedLowerTick = await invariant.getTick(
-        expectedPosition.poolKey,
-        expectedPosition.lowerTickIndex
-      )
-      const expectedUpperTick = await invariant.getTick(
-        expectedPosition.poolKey,
-        expectedPosition.upperTickIndex
-      )
+    for (const { index, entries } of pages) {
+      for (const [positionIndex, [position, pool, lowerTick, upperTick]] of entries.entries()) {
+        const expectedPosition = await invariant.getPosition(
+          account.address,
+          BigInt((index - 1) * Number(POSITIONS_ENTRIES_LIMIT) + positionIndex)
+        )
+        const expectedPool = await invariant.getPool(
+          expectedPosition.poolKey.tokenX,
+          expectedPosition.poolKey.tokenY,
+          expectedPosition.poolKey.feeTier
+        )
+        const expectedLowerTick = await invariant.getTick(
+          expectedPosition.poolKey,
+          expectedPosition.lowerTickIndex
+        )
+        const expectedUpperTick = await invariant.getTick(
+          expectedPosition.poolKey,
+          expectedPosition.upperTickIndex
+        )
 
-      assert.deepEqual(position, expectedPosition)
-      assert.deepEqual(pool, expectedPool)
-      assert.deepEqual(lowerTick, expectedLowerTick)
-      assert.deepEqual(upperTick, expectedUpperTick)
+        assert.deepEqual(position, expectedPosition)
+        assert.deepEqual(pool, expectedPool)
+        assert.deepEqual(lowerTick, expectedLowerTick)
+        assert.deepEqual(upperTick, expectedUpperTick)
+      }
     }
   })
 
   it('get all positions above single query limit works', async function () {
+    this.timeout(30000)
+
+    await invariant.addFeeTier(account, feeTier)
+    await invariant.createPool(
+      account,
+      newPoolKey(token0Address, token1Address, feeTier),
+      SQRT_PRICE_DENOMINATOR
+    )
+    for (let i = 0; i < 50; i++) {
+      await invariant.createPosition(
+        account,
+        poolKey,
+        -BigInt((i + 1) * 10),
+        BigInt((i + 1) * 10),
+        1000000n,
+        SQRT_PRICE_DENOMINATOR,
+        0n
+      )
+    }
+
+    const pages = await invariant.getAllPositions(account.address)
+    assert.equal(pages.map(page => page.entries).flat(1).length, 50)
+
+    for (const { index, entries } of pages) {
+      for (const [positionIndex, [position, pool, lowerTick, upperTick]] of entries.entries()) {
+        const expectedPosition = await invariant.getPosition(
+          account.address,
+          BigInt((index - 1) * Number(POSITIONS_ENTRIES_LIMIT) + positionIndex)
+        )
+        const expectedPool = await invariant.getPool(
+          expectedPosition.poolKey.tokenX,
+          expectedPosition.poolKey.tokenY,
+          expectedPosition.poolKey.feeTier
+        )
+        const expectedLowerTick = await invariant.getTick(
+          expectedPosition.poolKey,
+          expectedPosition.lowerTickIndex
+        )
+        const expectedUpperTick = await invariant.getTick(
+          expectedPosition.poolKey,
+          expectedPosition.upperTickIndex
+        )
+
+        assert.deepEqual(position, expectedPosition)
+        assert.deepEqual(pool, expectedPool)
+        assert.deepEqual(lowerTick, expectedLowerTick)
+        assert.deepEqual(upperTick, expectedUpperTick)
+      }
+    }
+  })
+
+  it('get all positions with positions count', async function () {
     this.timeout(300000)
 
     await invariant.addFeeTier(account, feeTier)
@@ -147,37 +204,94 @@ describe('get-all', async () => {
       await invariant.createPosition(
         account,
         poolKey,
-        -10n,
-        10n,
+        -BigInt((i + 1) * 10),
+        BigInt((i + 1) * 10),
         1000000n,
         SQRT_PRICE_DENOMINATOR,
         0n
       )
     }
 
-    const positionsEntries = await invariant.getAllPositions(account.address)
-    assert.equal(positionsEntries.length, 50)
+    const pages = await invariant.getAllPositions(account.address, 30n)
+    assert.equal(pages.map(page => page.entries).flat(1).length, 32)
 
-    for (const [index, [position, pool, lowerTick, upperTick]] of positionsEntries.entries()) {
-      const expectedPosition = await invariant.getPosition(account.address, BigInt(index))
-      const expectedPool = await invariant.getPool(
-        expectedPosition.poolKey.tokenX,
-        expectedPosition.poolKey.tokenY,
-        expectedPosition.poolKey.feeTier
-      )
-      const expectedLowerTick = await invariant.getTick(
-        expectedPosition.poolKey,
-        expectedPosition.lowerTickIndex
-      )
-      const expectedUpperTick = await invariant.getTick(
-        expectedPosition.poolKey,
-        expectedPosition.upperTickIndex
-      )
+    for (const { index, entries } of pages) {
+      for (const [positionIndex, [position, pool, lowerTick, upperTick]] of entries.entries()) {
+        const expectedPosition = await invariant.getPosition(
+          account.address,
+          BigInt((index - 1) * Number(POSITIONS_ENTRIES_LIMIT) + positionIndex)
+        )
+        const expectedPool = await invariant.getPool(
+          expectedPosition.poolKey.tokenX,
+          expectedPosition.poolKey.tokenY,
+          expectedPosition.poolKey.feeTier
+        )
+        const expectedLowerTick = await invariant.getTick(
+          expectedPosition.poolKey,
+          expectedPosition.lowerTickIndex
+        )
+        const expectedUpperTick = await invariant.getTick(
+          expectedPosition.poolKey,
+          expectedPosition.upperTickIndex
+        )
 
-      assert.deepEqual(position, expectedPosition)
-      assert.deepEqual(pool, expectedPool)
-      assert.deepEqual(lowerTick, expectedLowerTick)
-      assert.deepEqual(upperTick, expectedUpperTick)
+        assert.deepEqual(position, expectedPosition)
+        assert.deepEqual(pool, expectedPool)
+        assert.deepEqual(lowerTick, expectedLowerTick)
+        assert.deepEqual(upperTick, expectedUpperTick)
+      }
+    }
+  })
+
+  it('get all positions with skip pages', async function () {
+    this.timeout(300000)
+
+    await invariant.addFeeTier(account, feeTier)
+    await invariant.createPool(
+      account,
+      newPoolKey(token0Address, token1Address, feeTier),
+      SQRT_PRICE_DENOMINATOR
+    )
+    for (let i = 0; i < 100; i++) {
+      await invariant.createPosition(
+        account,
+        poolKey,
+        -BigInt((i + 1) * 10),
+        BigInt((i + 1) * 10),
+        1000000n,
+        SQRT_PRICE_DENOMINATOR,
+        0n
+      )
+    }
+
+    const pages = await invariant.getAllPositions(account.address, undefined, [2, 4])
+    assert.equal(pages.map(page => page.entries).flat(1).length, 64)
+
+    for (const { index, entries } of pages) {
+      for (const [positionIndex, [position, pool, lowerTick, upperTick]] of entries.entries()) {
+        const expectedPosition = await invariant.getPosition(
+          account.address,
+          BigInt((index - 1) * Number(POSITIONS_ENTRIES_LIMIT) + positionIndex)
+        )
+        const expectedPool = await invariant.getPool(
+          expectedPosition.poolKey.tokenX,
+          expectedPosition.poolKey.tokenY,
+          expectedPosition.poolKey.feeTier
+        )
+        const expectedLowerTick = await invariant.getTick(
+          expectedPosition.poolKey,
+          expectedPosition.lowerTickIndex
+        )
+        const expectedUpperTick = await invariant.getTick(
+          expectedPosition.poolKey,
+          expectedPosition.upperTickIndex
+        )
+
+        assert.deepEqual(position, expectedPosition)
+        assert.deepEqual(pool, expectedPool)
+        assert.deepEqual(lowerTick, expectedLowerTick)
+        assert.deepEqual(upperTick, expectedUpperTick)
+      }
     }
   })
 })

@@ -63,6 +63,9 @@ import {
   getMinTick
 } from './utils.js'
 import { SubmittableExtrinsic } from '@polkadot/api/types/submittable'
+
+type Page = { index: number; entries: [Position, Pool, Tick, Tick][] }
+
 export class Invariant {
   contract: ContractPromise
   api: ApiPromise
@@ -525,21 +528,41 @@ export class Invariant {
 
   async getAllPositions(
     owner: string,
+    positionsCount?: bigint,
+    skipPages?: number[],
     options: ContractOptions = {
       storageDepositLimit: this.storageDepositLimit,
       refTime: this.gasLimit.refTime.toNumber(),
       proofSize: this.gasLimit.proofSize.toNumber()
     }
-  ): Promise<[Position, Pool, Tick, Tick][]> {
-    const [positions, poolKeysCount] = await this.getPositions(
-      owner,
-      POSITIONS_ENTRIES_LIMIT,
-      0n,
-      options
-    )
+  ): Promise<Page[]> {
+    const pages: Page[] = []
+
+    if (!positionsCount) {
+      const [positionEntries, retrievedPositionCount] = await this.getPositions(
+        owner,
+        POSITIONS_ENTRIES_LIMIT,
+        0n,
+        options
+      )
+
+      pages.push({ index: 1, entries: positionEntries })
+      positionsCount = retrievedPositionCount
+    }
 
     const promises: Promise<[[Position, Pool, Tick, Tick][], bigint]>[] = []
-    for (let i = 1; i < Math.ceil(Number(poolKeysCount) / Number(POSITIONS_ENTRIES_LIMIT)); i++) {
+    const pageIds: number[] = []
+
+    for (
+      let i = pages.length;
+      i < Math.ceil(Number(positionsCount) / Number(POSITIONS_ENTRIES_LIMIT));
+      i++
+    ) {
+      if (skipPages?.includes(i + 1)) {
+        continue
+      }
+
+      pageIds.push(i + 1)
       promises.push(
         this.getPositions(
           owner,
@@ -550,8 +573,12 @@ export class Invariant {
       )
     }
 
-    const positionsEntries = await Promise.all(promises)
-    return [...positions, ...positionsEntries.map(([positions]) => positions).flat(1)]
+    const positionsEntriesList = await Promise.all(promises)
+    const retrievedPages: Page[] = positionsEntriesList.map(([positionsEntries], index) => {
+      return { index: pageIds[index], entries: positionsEntries }
+    })
+
+    return [...pages, ...retrievedPages]
   }
 
   async _getAllPositions(
@@ -915,7 +942,6 @@ export class Invariant {
     }
 
     const poolKeysEntries = await Promise.all(promises)
-    console.log(poolKeysEntries)
     return [...poolKeys, ...poolKeysEntries.map(([poolKeys]) => poolKeys).flat(1)]
   }
 
