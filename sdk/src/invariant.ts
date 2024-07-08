@@ -536,13 +536,7 @@ export class Invariant {
       proofSize: this.gasLimit.proofSize.toNumber()
     }
   ): Promise<Page[]> {
-    let firstPageIndex = 0
-    for (let i = 1; i < Number.MAX_SAFE_INTEGER; i++) {
-      if (!skipPages?.includes(i)) {
-        firstPageIndex = i
-        break
-      }
-    }
+    const firstPageIndex = skipPages?.find(i => !skipPages.includes(i)) || 1
 
     let pages: Page[] = []
     let actualPositionsCount = positionsCount
