@@ -54,7 +54,8 @@
     "test:crosses": "mocha ./tests/crosses-testnet.test.ts -g testnet-crosses-limitations",
     "test:tx": "mocha ./tests/tx.test.ts -g tx",
     "test:simulate-invariant-swap": "mocha ./tests/simulate-invariant-swap.test.ts -g simulateInvariantSwap",
-    "test:query-on-pair": "mocha ./tests/query-on-pair.test.ts -g query-on-pair"
+    "test:query-on-pair": "mocha ./tests/query-on-pair.test.ts -g query-on-pair",
+    "test:u256t-poc": "mocha ./tests/query-on-pair.test.ts -g u256t-poc"
   },
   "dependencies": {
     "@polkadot/api": "^10.12.4",

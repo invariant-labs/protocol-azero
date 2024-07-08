@@ -1,7 +1,7 @@
 export const abi = `
 {
   "source": {
-    "hash": "0xf1173d8a30aa5cb75a057960692ea174fa6eac1c0209d5d1ba5d16d810939697",
+    "hash": "0xe5065094388665399a5388d0b73d0cfca82ffc9680284fcef1eeb053d5a4591f",
     "language": "ink! 5.0.0",
     "compiler": "rustc 1.77.0",
     "build_info": {
@@ -33,6 +33,15 @@ export const abi = `
                 "Percentage"
               ],
               "type": 18
+            }
+          },
+          {
+            "label": "poc_field",
+            "type": {
+              "displayName": [
+                "PocType"
+              ],
+              "type": 54
             }
           }
         ],
@@ -3820,7 +3829,7 @@ export const abi = `
               {
                 "fields": [
                   {
-                    "type": 18
+                    "type": 54
                   }
                 ],
                 "index": 0,
@@ -3841,7 +3850,7 @@ export const abi = `
         "params": [
           {
             "name": "T",
-            "type": 18
+            "type": 54
           },
           {
             "name": "E",
