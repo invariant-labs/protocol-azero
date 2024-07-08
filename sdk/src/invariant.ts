@@ -530,6 +530,7 @@ export class Invariant {
     owner: string,
     positionsCount?: bigint,
     skipPages?: number[],
+    positionsPerPage?: bigint,
     options: ContractOptions = {
       storageDepositLimit: this.storageDepositLimit,
       refTime: this.gasLimit.refTime.toNumber(),
@@ -537,14 +538,15 @@ export class Invariant {
     }
   ): Promise<Page[]> {
     const firstPageIndex = skipPages?.find(i => !skipPages.includes(i)) || 1
+    const positionsPerPageLimit = positionsPerPage || POSITIONS_ENTRIES_LIMIT
 
     let pages: Page[] = []
     let actualPositionsCount = positionsCount
     if (!positionsCount) {
       const [positionEntries, positionsCount] = await this.getPositions(
         owner,
-        POSITIONS_ENTRIES_LIMIT,
-        BigInt(firstPageIndex - 1) * POSITIONS_ENTRIES_LIMIT,
+        positionsPerPageLimit,
+        BigInt(firstPageIndex - 1) * positionsPerPageLimit,
         options
       )
 
@@ -557,7 +559,7 @@ export class Invariant {
 
     for (
       let i = positionsCount ? firstPageIndex - 1 : firstPageIndex;
-      i < Math.ceil(Number(actualPositionsCount) / Number(POSITIONS_ENTRIES_LIMIT));
+      i < Math.ceil(Number(actualPositionsCount) / Number(positionsPerPageLimit));
       i++
     ) {
       if (skipPages?.includes(i + 1)) {
@@ -566,12 +568,7 @@ export class Invariant {
 
       pageIndexes.push(i + 1)
       promises.push(
-        this.getPositions(
-          owner,
-          POSITIONS_ENTRIES_LIMIT,
-          BigInt(i) * POSITIONS_ENTRIES_LIMIT,
-          options
-        )
+        this.getPositions(owner, positionsPerPageLimit, BigInt(i) * positionsPerPageLimit, options)
       )
     }
 
