@@ -182,7 +182,7 @@ describe('get-all', async () => {
       newPoolKey(token0Address, token1Address, feeTier),
       SQRT_PRICE_DENOMINATOR
     )
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 60; i++) {
       await invariant.createPosition(
         account,
         poolKey,
@@ -194,8 +194,8 @@ describe('get-all', async () => {
       )
     }
 
-    const pages = await invariant.getAllPositions(account.address, 30n)
-    assert.equal(pages.map(page => page.entries).flat(1).length, 32)
+    const pages = await invariant.getAllPositions(account.address, 50n)
+    assert.equal(pages.map(page => page.entries).flat(1).length, 51)
 
     for (const { index, entries } of pages) {
       for (const [positionIndex, [position, pool]] of entries.entries()) {
@@ -224,7 +224,7 @@ describe('get-all', async () => {
       newPoolKey(token0Address, token1Address, feeTier),
       SQRT_PRICE_DENOMINATOR
     )
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 200; i++) {
       await invariant.createPosition(
         account,
         poolKey,
@@ -237,7 +237,7 @@ describe('get-all', async () => {
     }
 
     const pages = await invariant.getAllPositions(account.address, undefined, [2, 4])
-    assert.equal(pages.map(page => page.entries).flat(1).length, 64)
+    assert.equal(pages.map(page => page.entries).flat(1).length, 102)
 
     for (const { index, entries } of pages) {
       for (const [positionIndex, [position, pool]] of entries.entries()) {
@@ -264,7 +264,7 @@ describe('get-all', async () => {
         newPoolKey(token0Address, token1Address, feeTier),
         SQRT_PRICE_DENOMINATOR
       )
-      for (let i = 0; i < 100; i++) {
+      for (let i = 0; i < 160n; i++) {
         await invariant.createPosition(
           account,
           poolKey,
@@ -276,8 +276,8 @@ describe('get-all', async () => {
         )
       }
 
-      const pages = await invariant.getAllPositions(account.address, 90n, [1, 2])
-      assert.equal(pages.map(page => page.entries).flat(1).length, 32)
+      const pages = await invariant.getAllPositions(account.address, 140n, [1, 2])
+      assert.equal(pages.map(page => page.entries).flat(1).length, 38)
 
       for (const { index, entries } of pages) {
         for (const [positionIndex, [position, pool]] of entries.entries()) {
