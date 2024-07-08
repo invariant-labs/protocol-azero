@@ -117,7 +117,7 @@ describe('get-all', async () => {
       for (const [positionIndex, [position, pool]] of entries.entries()) {
         const expectedPosition = await invariant.getPosition(
           account.address,
-          BigInt((index - 1) * Number(POSITIONS_ENTRIES_LIMIT) + positionIndex)
+          BigInt(index * Number(POSITIONS_ENTRIES_LIMIT) + positionIndex)
         )
         const expectedPool = await invariant.getPool(
           expectedPosition.poolKey.tokenX,
@@ -159,7 +159,7 @@ describe('get-all', async () => {
       for (const [positionIndex, [position, pool]] of entries.entries()) {
         const expectedPosition = await invariant.getPosition(
           account.address,
-          BigInt((index - 1) * Number(POSITIONS_ENTRIES_LIMIT) + positionIndex)
+          BigInt(index * Number(POSITIONS_ENTRIES_LIMIT) + positionIndex)
         )
         const expectedPool = await invariant.getPool(
           expectedPosition.poolKey.tokenX,
@@ -201,7 +201,7 @@ describe('get-all', async () => {
       for (const [positionIndex, [position, pool]] of entries.entries()) {
         const expectedPosition = await invariant.getPosition(
           account.address,
-          BigInt((index - 1) * Number(POSITIONS_ENTRIES_LIMIT) + positionIndex)
+          BigInt(index * Number(POSITIONS_ENTRIES_LIMIT) + positionIndex)
         )
         const expectedPool = await invariant.getPool(
           expectedPosition.poolKey.tokenX,
@@ -236,14 +236,14 @@ describe('get-all', async () => {
       )
     }
 
-    const pages = await invariant.getAllPositions(account.address, undefined, [2, 4])
+    const pages = await invariant.getAllPositions(account.address, undefined, [1, 3])
     assert.equal(pages.map(page => page.entries).flat(1).length, 102)
 
     for (const { index, entries } of pages) {
       for (const [positionIndex, [position, pool]] of entries.entries()) {
         const expectedPosition = await invariant.getPosition(
           account.address,
-          BigInt((index - 1) * Number(POSITIONS_ENTRIES_LIMIT) + positionIndex)
+          BigInt(index * Number(POSITIONS_ENTRIES_LIMIT) + positionIndex)
         )
         const expectedPool = await invariant.getPool(
           expectedPosition.poolKey.tokenX,
@@ -277,14 +277,14 @@ describe('get-all', async () => {
       )
     }
 
-    const pages = await invariant.getAllPositions(account.address, 140n, [1, 2])
+    const pages = await invariant.getAllPositions(account.address, 140n, [0, 1])
     assert.equal(pages.map(page => page.entries).flat(1).length, 51)
 
     for (const { index, entries } of pages) {
       for (const [positionIndex, [position, pool]] of entries.entries()) {
         const expectedPosition = await invariant.getPosition(
           account.address,
-          BigInt((index - 1) * Number(POSITIONS_ENTRIES_LIMIT) + positionIndex)
+          BigInt(index * Number(POSITIONS_ENTRIES_LIMIT) + positionIndex)
         )
         const expectedPool = await invariant.getPool(
           expectedPosition.poolKey.tokenX,
@@ -333,7 +333,7 @@ describe('get-all', async () => {
       for (const [positionIndex, [position, pool]] of entries.entries()) {
         const expectedPosition = await invariant.getPosition(
           account.address,
-          BigInt((index - 1) * Number(positionsPerPage) + positionIndex)
+          BigInt(index * Number(positionsPerPage) + positionIndex)
         )
         const expectedPool = await invariant.getPool(
           expectedPosition.poolKey.tokenX,
@@ -372,7 +372,7 @@ describe('get-all', async () => {
     const pages = await invariant.getAllPositions(
       account.address,
       undefined,
-      [2, 4],
+      [1, 3],
       positionsPerPage
     )
     assert.equal(pages.length, 8)
@@ -382,7 +382,7 @@ describe('get-all', async () => {
       for (const [positionIndex, [position, pool]] of entries.entries()) {
         const expectedPosition = await invariant.getPosition(
           account.address,
-          BigInt((index - 1) * Number(positionsPerPage) + positionIndex)
+          BigInt(index * Number(positionsPerPage) + positionIndex)
         )
         const expectedPool = await invariant.getPool(
           expectedPosition.poolKey.tokenX,

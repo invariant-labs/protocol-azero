@@ -537,7 +537,7 @@ export class Invariant {
       proofSize: this.gasLimit.proofSize.toNumber()
     }
   ): Promise<Page[]> {
-    const firstPageIndex = skipPages?.find(i => !skipPages.includes(i)) || 1
+    const firstPageIndex = skipPages?.find(i => !skipPages.includes(i)) || 0
     const positionsPerPageLimit = positionsPerPage || POSITIONS_ENTRIES_LIMIT
 
     let pages: Page[] = []
@@ -546,11 +546,11 @@ export class Invariant {
       const [positionEntries, positionsCount] = await this.getPositions(
         owner,
         positionsPerPageLimit,
-        BigInt(firstPageIndex - 1) * positionsPerPageLimit,
+        BigInt(firstPageIndex) * positionsPerPageLimit,
         options
       )
 
-      pages.push({ index: 1, entries: positionEntries })
+      pages.push({ index: 0, entries: positionEntries })
       actualPositionsCount = positionsCount
     }
 
@@ -558,15 +558,15 @@ export class Invariant {
     const pageIndexes: number[] = []
 
     for (
-      let i = positionsCount ? firstPageIndex - 1 : firstPageIndex;
+      let i = positionsCount ? firstPageIndex : firstPageIndex + 1;
       i < Math.ceil(Number(actualPositionsCount) / Number(positionsPerPageLimit));
       i++
     ) {
-      if (skipPages?.includes(i + 1)) {
+      if (skipPages?.includes(i)) {
         continue
       }
 
-      pageIndexes.push(i + 1)
+      pageIndexes.push(i)
       promises.push(
         this.getPositions(owner, positionsPerPageLimit, BigInt(i) * positionsPerPageLimit, options)
       )
