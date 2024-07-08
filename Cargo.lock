@@ -2901,6 +2901,7 @@ dependencies = [
  "test_helpers",
  "token",
  "traceable_result",
+ "uint",
 ]
 
 [[package]]

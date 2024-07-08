@@ -1,5 +1,6 @@
 #[cfg(test)]
 pub mod e2e_tests {
+    use crate::contracts::{PocType, U256T};
     use crate::{invariant::InvariantRef, math::types::percentage::Percentage};
     use decimal::*;
     use ink_e2e::ContractsBackend;
@@ -17,7 +18,8 @@ pub mod e2e_tests {
             .await
             .expect("instantiate failed");
 
-        let mut constructor = InvariantRef::new(Percentage::new(0));
+        let poc_field = PocType(U256T::from(0));
+        let mut constructor = InvariantRef::new(Percentage::new(0), poc_field);
         let _contract = client
             .instantiate("invariant", &ink_e2e::alice(), &mut constructor)
             .submit()

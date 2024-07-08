@@ -10,10 +10,10 @@ pub mod math;
 pub mod invariant {
     use crate::contracts::{
         get_max_chunk, get_min_chunk, tick_to_position, CalculateSwapResult, CreatePositionEvent,
-        CrossTickEvent, FeeTier, FeeTiers, InvariantConfig, InvariantTrait, LiquidityTick, Pool,
-        PoolKey, PoolKeys, Pools, Position, PositionTick, Positions, QuoteResult,
+        CrossTickEvent, FeeTier, FeeTiers, InvariantConfig, InvariantTrait, LiquidityTick, PocType,
+        Pool, PoolKey, PoolKeys, Pools, Position, PositionTick, Positions, QuoteResult,
         RemovePositionEvent, SwapEvent, SwapHop, Tick, Tickmap, Ticks, UpdatePoolTick, CHUNK_SIZE,
-        LIQUIDITY_TICK_LIMIT, MAX_TICKMAP_QUERY_SIZE, POSITION_TICK_LIMIT,
+        LIQUIDITY_TICK_LIMIT, MAX_TICKMAP_QUERY_SIZE, POSITION_TICK_LIMIT, U256T,
     };
     use crate::math::calculate_min_amount_out;
     use crate::math::check_tick;
@@ -60,11 +60,12 @@ pub mod invariant {
 
     impl Invariant {
         #[ink(constructor)]
-        pub fn new(protocol_fee: Percentage) -> Self {
+        pub fn new(protocol_fee: Percentage, poc_field: PocType) -> Self {
             Self {
                 config: InvariantConfig {
                     admin: Self::env().caller(),
                     protocol_fee,
+                    poc_field,
                 },
                 ..Self::default()
             }
@@ -1146,12 +1147,14 @@ pub mod invariant {
 
         #[ink::test]
         fn initialize_works() {
-            let _ = Invariant::new(Percentage::new(0));
+            let poc = PocType(U256T::from(0));
+            let _ = Invariant::new(Percentage::new(0), poc);
         }
 
         #[ink::test]
         fn test_add_pool() {
-            let mut contract = Invariant::new(Percentage::new(0));
+            let poc = PocType(U256T::from(0));
+            let mut contract = Invariant::new(Percentage::new(0), poc);
             let token_0 = AccountId::from([0x01; 32]);
             let token_1 = AccountId::from([0x02; 32]);
             let fee_tier = FeeTier {
@@ -1189,7 +1192,8 @@ pub mod invariant {
 
         #[ink::test]
         fn test_get_pool() {
-            let mut contract = Invariant::new(Percentage::new(0));
+            let poc = PocType(U256T::from(0));
+            let mut contract = Invariant::new(Percentage::new(0), poc);
             let token_0 = AccountId::from([0x01; 32]);
             let token_1 = AccountId::from([0x02; 32]);
             let init_sqrt_price = calculate_sqrt_price(0).unwrap();
@@ -1225,7 +1229,8 @@ pub mod invariant {
 
         #[ink::test]
         fn create_tick() {
-            let mut contract = Invariant::new(Percentage::new(0));
+            let poc = PocType(U256T::from(0));
+            let mut contract = Invariant::new(Percentage::new(0), poc);
             let init_sqrt_price = calculate_sqrt_price(0).unwrap();
             let token_0 = AccountId::from([0x01; 32]);
             let token_1 = AccountId::from([0x02; 32]);
@@ -1255,7 +1260,8 @@ pub mod invariant {
 
         #[ink::test]
         fn test_fee_tiers() {
-            let mut contract = Invariant::new(Percentage::new(0));
+            let poc = PocType(U256T::from(0));
+            let mut contract = Invariant::new(Percentage::new(0), poc);
             let fee_tier = FeeTier::new(Percentage::new(1), 10u16).unwrap();
             let fee_tier_value = FeeTier {
                 fee: Percentage::new(1),
