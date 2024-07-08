@@ -64,7 +64,7 @@ import {
 } from './utils.js'
 import { SubmittableExtrinsic } from '@polkadot/api/types/submittable'
 
-type Page = { index: number; entries: [Position, Pool, Tick, Tick][] }
+type Page = { index: number; entries: [Position, Pool][] }
 
 export class Invariant {
   contract: ContractPromise
@@ -507,7 +507,7 @@ export class Invariant {
       refTime: this.gasLimit.refTime.toNumber(),
       proofSize: this.gasLimit.proofSize.toNumber()
     }
-  ): Promise<[[Position, Pool, Tick, Tick][], bigint]> {
+  ): Promise<[[Position, Pool][], bigint]> {
     const result = await sendQuery(
       this.contract,
       this.api.registry.createType('WeightV2', {
@@ -552,7 +552,7 @@ export class Invariant {
       actualPositionsCount = positionsCount
     }
 
-    const promises: Promise<[[Position, Pool, Tick, Tick][], bigint]>[] = []
+    const promises: Promise<[[Position, Pool][], bigint]>[] = []
     const pageIndexes: number[] = []
 
     for (

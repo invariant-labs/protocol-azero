@@ -114,7 +114,7 @@ describe('get-all', async () => {
     assert.equal(pages.map(page => page.entries).flat(1).length, 10)
 
     for (const { index, entries } of pages) {
-      for (const [positionIndex, [position, pool, lowerTick, upperTick]] of entries.entries()) {
+      for (const [positionIndex, [position, pool]] of entries.entries()) {
         const expectedPosition = await invariant.getPosition(
           account.address,
           BigInt((index - 1) * Number(POSITIONS_ENTRIES_LIMIT) + positionIndex)
@@ -124,19 +124,9 @@ describe('get-all', async () => {
           expectedPosition.poolKey.tokenY,
           expectedPosition.poolKey.feeTier
         )
-        const expectedLowerTick = await invariant.getTick(
-          expectedPosition.poolKey,
-          expectedPosition.lowerTickIndex
-        )
-        const expectedUpperTick = await invariant.getTick(
-          expectedPosition.poolKey,
-          expectedPosition.upperTickIndex
-        )
 
         assert.deepEqual(position, expectedPosition)
         assert.deepEqual(pool, expectedPool)
-        assert.deepEqual(lowerTick, expectedLowerTick)
-        assert.deepEqual(upperTick, expectedUpperTick)
       }
     }
   })
@@ -166,7 +156,7 @@ describe('get-all', async () => {
     assert.equal(pages.map(page => page.entries).flat(1).length, 50)
 
     for (const { index, entries } of pages) {
-      for (const [positionIndex, [position, pool, lowerTick, upperTick]] of entries.entries()) {
+      for (const [positionIndex, [position, pool]] of entries.entries()) {
         const expectedPosition = await invariant.getPosition(
           account.address,
           BigInt((index - 1) * Number(POSITIONS_ENTRIES_LIMIT) + positionIndex)
@@ -176,19 +166,9 @@ describe('get-all', async () => {
           expectedPosition.poolKey.tokenY,
           expectedPosition.poolKey.feeTier
         )
-        const expectedLowerTick = await invariant.getTick(
-          expectedPosition.poolKey,
-          expectedPosition.lowerTickIndex
-        )
-        const expectedUpperTick = await invariant.getTick(
-          expectedPosition.poolKey,
-          expectedPosition.upperTickIndex
-        )
 
         assert.deepEqual(position, expectedPosition)
         assert.deepEqual(pool, expectedPool)
-        assert.deepEqual(lowerTick, expectedLowerTick)
-        assert.deepEqual(upperTick, expectedUpperTick)
       }
     }
   })
@@ -218,7 +198,7 @@ describe('get-all', async () => {
     assert.equal(pages.map(page => page.entries).flat(1).length, 32)
 
     for (const { index, entries } of pages) {
-      for (const [positionIndex, [position, pool, lowerTick, upperTick]] of entries.entries()) {
+      for (const [positionIndex, [position, pool]] of entries.entries()) {
         const expectedPosition = await invariant.getPosition(
           account.address,
           BigInt((index - 1) * Number(POSITIONS_ENTRIES_LIMIT) + positionIndex)
@@ -228,19 +208,9 @@ describe('get-all', async () => {
           expectedPosition.poolKey.tokenY,
           expectedPosition.poolKey.feeTier
         )
-        const expectedLowerTick = await invariant.getTick(
-          expectedPosition.poolKey,
-          expectedPosition.lowerTickIndex
-        )
-        const expectedUpperTick = await invariant.getTick(
-          expectedPosition.poolKey,
-          expectedPosition.upperTickIndex
-        )
 
         assert.deepEqual(position, expectedPosition)
         assert.deepEqual(pool, expectedPool)
-        assert.deepEqual(lowerTick, expectedLowerTick)
-        assert.deepEqual(upperTick, expectedUpperTick)
       }
     }
   })
@@ -270,7 +240,7 @@ describe('get-all', async () => {
     assert.equal(pages.map(page => page.entries).flat(1).length, 64)
 
     for (const { index, entries } of pages) {
-      for (const [positionIndex, [position, pool, lowerTick, upperTick]] of entries.entries()) {
+      for (const [positionIndex, [position, pool]] of entries.entries()) {
         const expectedPosition = await invariant.getPosition(
           account.address,
           BigInt((index - 1) * Number(POSITIONS_ENTRIES_LIMIT) + positionIndex)
@@ -280,19 +250,8 @@ describe('get-all', async () => {
           expectedPosition.poolKey.tokenY,
           expectedPosition.poolKey.feeTier
         )
-        const expectedLowerTick = await invariant.getTick(
-          expectedPosition.poolKey,
-          expectedPosition.lowerTickIndex
-        )
-        const expectedUpperTick = await invariant.getTick(
-          expectedPosition.poolKey,
-          expectedPosition.upperTickIndex
-        )
-
         assert.deepEqual(position, expectedPosition)
         assert.deepEqual(pool, expectedPool)
-        assert.deepEqual(lowerTick, expectedLowerTick)
-        assert.deepEqual(upperTick, expectedUpperTick)
       }
     }
 
@@ -321,7 +280,7 @@ describe('get-all', async () => {
       assert.equal(pages.map(page => page.entries).flat(1).length, 32)
 
       for (const { index, entries } of pages) {
-        for (const [positionIndex, [position, pool, lowerTick, upperTick]] of entries.entries()) {
+        for (const [positionIndex, [position, pool]] of entries.entries()) {
           const expectedPosition = await invariant.getPosition(
             account.address,
             BigInt((index - 1) * Number(POSITIONS_ENTRIES_LIMIT) + positionIndex)
@@ -331,19 +290,9 @@ describe('get-all', async () => {
             expectedPosition.poolKey.tokenY,
             expectedPosition.poolKey.feeTier
           )
-          const expectedLowerTick = await invariant.getTick(
-            expectedPosition.poolKey,
-            expectedPosition.lowerTickIndex
-          )
-          const expectedUpperTick = await invariant.getTick(
-            expectedPosition.poolKey,
-            expectedPosition.upperTickIndex
-          )
 
           assert.deepEqual(position, expectedPosition)
           assert.deepEqual(pool, expectedPool)
-          assert.deepEqual(lowerTick, expectedLowerTick)
-          assert.deepEqual(upperTick, expectedUpperTick)
         }
       }
     })

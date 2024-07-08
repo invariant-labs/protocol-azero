@@ -1,7 +1,7 @@
 export const abi = `
 {
   "source": {
-    "hash": "0x8947bd15dbb2c5b5236b7f6d16651ce1f4fedd8661c3710f0ca0efa48a38730e",
+    "hash": "0xba8d2adeacedf76483f1b5e50843cdf9e09f979a0be15def9c09711cd6821c4e",
     "language": "ink! 5.0.0",
     "compiler": "rustc 1.77.0",
     "build_info": {
@@ -4650,9 +4650,7 @@ export const abi = `
         "def": {
           "tuple": [
             15,
-            25,
-            36,
-            36
+            25
           ]
         }
       }
