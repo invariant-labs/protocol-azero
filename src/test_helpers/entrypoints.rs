@@ -520,10 +520,10 @@ macro_rules! is_tick_initialized {
 }
 
 #[macro_export]
-macro_rules! get_pools {
+macro_rules! get_pool_keys {
     ($client:ident, $dex:ident, $size:expr, $offset:expr) => {{
         let mut call_builder = $dex.call_builder::<Invariant>();
-        let call = call_builder.get_pools($size, $offset);
+        let call = call_builder.get_pool_keys($size, $offset);
         $client
             .call(&ink_e2e::alice(), &call)
             .dry_run()

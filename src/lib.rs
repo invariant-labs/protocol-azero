@@ -699,19 +699,13 @@ pub mod invariant {
             owner_id: AccountId,
             size: u32,
             offset: u32,
-        ) -> Result<(Vec<(Position, Pool, Tick, Tick)>, u32), InvariantError> {
+        ) -> Result<(Vec<(Position, Pool)>, u32), InvariantError> {
             let positions = self.positions.get_all(owner_id, size, offset);
             let mut entries = vec![];
 
             for position in &positions {
                 let pool = self.pools.get(position.pool_key)?;
-                let lower_tick = self
-                    .ticks
-                    .get(position.pool_key, position.lower_tick_index)?;
-                let upper_tick = self
-                    .ticks
-                    .get(position.pool_key, position.upper_tick_index)?;
-                entries.push((*position, pool, lower_tick, upper_tick))
+                entries.push((*position, pool))
             }
 
             Ok((entries, self.positions.get_length(owner_id)))
@@ -937,8 +931,12 @@ pub mod invariant {
         }
 
         #[ink(message)]
-        fn get_pools(&self, size: u8, offset: u16) -> Result<(Vec<PoolKey>, u16), InvariantError> {
-            let pool_keys = self.pool_keys.get_all(size, offset)?;
+        fn get_pool_keys(
+            &self,
+            size: u16,
+            offset: u16,
+        ) -> Result<(Vec<PoolKey>, u16), InvariantError> {
+            let pool_keys = self.pool_keys.get_all(size, offset);
             let pool_keys_count = self.pool_keys.count();
             Ok((pool_keys, pool_keys_count))
         }

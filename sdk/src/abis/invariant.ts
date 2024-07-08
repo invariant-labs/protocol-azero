@@ -1,7 +1,7 @@
 export const abi = `
 {
   "source": {
-    "hash": "0x86f442ed070586bbb8157cda6fdc259b84f953e62727d779806988f81937cd1f",
+    "hash": "0xba8d2adeacedf76483f1b5e50843cdf9e09f979a0be15def9c09711cd6821c4e",
     "language": "ink! 5.0.0",
     "compiler": "rustc 1.77.0",
     "build_info": {
@@ -1401,9 +1401,9 @@ export const abi = `
             "label": "size",
             "type": {
               "displayName": [
-                "u8"
+                "u16"
               ],
-              "type": 4
+              "type": 10
             }
           },
           {
@@ -1418,7 +1418,7 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::get_pools",
+        "label": "InvariantTrait::get_pool_keys",
         "mutates": false,
         "payable": false,
         "returnType": {
@@ -1428,7 +1428,7 @@ export const abi = `
           ],
           "type": 92
         },
-        "selector": "0x6dd2d776"
+        "selector": "0x57d47dcb"
       },
       {
         "args": [],
@@ -4650,9 +4650,7 @@ export const abi = `
         "def": {
           "tuple": [
             15,
-            25,
-            36,
-            36
+            25
           ]
         }
       }

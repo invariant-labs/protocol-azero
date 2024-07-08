@@ -15,6 +15,7 @@ import {
   getMaxTickmapQuerySize,
   getPercentageDenominator,
   getPercentageScale,
+  getPositionsEntriesLimit,
   getPriceDenominator,
   getPriceScale,
   getSecondsPerLiquidityDenominator,
@@ -36,10 +37,10 @@ export const DEFAULT_LOCAL = 'ws://127.0.0.1:9944'
 
 export const TESTNET_WAZERO_ADDRESS = '5EFDb7mKbougLtr5dnwd5KDfZ3wK55JPGPLiryKq4uRMPR46'
 
-export const TESTNET_INVARIANT_ADDRESS = '5DwKDnzBTy3REu87qyygeLygCqNHmBApiK2FfJif2GvRFRrN'
-export const TESTNET_BTC_ADDRESS = '5CwK99HSSankDPFR3hAeW7CX95VGVtYy2Fy864eon54Lx4AX'
-export const TESTNET_ETH_ADDRESS = '5E4Cd4Z76ZfTFxbV8yrKjGwyJ5h1NLNxog2zFTAh49w52Phy'
-export const TESTNET_USDC_ADDRESS = '5Cju3x5gMDos4ALNJxQ3QUb955NQZhSYZgQ1t9TEH9kBfwAr'
+export const TESTNET_INVARIANT_ADDRESS = '5FxTEpmxrqr8Nwx7u1Y7heTFJiSe8xU1zZMfWmuC5f1UJMbf'
+export const TESTNET_BTC_ADDRESS = '5DPvVudq6bCZ84jwFSsRwD7hDh4aaGh7XzpJUKXWDDHMHXaL'
+export const TESTNET_ETH_ADDRESS = '5GmqniLhEcZCsn7vrer6yHzn7giapNG6N4fHx9exXHn29MvC'
+export const TESTNET_USDC_ADDRESS = '5Cr6gjWk5cUavkbo9d6GTZBGjf4XavQf6WpiLkgT9UCmGQYP'
 
 export const FEE_GROWTH_DENOMINATOR = getFeeGrowthDenominator()
 export const FIXED_POINT_DENOMINATOR = getFixedPointDenominator()
@@ -67,3 +68,4 @@ export const MAX_TICK_CROSS = getMaxTickCross()
 export const LIQUIDITY_TICKS_LIMIT = getLiquidityTicksLimit()
 export const MAX_POOL_KEYS_RETURNED = getMaxPoolKeysReturned()
 export const MAX_POOL_PAIRS_RETURNED = getMaxPoolPairsReturned()
+export const POSITIONS_ENTRIES_LIMIT = getPositionsEntriesLimit()

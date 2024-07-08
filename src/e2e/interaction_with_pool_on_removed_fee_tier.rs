@@ -21,7 +21,7 @@ pub mod e2e_tests {
     use test_helpers::{
         add_fee_tier, address_of, approve, balance_of, change_fee_receiver, claim_fee, create_dex,
         create_pool, create_position, create_tokens, fee_tier_exist, get_all_positions, get_pool,
-        get_pools, get_position, init_basic_pool, init_basic_position, init_basic_swap,
+        get_pool_keys, get_position, init_basic_pool, init_basic_position, init_basic_swap,
         init_dex_and_tokens, mint, positions_equals, remove_fee_tier, remove_position, swap,
         transfer_position, withdraw_protocol_fee,
     };
@@ -101,9 +101,9 @@ pub mod e2e_tests {
             )
             .unwrap();
         }
-        // Get Pools
+        // Get Pool Keys
         {
-            let pools = get_pools!(client, dex, 1, 0).unwrap();
+            let pools = get_pool_keys!(client, dex, 1, 0).unwrap();
             assert_eq!(pools.0.len(), 1);
         }
         // Transfer position

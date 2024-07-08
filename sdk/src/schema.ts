@@ -7,7 +7,7 @@ export enum InvariantQuery {
   GetFeeTiers = `${invariantActionPrefix}getFeeTiers`,
   FeeTierExist = `${invariantActionPrefix}feeTierExist`,
   GetPool = `${invariantActionPrefix}getPool`,
-  GetPools = `${invariantActionPrefix}getPools`,
+  GetPoolKeys = `${invariantActionPrefix}getPoolKeys`,
   GetTick = `${invariantActionPrefix}getTick`,
   IsTickInitialized = `${invariantActionPrefix}isTickInitialized`,
   GetPosition = `${invariantActionPrefix}getPosition`,
