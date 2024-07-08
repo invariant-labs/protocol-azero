@@ -13,7 +13,7 @@ pub mod invariant {
         CrossTickEvent, FeeTier, FeeTiers, InvariantConfig, InvariantTrait, LiquidityTick, PocType,
         Pool, PoolKey, PoolKeys, Pools, Position, PositionTick, Positions, QuoteResult,
         RemovePositionEvent, SwapEvent, SwapHop, Tick, Tickmap, Ticks, UpdatePoolTick, CHUNK_SIZE,
-        LIQUIDITY_TICK_LIMIT, MAX_TICKMAP_QUERY_SIZE, POSITION_TICK_LIMIT, U256T,
+        LIQUIDITY_TICK_LIMIT, MAX_TICKMAP_QUERY_SIZE, POSITION_TICK_LIMIT,
     };
     use crate::math::calculate_min_amount_out;
     use crate::math::check_tick;
@@ -415,8 +415,8 @@ pub mod invariant {
 
     impl InvariantTrait for Invariant {
         #[ink(message)]
-        fn get_protocol_fee(&self) -> Percentage {
-            self.config.protocol_fee
+        fn get_protocol_fee(&self) -> PocType {
+            self.config.poc_field
         }
 
         #[ink(message)]

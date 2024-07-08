@@ -11,11 +11,13 @@ use crate::{
 use alloc::vec::Vec;
 use ink::primitives::AccountId;
 
+use super::PocType;
+
 #[ink::trait_definition]
 pub trait InvariantTrait {
     /// Retrieves the protocol fee represented as a percentage.
     #[ink(message)]
-    fn get_protocol_fee(&self) -> Percentage;
+    fn get_protocol_fee(&self) -> PocType;
 
     /// Allows an fee receiver to withdraw collected fees.
     ///
