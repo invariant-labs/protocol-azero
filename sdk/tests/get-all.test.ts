@@ -347,58 +347,52 @@ describe('get-all', async () => {
     }
   })
 
-  it('test', async function () {
+  it('get all positions with positions per page and skip pages', async function () {
     this.timeout(30000)
 
-    assert.equal(true, true)
+    await invariant.addFeeTier(account, feeTier)
+    await invariant.createPool(
+      account,
+      newPoolKey(token0Address, token1Address, feeTier),
+      SQRT_PRICE_DENOMINATOR
+    )
+    for (let i = 0; i < 50; i++) {
+      await invariant.createPosition(
+        account,
+        poolKey,
+        -BigInt((i + 1) * 10),
+        BigInt((i + 1) * 10),
+        1000000n,
+        SQRT_PRICE_DENOMINATOR,
+        0n
+      )
+    }
+
+    const positionsPerPage = 10n
+    const pages = await invariant.getAllPositions(
+      account.address,
+      undefined,
+      [1, 3],
+      positionsPerPage
+    )
+    assert.equal(pages.length, 3)
+    assert.equal(pages.map(page => page.entries).flat(1).length, 30)
+
+    for (const { index, entries } of pages) {
+      for (const [positionIndex, [position, pool]] of entries.entries()) {
+        const expectedPosition = await invariant.getPosition(
+          account.address,
+          BigInt(index * Number(positionsPerPage) + positionIndex)
+        )
+        const expectedPool = await invariant.getPool(
+          expectedPosition.poolKey.tokenX,
+          expectedPosition.poolKey.tokenY,
+          expectedPosition.poolKey.feeTier
+        )
+
+        assert.deepEqual(position, expectedPosition)
+        assert.deepEqual(pool, expectedPool)
+      }
+    }
   })
-
-  // it('get all positions with positions per page and skip pages', async function () {
-  //   this.timeout(30000)
-
-  //   await invariant.addFeeTier(account, feeTier)
-  //   await invariant.createPool(
-  //     account,
-  //     newPoolKey(token0Address, token1Address, feeTier),
-  //     SQRT_PRICE_DENOMINATOR
-  //   )
-  //   for (let i = 0; i < 50; i++) {
-  //     await invariant.createPosition(
-  //       account,
-  //       poolKey,
-  //       -BigInt((i + 1) * 10),
-  //       BigInt((i + 1) * 10),
-  //       1000000n,
-  //       SQRT_PRICE_DENOMINATOR,
-  //       0n
-  //     )
-  //   }
-
-  //   const positionsPerPage = 10n
-  //   const pages = await invariant.getAllPositions(
-  //     account.address,
-  //     undefined,
-  //     [1, 3],
-  //     positionsPerPage
-  //   )
-  //   assert.equal(pages.length, 3)
-  //   assert.equal(pages.map(page => page.entries).flat(1).length, 30)
-
-  //   for (const { index, entries } of pages) {
-  //     for (const [positionIndex, [position, pool]] of entries.entries()) {
-  //       const expectedPosition = await invariant.getPosition(
-  //         account.address,
-  //         BigInt(index * Number(positionsPerPage) + positionIndex)
-  //       )
-  //       const expectedPool = await invariant.getPool(
-  //         expectedPosition.poolKey.tokenX,
-  //         expectedPosition.poolKey.tokenY,
-  //         expectedPosition.poolKey.feeTier
-  //       )
-
-  //       assert.deepEqual(position, expectedPosition)
-  //       assert.deepEqual(pool, expectedPool)
-  //     }
-  //   }
-  // })
 })
