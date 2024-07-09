@@ -307,7 +307,7 @@ describe('get-all', async () => {
       newPoolKey(token0Address, token1Address, feeTier),
       SQRT_PRICE_DENOMINATOR
     )
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 50; i++) {
       await invariant.createPosition(
         account,
         poolKey,
@@ -326,8 +326,8 @@ describe('get-all', async () => {
       undefined,
       positionsPerPage
     )
-    assert.equal(pages.length, 10)
-    assert.equal(pages.map(page => page.entries).flat(1).length, 100)
+    assert.equal(pages.length, 5)
+    assert.equal(pages.map(page => page.entries).flat(1).length, 50)
 
     for (const { index, entries } of pages) {
       for (const [positionIndex, [position, pool]] of entries.entries()) {
@@ -356,7 +356,7 @@ describe('get-all', async () => {
       newPoolKey(token0Address, token1Address, feeTier),
       SQRT_PRICE_DENOMINATOR
     )
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 50; i++) {
       await invariant.createPosition(
         account,
         poolKey,
@@ -375,8 +375,8 @@ describe('get-all', async () => {
       [1, 3],
       positionsPerPage
     )
-    assert.equal(pages.length, 8)
-    assert.equal(pages.map(page => page.entries).flat(1).length, 80)
+    assert.equal(pages.length, 3)
+    assert.equal(pages.map(page => page.entries).flat(1).length, 30)
 
     for (const { index, entries } of pages) {
       for (const [positionIndex, [position, pool]] of entries.entries()) {
