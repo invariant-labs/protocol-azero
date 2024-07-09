@@ -265,7 +265,7 @@ describe('get-all', async () => {
       newPoolKey(token0Address, token1Address, feeTier),
       SQRT_PRICE_DENOMINATOR
     )
-    for (let i = 0; i < 160n; i++) {
+    for (let i = 0; i < 160; i++) {
       await invariant.createPosition(
         account,
         poolKey,
@@ -299,7 +299,7 @@ describe('get-all', async () => {
   })
 
   it('get all positions with positions per page', async function () {
-    this.timeout(60000)
+    this.timeout(30000)
 
     await invariant.addFeeTier(account, feeTier)
     await invariant.createPool(
