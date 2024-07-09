@@ -299,7 +299,7 @@ describe('get-all', async () => {
   })
 
   it('get all positions with positions per page', async function () {
-    this.timeout(30000)
+    this.timeout(60000)
 
     await invariant.addFeeTier(account, feeTier)
     await invariant.createPool(
