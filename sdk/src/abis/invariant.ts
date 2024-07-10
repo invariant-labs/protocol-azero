@@ -1,7 +1,7 @@
 export const abi = `
 {
   "source": {
-    "hash": "0xba8d2adeacedf76483f1b5e50843cdf9e09f979a0be15def9c09711cd6821c4e",
+    "hash": "0x24ae0239ce4ae019c50e5f1e3655a13ab4b6501afbfafc3144b8b5c1f9f7e391",
     "language": "ink! 5.0.0",
     "compiler": "rustc 1.77.0",
     "build_info": {
@@ -80,7 +80,7 @@ export const abi = `
         "displayName": [
           "Hash"
         ],
-        "type": 112
+        "type": 111
       },
       "maxEventTopics": 4,
       "staticBufferSize": 16384,
@@ -482,7 +482,7 @@ export const abi = `
               "displayName": [
                 "Option"
               ],
-              "type": 111
+              "type": 112
             }
           },
           {
@@ -495,7 +495,7 @@ export const abi = `
               "displayName": [
                 "Option"
               ],
-              "type": 111
+              "type": 112
             }
           },
           {
@@ -1664,6 +1664,32 @@ export const abi = `
           "type": 57
         },
         "selector": "0x06099ca3"
+      },
+      {
+        "args": [
+          {
+            "label": "code_hash",
+            "type": {
+              "displayName": [
+                "Hash"
+              ],
+              "type": 111
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "InvariantTrait::set_code",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 57
+        },
+        "selector": "0xe33a2343"
       }
     ]
   },
@@ -4003,6 +4029,10 @@ export const abi = `
               {
                 "index": 33,
                 "name": "WAZEROWithdrawError"
+              },
+              {
+                "index": 34,
+                "name": "SetCodeHashError"
               }
             ]
           }
@@ -5632,6 +5662,26 @@ export const abi = `
       "id": 111,
       "type": {
         "def": {
+          "composite": {
+            "fields": [
+              {
+                "type": 3,
+                "typeName": "[u8; 32]"
+              }
+            ]
+          }
+        },
+        "path": [
+          "ink_primitives",
+          "types",
+          "Hash"
+        ]
+      }
+    },
+    {
+      "id": 112,
+      "type": {
+        "def": {
           "variant": {
             "variants": [
               {
@@ -5658,26 +5708,6 @@ export const abi = `
         ],
         "path": [
           "Option"
-        ]
-      }
-    },
-    {
-      "id": 112,
-      "type": {
-        "def": {
-          "composite": {
-            "fields": [
-              {
-                "type": 3,
-                "typeName": "[u8; 32]"
-              }
-            ]
-          }
-        },
-        "path": [
-          "ink_primitives",
-          "types",
-          "Hash"
         ]
       }
     },

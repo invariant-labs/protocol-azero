@@ -10,6 +10,7 @@ use crate::{
 };
 use alloc::vec::Vec;
 use ink::primitives::AccountId;
+use ink::primitives::Hash;
 
 #[ink::trait_definition]
 pub trait InvariantTrait {
@@ -452,4 +453,14 @@ pub trait InvariantTrait {
     /// - `address`: Address of wAZERO contract.
     #[ink(message)]
     fn withdraw_all_wazero(&self, address: AccountId) -> Result<(), InvariantError>;
+
+    /// Modifies the contract code. Only the admin can call this function.
+    ///
+    /// WARNING: The state of this contract and the contract you want to change the code to must be the same.
+    /// See: https://use.ink/basics/upgradeable-contracts#storage-compatibility.
+    ///
+    /// # Parameters
+    /// - `code_hash`: The code hash of the contract you want to change the code to.
+    #[ink(message)]
+    fn set_code(&mut self, code_hash: Hash) -> Result<(), InvariantError>;
 }

@@ -81,6 +81,7 @@ export {
   sqrtPriceToPrice,
   parseEvent,
   getMinTick,
-  getMaxTick
+  getMaxTick,
+  getCodeHash
 } from './utils.js'
 export { WrappedAZERO } from './wrapped-azero.js'

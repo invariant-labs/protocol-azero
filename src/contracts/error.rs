@@ -35,4 +35,5 @@ pub enum InvariantError {
     MulOverflow,
     DivByZero,
     WAZEROWithdrawError,
+    SetCodeHashError,
 }

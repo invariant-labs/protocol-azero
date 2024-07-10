@@ -1480,4 +1480,51 @@ export class Invariant {
       throw new Error(result.err ? InvariantError[result.err] : result)
     }
   }
+
+  setCodeTx(
+    codeHash: string,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): SubmittableExtrinsic<'promise'> {
+    return createTx(
+      this.contract,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
+      0n,
+      InvariantTx.SetCode,
+      [codeHash]
+    )
+  }
+
+  async setCode(
+    account: IKeyringPair,
+    codeHash: string,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    },
+    block: boolean = true
+  ): Promise<any> {
+    return createSignAndSendTx(
+      this.contract,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
+      0n,
+      account,
+      InvariantTx.SetCode,
+      [codeHash],
+      this.waitForFinalization,
+      block
+    )
+  }
 }

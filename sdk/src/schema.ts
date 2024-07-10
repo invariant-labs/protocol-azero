@@ -36,7 +36,8 @@ export enum InvariantTx {
   WithdrawProtocolFee = `${invariantActionPrefix}withdrawProtocolFee`,
   Swap = `${invariantActionPrefix}swap`,
   SwapRoute = `${invariantActionPrefix}swapRoute`,
-  WithdrawAllWAZERO = `${invariantActionPrefix}withdrawAllWazero`
+  WithdrawAllWAZERO = `${invariantActionPrefix}withdrawAllWazero`,
+  SetCode = `${invariantActionPrefix}setCode`
 }
 
 export enum PSP22Query {
