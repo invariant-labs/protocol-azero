@@ -530,25 +530,27 @@ export class Invariant {
     owner: string,
     positionsCount?: bigint,
     skipPages?: number[],
+    positionsPerPage?: bigint,
     options: ContractOptions = {
       storageDepositLimit: this.storageDepositLimit,
       refTime: this.gasLimit.refTime.toNumber(),
       proofSize: this.gasLimit.proofSize.toNumber()
     }
   ): Promise<Page[]> {
-    const firstPageIndex = skipPages?.find(i => !skipPages.includes(i)) || 1
+    const firstPageIndex = skipPages?.find(i => !skipPages.includes(i)) || 0
+    const positionsPerPageLimit = positionsPerPage || POSITIONS_ENTRIES_LIMIT
 
     let pages: Page[] = []
     let actualPositionsCount = positionsCount
     if (!positionsCount) {
       const [positionEntries, positionsCount] = await this.getPositions(
         owner,
-        POSITIONS_ENTRIES_LIMIT,
-        BigInt(firstPageIndex - 1) * POSITIONS_ENTRIES_LIMIT,
+        positionsPerPageLimit,
+        BigInt(firstPageIndex) * positionsPerPageLimit,
         options
       )
 
-      pages.push({ index: 1, entries: positionEntries })
+      pages.push({ index: 0, entries: positionEntries })
       actualPositionsCount = positionsCount
     }
 
@@ -556,22 +558,17 @@ export class Invariant {
     const pageIndexes: number[] = []
 
     for (
-      let i = positionsCount ? firstPageIndex - 1 : firstPageIndex;
-      i < Math.ceil(Number(actualPositionsCount) / Number(POSITIONS_ENTRIES_LIMIT));
+      let i = positionsCount ? firstPageIndex : firstPageIndex + 1;
+      i < Math.ceil(Number(actualPositionsCount) / Number(positionsPerPageLimit));
       i++
     ) {
-      if (skipPages?.includes(i + 1)) {
+      if (skipPages?.includes(i)) {
         continue
       }
 
-      pageIndexes.push(i + 1)
+      pageIndexes.push(i)
       promises.push(
-        this.getPositions(
-          owner,
-          POSITIONS_ENTRIES_LIMIT,
-          BigInt(i) * POSITIONS_ENTRIES_LIMIT,
-          options
-        )
+        this.getPositions(owner, positionsPerPageLimit, BigInt(i) * positionsPerPageLimit, options)
       )
     }
 
