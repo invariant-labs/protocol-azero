@@ -20,6 +20,7 @@ pub mod position_list;
 pub mod position_slippage;
 pub mod protocol_fee;
 pub mod remove_fee_tier;
+pub mod set_code;
 pub mod slippage;
 pub mod swap;
 pub mod swap_route;

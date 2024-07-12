@@ -717,3 +717,9 @@ export const getMinTick = (tickSpacing: bigint): bigint => {
 export const getMaxTick = (tickSpacing: bigint): bigint => {
   return BigInt(_getMaxTick(tickSpacing))
 }
+
+export const getCodeHash = async (api: ApiPromise, contractAddress: string): Promise<string> => {
+  const result = await api.query.contracts.contractInfoOf(contractAddress)
+  const { codeHash } = JSON.parse(JSON.stringify(result))
+  return codeHash
+}

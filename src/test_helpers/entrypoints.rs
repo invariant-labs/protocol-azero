@@ -588,3 +588,28 @@ macro_rules! get_liquidity_ticks_amount {
             .return_value()
     }};
 }
+
+#[macro_export]
+macro_rules! set_code {
+    ($client:ident, $dex:ident, $code_hash:expr, $caller:ident) => {{
+        let mut call_builder = $dex.call_builder::<Invariant>();
+        let call = call_builder.set_code($code_hash);
+        let result = $client
+            .call(&$caller, &call)
+            .dry_run()
+            .await
+            .unwrap()
+            .return_value();
+
+        if result.is_ok() {
+            $client
+                .call(&$caller, &call)
+                .submit()
+                .await
+                .unwrap()
+                .return_value()
+        } else {
+            result
+        }
+    }};
+}

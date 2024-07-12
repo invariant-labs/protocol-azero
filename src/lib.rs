@@ -30,6 +30,7 @@ pub mod invariant {
 
     use ink::codegen::TraitCallBuilder;
     use ink::contract_ref;
+    use ink::env::DefaultEnvironment;
     use ink::prelude::vec;
     use ink::prelude::vec::Vec;
     use token::{PSP22Error, PSP22};
@@ -1128,6 +1129,20 @@ pub mod invariant {
                     .transfer(caller, balance)
                     .map_err(|_| InvariantError::TransferError)?;
             }
+
+            Ok(())
+        }
+
+        #[ink(message)]
+        fn set_code(&mut self, code_hash: Hash) -> Result<(), InvariantError> {
+            let caller = self.env().caller();
+
+            if caller != self.config.admin {
+                return Err(InvariantError::NotAdmin);
+            }
+
+            ink::env::set_code_hash::<DefaultEnvironment>(&code_hash)
+                .map_err(|_| InvariantError::SetCodeHashError)?;
 
             Ok(())
         }
