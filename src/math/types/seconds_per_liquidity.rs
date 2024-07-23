@@ -32,9 +32,9 @@ impl SecondsPerLiquidity {
 
         Ok(Self::new(
             U256::from(delta_time)
-                .checked_mul(SecondsPerLiquidity::one())
+                .checked_mul(U256::from(SecondsPerLiquidity::one().get()))
                 .ok_or_else(|| err!(TrackableError::MUL))?
-                .checked_mul(Liquidity::one())
+                .checked_mul(U256::from(Liquidity::one().get()))
                 .ok_or_else(|| err!(TrackableError::MUL))?
                 .checked_div(liquidity.here())
                 .ok_or_else(|| err!(TrackableError::DIV))?

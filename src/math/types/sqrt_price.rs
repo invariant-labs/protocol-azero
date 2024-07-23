@@ -25,14 +25,14 @@ impl SqrtPrice {
         let denominator = u256_to_u320(denominator);
 
         let intermediate_u320 = nominator
-            .checked_mul(Self::one::<U320>())
+            .checked_mul(U320::from(Self::one().get()))
             .ok_or_else(|| err!(TrackableError::MUL))?
             .checked_div(denominator)
             .ok_or_else(|| err!(TrackableError::DIV))?;
 
         let result = checked_u320_to_u256(intermediate_u320)
             .ok_or_else(|| err!("Can't parse from u320 to u256"))?
-            .checked_div(Self::one::<U256>())
+            .checked_div(U256::from(Self::one().get()))
             .ok_or_else(|| err!(TrackableError::DIV))?
             .try_into()
             .map_err(|_| err!(TrackableError::cast::<Self>().as_str()))?;
@@ -47,7 +47,7 @@ impl SqrtPrice {
         let denominator = u256_to_u320(denominator);
 
         let intermediate_u320 = nominator
-            .checked_mul(Self::one::<U320>())
+            .checked_mul(U320::from(Self::one().get()))
             .ok_or_else(|| err!(TrackableError::MUL))?
             .checked_add(denominator.checked_sub(U320::from(1u32)).unwrap())
             .ok_or_else(|| err!(TrackableError::ADD))?
@@ -56,9 +56,9 @@ impl SqrtPrice {
 
         let result = checked_u320_to_u256(intermediate_u320)
             .ok_or_else(|| err!("Can't parse from u320 to u256"))?
-            .checked_add(Self::almost_one::<U256>())
+            .checked_add(U256::from(Self::almost_one().get()))
             .ok_or_else(|| err!(TrackableError::ADD))?
-            .checked_div(Self::one::<U256>())
+            .checked_div(U256::from(Self::one().get()))
             .ok_or_else(|| err!(TrackableError::DIV))?
             .try_into()
             .map_err(|_| err!(TrackableError::cast::<Self>().as_str()))?;
@@ -68,7 +68,7 @@ impl SqrtPrice {
     pub fn big_div_values_up(nominator: U256, denominator: U256) -> SqrtPrice {
         SqrtPrice::new({
             nominator
-                .checked_mul(Self::one::<U256>())
+                .checked_mul(U256::from(Self::one().get()))
                 .unwrap()
                 .checked_add(denominator.checked_sub(U256::from(1u32)).unwrap())
                 .unwrap()
@@ -85,7 +85,7 @@ impl SqrtPrice {
     ) -> TrackableResult<SqrtPrice> {
         Ok(SqrtPrice::new(
             nominator
-                .checked_mul(Self::one::<U256>())
+                .checked_mul(U256::from(Self::one().get()))
                 .ok_or_else(|| err!(TrackableError::MUL))?
                 .checked_div(denominator)
                 .ok_or_else(|| err!(TrackableError::DIV))?
@@ -102,7 +102,7 @@ impl SqrtPrice {
 
         Ok(SqrtPrice::new(
             u256_to_u320(nominator)
-                .checked_mul(Self::one::<U320>())
+                .checked_mul(U320::from(Self::one().get()))
                 .ok_or_else(|| err!(TrackableError::MUL))?
                 .checked_add(
                     denominator

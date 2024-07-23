@@ -65,8 +65,8 @@ impl Default for Tick {
             liquidity_change: Liquidity::new(0),
             liquidity_gross: Liquidity::new(0),
             sqrt_price: SqrtPrice::from_integer(1),
-            fee_growth_outside_x: FeeGrowth::new(0),
-            fee_growth_outside_y: FeeGrowth::new(0),
+            fee_growth_outside_x: FeeGrowth::new(U256::from(0)),
+            fee_growth_outside_y: FeeGrowth::new(U256::from(0)),
             seconds_outside: 0u64,
         }
     }
@@ -82,11 +82,11 @@ impl Tick {
             sqrt_price: calculate_sqrt_price(index).unwrap(),
             fee_growth_outside_x: match below_current_tick {
                 true => pool.fee_growth_global_x,
-                false => FeeGrowth::new(0),
+                false => FeeGrowth::new(U256::from(0)),
             },
             fee_growth_outside_y: match below_current_tick {
                 true => pool.fee_growth_global_y,
-                false => FeeGrowth::new(0),
+                false => FeeGrowth::new(U256::from(0)),
             },
             seconds_outside: match below_current_tick {
                 true => current_timestamp.checked_sub(pool.start_timestamp).unwrap(),

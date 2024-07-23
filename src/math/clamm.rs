@@ -35,7 +35,7 @@ pub fn compute_swap_step(
 
     if by_amount_in {
         let amount_after_fee = amount.big_mul(
-            Percentage::from_integer(1u8)
+            Percentage::from_integer(1)
                 .checked_sub(fee)
                 .map_err(|_| err!("Underflow while calculating amount after fee"))?,
         );
@@ -182,13 +182,13 @@ pub fn get_delta_y(
     let delta_y = match rounding_up {
         true => delta
             .big_mul_to_value_up(liquidity)
-            .checked_add(SqrtPrice::almost_one())
+            .checked_add(U256::from(SqrtPrice::almost_one().get()))
             .ok_or_else(|| err!(TrackableError::ADD))?
-            .checked_div(SqrtPrice::one())
+            .checked_div(U256::from(SqrtPrice::one().get()))
             .ok_or_else(|| err!(TrackableError::DIV))?,
         false => delta
             .big_mul_to_value(liquidity)
-            .checked_div(SqrtPrice::one())
+            .checked_div(U256::from(SqrtPrice::one().get()))
             .ok_or_else(|| err!(TrackableError::DIV))?,
     };
 
@@ -386,7 +386,7 @@ pub fn calculate_min_amount_out(
     expected_amount_out: TokenAmount,
     slippage: Percentage,
 ) -> TokenAmount {
-    expected_amount_out.big_mul_up(Percentage::from_integer(1u8).checked_sub(slippage).unwrap())
+    expected_amount_out.big_mul_up(Percentage::from_integer(1).checked_sub(slippage).unwrap())
 }
 
 #[cfg(test)]

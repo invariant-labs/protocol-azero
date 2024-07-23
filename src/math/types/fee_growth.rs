@@ -2,27 +2,32 @@ use crate::math::types::{liquidity::*, token_amount::*};
 use decimal::*;
 use traceable_result::*;
 
-#[decimal(28)]
+#[decimal(28, U512)]
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
-#[ink::scale_derive(Encode, Decode, TypeInfo)]
-#[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
-pub struct FeeGrowth(pub u128);
+#[ink::scale_derive(Encode, Decode)]
+#[cfg_attr(
+    feature = "std",
+    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+)]
+pub struct FeeGrowth(pub U256);
 
 impl FeeGrowth {
     pub fn unchecked_add(self, other: FeeGrowth) -> FeeGrowth {
-        FeeGrowth::new(self.get().wrapping_add(other.get()))
+        // FeeGrowth::new(self.get().wrapping_add(other.get()))
+        self
     }
 
     pub fn unchecked_sub(self, other: FeeGrowth) -> FeeGrowth {
-        FeeGrowth::new(self.get().wrapping_sub(other.get()))
+        // FeeGrowth::new(self.get().wrapping_sub(other.get()))
+        self
     }
 
     pub fn from_fee(liquidity: Liquidity, fee: TokenAmount) -> TrackableResult<Self> {
         Ok(Self::new(
             U256::from(fee.get())
-                .checked_mul(FeeGrowth::one())
+                .checked_mul(U256::from(FeeGrowth::one().get()))
                 .ok_or_else(|| err!(TrackableError::MUL))?
-                .checked_mul(Liquidity::one())
+                .checked_mul(U256::from(Liquidity::one().get()))
                 .ok_or_else(|| err!(TrackableError::MUL))?
                 .checked_div(liquidity.here())
                 .ok_or_else(|| err!(TrackableError::DIV))?

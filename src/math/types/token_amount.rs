@@ -13,7 +13,7 @@ pub struct TokenAmount(pub u128);
 impl TokenAmount {
     pub fn from_big_sqrt_price(value: U256) -> TrackableResult<TokenAmount> {
         let result: u128 = value
-            .checked_div(SqrtPrice::one())
+            .checked_div(U256::from(SqrtPrice::one().get()))
             .ok_or_else(|| err!(TrackableError::DIV))?
             .try_into()
             .map_err(|_| err!(TrackableError::cast::<Self>().as_str()))?;
@@ -23,9 +23,9 @@ impl TokenAmount {
 
     pub fn from_big_sqrt_price_up(value: U256) -> TrackableResult<TokenAmount> {
         let result: u128 = value
-            .checked_add(SqrtPrice::almost_one())
+            .checked_add(U256::from(SqrtPrice::almost_one().get()))
             .ok_or_else(|| err!(TrackableError::ADD))?
-            .checked_div(SqrtPrice::one())
+            .checked_div(U256::from(SqrtPrice::one().get()))
             .ok_or_else(|| err!(TrackableError::DIV))?
             .try_into()
             .map_err(|_| err!(TrackableError::cast::<Self>().as_str()))?;
