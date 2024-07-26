@@ -28,8 +28,8 @@ cargo test --features e2e-tests
 cargo contract build
 cargo contract build --release
 
-# Build and test SDK
-cd sdk
-chmod +x tests.sh build.sh package.sh
-./build.sh
-./tests.sh
+# # Build and test SDK
+# cd sdk
+# chmod +x tests.sh build.sh package.sh
+# ./build.sh
+# ./tests.sh

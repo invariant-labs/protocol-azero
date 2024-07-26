@@ -5,6 +5,8 @@ use crate::contracts::FeeTier;
 use crate::contracts::InvariantError;
 use crate::math::percentage::Percentage;
 
+pub const MAX_POOL_KEYS_RETURNED: u16 = 220;
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 #[ink::scale_derive(Encode, Decode, TypeInfo)]
 #[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]

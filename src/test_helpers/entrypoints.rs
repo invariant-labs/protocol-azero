@@ -288,13 +288,17 @@ macro_rules! get_all_positions {
     ($client:ident, $dex:ident, $caller:ident) => {{
         let owner = AccountId::from($caller.public_key().0);
         let mut call_builder = $dex.call_builder::<Invariant>();
-        let call = call_builder.get_all_positions(owner);
-        $client
+        let call = call_builder.get_positions(owner, u32::MAX, 0);
+        let result = $client
             .call(&ink_e2e::alice(), &call)
             .dry_run()
             .await
             .unwrap()
             .return_value()
+            .unwrap()
+            .0;
+        let positions: Vec<Position> = result.iter().map(|&(position, _)| position).collect();
+        positions
     }};
 }
 

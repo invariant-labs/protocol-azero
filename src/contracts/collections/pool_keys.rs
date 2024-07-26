@@ -1,4 +1,4 @@
-use crate::contracts::{InvariantError, PoolKey};
+use crate::contracts::{InvariantError, PoolKey, MAX_POOL_KEYS_RETURNED};
 use alloc::vec::Vec;
 use ink::storage::Mapping;
 
@@ -60,10 +60,16 @@ impl PoolKeys {
     pub fn get_all(&self, size: u16, offset: u16) -> Vec<PoolKey> {
         let offset_with_size = offset.checked_add(size).unwrap();
 
-        let max = if offset_with_size > self.pool_keys_length {
+        let upper_bound = if offset_with_size > self.pool_keys_length {
             self.pool_keys_length
         } else {
             offset_with_size
+        };
+
+        let max = if upper_bound.checked_sub(offset).unwrap() > MAX_POOL_KEYS_RETURNED {
+            offset.checked_add(MAX_POOL_KEYS_RETURNED).unwrap()
+        } else {
+            upper_bound
         };
 
         (offset..max)
