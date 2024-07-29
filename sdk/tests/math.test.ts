@@ -118,10 +118,11 @@ describe('get-liquidity-by-x', async () => {
         feeGrowthInsideY: 0n,
         lastBlockNumber: 0n,
         tokensOwedX: 0n,
-        tokensOwedY: 0n
+        tokensOwedY: 0n,
+        createdAt: 0n
       }
 
-      await objectEquals(position, expectedPosition, ['lastBlockNumber'])
+      objectEquals(position, expectedPosition, ['lastBlockNumber', 'createdAt'])
     }
     // above range
     {
@@ -168,9 +169,10 @@ describe('get-liquidity-by-x', async () => {
         feeGrowthInsideY: 0n,
         lastBlockNumber: 0n,
         tokensOwedX: 0n,
-        tokensOwedY: 0n
+        tokensOwedY: 0n,
+        createdAt: 0n
       }
-      await objectEquals(position, expectedPosition, ['lastBlockNumber'])
+      objectEquals(position, expectedPosition, ['lastBlockNumber', 'createdAt'])
     }
   })
 })
@@ -254,9 +256,10 @@ describe('get-liquidity-by-y', async () => {
         feeGrowthInsideY: 0n,
         lastBlockNumber: 0n,
         tokensOwedX: 0n,
-        tokensOwedY: 0n
+        tokensOwedY: 0n,
+        createdAt: 0n
       }
-      await objectEquals(position, expectedPosition, ['lastBlockNumber'])
+      objectEquals(position, expectedPosition, ['lastBlockNumber', 'createdAt'])
     }
     // in range
     {
@@ -303,9 +306,10 @@ describe('get-liquidity-by-y', async () => {
         feeGrowthInsideY: 0n,
         lastBlockNumber: 0n,
         tokensOwedX: 0n,
-        tokensOwedY: 0n
+        tokensOwedY: 0n,
+        createdAt: 0n
       }
-      await objectEquals(position, expectedPosition, ['lastBlockNumber'])
+      objectEquals(position, expectedPosition, ['lastBlockNumber', 'createdAt'])
     }
     // above range
     {

@@ -68,5 +68,5 @@ To begin, navigate to the directory dedicated to the [SDK](https://github.com/in
 
 - Run e2e tests
 ```bash
-./test.sh
+./tests.sh
 ```
