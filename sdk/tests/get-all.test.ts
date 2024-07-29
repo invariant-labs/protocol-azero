@@ -182,20 +182,20 @@ describe('get-all', async () => {
       newPoolKey(token0Address, token1Address, feeTier),
       SQRT_PRICE_DENOMINATOR
     )
-    for (let i = 0; i < 60; i++) {
+    for (let i = 0n; i < POSITIONS_ENTRIES_LIMIT + 10n; i++) {
       await invariant.createPosition(
         account,
         poolKey,
-        -BigInt((i + 1) * 10),
-        BigInt((i + 1) * 10),
+        (i + 1n) * -10n,
+        (i + 1n) * 10n,
         1000000n,
         SQRT_PRICE_DENOMINATOR,
         0n
       )
     }
 
-    const pages = await invariant.getAllPositions(account.address, 50n)
-    assert.equal(pages.map(page => page.entries).flat(1).length, 51)
+    const pages = await invariant.getAllPositions(account.address, POSITIONS_ENTRIES_LIMIT - 10n)
+    assert.equal(pages.map(page => page.entries).flat(1).length, Number(POSITIONS_ENTRIES_LIMIT))
 
     for (const { index, entries } of pages) {
       for (const [positionIndex, [position, pool]] of entries.entries()) {
@@ -224,7 +224,10 @@ describe('get-all', async () => {
       newPoolKey(token0Address, token1Address, feeTier),
       SQRT_PRICE_DENOMINATOR
     )
-    for (let i = 0; i < 200; i++) {
+    const skippedPages = [1, 3]
+    const fullPagesCount = Math.max(...skippedPages) + 1
+    const positionsCount = fullPagesCount * Number(POSITIONS_ENTRIES_LIMIT)
+    for (let i = 0; i < positionsCount; i++) {
       await invariant.createPosition(
         account,
         poolKey,
@@ -236,8 +239,11 @@ describe('get-all', async () => {
       )
     }
 
-    const pages = await invariant.getAllPositions(account.address, undefined, [1, 3])
-    assert.equal(pages.map(page => page.entries).flat(1).length, 102)
+    const pages = await invariant.getAllPositions(account.address, undefined, skippedPages)
+    const expectedPages =
+      Math.floor(positionsCount / Number(POSITIONS_ENTRIES_LIMIT)) - skippedPages.length
+    const expectedPositions = expectedPages * Number(POSITIONS_ENTRIES_LIMIT)
+    assert.equal(pages.map(page => page.entries).flat(1).length, expectedPositions)
 
     for (const { index, entries } of pages) {
       for (const [positionIndex, [position, pool]] of entries.entries()) {
@@ -265,6 +271,10 @@ describe('get-all', async () => {
       newPoolKey(token0Address, token1Address, feeTier),
       SQRT_PRICE_DENOMINATOR
     )
+
+    const skippedPages = [0, 1]
+    const fullPagesCount = Math.max(...skippedPages) + 2
+    const positionsCount = fullPagesCount * Number(POSITIONS_ENTRIES_LIMIT) + 10
     for (let i = 0; i < 160; i++) {
       await invariant.createPosition(
         account,
@@ -277,8 +287,16 @@ describe('get-all', async () => {
       )
     }
 
-    const pages = await invariant.getAllPositions(account.address, 140n, [0, 1])
-    assert.equal(pages.map(page => page.entries).flat(1).length, 51)
+    const queriedPositions = positionsCount - 20
+    const pages = await invariant.getAllPositions(
+      account.address,
+      BigInt(queriedPositions),
+      skippedPages
+    )
+    const expectedPages =
+      Math.ceil(queriedPositions / Number(POSITIONS_ENTRIES_LIMIT)) - skippedPages.length
+    const expectedPositions = expectedPages * Number(POSITIONS_ENTRIES_LIMIT)
+    assert.equal(pages.map(page => page.entries).flat(1).length, expectedPositions)
 
     for (const { index, entries } of pages) {
       for (const [positionIndex, [position, pool]] of entries.entries()) {
