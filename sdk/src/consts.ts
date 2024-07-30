@@ -37,12 +37,12 @@ export const DEFAULT_LOCAL = 'ws://127.0.0.1:9944'
 
 export const TESTNET_WAZERO_ADDRESS = '5EFDb7mKbougLtr5dnwd5KDfZ3wK55JPGPLiryKq4uRMPR46'
 
-export const TESTNET_INVARIANT_ADDRESS = '5FU7vwthg7LDANp2Ljmw4gYdBY8rAF2UeS3rtM4sFZfnFNXv'
-export const TESTNET_BTC_ADDRESS = '5FsnMq7UCvkaniSKiLdas2ujqRfKNiUehE21pQ4eCtZ4Hdgm'
-export const TESTNET_ETH_ADDRESS = '5E3MV1sZQSav3BCf9aucDnZ79vRLWWE2eZbuy5dbNbj62qwN'
-export const TESTNET_USDC_ADDRESS = '5Duwky8RAzWFKb8GNYcejjmxAAU2EkxPgeWCxMtvcsPdKtHm'
-export const TESTNET_USDT_ADDRESS = '5FR9i4PwD9T3fokcLocyzWLCfUs7CstGRnwUSVovMDhnDxrz'
-export const TESTNET_SOL_ADDRESS = '5CRMY8uap4JAQPcoJiaM4bHnuHjZLxRWRzYWh118BNiMsPW5'
+export const TESTNET_INVARIANT_ADDRESS = '5HJJ5K4vGixAZo3fpG6niXKKRgvsxsur9CBuiVQGW9AHrnSo'
+export const TESTNET_BTC_ADDRESS = '5GPoVZGgTGvXNK85MUYzVCtWgKDT4UPqQti4X5tZGm7ntxPz'
+export const TESTNET_ETH_ADDRESS = '5FJvhnohVmEZNVxZatASSgFxpUNe1Nqxccd1gLxHrZoMGdy1'
+export const TESTNET_USDC_ADDRESS = '5Hj9dcaNhAMuhY8ju7crf1Uj4nJexVJWBdRf2WZGE3a78j3G'
+export const TESTNET_USDT_ADDRESS = '5G91YrSRyJhuu6BswzSxcS5QTkoEwhhZpFay3LHMSFZBue4r'
+export const TESTNET_SOL_ADDRESS = '5DGCxfxuKiE2JasJLstVSaYBXvQJQK7tr87ndWtgYtCqv8vs'
 
 export const FEE_GROWTH_DENOMINATOR = getFeeGrowthDenominator()
 export const FIXED_POINT_DENOMINATOR = getFixedPointDenominator()
