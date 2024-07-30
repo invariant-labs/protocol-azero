@@ -1,4 +1,4 @@
-use crate::contracts::{InvariantError, Position};
+use crate::contracts::{InvariantError, Position, MAX_POSITIONS_RETURNED};
 use ink::{prelude::vec::Vec, primitives::AccountId, storage::Mapping};
 
 #[ink::storage_item]
@@ -98,10 +98,16 @@ impl Positions {
         let length = self.get_length(account_id);
         let offset_with_size = offset.checked_add(size).unwrap();
 
-        let max = if offset_with_size > length {
+        let upper_bound = if offset_with_size > length {
             length
         } else {
             offset_with_size
+        };
+
+        let max = if upper_bound.checked_sub(offset).unwrap() > MAX_POSITIONS_RETURNED {
+            offset.checked_add(MAX_POSITIONS_RETURNED).unwrap()
+        } else {
+            upper_bound
         };
 
         (offset..max)

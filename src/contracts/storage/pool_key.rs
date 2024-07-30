@@ -5,7 +5,10 @@ use crate::contracts::FeeTier;
 use crate::contracts::InvariantError;
 use crate::math::percentage::Percentage;
 
-pub const MAX_POOL_KEYS_RETURNED: u16 = 220;
+use super::tickmap::MAX_RESULT_SIZE;
+
+pub const POOL_KEY_SIZE: usize = 32 + 32 + 64 + 16;
+pub const MAX_POOL_KEYS_RETURNED: u16 = (MAX_RESULT_SIZE / POOL_KEY_SIZE) as u16;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 #[ink::scale_derive(Encode, Decode, TypeInfo)]
