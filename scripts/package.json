@@ -13,7 +13,8 @@
     "create-pool": "npx tsc && node --experimental-wasm-modules target/create-pool.js",
     "query-tickmap": "npx tsc && node --experimental-wasm-modules target/query-tickmap.js",
     "swap": "npx tsc && node --experimental-wasm-modules target/swap.js",
-    "setup": "npx tsc && node --experimental-wasm-modules target/setup.js"
+    "setup": "npx tsc && node --experimental-wasm-modules target/setup.js",
+    "replace-code": "npx tsc && node --experimental-wasm-modules target/replace-code.js"
   },
   "keywords": [],
   "author": "",
