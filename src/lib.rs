@@ -11,9 +11,9 @@ pub mod invariant {
     use crate::contracts::{
         get_max_chunk, get_min_chunk, tick_to_position, CalculateSwapResult, CreatePositionEvent,
         CrossTickEvent, FeeTier, FeeTiers, InvariantConfig, InvariantTrait, LiquidityTick, Pool,
-        PoolKey, PoolKeys, Pools, Position, PositionTick, Positions, QuoteResult,
-        RemovePositionEvent, SwapEvent, SwapHop, Tick, Tickmap, Ticks, UpdatePoolTick, CHUNK_SIZE,
-        LIQUIDITY_TICK_LIMIT, MAX_TICKMAP_QUERY_SIZE, POSITION_TICK_LIMIT,
+        PoolKey, PoolKeys, Pools, Position, Positions, QuoteResult, RemovePositionEvent, SwapEvent,
+        SwapHop, Tick, Tickmap, Ticks, UpdatePoolTick, CHUNK_SIZE, LIQUIDITY_TICK_LIMIT,
+        MAX_TICKMAP_QUERY_SIZE,
     };
     use crate::math::calculate_min_amount_out;
     use crate::math::check_tick;
@@ -945,49 +945,6 @@ pub mod invariant {
         #[ink(message)]
         fn get_fee_tiers(&self) -> Vec<FeeTier> {
             self.fee_tiers.get_all()
-        }
-
-        #[ink(message)]
-        fn get_position_ticks(&self, owner: AccountId, offset: u32) -> Vec<PositionTick> {
-            let positions_length = self.positions.get_length(owner);
-            let mut ticks = vec![];
-
-            for i in offset..positions_length {
-                self.positions
-                    .get(owner, i)
-                    .map(|position| {
-                        self.ticks
-                            .get(position.pool_key, position.lower_tick_index)
-                            .map(|tick| {
-                                ticks.push(PositionTick {
-                                    index: tick.index,
-                                    fee_growth_outside_x: tick.fee_growth_outside_x,
-                                    fee_growth_outside_y: tick.fee_growth_outside_y,
-                                    seconds_outside: tick.seconds_outside,
-                                })
-                            })
-                            .ok();
-
-                        self.ticks
-                            .get(position.pool_key, position.upper_tick_index)
-                            .map(|tick| {
-                                ticks.push(PositionTick {
-                                    index: tick.index,
-                                    fee_growth_outside_x: tick.fee_growth_outside_x,
-                                    fee_growth_outside_y: tick.fee_growth_outside_y,
-                                    seconds_outside: tick.seconds_outside,
-                                })
-                            })
-                            .ok();
-                    })
-                    .ok();
-
-                if ticks.len() >= POSITION_TICK_LIMIT {
-                    break;
-                }
-            }
-
-            ticks
         }
 
         #[ink(message)]

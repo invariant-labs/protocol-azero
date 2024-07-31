@@ -1,7 +1,7 @@
 export const abi = `
 {
   "source": {
-    "hash": "0x4e0b9ef583e1fb698e71d5c30fa96798fea6027811de730eb2204c0d14537ba5",
+    "hash": "0x1e9b236560aaa9663a1621a20118e30c8a3834bf98c7f82d12ff75ec5f4c0e43",
     "language": "ink! 5.0.0",
     "compiler": "rustc 1.77.0",
     "build_info": {
@@ -74,13 +74,13 @@ export const abi = `
         "displayName": [
           "ChainExtension"
         ],
-        "type": 113
+        "type": 110
       },
       "hash": {
         "displayName": [
           "Hash"
         ],
-        "type": 111
+        "type": 108
       },
       "maxEventTopics": 4,
       "staticBufferSize": 16384,
@@ -220,7 +220,7 @@ export const abi = `
               "displayName": [
                 "Vec"
               ],
-              "type": 103
+              "type": 100
             }
           }
         ],
@@ -482,7 +482,7 @@ export const abi = `
               "displayName": [
                 "Option"
               ],
-              "type": 112
+              "type": 109
             }
           },
           {
@@ -495,7 +495,7 @@ export const abi = `
               "displayName": [
                 "Option"
               ],
-              "type": 112
+              "type": 109
             }
           },
           {
@@ -1449,41 +1449,6 @@ export const abi = `
       {
         "args": [
           {
-            "label": "owner",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 2
-            }
-          },
-          {
-            "label": "offset",
-            "type": {
-              "displayName": [
-                "u32"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "default": false,
-        "docs": [],
-        "label": "InvariantTrait::get_position_ticks",
-        "mutates": false,
-        "payable": false,
-        "returnType": {
-          "displayName": [
-            "ink",
-            "MessageResult"
-          ],
-          "type": 97
-        },
-        "selector": "0xcc9476e7"
-      },
-      {
-        "args": [
-          {
             "label": "pool_key",
             "type": {
               "displayName": [
@@ -1530,7 +1495,7 @@ export const abi = `
             "ink",
             "MessageResult"
           ],
-          "type": 100
+          "type": 97
         },
         "selector": "0x3b83b256"
       },
@@ -1551,7 +1516,7 @@ export const abi = `
               "displayName": [
                 "Vec"
               ],
-              "type": 103
+              "type": 100
             }
           }
         ],
@@ -1565,7 +1530,7 @@ export const abi = `
             "ink",
             "MessageResult"
           ],
-          "type": 104
+          "type": 101
         },
         "selector": "0x8ef8d345"
       },
@@ -1591,7 +1556,7 @@ export const abi = `
             "ink",
             "MessageResult"
           ],
-          "type": 108
+          "type": 105
         },
         "selector": "0xd842f034"
       },
@@ -1635,7 +1600,7 @@ export const abi = `
             "ink",
             "MessageResult"
           ],
-          "type": 109
+          "type": 106
         },
         "selector": "0xf360dea7"
       },
@@ -1673,7 +1638,7 @@ export const abi = `
               "displayName": [
                 "Hash"
               ],
-              "type": 111
+              "type": 108
             }
           }
         ],
@@ -5312,96 +5277,6 @@ export const abi = `
       "id": 99,
       "type": {
         "def": {
-          "composite": {
-            "fields": [
-              {
-                "name": "index",
-                "type": 12,
-                "typeName": "i32"
-              },
-              {
-                "name": "fee_growth_outside_x",
-                "type": 20,
-                "typeName": "FeeGrowth"
-              },
-              {
-                "name": "fee_growth_outside_y",
-                "type": 20,
-                "typeName": "FeeGrowth"
-              },
-              {
-                "name": "seconds_outside",
-                "type": 9,
-                "typeName": "u64"
-              }
-            ]
-          }
-        },
-        "path": [
-          "invariant",
-          "contracts",
-          "storage",
-          "tick",
-          "PositionTick"
-        ]
-      }
-    },
-    {
-      "id": 100,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 101
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 55
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 101
-          },
-          {
-            "name": "E",
-            "type": 55
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 101,
-      "type": {
-        "def": {
-          "sequence": {
-            "type": 102
-          }
-        }
-      }
-    },
-    {
-      "id": 102,
-      "type": {
-        "def": {
           "tuple": [
             10,
             9
@@ -5410,7 +5285,7 @@ export const abi = `
       }
     },
     {
-      "id": 103,
+      "id": 100,
       "type": {
         "def": {
           "sequence": {
@@ -5420,7 +5295,7 @@ export const abi = `
       }
     },
     {
-      "id": 104,
+      "id": 101,
       "type": {
         "def": {
           "variant": {
@@ -5428,7 +5303,7 @@ export const abi = `
               {
                 "fields": [
                   {
-                    "type": 105
+                    "type": 102
                   }
                 ],
                 "index": 0,
@@ -5449,7 +5324,7 @@ export const abi = `
         "params": [
           {
             "name": "T",
-            "type": 105
+            "type": 102
           },
           {
             "name": "E",
@@ -5462,7 +5337,7 @@ export const abi = `
       }
     },
     {
-      "id": 105,
+      "id": 102,
       "type": {
         "def": {
           "variant": {
@@ -5470,7 +5345,7 @@ export const abi = `
               {
                 "fields": [
                   {
-                    "type": 106
+                    "type": 103
                   }
                 ],
                 "index": 0,
@@ -5491,7 +5366,7 @@ export const abi = `
         "params": [
           {
             "name": "T",
-            "type": 106
+            "type": 103
           },
           {
             "name": "E",
@@ -5504,17 +5379,17 @@ export const abi = `
       }
     },
     {
-      "id": 106,
+      "id": 103,
       "type": {
         "def": {
           "sequence": {
-            "type": 107
+            "type": 104
           }
         }
       }
     },
     {
-      "id": 107,
+      "id": 104,
       "type": {
         "def": {
           "composite": {
@@ -5547,7 +5422,7 @@ export const abi = `
       }
     },
     {
-      "id": 108,
+      "id": 105,
       "type": {
         "def": {
           "variant": {
@@ -5589,7 +5464,7 @@ export const abi = `
       }
     },
     {
-      "id": 109,
+      "id": 106,
       "type": {
         "def": {
           "variant": {
@@ -5597,7 +5472,7 @@ export const abi = `
               {
                 "fields": [
                   {
-                    "type": 110
+                    "type": 107
                   }
                 ],
                 "index": 0,
@@ -5618,7 +5493,7 @@ export const abi = `
         "params": [
           {
             "name": "T",
-            "type": 110
+            "type": 107
           },
           {
             "name": "E",
@@ -5631,7 +5506,7 @@ export const abi = `
       }
     },
     {
-      "id": 110,
+      "id": 107,
       "type": {
         "def": {
           "variant": {
@@ -5673,7 +5548,7 @@ export const abi = `
       }
     },
     {
-      "id": 111,
+      "id": 108,
       "type": {
         "def": {
           "composite": {
@@ -5693,7 +5568,7 @@ export const abi = `
       }
     },
     {
-      "id": 112,
+      "id": 109,
       "type": {
         "def": {
           "variant": {
@@ -5726,7 +5601,7 @@ export const abi = `
       }
     },
     {
-      "id": 113,
+      "id": 110,
       "type": {
         "def": {
           "variant": {}

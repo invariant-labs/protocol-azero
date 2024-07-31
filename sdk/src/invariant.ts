@@ -14,7 +14,6 @@ import {
   Pool,
   PoolKey,
   Position,
-  PositionTick,
   QuoteResult,
   SqrtPrice,
   SwapHop,
@@ -1219,26 +1218,6 @@ export class Invariant {
     ) as Promise<SwapRouteTxResult>
   }
 
-  async getPositionTicks(
-    owner: string,
-    offset: bigint,
-    options: ContractOptions = {
-      storageDepositLimit: this.storageDepositLimit,
-      refTime: this.gasLimit.refTime.toNumber(),
-      proofSize: this.gasLimit.proofSize.toNumber()
-    }
-  ): Promise<PositionTick[]> {
-    return sendQuery(
-      this.contract,
-      this.api.registry.createType('WeightV2', {
-        refTime: options.refTime,
-        proofSize: options.proofSize
-      }) as WeightV2,
-      options.storageDepositLimit,
-      InvariantQuery.GetPositionTicks,
-      [owner, offset]
-    )
-  }
   async getRawTickmap(
     poolKey: PoolKey,
     lowerTick: bigint,
