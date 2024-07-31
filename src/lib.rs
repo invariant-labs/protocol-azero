@@ -948,6 +948,23 @@ pub mod invariant {
         }
 
         #[ink(message)]
+        fn get_position_with_associates(
+            &self,
+            owner: AccountId,
+            index: u32,
+        ) -> Result<(Position, Pool, Tick, Tick), InvariantError> {
+            let position = self.positions.get(owner, index)?;
+            let pool = self.pools.get(position.pool_key)?;
+            let tick_lower = self
+                .ticks
+                .get(position.pool_key, position.lower_tick_index)?;
+            let tick_upper = self
+                .ticks
+                .get(position.pool_key, position.upper_tick_index)?;
+            Ok((position, pool, tick_lower, tick_upper))
+        }
+
+        #[ink(message)]
         fn get_tickmap(
             &self,
             pool_key: PoolKey,

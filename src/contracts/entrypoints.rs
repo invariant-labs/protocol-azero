@@ -389,6 +389,21 @@ pub trait InvariantTrait {
     #[ink(message)]
     fn get_user_position_amount(&self, owner: AccountId) -> u32;
 
+    /// Retrieves information about a single position, the associated pool, lower and upper tick in this order.
+    ///
+    /// # Parameters
+    /// - `owner_id`: An `AccountId` identifying the user who owns the position.
+    /// - `index`: The index of the user position.
+    ///
+    /// # Errors
+    /// - Fails if position or any other associated structure cannot be found.
+    #[ink(message)]
+    fn get_position_with_associates(
+        &self,
+        owner: AccountId,
+        index: u32,
+    ) -> Result<(Position, Pool, Tick, Tick), InvariantError>;
+
     /// Retrieves tickmap chunks
     ///
     /// # Parameters
