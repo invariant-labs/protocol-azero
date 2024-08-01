@@ -25,7 +25,6 @@ export type {
   Pool,
   PoolKey,
   Position,
-  PositionTick,
   Price,
   QuoteResult,
   RemovePositionEvent,

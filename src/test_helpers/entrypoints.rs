@@ -548,10 +548,11 @@ macro_rules! get_fee_tiers {
 }
 
 #[macro_export]
-macro_rules! get_position_ticks {
-    ($client:ident, $dex:ident, $owner:expr, $offset:expr) => {{
+macro_rules! get_position_with_associates {
+    ($client:ident, $dex:ident, $index:expr, $caller:ident) => {{
+        let owner = AccountId::from($caller.public_key().0);
         let mut call_builder = $dex.call_builder::<Invariant>();
-        let call = call_builder.get_position_ticks($owner, $offset);
+        let call = call_builder.get_position_with_associates(owner, $index);
         $client
             .call(&ink_e2e::alice(), &call)
             .dry_run()

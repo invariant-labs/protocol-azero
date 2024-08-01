@@ -1,6 +1,6 @@
 {
   "name": "@invariant-labs/a0-sdk",
-  "version": "0.2.15",
+  "version": "0.2.16",
   "collaborators": [
     "Invariant Labs"
   ],
@@ -36,16 +36,16 @@
     "docs:copy": "cp ../README.md README.md",
     "build:copy-wasm": "cd target && mkdir wasm && cp -r ../src/wasm/pkg ./wasm/pkg",
     "test:all": "ts-mocha",
-    "test:local": "npm run test:utils && npm run test:wazero && npm run test:psp22 && npm run test:protocol-fee  && npm run test:math && npm run test:invariant && npm run test:example && npm run test:events && npm run test:tx && npm run test:position && npm run test:get-positions && npm run test:get-all && npm run test:query-on-pair && npm run test:get-liquidity-ticks",
+    "test:local": "npm run test:utils && npm run test:wazero && npm run test:psp22 && npm run test:protocol-fee  && npm run test:math && npm run test:invariant && npm run test:example && npm run test:events && npm run test:tx && npm run test:position && npm run test:get-position-with-associates && npm run test:get-positions && npm run test:get-all && npm run test:query-on-pair && npm run test:get-liquidity-ticks",
     "test:utils": "mocha ./tests/utils.test.ts -g utils",
     "test:wazero": "mocha ./tests/wrapped-azero.test.ts -g wrapped-azero",
     "test:psp22": "mocha ./tests/psp22.test.ts -g psp22",
     "test:protocol-fee": "mocha ./tests/protocol-fee.test.ts -g protocol-fee",
     "test:position": "mocha ./tests/position.test.ts -g position",
     "test:get-positions": "mocha ./tests/get-positions.test.ts -g get-positions",
+    "test:get-position-with-associates": "mocha ./tests/get-position-with-associates.test.ts -g get-position-with-associates",
     "test:math": "mocha ./tests/math.test.ts -g get-liquidity-by-x && mocha ./tests/math.test.ts -g get-liquidity-by-y",
     "test:invariant": "mocha ./tests/invariant.test.ts -g invariant",
-    "test:get-position-ticks": "mocha ./tests/get-position-ticks.test.ts -g get-position-ticks",
     "test:get-liquidity-ticks": "mocha ./tests/get-liquidity-ticks.test.ts -g get-liquidity-ticks",
     "test:get-tickmap": "mocha ./tests/get-tickmap.test.ts -g 'tickmap test'",
     "test:storage-limit": "mocha ./tests/storage-limit.test.ts -g storage-limit",
@@ -61,7 +61,7 @@
     "@polkadot/api": "^10.12.4",
     "@polkadot/api-contract": "^10.12.4",
     "@scio-labs/use-inkathon": "^0.6.3",
-    "@invariant-labs/a0-sdk-wasm": "^0.1.22",
+    "@invariant-labs/a0-sdk-wasm": "^0.1.23",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   },
