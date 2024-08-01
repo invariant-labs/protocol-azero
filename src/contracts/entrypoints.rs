@@ -392,7 +392,7 @@ pub trait InvariantTrait {
     /// Retrieves information about a single position, the associated pool, lower and upper tick in this order.
     ///
     /// # Parameters
-    /// - `owner_id`: An `AccountId` identifying the user who owns the position.
+    /// - `owner`: An `AccountId` identifying the user who owns the position.
     /// - `index`: The index of the user position.
     ///
     /// # Errors
