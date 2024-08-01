@@ -1,7 +1,6 @@
 import {
   CreatePositionEvent,
   InvariantError,
-  // InvariantError,
   Pool
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { Keyring } from '@polkadot/api'
@@ -89,7 +88,7 @@ describe('get-position-with-associates', async () => {
 
   it('position does not exist', async () => {
     await assertThrowsAsync(
-      invariant.getPositionWithAssociates(account.address, 0n),
+      invariant.getPositionWithAssociates(account.address, 1n),
       InvariantError.PositionNotFound
     )
   })
