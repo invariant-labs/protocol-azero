@@ -166,10 +166,10 @@ pub mod e2e_tests {
         assert_eq!(delta_dex_y, expected_y);
 
         // Check Pool
-        assert_eq!(pool.fee_growth_global_y, FeeGrowth::new(0));
+        assert_eq!(pool.fee_growth_global_y, FeeGrowth::new(0.into()));
         assert_eq!(
             pool.fee_growth_global_x,
-            FeeGrowth::new(40000000000000000000000)
+            FeeGrowth::new(40000000000000000000000_u128.into())
         );
         assert_eq!(pool.fee_protocol_token_y, TokenAmount(0));
         assert_eq!(pool.fee_protocol_token_x, TokenAmount(2));
@@ -178,12 +178,12 @@ pub mod e2e_tests {
         assert_eq!(lower_tick.liquidity_change, liquidity_delta);
         assert_eq!(middle_tick.liquidity_change, liquidity_delta);
         assert_eq!(upper_tick.liquidity_change, liquidity_delta);
-        assert_eq!(upper_tick.fee_growth_outside_x, FeeGrowth::new(0));
+        assert_eq!(upper_tick.fee_growth_outside_x, FeeGrowth::new(0.into()));
         assert_eq!(
             middle_tick.fee_growth_outside_x,
-            FeeGrowth::new(30000000000000000000000)
+            FeeGrowth::new(30000000000000000000000_u128.into())
         );
-        assert_eq!(lower_tick.fee_growth_outside_x, FeeGrowth::new(0));
+        assert_eq!(lower_tick.fee_growth_outside_x, FeeGrowth::new(0.into()));
         assert!(lower_tick_bit);
         assert!(middle_tick_bit);
         assert!(upper_tick_bit);
@@ -332,10 +332,10 @@ pub mod e2e_tests {
         assert_eq!(delta_dex_y, amount);
 
         // Check Pool
-        assert_eq!(pool.fee_growth_global_x, FeeGrowth::new(0));
+        assert_eq!(pool.fee_growth_global_x, FeeGrowth::new(0.into()));
         assert_eq!(
             pool.fee_growth_global_y,
-            FeeGrowth::new(40000000000000000000000)
+            FeeGrowth::new(40000000000000000000000_u128.into())
         );
         assert_eq!(pool.fee_protocol_token_x, TokenAmount(0));
         assert_eq!(pool.fee_protocol_token_y, TokenAmount(2));
@@ -344,12 +344,12 @@ pub mod e2e_tests {
         assert_eq!(lower_tick.liquidity_change, liquidity_delta);
         assert_eq!(middle_tick.liquidity_change, liquidity_delta);
         assert_eq!(upper_tick.liquidity_change, liquidity_delta);
-        assert_eq!(upper_tick.fee_growth_outside_y, FeeGrowth::new(0));
+        assert_eq!(upper_tick.fee_growth_outside_y, FeeGrowth::new(0.into()));
         assert_eq!(
             middle_tick.fee_growth_outside_y,
-            FeeGrowth::new(30000000000000000000000)
+            FeeGrowth::new(30000000000000000000000_u128.into())
         );
-        assert_eq!(lower_tick.fee_growth_outside_y, FeeGrowth::new(0));
+        assert_eq!(lower_tick.fee_growth_outside_y, FeeGrowth::new(0.into()));
         assert!(lower_tick_bit);
         assert!(middle_tick_bit);
         assert!(upper_tick_bit);

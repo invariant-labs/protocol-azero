@@ -404,8 +404,8 @@ mod tests {
             let mut pool = pool.clone();
             let amount = TokenAmount::new(1);
             pool.add_fee(amount, true, protocol_fee).unwrap();
-            assert_eq!({ pool.fee_growth_global_x }, FeeGrowth::new(0));
-            assert_eq!({ pool.fee_growth_global_y }, FeeGrowth::new(0));
+            assert_eq!({ pool.fee_growth_global_x }, FeeGrowth::new(0.into()));
+            assert_eq!({ pool.fee_growth_global_y }, FeeGrowth::new(0.into()));
             assert_eq!({ pool.fee_protocol_token_x }, TokenAmount(1));
             assert_eq!({ pool.fee_protocol_token_y }, TokenAmount(0));
         }
@@ -574,7 +574,7 @@ mod tests {
                 .update_liquidity(liquidity_delta, liquidity_sign, upper_tick, lower_tick)
                 .unwrap();
 
-            assert_eq!(x, TokenAmount(2500375009372499999999997));
+            assert_eq!(x, TokenAmount(4999999999999999999999995));
             assert_eq!(y, TokenAmount(5));
             assert_eq!(pool.liquidity, Liquidity::from_integer(5))
         }

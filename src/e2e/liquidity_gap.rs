@@ -163,9 +163,9 @@ pub mod e2e_tests {
         assert_eq!(delta_dex_y, expected_y_amount_out);
         assert_eq!(
             pool.fee_growth_global_x,
-            FeeGrowth::new(29991002699190242927121)
+            FeeGrowth::new(29991002699190242927121_u128.into())
         );
-        assert_eq!(pool.fee_growth_global_y, FeeGrowth::new(0));
+        assert_eq!(pool.fee_growth_global_y, FeeGrowth::new(0.into()));
         assert_eq!(pool.fee_protocol_token_x, TokenAmount::new(1));
         assert_eq!(pool.fee_protocol_token_y, TokenAmount::new(0));
 

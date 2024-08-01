@@ -374,8 +374,8 @@ mod tests {
         {
             let mut position = Position {
                 liquidity: Liquidity::from_integer(1),
-                fee_growth_inside_x: FeeGrowth::new(u128::MAX) - FeeGrowth::from_integer(10),
-                fee_growth_inside_y: FeeGrowth::new(u128::MAX) - FeeGrowth::from_integer(10),
+                fee_growth_inside_x: FeeGrowth::max_instance() - FeeGrowth::from_integer(10),
+                fee_growth_inside_y: FeeGrowth::max_instance() - FeeGrowth::from_integer(10),
                 tokens_owed_x: TokenAmount(100),
                 tokens_owed_y: TokenAmount(100),
                 ..Default::default()
@@ -414,8 +414,8 @@ mod tests {
         {
             let mut position = Position {
                 liquidity: Liquidity::from_integer(123),
-                fee_growth_inside_x: FeeGrowth::new(u128::MAX) - FeeGrowth::from_integer(1234),
-                fee_growth_inside_y: FeeGrowth::new(u128::MAX) - FeeGrowth::from_integer(1234),
+                fee_growth_inside_x: FeeGrowth::max_instance() - FeeGrowth::from_integer(1234),
+                fee_growth_inside_y: FeeGrowth::max_instance() - FeeGrowth::from_integer(1234),
                 tokens_owed_x: TokenAmount(0),
                 tokens_owed_y: TokenAmount(0),
                 ..Default::default()

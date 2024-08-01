@@ -271,7 +271,7 @@ pub fn impl_primitive_casts(
     // downcast to u64
     if chunk_count >= 2 {
         let overflow_chunks = overflow_chunks(1..chunk_count, param_name.clone());
-        let down_cast_error = alloc::format!("Failed to cast {} to u128", uint);
+        let down_cast_error = alloc::format!("Failed to cast {} to u64", uint);
         expanded.append_all(quote! {
           impl #checked_cast_trait_name <#uint> for u64 {
             fn #checked_cast_function_name(#param_name: #uint)-> Result<u64, String> {

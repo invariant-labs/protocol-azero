@@ -18,12 +18,16 @@ pub fn generate_factories(characteristics: DecimalCharacteristics) -> proc_macro
         &_ => underlying_type.clone(),
     };
 
+    let test_max_type = match underlying_type.clone().to_string().as_str() { 
+        "u128" | "u64" | "u32" | "u16" | "u8" | "i128" | "i64" | "i32" | "i16" | "i8" => underlying_type.clone(),
+        _ => string_to_ident("", "u32")
+    };
+
     let name_str = &struct_name.to_string();
 
     let module_name = string_to_ident("tests_factories_", &name_str);
 
     proc_macro::TokenStream::from(quote!(
-
         impl<T> Factories<T> for #struct_name
         where
         <Self as Decimal>::U: UintCast<T>,
@@ -223,9 +227,9 @@ pub fn generate_factories(characteristics: DecimalCharacteristics) -> proc_macro
                     #struct_name::new(#underlying_type::from(4u8))
                 );
 
-                let max_u128: u128 = u128::MAX;
+                let max_val = #test_max_type::MAX;
                 assert_eq!(
-                    #struct_name::checked_from_scale_underlying(#underlying_type::from(max_u128), 100_000).is_err(),
+                    #struct_name::checked_from_scale(max_val, 100_000).is_err(),
                     true
                 );
             }

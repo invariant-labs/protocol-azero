@@ -8,6 +8,7 @@ use crate::{UintCast, UintCheckedCast};
 use alloc::string::{String, ToString};
 use decimal_core::impl_units_casts;
 
+use num_traits::{WrappingAdd, WrappingSub};
 use uint::construct_uint;
 
 construct_uint! {
@@ -26,16 +27,16 @@ construct_uint! {
     pub struct U320(5);
 }
 
+#[cfg(not(feature = "invariant-wasm"))]
 construct_uint! {
-    #[ink::scale_derive(Encode, Decode, TypeInfo)]
-    #[derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)]
+    #[ink::scale_derive(Decode, Encode)]
+    #[cfg_attr(feature = "std", derive(ink::scale_info::TypeInfo, ink::storage::traits::StorageLayout))]
     pub struct U256(4);
 }
 
 construct_uint! {
     pub struct U192(3);
 }
-
 construct_uint! {
     pub struct U128(2);
 }
@@ -61,7 +62,11 @@ impl_uint_casts_as_default_from!(u128, u16);
 impl_uint_casts_as_default_from!(u128, u32);
 impl_uint_casts_as_default_from!(u128, u64);
 
-// i32 cast added to allow not specifying the type in from_integer function in decimal factories
+impl_uint_casts_as_default_from!(u64, u8);
+impl_uint_casts_as_default_from!(u64, u16);
+impl_uint_casts_as_default_from!(u64, u32);
+
+// i32 casts are added to allow not specifying the type in from_integer function in decimal factories
 impl UintCast<i32> for u128 {
     fn uint_cast(value: i32) -> u128 {
         if value < 0 {
@@ -71,36 +76,43 @@ impl UintCast<i32> for u128 {
     }
 }
 
+impl UintCast<i32> for u64 {
+    fn uint_cast(value: i32) -> u64 {
+        if value < 0 {
+            panic!("Failed to cast i32 to u64")
+        }
+        From::from(value as u32)
+    }
+}
+
+impl WrappingAdd for U256 {
+    fn wrapping_add(&self, other: &Self) -> Self {
+        if *other > U256::MAX - *self {
+            return (other - (U256::MAX - self)) - 1;
+        } else {
+            return self + other;
+        }
+    }
+}
+
+impl WrappingSub for U256 {
+    fn wrapping_sub(&self, other: &Self) -> Self {
+        if other > self {
+            return U256::MAX - (other - self) + 1;
+        } else {
+            return self - other;
+        }
+    }
+}
+
+
 #[cfg(feature = "invariant-wasm")]
 pub mod invariant_wasm {
     use alloc::string::{String, ToString};
     use serde::{Deserialize, Serialize};
     use uint::construct_uint;
     construct_uint! {
-        pub struct U128(2);
-    }
-    construct_uint! {
         pub struct U256(4);
-    }
-    construct_uint! {
-        pub struct U512(8);
-    }
-    impl Serialize for U128 {
-        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: serde::Serializer,
-        {
-            self.to_string().serialize(serializer)
-        }
-    }
-    impl<'de> Deserialize<'de> for U128 {
-        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where
-            D: serde::Deserializer<'de>,
-        {
-            let s = String::deserialize(deserializer)?;
-            Ok(Self::from_dec_str(&s).unwrap())
-        }
     }
     impl Serialize for U256 {
         fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>

@@ -13,8 +13,9 @@ uint = { version = "0.9", default-features = false }
 num-traits = { version = "0.2.14", default-features = false }
 serde = { version = "1.0", features = ["derive"] }
 ink = { version = "5.0.0", default-features = false }
-scale-info = { version = "2.11.3", features = ["derive"], default-features = false }
+scale-info = { version = "2.11.3", default-features = false }
 
 [features]
+std = []
 default = []
 invariant-wasm = []

@@ -2901,7 +2901,6 @@ dependencies = [
  "decimal",
  "ink",
  "ink_e2e",
- "ink_metadata",
  "scale-info",
  "test_helpers",
  "token",

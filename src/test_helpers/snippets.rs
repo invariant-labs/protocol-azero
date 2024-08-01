@@ -481,9 +481,9 @@ macro_rules! init_basic_swap {
 
         assert_eq!(
             pool_after.fee_growth_global_x,
-            FeeGrowth::new(50000000000000000000000)
+            FeeGrowth::new(50000000000000000000000_u128.into())
         );
-        assert_eq!(pool_after.fee_growth_global_y, FeeGrowth::new(0));
+        assert_eq!(pool_after.fee_growth_global_y, FeeGrowth::new(0.into()));
 
         assert_eq!(pool_after.fee_protocol_token_x, TokenAmount::new(1));
         assert_eq!(pool_after.fee_protocol_token_y, TokenAmount::new(0));
@@ -562,9 +562,9 @@ macro_rules! init_cross_swap {
 
         assert_eq!(
             pool_after.fee_growth_global_x,
-            FeeGrowth::new(40000000000000000000000)
+            FeeGrowth::new(40000000000000000000000.into())
         );
-        assert_eq!(pool_after.fee_growth_global_y, FeeGrowth::new(0));
+        assert_eq!(pool_after.fee_growth_global_y, FeeGrowth::new(0.into()));
 
         assert_eq!(pool_after.fee_protocol_token_x, TokenAmount::new(2));
         assert_eq!(pool_after.fee_protocol_token_y, TokenAmount::new(0));
@@ -833,8 +833,8 @@ macro_rules! multiple_swap {
         } else {
             assert_eq!(pool.current_tick_index, 820);
         }
-        assert_eq!(pool.fee_growth_global_x, FeeGrowth::new(0));
-        assert_eq!(pool.fee_growth_global_y, FeeGrowth::new(0));
+        assert_eq!(pool.fee_growth_global_x, FeeGrowth::new(0.into()));
+        assert_eq!(pool.fee_growth_global_y, FeeGrowth::new(0.into()));
         if $x_to_y {
             assert_eq!(pool.fee_protocol_token_x, TokenAmount(10));
             assert_eq!(pool.fee_protocol_token_y, TokenAmount(0));

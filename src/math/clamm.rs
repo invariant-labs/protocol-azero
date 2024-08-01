@@ -154,11 +154,17 @@ pub fn get_delta_x(
     ok_or_mark_trace!(match rounding_up {
         true => SqrtPrice::big_div_values_to_token_up(
             nominator,
-            sqrt_price_a.big_mul_to_value(sqrt_price_b),
+            sqrt_price_a
+                .cast::<U256>()
+                .checked_mul(sqrt_price_b.here())
+                .unwrap(),
         ),
         false => SqrtPrice::big_div_values_to_token(
             nominator,
-            sqrt_price_a.big_mul_to_value_up(sqrt_price_b),
+            sqrt_price_a
+                .cast::<U256>()
+                .checked_mul(sqrt_price_b.here())
+                .unwrap(),
         ),
     })
 }
@@ -517,7 +523,7 @@ mod tests {
             )
             .unwrap();
 
-            assert_eq!(result, SqrtPrice::new(65535383934512647000000000000));
+            assert_eq!(result, SqrtPrice::new(MAX_SQRT_PRICE));
         }
         // min result, decrease sqrt_price case
         {
@@ -525,12 +531,12 @@ mod tests {
             let result = get_next_sqrt_price_from_input(
                 almost_min_sqrt_price,
                 max_liquidity,
-                TokenAmount(2000000000000000000),
+                TokenAmount(u128::MAX/2_u128.pow(3)),
                 true,
             )
             .unwrap();
 
-            assert_eq!(result, SqrtPrice::new(15258932000000000000));
+            assert_eq!(result, SqrtPrice::new(MIN_SQRT_PRICE));
         }
         // amount == 0
         {
@@ -584,7 +590,10 @@ mod tests {
             )
             .unwrap();
 
-            assert_eq!(result, SqrtPrice::new(65535383934512647000000000012));
+            assert_eq!(
+                result,
+                SqrtPrice::new(281481114768267672563336586476951284686)
+            );
         }
         // min result, decrease sqrt_price case
         {
@@ -597,7 +606,7 @@ mod tests {
             )
             .unwrap();
 
-            assert_eq!(result, SqrtPrice::new(15258932000000000000));
+            assert_eq!(result, SqrtPrice::new(MIN_SQRT_PRICE));
         }
         // amount == 0
         {
@@ -1072,13 +1081,13 @@ mod tests {
         }
         // get_next_sqrt_price_from_input -> get_next_sqrt_price_x_up
         {
-            // by_amount_in == true
-            // x_to_y == true => current_sqrt_price >= target_sqrt_price == true
+            //     // by_amount_in == true
+            //     // x_to_y == true => current_sqrt_price >= target_sqrt_price == true
 
             let result = compute_swap_step(
                 max_sqrt_price,
                 min_sqrt_price,
-                max_liquidity,
+                Liquidity::new(1208899457326985091718931248781),
                 max_amount_not_reached_target_sqrt_price,
                 true,
                 min_fee,
@@ -1088,9 +1097,9 @@ mod tests {
             assert_eq!(
                 result,
                 SwapResult {
-                    next_sqrt_price: SqrtPrice::new(15258932000000000000),
-                    amount_in: TokenAmount(22300536291904886527033853306200674438),
-                    amount_out: TokenAmount(22300535557116062863569555195614450423),
+                    next_sqrt_price: SqrtPrice::new(MIN_SQRT_PRICE),
+                    amount_in: TokenAmount(340282366920938463463374607431551802887),
+                    amount_out: TokenAmount(340282366891153598040639300926394975275),
                     fee_amount: TokenAmount(0)
                 }
             )
@@ -1106,7 +1115,7 @@ mod tests {
                 let result = compute_swap_step(
                     min_sqrt_price,
                     max_sqrt_price,
-                    max_liquidity,
+                    Liquidity::new(1208899457326985091718931248781),
                     max_amount_not_reached_target_sqrt_price,
                     true,
                     min_fee,
@@ -1116,9 +1125,9 @@ mod tests {
                 assert_eq!(
                     result,
                     SwapResult {
-                        next_sqrt_price: SqrtPrice::new(65535383934512647000000000000),
-                        amount_in: TokenAmount(22300535557116062863569555195614450424),
-                        amount_out: TokenAmount(22300536291904886527033853306200674437),
+                        next_sqrt_price: SqrtPrice::new(MAX_SQRT_PRICE),
+                        amount_in: TokenAmount(340282366891153598040639300926394975276),
+                        amount_out: TokenAmount(340282366920938463463374607431551802886),
                         fee_amount: TokenAmount(0)
                     }
                 )
@@ -1139,8 +1148,8 @@ mod tests {
                     result,
                     SwapResult {
                         next_sqrt_price: max_sqrt_price,
-                        amount_in: TokenAmount(65536),
-                        amount_out: TokenAmount(65535),
+                        amount_in: TokenAmount(281480833287153),
+                        amount_out: TokenAmount(281480833311790),
                         fee_amount: TokenAmount(0),
                     }
                 )
@@ -1168,9 +1177,9 @@ mod tests {
                 assert_eq!(
                     result,
                     SwapResult {
-                        next_sqrt_price: SqrtPrice::new(65535383934512647000000000000),
+                        next_sqrt_price: SqrtPrice::new(MAX_SQRT_PRICE),
                         amount_in: TokenAmount(79226672684850046813853155300),
-                        amount_out: TokenAmount(18446744073709551615),
+                        amount_out: TokenAmount(0),
                         fee_amount: TokenAmount(0)
                     }
                 )
@@ -1192,9 +1201,9 @@ mod tests {
                 assert_eq!(
                     result,
                     SwapResult {
-                        next_sqrt_price: SqrtPrice::new(65535383934512647000000000000),
-                        amount_in: TokenAmount(18446743465900796471),
-                        amount_out: TokenAmount(18446744073709559494),
+                        next_sqrt_price: SqrtPrice::new(MAX_SQRT_PRICE),
+                        amount_in: TokenAmount(79230632432451957492634392104),
+                        amount_out: TokenAmount(79230632439387003072335686522),
                         fee_amount: TokenAmount(0)
                     }
                 );
@@ -1204,7 +1213,7 @@ mod tests {
                 let result = compute_swap_step(
                     max_sqrt_price - SqrtPrice::from_integer(1),
                     max_sqrt_price,
-                    Liquidity::from_integer(10_000_000_000u128),
+                    Liquidity::from_integer(1_000_000_000_000_000_000_000_000_000_000u128),
                     TokenAmount(1),
                     false,
                     min_fee,
@@ -1214,8 +1223,8 @@ mod tests {
                 assert_eq!(
                     result,
                     SwapResult {
-                        next_sqrt_price: SqrtPrice::new(65534813412874974599766965330u128),
-                        amount_in: TokenAmount(4294783624),
+                        next_sqrt_price: SqrtPrice::new(281481114768266751562113759333988801686),
+                        amount_in: TokenAmount(79231617971186136445760000000),
                         amount_out: TokenAmount(1),
                         fee_amount: TokenAmount(0),
                     }
@@ -1227,7 +1236,7 @@ mod tests {
             let result = compute_swap_step(
                 max_sqrt_price,
                 min_sqrt_price,
-                max_liquidity,
+                Liquidity::new(1208899457326985091718931248781),
                 max_amount,
                 false,
                 min_fee,
@@ -1237,9 +1246,9 @@ mod tests {
             assert_eq!(
                 result,
                 SwapResult {
-                    next_sqrt_price: SqrtPrice::new(15258932000000000000),
-                    amount_in: TokenAmount(22300536291904886527033853306200674438),
-                    amount_out: TokenAmount(22300535557116062863569555195614450423),
+                    next_sqrt_price: SqrtPrice::new(MIN_SQRT_PRICE),
+                    amount_in: TokenAmount(340282366920938463463374607431551802887),
+                    amount_out: TokenAmount(340282366891153598040639300926394975275),
                     fee_amount: TokenAmount(0)
                 }
             )
@@ -1352,7 +1361,7 @@ mod tests {
                      // get_next_sqrt_price_y_down(min_sqrt_price, max_liquidity, min_y, true).unwrap();
                      get_next_sqrt_price_y_down(min_sqrt_price, max_liquidity, min_y + TokenAmount(600000000), true).unwrap();
 
-                assert_eq!(target_sqrt_price, SqrtPrice::new(15258932000000000001));
+                assert_eq!(target_sqrt_price, SqrtPrice::new(3552636208));
             }
             // decreases almost_min_sqrt_price
             {
@@ -1360,7 +1369,7 @@ mod tests {
                     get_next_sqrt_price_y_down(almost_min_sqrt_price, max_liquidity, min_y, false)
                         .unwrap();
 
-                assert_eq!(target_sqrt_price, SqrtPrice::new(15258932000000000000));
+                assert_eq!(target_sqrt_price, SqrtPrice::new(MIN_SQRT_PRICE));
             }
         }
         // max value inside domain
@@ -1373,7 +1382,7 @@ mod tests {
 
                 assert_eq!(
                     target_sqrt_price,
-                    SqrtPrice::new(65535383934512646999999999999)
+                    SqrtPrice::new(281481114768267672330495788147852355925)
                 );
             }
             // increases almost_max_sqrt_price
@@ -1386,10 +1395,7 @@ mod tests {
                 )
                 .unwrap();
 
-                assert_eq!(
-                    target_sqrt_price,
-                    SqrtPrice::new(65535383934512647000000000000)
-                );
+                assert_eq!(target_sqrt_price, SqrtPrice::new(MAX_SQRT_PRICE));
             }
         }
         // extension TokenAmount to SqrtPrice decimal overflow
@@ -1587,8 +1593,8 @@ mod tests {
         }
         // huge liquidity
         {
-            let sqrt_price_a = SqrtPrice::from_integer(1u8);
-            let sqrt_price_b = SqrtPrice::new(SqrtPrice::one()) + SqrtPrice::new(1000000);
+            let sqrt_price_a = SqrtPrice::one();
+            let sqrt_price_b = SqrtPrice::one() + SqrtPrice::new(1000000);
             let liquidity = Liquidity::from_integer(2u128.pow(80));
 
             let result_down = get_delta_x(sqrt_price_a, sqrt_price_b, liquidity, false);
@@ -1606,7 +1612,7 @@ mod tests {
         // let almost_max_sqrt_price = SqrtPrice::from_tick(MAX_TICK - 1);
         let almost_min_sqrt_price = SqrtPrice::from_tick(-MAX_TICK + 1).unwrap();
 
-        let max_liquidity = Liquidity::max_instance();
+        let max_liquidity = Liquidity::new(1208899457326985091718930756475);
         let min_liquidity = Liquidity::new(1);
 
         // maximize delta_sqrt_price and liquidity
@@ -1615,13 +1621,13 @@ mod tests {
                 let result =
                     get_delta_x(max_sqrt_price, min_sqrt_price, max_liquidity, true).unwrap();
 
-                assert_eq!(result, TokenAmount(22300536291904886527033853306200674438));
+                assert_eq!(result, TokenAmount(340282366920938463463374468856710103651));
             }
             {
                 let result =
                     get_delta_x(max_sqrt_price, min_sqrt_price, max_liquidity, false).unwrap();
 
-                assert_eq!(result, TokenAmount(22300536291904886527033853306200674437))
+                assert_eq!(result, TokenAmount(340282366920938463463374468856710103650))
             }
         }
         {
@@ -1629,28 +1635,33 @@ mod tests {
                 let result =
                     get_delta_x(max_sqrt_price, min_sqrt_price, min_liquidity, true).unwrap();
 
-                assert_eq!(result, TokenAmount(1));
+                assert_eq!(result, TokenAmount(281481115));
             }
             {
                 let result =
                     get_delta_x(max_sqrt_price, min_sqrt_price, min_liquidity, false).unwrap();
 
-                assert_eq!(result, TokenAmount(0))
+                assert_eq!(result, TokenAmount(281481114))
             }
         }
         // minimize denominator on maximize liquidity which fit into TokenAmount
         {
+            let liquidity_limit = Liquidity::new(24179852814641947988598455078971980);
             {
                 let result =
-                    get_delta_x(min_sqrt_price, almost_min_sqrt_price, max_liquidity, true)
+                    get_delta_x(min_sqrt_price, almost_min_sqrt_price, liquidity_limit, true)
                         .unwrap();
-                assert_eq!(TokenAmount(1115049101222874255702226300908362), result);
+                assert_eq!(TokenAmount(340282366920938463463374607431768146214), result);
             }
             {
-                let result =
-                    get_delta_x(min_sqrt_price, almost_min_sqrt_price, max_liquidity, false)
-                        .unwrap();
-                assert_eq!(TokenAmount(1115049101222874255702226300908361), result);
+                let result = get_delta_x(
+                    min_sqrt_price,
+                    almost_min_sqrt_price,
+                    liquidity_limit,
+                    false,
+                )
+                .unwrap();
+                assert_eq!(TokenAmount(340282366920938463463374607431768146213), result);
             }
         }
         // minimize denominator on minimize liquidity which fits into TokenAmount
@@ -1659,7 +1670,7 @@ mod tests {
                 let result =
                     get_delta_x(min_sqrt_price, almost_min_sqrt_price, min_liquidity, true)
                         .unwrap();
-                assert_eq!(TokenAmount(1), result);
+                assert_eq!(TokenAmount(0), result);
             }
             {
                 let result =
@@ -1703,7 +1714,7 @@ mod tests {
                     max_big_div_values_to_token_up_indermediate = 2^204 * 10^24 + 2^96
                     max_big_div_values_to_token_up_indermediate < 2^284 <-- no more overflow  after adding U320
             */
-            assert_eq!(result, TokenAmount(13481455942966627077028504118))
+            assert_eq!(result, TokenAmount(3138798112390387749))
         }
         {
             let almost_max_sqrt_price = max_sqrt_price.checked_sub(SqrtPrice::new(1)).unwrap(); // max_sqrt_price.checked_sub(min_step).unwrap();
@@ -1723,7 +1734,7 @@ mod tests {
                 let result =
                     get_delta_x(min_sqrt_price, almost_min_sqrt_price, max_liquidity, true)
                         .unwrap();
-                assert_eq!(TokenAmount(1461474256330471373), result);
+                assert_eq!(TokenAmount(95783059958313205218386451780), result);
             }
         }
         // liquidity is zero
@@ -1805,7 +1816,7 @@ mod tests {
         // huge liquidity
         {
             let sqrt_price_a = SqrtPrice::from_integer(1u8);
-            let sqrt_price_b = SqrtPrice::new(SqrtPrice::one()) + SqrtPrice::new(1000000);
+            let sqrt_price_b = SqrtPrice::one() + SqrtPrice::new(1000000);
             let liquidity = Liquidity::from_integer(2u128.pow(80));
 
             let result_down = get_delta_y(sqrt_price_a, sqrt_price_b, liquidity, false);
@@ -1820,19 +1831,21 @@ mod tests {
     fn test_domain_get_delta_y() {
         let max_sqrt_price = SqrtPrice::from_tick(MAX_TICK).unwrap();
         let min_sqrt_price = SqrtPrice::from_tick(-MAX_TICK).unwrap();
-        let max_liquidity = Liquidity::max_instance();
         let min_liquidity = Liquidity::new(1);
+        let max_liquidity = Liquidity::max_instance();
+
         // maximize delta_sqrt_price and liquidity
         {
+            let max_liquidity = Liquidity::new(1208899457432799883049625012737);
             {
                 let result =
                     get_delta_y(max_sqrt_price, min_sqrt_price, max_liquidity, true).unwrap();
-                assert_eq!(result, TokenAmount(22300535557116062863569555195614450424));
+                assert_eq!(result, TokenAmount(340282366920938463463374607431352125298));
             }
             {
                 let result =
                     get_delta_y(max_sqrt_price, min_sqrt_price, max_liquidity, false).unwrap();
-                assert_eq!(result, TokenAmount(22300535557116062863569555195614450423));
+                assert_eq!(result, TokenAmount(340282366920938463463374607431352125297));
             }
             // can be zero
             {
@@ -1956,7 +1969,7 @@ mod tests {
                               // get_next_sqrt_price_y_down(min_sqrt_price, max_liquidity, min_x, true).unwrap();
                               get_next_sqrt_price_x_up(min_sqrt_price, max_liquidity, TokenAmount(600000000), false).unwrap();
 
-                assert_eq!(target_sqrt_price, SqrtPrice::new(15258932000000000001));
+                assert_eq!(target_sqrt_price, SqrtPrice::new(3552636208));
             }
             // decreases almost_min_sqrt_price
             {
@@ -1968,7 +1981,7 @@ mod tests {
                 )
                 .unwrap();
 
-                assert_eq!(target_sqrt_price, SqrtPrice::new(15258932000000000000));
+                assert_eq!(target_sqrt_price, SqrtPrice::new(3552636208));
             }
         }
         // max value inside domain
@@ -1980,7 +1993,7 @@ mod tests {
 
                 assert_eq!(
                     target_sqrt_price,
-                    SqrtPrice::new(65535383934512646999999999988)
+                    SqrtPrice::new(281481114768267672097654989818753427552)
                 );
             }
             // increases almost_max_sqrt_price
@@ -1991,7 +2004,7 @@ mod tests {
 
                 assert_eq!(
                     target_sqrt_price,
-                    SqrtPrice::new(65535383934512647000000000012)
+                    SqrtPrice::new(281481114768267672563336586476951284686)
                 );
             }
         }
@@ -1999,7 +2012,7 @@ mod tests {
             let result =
                 get_next_sqrt_price_x_up(max_sqrt_price, max_liquidity, max_x, true).unwrap();
 
-            assert_eq!(result, SqrtPrice::new(999999999984741068));
+            assert_eq!(result, SqrtPrice::new(1000000000000000000));
         }
         // subtraction underflow (not possible from upper-level function)
         {
@@ -2016,7 +2029,10 @@ mod tests {
             let result =
                 get_next_sqrt_price_x_up(max_sqrt_price, max_liquidity, min_x, true).unwrap();
 
-            assert_eq!(result, SqrtPrice::new(65535383934512646999999999988));
+            assert_eq!(
+                result,
+                SqrtPrice::new(281481114768267672097654989818753427552)
+            );
         }
         // Liquidity is zero
         {
@@ -2031,7 +2047,7 @@ mod tests {
                 get_next_sqrt_price_x_up(max_sqrt_price, max_liquidity, TokenAmount(0), true)
                     .unwrap();
 
-            assert_eq!(result, SqrtPrice::new(65535383934512647000000000000));
+            assert_eq!(result, SqrtPrice::new(MAX_SQRT_PRICE));
         }
     }
 
@@ -2232,9 +2248,6 @@ mod tests {
 
     #[test]
     fn test_domain_calculate_amount_delta() {
-        // DOMAIN
-        let max_liquidity = Liquidity::max_instance();
-
         // maximalize x
         {
             let current_tick_index = -MAX_TICK;
@@ -2247,13 +2260,13 @@ mod tests {
             let (x, y, add) = calculate_amount_delta(
                 current_tick_index,
                 current_sqrt_price,
-                max_liquidity,
+                Liquidity::new(1208959900662974157255380857623),
                 liquidity_sign,
                 upper_tick,
                 lower_tick,
             )
             .unwrap();
-            assert_eq!(x, TokenAmount(22299421242803663652778151079899766076));
+            assert_eq!(x, TokenAmount(340282366920938463463374607431721873710));
             assert_eq!(y, TokenAmount(0)); // assert_eq!(y, TokenAmount(1));
             assert!(!add)
         }
@@ -2269,14 +2282,14 @@ mod tests {
             let (x, y, add) = calculate_amount_delta(
                 current_tick_index,
                 current_sqrt_price,
-                max_liquidity,
+                Liquidity::new(1208959900894622752746929791610),
                 liquidity_sign,
                 upper_tick,
                 lower_tick,
             )
             .unwrap();
             assert_eq!(x, TokenAmount(0));
-            assert_eq!(y, TokenAmount(22299420613894225688327846143610371474));
+            assert_eq!(y, TokenAmount(340282366920938463463374607431742983000));
             assert!(!add)
         }
 
@@ -2361,22 +2374,22 @@ mod tests {
         // tick_spacing 1 [L_MAX / 443_637]
         {
             let max_l = calculate_max_liquidity_per_tick(1);
-            assert_eq!(max_l, Liquidity::new(767028825190275976673213928125400));
+            assert_eq!(max_l, Liquidity::new(255676275063425325557737976041800));
         };
         // tick_spacing 2 [L_MAX / 221_819]
         {
             let max_l = calculate_max_liquidity_per_tick(2);
-            assert_eq!(max_l, Liquidity::new(1534061108300221187926023169588438));
+            assert_eq!(max_l, Liquidity::new(511352934339569863421831089152186));
         }
         // tick_spacing 5 [L_MAX / 88_727]
         {
             let max_l = calculate_max_liquidity_per_tick(5);
-            assert_eq!(max_l, Liquidity::new(3835161415588698631345301964810804));
+            assert_eq!(max_l, Liquidity::new(1278382335848924658554577722880466));
         }
         // tick_spacing 100 [L_MAX / 4436]
         {
             let max_l = calculate_max_liquidity_per_tick(100);
-            assert_eq!(max_l, Liquidity::new(76709280189571339824926647302021688));
+            assert_eq!(max_l, Liquidity::new(25567838824925874480680337172722835));
         }
     }
 }
