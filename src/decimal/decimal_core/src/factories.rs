@@ -13,14 +13,18 @@ pub fn generate_factories(characteristics: DecimalCharacteristics) -> proc_macro
         ..
     } = characteristics;
 
-    let pow_type = match underlying_type.clone().to_string().as_str() { 
-        "u128" | "u64" | "u32" | "u16" | "u8" | "i128" | "i64" | "i32" | "i16" | "i8" => string_to_ident("", "u32"),
+    let pow_type = match underlying_type.clone().to_string().as_str() {
+        "u128" | "u64" | "u32" | "u16" | "u8" | "i128" | "i64" | "i32" | "i16" | "i8" => {
+            string_to_ident("", "u32")
+        }
         &_ => underlying_type.clone(),
     };
 
-    let test_max_type = match underlying_type.clone().to_string().as_str() { 
-        "u128" | "u64" | "u32" | "u16" | "u8" | "i128" | "i64" | "i32" | "i16" | "i8" => underlying_type.clone(),
-        _ => string_to_ident("", "u32")
+    let test_max_type = match underlying_type.clone().to_string().as_str() {
+        "u128" | "u64" | "u32" | "u16" | "u8" | "i128" | "i64" | "i32" | "i16" | "i8" => {
+            underlying_type.clone()
+        }
+        _ => string_to_ident("", "u32"),
     };
 
     let name_str = &struct_name.to_string();
@@ -78,7 +82,7 @@ pub fn generate_factories(characteristics: DecimalCharacteristics) -> proc_macro
 
             fn checked_from_scale_underlying(integer: Self::U, scale: u8) -> core::result::Result<Self, alloc::string::String> {
                 let input_scale:u8 = #scale;
-                
+
                 Ok(Self::new(
                     if input_scale > scale {
                         let multiplier: #underlying_type = #underlying_type::uint_cast(10u8).checked_pow(#pow_type::from((input_scale - scale))).ok_or_else(|| "checked_from_scale: delta scale overflow")?;

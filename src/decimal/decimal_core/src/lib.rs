@@ -13,13 +13,13 @@ mod factories;
 mod ops;
 mod others;
 mod structs;
-mod utils;
 mod uint_casts;
+mod utils;
 
 use structs::DecimalCharacteristics;
 
+use crate::uint_casts::{Uint, UintsCastsInput};
 use crate::utils::string_to_ident;
-use crate::uint_casts::{Uint, UintsCastsInput}; 
 use quote::TokenStreamExt;
 #[proc_macro]
 pub fn impl_units_casts(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -29,7 +29,11 @@ pub fn impl_units_casts(input: proc_macro::TokenStream) -> proc_macro::TokenStre
     input.uints.iter().for_each(|Uint(ident, size)| {
         let count: usize = size.base10_parse().expect("Failed to parse usize");
         expanded.append_all(uint_casts::validate_uint(ident.clone(), count));
-        expanded.append_all(uint_casts::impl_uint_casts(uints.clone(), ident.clone(), count));
+        expanded.append_all(uint_casts::impl_uint_casts(
+            uints.clone(),
+            ident.clone(),
+            count,
+        ));
         expanded.append_all(uint_casts::impl_primitive_casts(ident.clone(), count));
 
         uints.push((ident.clone(), count))

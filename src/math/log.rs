@@ -85,7 +85,7 @@ fn log2_iterative_approximation_x64(mut sqrt_price_x64: u128) -> (bool, u128) {
     }
     let log2_floor = log2_floor_x64(sqrt_price_x64 >> LOG2_SCALE);
     let mut result = log2_floor << LOG2_SCALE;
-    let mut y: u128 = (sqrt_price_x64 as u128) >> log2_floor;
+    let mut y: u128 = sqrt_price_x64 >> log2_floor;
 
     if y == LOG2_ONE {
         return (sign, result);

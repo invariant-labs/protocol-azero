@@ -14,13 +14,10 @@ cargo test
 cd ..
 
 # Test decimal
-cd decimal
-cargo test
-cd decimal_core
-cd ../../..
+cargo test -p decimal
 
 cargo fmt --all -- --check
-cargo clippy --all-targets -- --no-deps -D warnings
+cargo clippy -- --no-deps -D warnings
 
 cargo test --features e2e-tests
 

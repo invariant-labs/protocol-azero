@@ -24,14 +24,12 @@ impl FeeGrowth {
     pub fn from_fee(liquidity: Liquidity, fee: TokenAmount) -> TrackableResult<Self> {
         Ok(Self::new(
             U256::from(fee.get())
-                .checked_mul(U256::from(FeeGrowth::one().get()))
+                .checked_mul(FeeGrowth::one().get())
                 .ok_or_else(|| err!(TrackableError::MUL))?
                 .checked_mul(U256::from(Liquidity::one().get()))
                 .ok_or_else(|| err!(TrackableError::MUL))?
                 .checked_div(liquidity.here())
-                .ok_or_else(|| err!(TrackableError::DIV))?
-                .try_into()
-                .map_err(|_| err!(TrackableError::cast::<Self>().as_str()))?,
+                .ok_or_else(|| err!(TrackableError::DIV))?,
         ))
     }
 

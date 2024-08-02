@@ -28,8 +28,8 @@ fn overflow_chunks(
     param_name: proc_macro2::Ident,
 ) -> proc_macro2::TokenStream {
     let max_chunk = match outer_range.clone().max() {
-      Some(size) => size,
-      None => return Default::default()
+        Some(size) => size,
+        None => return Default::default(),
     };
 
     outer_range.fold(proc_macro2::TokenStream::new(), |mut acc, i| {
@@ -86,9 +86,11 @@ pub fn impl_uint_casts(
 
         let (max_chunk, max_common_chunk, bigger_type, smaller_type) =
             if new_chunks_count == chunks_count {
-              panic!("uints {}, {} are identical, aliases are not supported", uint, new_uint)
-            }
-            else if new_chunks_count > chunks_count {
+                panic!(
+                    "uints {}, {} are identical, aliases are not supported",
+                    uint, new_uint
+                )
+            } else if new_chunks_count > chunks_count {
                 (
                     new_chunks_count,
                     chunks_count,
@@ -136,7 +138,8 @@ pub fn impl_uint_casts(
                 }
             };
 
-            let error_message = alloc::format!("Failed to cast {} to {}", bigger_type, smaller_type);
+            let error_message =
+                alloc::format!("Failed to cast {} to {}", bigger_type, smaller_type);
             let cast_down: proc_macro2::TokenStream = quote! {
                 impl #checked_cast_trait_name <#bigger_type> for #smaller_type {
                     fn #checked_cast_function_name(#param_name: #bigger_type)-> Result<#smaller_type, String> {

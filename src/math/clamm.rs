@@ -531,7 +531,7 @@ mod tests {
             let result = get_next_sqrt_price_from_input(
                 almost_min_sqrt_price,
                 max_liquidity,
-                TokenAmount(u128::MAX/2_u128.pow(3)),
+                TokenAmount(u128::MAX / 2_u128.pow(3)),
                 true,
             )
             .unwrap();
