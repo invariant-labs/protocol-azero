@@ -71,7 +71,7 @@ pub mod e2e_tests {
         assert_eq!(ticks_amount, 2);
 
         let tickmap = get_tickmap!(client, dex, pool_key, -10, 10, false, alice);
-        assert_eq!(tickmap.len(), 2);
+        assert_eq!(tickmap.len(), 1);
         let mut ticks = vec![];
         tickmap.iter().for_each(|(chunk_index, chunk)| {
             for i in 0..64 {

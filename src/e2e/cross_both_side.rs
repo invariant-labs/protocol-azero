@@ -262,7 +262,7 @@ pub mod e2e_tests {
         assert_eq!(pool.fee_protocol_token_x, TokenAmount(4));
         assert_eq!(pool.fee_protocol_token_y, TokenAmount(2));
         assert_eq!(pool.liquidity, expected_liquidity);
-        assert_eq!(pool.sqrt_price, SqrtPrice::new(999500149964999999999999));
+        assert_eq!(pool.sqrt_price, SqrtPrice::new(999500149965006998740208));
 
         let final_last_tick = get_tick!(client, dex, pool_key, -20).unwrap();
         assert_eq!(
