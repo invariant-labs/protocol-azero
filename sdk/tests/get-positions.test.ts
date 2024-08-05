@@ -71,7 +71,7 @@ describe('get-positions', async () => {
       feeReceiver: account.address
     }
 
-    objectEquals(result[0][0][0], firstExpectedPosition, ['lastBlockNumber'])
+    objectEquals(result[0][0][0], firstExpectedPosition, ['lastBlockNumber', 'createdAt'])
     objectEquals(result[0][0][1], firstExpectedPool, ['startTimestamp', 'lastTimestamp'])
 
     const secondExpectedPosition = {
@@ -95,7 +95,7 @@ describe('get-positions', async () => {
       feeReceiver: account.address
     }
 
-    objectEquals(result[0][1][0], secondExpectedPosition, ['lastBlockNumber'])
+    objectEquals(result[0][1][0], secondExpectedPosition, ['lastBlockNumber', 'createdAt'])
     objectEquals(result[0][1][1], secondExpectedPool, ['startTimestamp', 'lastTimestamp'])
   })
 

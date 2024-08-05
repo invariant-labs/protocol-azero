@@ -26,6 +26,7 @@ pub struct Position {
     pub last_block_number: u64,
     pub tokens_owed_x: TokenAmount,
     pub tokens_owed_y: TokenAmount,
+    pub created_at: u64,
 }
 
 impl Position {
@@ -188,6 +189,7 @@ impl Position {
             last_block_number: block_number,
             tokens_owed_x: TokenAmount::new(0),
             tokens_owed_y: TokenAmount::new(0),
+            created_at: current_timestamp,
         };
 
         let (required_x, required_y) = unwrap!(position.modify(

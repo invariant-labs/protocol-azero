@@ -1,7 +1,7 @@
 export const abi = `
 {
   "source": {
-    "hash": "0x24ae0239ce4ae019c50e5f1e3655a13ab4b6501afbfafc3144b8b5c1f9f7e391",
+    "hash": "0xed4d540239f728bfa3244b7a119675d7bf06ed3f4d4b8fafec38c1255845707a",
     "language": "ink! 5.0.0",
     "compiler": "rustc 1.77.0",
     "build_info": {
@@ -1458,7 +1458,7 @@ export const abi = `
             }
           },
           {
-            "label": "offset",
+            "label": "index",
             "type": {
               "displayName": [
                 "u32"
@@ -1469,7 +1469,7 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::get_position_ticks",
+        "label": "InvariantTrait::get_position_with_associates",
         "mutates": false,
         "payable": false,
         "returnType": {
@@ -1479,7 +1479,7 @@ export const abi = `
           ],
           "type": 97
         },
-        "selector": "0xcc9476e7"
+        "selector": "0x96ccf001"
       },
       {
         "args": [
@@ -1910,6 +1910,15 @@ export const abi = `
                                     }
                                   },
                                   "name": "tokens_owed_y"
+                                },
+                                {
+                                  "layout": {
+                                    "leaf": {
+                                      "key": "0xaa6cd0bf",
+                                      "ty": 9
+                                    }
+                                  },
+                                  "name": "created_at"
                                 }
                               ],
                               "name": "Position"
@@ -2707,6 +2716,11 @@ export const abi = `
                 "name": "tokens_owed_y",
                 "type": 21,
                 "typeName": "TokenAmount"
+              },
+              {
+                "name": "created_at",
+                "type": 9,
+                "typeName": "u64"
               }
             ]
           }
@@ -5288,48 +5302,55 @@ export const abi = `
       "id": 98,
       "type": {
         "def": {
-          "sequence": {
-            "type": 99
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 99
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 59
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
           }
-        }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 99
+          },
+          {
+            "name": "E",
+            "type": 59
+          }
+        ],
+        "path": [
+          "Result"
+        ]
       }
     },
     {
       "id": 99,
       "type": {
         "def": {
-          "composite": {
-            "fields": [
-              {
-                "name": "index",
-                "type": 12,
-                "typeName": "i32"
-              },
-              {
-                "name": "fee_growth_outside_x",
-                "type": 20,
-                "typeName": "FeeGrowth"
-              },
-              {
-                "name": "fee_growth_outside_y",
-                "type": 20,
-                "typeName": "FeeGrowth"
-              },
-              {
-                "name": "seconds_outside",
-                "type": 9,
-                "typeName": "u64"
-              }
-            ]
-          }
-        },
-        "path": [
-          "invariant",
-          "contracts",
-          "storage",
-          "tick",
-          "PositionTick"
-        ]
+          "tuple": [
+            15,
+            25,
+            36,
+            36
+          ]
+        }
       }
     },
     {
