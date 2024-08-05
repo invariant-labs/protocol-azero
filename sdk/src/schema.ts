@@ -14,7 +14,7 @@ export enum InvariantQuery {
   GetPositions = `${invariantActionPrefix}getPositions`,
   Quote = `${invariantActionPrefix}quote`,
   QuoteRoute = `${invariantActionPrefix}quoteRoute`,
-  GetPositionTicks = `${invariantActionPrefix}getPositionTicks`,
+  GetPositionWithAssociates = `${invariantActionPrefix}getPositionWithAssociates`,
   GetUserPositionAmount = `${invariantActionPrefix}getUserPositionAmount`,
   GetTickmap = `${invariantActionPrefix}getTickmap`,
   GetLiquidityTicks = `${invariantActionPrefix}getLiquidityTicks`,

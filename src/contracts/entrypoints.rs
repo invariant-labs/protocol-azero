@@ -1,7 +1,7 @@
 use crate::{
     contracts::{
         CalculateSwapResult, FeeTier, InvariantError, LiquidityTick, Pool, PoolKey, Position,
-        PositionTick, QuoteResult, SwapHop, Tick,
+        QuoteResult, SwapHop, Tick,
     },
     math::{
         liquidity::Liquidity, percentage::Percentage, sqrt_price::SqrtPrice,
@@ -375,20 +375,27 @@ pub trait InvariantTrait {
     #[ink(message)]
     fn get_fee_tiers(&self) -> Vec<FeeTier>;
 
-    /// Retrieves list of lower and upper ticks of user positions.
-    ///
-    /// # Parameters
-    /// - `owner`: An `AccountId` identifying the user who owns the position.
-    /// - `offset`: The offset from the current position index.
-    #[ink(message)]
-    fn get_position_ticks(&self, owner: AccountId, offset: u32) -> Vec<PositionTick>;
-
     /// Retrieves the amount of positions held by the user.
     ///
     /// # Parameters
     /// - `owner`: An `AccountId` identifying the user who owns the position.
     #[ink(message)]
     fn get_user_position_amount(&self, owner: AccountId) -> u32;
+
+    /// Retrieves information about a single position, the associated pool, lower and upper tick in this order.
+    ///
+    /// # Parameters
+    /// - `owner`: An `AccountId` identifying the user who owns the position.
+    /// - `index`: The index of the user position.
+    ///
+    /// # Errors
+    /// - Fails if position or any other associated structure cannot be found.
+    #[ink(message)]
+    fn get_position_with_associates(
+        &self,
+        owner: AccountId,
+        index: u32,
+    ) -> Result<(Position, Pool, Tick, Tick), InvariantError>;
 
     /// Retrieves tickmap chunks
     ///

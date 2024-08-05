@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x1a00f4ed1f0ca0064532b43f0dc188e329477cffc352958057e693c061f64092",
+    "hash": "0xd7b1e93c1aa80811707256fcdeab425c3ba1aae3ebe5b2cfaefae524d99760c4",
     "language": "ink! 5.0.0",
     "compiler": "rustc 1.77.0",
     "build_info": {
@@ -1431,7 +1431,7 @@
             }
           },
           {
-            "label": "offset",
+            "label": "index",
             "type": {
               "displayName": [
                 "u32"
@@ -1442,7 +1442,7 @@
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::get_position_ticks",
+        "label": "InvariantTrait::get_position_with_associates",
         "mutates": false,
         "payable": false,
         "returnType": {
@@ -1452,7 +1452,7 @@
           ],
           "type": 95
         },
-        "selector": "0xcc9476e7"
+        "selector": "0x96ccf001"
       },
       {
         "args": [
@@ -5223,48 +5223,55 @@
       "id": 96,
       "type": {
         "def": {
-          "sequence": {
-            "type": 97
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 97
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 59
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
           }
-        }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 97
+          },
+          {
+            "name": "E",
+            "type": 59
+          }
+        ],
+        "path": [
+          "Result"
+        ]
       }
     },
     {
       "id": 97,
       "type": {
         "def": {
-          "composite": {
-            "fields": [
-              {
-                "name": "index",
-                "type": 12,
-                "typeName": "i32"
-              },
-              {
-                "name": "fee_growth_outside_x",
-                "type": 20,
-                "typeName": "FeeGrowth"
-              },
-              {
-                "name": "fee_growth_outside_y",
-                "type": 20,
-                "typeName": "FeeGrowth"
-              },
-              {
-                "name": "seconds_outside",
-                "type": 9,
-                "typeName": "u64"
-              }
-            ]
-          }
-        },
-        "path": [
-          "invariant",
-          "contracts",
-          "storage",
-          "tick",
-          "PositionTick"
-        ]
+          "tuple": [
+            15,
+            25,
+            36,
+            36
+          ]
+        }
       }
     },
     {
