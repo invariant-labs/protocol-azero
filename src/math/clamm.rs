@@ -157,14 +157,14 @@ pub fn get_delta_x(
             sqrt_price_a
                 .cast::<U256>()
                 .checked_mul(sqrt_price_b.here())
-                .unwrap(),
+                .ok_or_else(|| err!(TrackableError::MUL))?,
         ),
         false => SqrtPrice::big_div_values_to_token(
             nominator,
             sqrt_price_a
                 .cast::<U256>()
                 .checked_mul(sqrt_price_b.here())
-                .unwrap(),
+                .ok_or_else(|| err!(TrackableError::MUL))?,
         ),
     })
 }

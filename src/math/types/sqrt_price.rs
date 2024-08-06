@@ -102,10 +102,10 @@ impl SqrtPrice {
         nominator: U256,
         denominator: U256,
     ) -> TrackableResult<SqrtPrice> {
-        let denominator = u256_to_u320(denominator);
+        let denominator = U320::uint_cast(denominator);
 
         Ok(SqrtPrice::new(
-            u256_to_u320(nominator)
+            U320::uint_cast(nominator)
                 .checked_mul(Self::one().cast::<U320>())
                 .ok_or_else(|| err!(TrackableError::MUL))?
                 .checked_add(
