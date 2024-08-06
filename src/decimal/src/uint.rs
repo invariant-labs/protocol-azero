@@ -129,7 +129,7 @@ pub mod invariant_wasm {
             D: serde::Deserializer<'de>,
         {
             let s = String::deserialize(deserializer)?;
-            Ok(Self::from_dec_str(&s).unwrap())
+            Ok(Self::from_dec_str(&s).expect("Failed to deserialize U256 from string"))
         }
     }
 }

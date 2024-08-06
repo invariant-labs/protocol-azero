@@ -350,7 +350,7 @@ pub mod e2e_tests {
         assert_eq!(pool.sqrt_price, calculate_sqrt_price(init_tick).unwrap());
 
         let pool_key = PoolKey::new(token_x.account_id, token_y.account_id, fee_tier).unwrap();
-        let liquidity_delta = Liquidity::new(1208899457432799883049625012738); // < 2^100
+        let liquidity_delta = Liquidity::new(1208899457432799883049625000361); // < 2^100
         let slippage_limit_lower = pool.sqrt_price;
         let slippage_limit_upper = pool.sqrt_price;
         create_position!(
@@ -369,7 +369,7 @@ pub mod e2e_tests {
         let contract_amount_y = balance_of!(client, token_y, dex.account_id);
 
         let expected_x = 0;
-        let expected_y = 340282366920938463463374607431633606412; // < 2^127
+        let expected_y = 340282366920938463463374607431721256973; // < 2^127
         assert_eq!(contract_amount_x, expected_x);
         assert_eq!(contract_amount_y, expected_y);
         Ok(())

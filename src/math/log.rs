@@ -205,7 +205,7 @@ mod tests {
             let max_sqrt_price_decimal = SqrtPrice::from_tick(MAX_TICK).unwrap();
             let max_sqrt_price_x64 = sqrt_price_to_x64(max_sqrt_price_decimal);
 
-            let expected_max_sqrt_price_x64 = 5192410085712699832897385069590520;
+            let expected_max_sqrt_price_x64 = 5192410085712699832897385122752987;
             assert_eq!(max_sqrt_price_x64, expected_max_sqrt_price_x64);
         }
     }

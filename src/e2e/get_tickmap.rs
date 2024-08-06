@@ -186,10 +186,13 @@ pub mod e2e_tests {
             tickmap[1],
             (1039, 0b1100000000000000000000000000000000000000000000000000)
         );
-        
+
         assert_eq!(
             tickmap[2],
-            (get_max_chunk(fee_tier.tick_spacing), 0b10000000000000000000000000000000000)
+            (
+                get_max_chunk(fee_tier.tick_spacing),
+                0b10000000000000000000000000000000000
+            )
         );
         assert_eq!(tickmap.len(), 3);
 
@@ -273,7 +276,7 @@ pub mod e2e_tests {
                 false,
                 alice
             );
-            
+
             assert_eq!(tickmap[0], (0, 0b11));
             assert_eq!(
                 tickmap[1],
@@ -376,7 +379,13 @@ pub mod e2e_tests {
 
         for (i, _) in (0..tickmap.len()).enumerate() {
             let current = 10397 + i as u16;
-            assert_eq!(tickmap[i], (current, 0b1100000000000000000000000000000000000000000000000000000));
+            assert_eq!(
+                tickmap[i],
+                (
+                    current,
+                    0b1100000000000000000000000000000000000000000000000000000
+                )
+            );
         }
         Ok(())
     }
@@ -451,10 +460,7 @@ pub mod e2e_tests {
             let current = 9576 + i as u16;
             assert_eq!(
                 tickmap[i],
-                (
-                    current,
-                    0b1100000000000000000000000000000000000000000000000
-                )
+                (current, 0b1100000000000000000000000000000000000000000000000)
             );
         }
         Ok(())
