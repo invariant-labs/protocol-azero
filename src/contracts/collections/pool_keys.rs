@@ -1,4 +1,4 @@
-use crate::contracts::{InvariantError, PoolKey};
+use crate::contracts::{InvariantError, PoolKey, MAX_POOL_KEYS_RETURNED};
 use alloc::vec::Vec;
 use ink::storage::Mapping;
 
@@ -11,10 +11,6 @@ pub struct PoolKeys {
 }
 
 impl PoolKeys {
-    pub fn get_index(&self, pool_key: PoolKey) -> Option<u16> {
-        self.pool_keys.get(pool_key)
-    }
-
     pub fn add(&mut self, pool_key: PoolKey) -> Result<(), InvariantError> {
         if self.contains(pool_key) {
             return Err(InvariantError::PoolKeyAlreadyExist);
@@ -34,25 +30,6 @@ impl PoolKeys {
         Ok(())
     }
 
-    #[allow(dead_code)]
-    pub fn remove(&mut self, pool_key: PoolKey) -> Result<(), InvariantError> {
-        match self.get_index(pool_key) {
-            Some(index) => {
-                self.pool_keys_by_index.remove(index);
-                self.pool_keys_length =
-                    self.pool_keys_length
-                        .checked_sub(1)
-                        .ok_or(InvariantError::SubUnderflow(
-                            self.pool_keys_length as u128,
-                            1,
-                        ))?;
-                self.pool_keys.remove(pool_key);
-                Ok(())
-            }
-            None => Err(InvariantError::PoolKeyNotFound),
-        }
-    }
-
     pub fn contains(&self, pool_key: PoolKey) -> bool {
         self.pool_keys.get(pool_key).is_some()
     }
@@ -60,10 +37,16 @@ impl PoolKeys {
     pub fn get_all(&self, size: u16, offset: u16) -> Vec<PoolKey> {
         let offset_with_size = offset.checked_add(size).unwrap();
 
-        let max = if offset_with_size > self.pool_keys_length {
+        let upper_bound = if offset_with_size > self.pool_keys_length {
             self.pool_keys_length
         } else {
             offset_with_size
+        };
+
+        let max = if upper_bound.checked_sub(offset).unwrap() > MAX_POOL_KEYS_RETURNED {
+            offset.checked_add(MAX_POOL_KEYS_RETURNED).unwrap()
+        } else {
+            upper_bound
         };
 
         (offset..max)
@@ -101,20 +84,6 @@ mod tests {
 
         let result = pool_keys.add(pool_key);
         assert_eq!(result, Err(InvariantError::PoolKeyAlreadyExist));
-    }
-
-    #[ink::test]
-    fn test_remove() {
-        let pool_keys = &mut PoolKeys::default();
-        let pool_key = PoolKey::default();
-
-        pool_keys.add(pool_key).unwrap();
-
-        pool_keys.remove(pool_key).unwrap();
-        assert!(!pool_keys.contains(pool_key));
-
-        let result = pool_keys.remove(pool_key);
-        assert_eq!(result, Err(InvariantError::PoolKeyNotFound));
     }
 
     #[ink::test]

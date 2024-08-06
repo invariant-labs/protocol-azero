@@ -24,14 +24,6 @@ impl Pools {
         Ok(())
     }
 
-    #[allow(dead_code)]
-    pub fn remove(&mut self, pool_key: PoolKey) -> Result<(), InvariantError> {
-        self.get(pool_key)?;
-
-        self.pools.remove(pool_key);
-        Ok(())
-    }
-
     pub fn get(&self, pool_key: PoolKey) -> Result<Pool, InvariantError> {
         let pool = self
             .pools
@@ -101,27 +93,6 @@ mod tests {
         assert_eq!(pools.get(pool_key), Ok(new_pool.clone()));
 
         let result = pools.update(new_pool_key, &new_pool);
-        assert_eq!(result, Err(InvariantError::PoolNotFound));
-    }
-
-    #[ink::test]
-    fn test_remove() {
-        let pools = &mut Pools::default();
-        let token_x = AccountId::from([0x01; 32]);
-        let token_y = AccountId::from([0x02; 32]);
-        let fee_tier = FeeTier {
-            fee: Percentage::new(0),
-            tick_spacing: 1,
-        };
-        let pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
-        let pool = Pool::default();
-
-        pools.add(pool_key, &pool).unwrap();
-
-        pools.remove(pool_key).unwrap();
-        assert_eq!(pools.get(pool_key), Err(InvariantError::PoolNotFound));
-
-        let result = pools.remove(pool_key);
         assert_eq!(result, Err(InvariantError::PoolNotFound));
     }
 }

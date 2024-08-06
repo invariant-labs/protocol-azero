@@ -1,4 +1,4 @@
-use super::{Pool, PoolKey, Tick};
+use super::{tickmap::MAX_RESULT_SIZE, Pool, PoolKey, Tick, POOL_KEY_SIZE};
 use crate::{
     contracts::InvariantError,
     math::{
@@ -13,6 +13,10 @@ use crate::{
 };
 use decimal::*;
 use traceable_result::*;
+
+pub const POSITION_SIZE: usize = POOL_KEY_SIZE + 128 + 32 + 32 + 128 + 128 + 64 + 128 + 128;
+pub const MAX_POSITIONS_RETURNED: u32 = (MAX_RESULT_SIZE / POSITION_SIZE) as u32;
+
 #[derive(PartialEq, Default, Debug, Copy, Clone)]
 #[ink::scale_derive(Encode, Decode, TypeInfo)]
 #[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
