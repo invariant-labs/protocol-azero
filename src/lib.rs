@@ -9,11 +9,10 @@ pub mod math;
 #[ink::contract]
 pub mod invariant {
     use crate::contracts::{
-        get_max_chunk, get_min_chunk, tick_to_position, CalculateSwapResult, CreatePositionEvent,
-        CrossTickEvent, FeeTier, FeeTiers, InvariantConfig, InvariantTrait, LiquidityTick, Pool,
-        PoolKey, PoolKeys, Pools, Position, Positions, QuoteResult, RemovePositionEvent, SwapEvent,
-        SwapHop, Tick, Tickmap, Ticks, UpdatePoolTick, LIQUIDITY_TICK_LIMIT,
-        MAX_TICKMAP_QUERY_SIZE,
+        tick_to_position, CalculateSwapResult, CreatePositionEvent, CrossTickEvent, FeeTier,
+        FeeTiers, InvariantConfig, InvariantTrait, LiquidityTick, Pool, PoolKey, PoolKeys, Pools,
+        Position, Positions, QuoteResult, RemovePositionEvent, SwapEvent, SwapHop, Tick, Tickmap,
+        Ticks, UpdatePoolTick, LIQUIDITY_TICK_LIMIT, MAX_TICKMAP_QUERY_SIZE,
     };
     use crate::math::calculate_min_amount_out;
     use crate::math::check_tick;
@@ -429,7 +428,7 @@ pub mod invariant {
                 return Err(InvariantError::NotFeeReceiver);
             }
 
-            let (fee_protocol_token_x, fee_protocol_token_y) = pool.withdraw_protocol_fee(pool_key);
+            let (fee_protocol_token_x, fee_protocol_token_y) = pool.withdraw_protocol_fee();
             self.pools.update(pool_key, &pool)?;
 
             transfer_v1!(
@@ -686,12 +685,6 @@ pub mod invariant {
             index: u32,
         ) -> Result<Position, InvariantError> {
             self.positions.get(owner_id, index)
-        }
-
-        #[ink(message)]
-        fn get_all_positions(&mut self, owner_id: AccountId) -> Vec<Position> {
-            self.positions
-                .get_all(owner_id, self.positions.get_length(owner_id), 0)
         }
 
         #[ink(message)]
@@ -976,13 +969,10 @@ pub mod invariant {
             let (start_chunk, _) = tick_to_position(lower_tick_index, tick_spacing);
             let (end_chunk, _) = tick_to_position(upper_tick_index, tick_spacing);
 
-            let min_chunk_index = get_min_chunk(tick_spacing).max(start_chunk);
-            let max_chunk_index = get_max_chunk(tick_spacing).min(end_chunk);
-
             if x_to_y {
-                self.tickmap_slice((min_chunk_index..=max_chunk_index).rev(), pool_key)
+                self.tickmap_slice((start_chunk..=end_chunk).rev(), pool_key)
             } else {
-                self.tickmap_slice(min_chunk_index..=max_chunk_index, pool_key)
+                self.tickmap_slice(start_chunk..=end_chunk, pool_key)
             }
         }
 

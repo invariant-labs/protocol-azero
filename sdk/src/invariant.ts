@@ -1,10 +1,5 @@
 /* eslint camelcase: off */
 
-import { ApiPromise } from '@polkadot/api'
-import { Abi, ContractPromise } from '@polkadot/api-contract'
-import { WeightV2 } from '@polkadot/types/interfaces'
-import { IKeyringPair } from '@polkadot/types/types/interfaces'
-import { deployContract } from '@scio-labs/use-inkathon'
 import {
   FeeTier,
   InvariantError,
@@ -24,6 +19,12 @@ import {
   getMaxSqrtPrice,
   getMinSqrtPrice
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
+import { ApiPromise } from '@polkadot/api'
+import { Abi, ContractPromise } from '@polkadot/api-contract'
+import { SubmittableExtrinsic } from '@polkadot/api/types/submittable'
+import { WeightV2 } from '@polkadot/types/interfaces'
+import { IKeyringPair } from '@polkadot/types/types/interfaces'
+import { deployContract } from '@scio-labs/use-inkathon'
 import {
   CHUNK_SIZE,
   DEFAULT_PROOF_SIZE,
@@ -50,21 +51,20 @@ import {
   calculateSqrtPriceAfterSlippage,
   createSignAndSendTx,
   createTx,
-  getAbi,
+  deserializeTickFromContract,
+  deserializePoolFromContract,
+  deserializePositionFromContract,
   extractError,
+  getAbi,
   getDeploymentData,
+  getMaxTick,
+  getMinTick,
   integerSafeCast,
   parse,
   parseEvent,
   positionToTick,
-  sendQuery,
-  getMaxTick,
-  getMinTick,
-  deserializeTickFromContract,
-  deserializePoolFromContract,
-  deserializePositionFromContract
+  sendQuery
 } from './utils.js'
-import { SubmittableExtrinsic } from '@polkadot/api/types/submittable'
 
 type Page = { index: number; entries: [Position, Pool][] }
 
@@ -523,7 +523,10 @@ export class Invariant {
       const parsedResult = parse(result.ok) as [[Position, Pool][], bigint]
       let positionList = parsedResult[0]
       positionList = positionList.map(positionPoolPair => {
-        return [deserializePositionFromContract(positionPoolPair[0]), deserializePoolFromContract(positionPoolPair[1])]
+        return [
+          deserializePositionFromContract(positionPoolPair[0]),
+          deserializePoolFromContract(positionPoolPair[1])
+        ]
       })
 
       return [positionList, parsedResult[1]]
@@ -590,26 +593,6 @@ export class Invariant {
     ]
 
     return pages
-  }
-
-  async _getAllPositions(
-    owner: string,
-    options: ContractOptions = {
-      storageDepositLimit: this.storageDepositLimit,
-      refTime: this.gasLimit.refTime.toNumber(),
-      proofSize: this.gasLimit.proofSize.toNumber()
-    }
-  ): Promise<Position[]> {
-    return sendQuery(
-      this.contract,
-      this.api.registry.createType('WeightV2', {
-        refTime: options.refTime,
-        proofSize: options.proofSize
-      }) as WeightV2,
-      options.storageDepositLimit,
-      InvariantQuery.GetAllPositions,
-      [owner]
-    ).then(positions => positions.map(deserializePositionFromContract))
   }
 
   createPositionTx(
@@ -1468,7 +1451,10 @@ export class Invariant {
     )
 
     if (result.ok) {
-      return (parse(result.ok) as any[]).map(value => [value[0], deserializePoolFromContract(value[1])])
+      return (parse(result.ok) as any[]).map(value => [
+        value[0],
+        deserializePoolFromContract(value[1])
+      ])
     } else {
       throw new Error(result.err ? InvariantError[result.err] : result)
     }

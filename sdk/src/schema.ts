@@ -11,7 +11,6 @@ export enum InvariantQuery {
   GetTick = `${invariantActionPrefix}getTick`,
   IsTickInitialized = `${invariantActionPrefix}isTickInitialized`,
   GetPosition = `${invariantActionPrefix}getPosition`,
-  GetAllPositions = `${invariantActionPrefix}getAllPositions`,
   GetPositions = `${invariantActionPrefix}getPositions`,
   Quote = `${invariantActionPrefix}quote`,
   QuoteRoute = `${invariantActionPrefix}quoteRoute`,
