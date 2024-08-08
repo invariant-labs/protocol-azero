@@ -31,7 +31,8 @@ import {
   tickIndexToPosition,
   toPercentage,
   getMinTick as _getMinTick,
-  getMaxTick as _getMaxTick
+  getMaxTick as _getMaxTick,
+  _toFeeGrowth
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { ApiPromise, SubmittableResult, WsProvider } from '@polkadot/api'
 import { ContractPromise } from '@polkadot/api-contract'
@@ -366,16 +367,16 @@ export const calculateFee = (
 ): [TokenAmount, TokenAmount] => {
   return _calculateFee(
     lowerTick.index,
-    lowerTick.feeGrowthOutsideX,
-    lowerTick.feeGrowthOutsideY,
+    lowerTick.feeGrowthOutsideX.toString(),
+    lowerTick.feeGrowthOutsideY.toString(),
     upperTick.index,
-    upperTick.feeGrowthOutsideX,
-    upperTick.feeGrowthOutsideY,
+    upperTick.feeGrowthOutsideX.toString(),
+    upperTick.feeGrowthOutsideY.toString(),
     pool.currentTickIndex,
-    pool.feeGrowthGlobalX,
-    pool.feeGrowthGlobalY,
-    position.feeGrowthInsideX,
-    position.feeGrowthInsideY,
+    pool.feeGrowthGlobalX.toString(),
+    pool.feeGrowthGlobalY.toString(),
+    position.feeGrowthInsideX.toString(),
+    position.feeGrowthInsideY.toString(),
     position.liquidity
   )
 }
@@ -399,6 +400,56 @@ export const _calculateTokenAmounts = (
     position.upperTickIndex,
     position.lowerTickIndex
   )
+}
+
+// deserialize functions should be used after calling parse
+export const deserializeArrayToU256 = (value: [bigint, bigint, bigint, bigint]) => {
+  let ret = 0n
+  for (let i = 0n; i < 4n; i++) {
+    ret += value[Number(i)] * (1n << (64n * i))
+  }
+  return ret
+}
+
+export const deserializeTickFromContract = (value: any) => {
+  value.feeGrowthOutsideX = deserializeArrayToU256(value.feeGrowthOutsideX)
+  value.feeGrowthOutsideY = deserializeArrayToU256(value.feeGrowthOutsideY)
+  return value
+}
+
+export const deserializePoolFromContract = (value: any) => {
+  value.feeGrowthGlobalX = deserializeArrayToU256(value.feeGrowthGlobalX)
+  value.feeGrowthGlobalY = deserializeArrayToU256(value.feeGrowthGlobalY)
+  return value
+}
+
+export const deserializePositionFromContract = (value: any) => {
+  value.feeGrowthInsideX = deserializeArrayToU256(value.feeGrowthInsideX)
+  value.feeGrowthInsideY = deserializeArrayToU256(value.feeGrowthInsideY)
+  return value
+}
+
+// deserialize functions should be used before passing FeeGrowth to wasm via a struct or just a raw variable
+export const serializeU256 = (value: bigint) => {
+  return value.toString()
+}
+
+export const serializeTick = (value: any) => {
+  value.feeGrowthOutsideX = serializeU256(value.feeGrowthOutsideX)
+  value.feeGrowthOutsideY = serializeU256(value.feeGrowthOutsideY)
+  return value
+}
+
+export const serializePool = (value: any) => {
+  value.feeGrowthGlobalX = serializeU256(value.feeGrowthGlobalX)
+  value.feeGrowthGlobalY = serializeU256(value.feeGrowthGlobalY)
+  return value
+}
+
+export const serializePosition = (value: any) => {
+  value.feeGrowthInsideX = serializeU256(value.feeGrowthInsideX)
+  value.feeGrowthInsideY = serializeU256(value.feeGrowthInsideY)
+  return value
 }
 
 export const parse = (value: any) => {
@@ -537,7 +588,7 @@ export function simulateInvariantSwap(
   return _simulateInvariantSwap(
     tickmap,
     feeTier,
-    pool,
+    serializePool(pool),
     ticks,
     xToY,
     amountIn,
@@ -716,6 +767,10 @@ export const getMinTick = (tickSpacing: bigint): bigint => {
 
 export const getMaxTick = (tickSpacing: bigint): bigint => {
   return BigInt(_getMaxTick(tickSpacing))
+}
+
+export const toFeeGrowth = (value: bigint, scale: bigint): bigint => {
+  return BigInt(_toFeeGrowth(value, scale))
 }
 
 export const getCodeHash = async (api: ApiPromise, contractAddress: string): Promise<string> => {

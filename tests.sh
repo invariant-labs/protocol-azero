@@ -11,7 +11,7 @@ cd ..
 # Test trackable result
 cd traceable_result
 cargo test
-cd ..
+cd ../..
 
 # Test decimal
 cargo test -p decimal

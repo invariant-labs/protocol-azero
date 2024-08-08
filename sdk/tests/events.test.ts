@@ -163,7 +163,7 @@ describe('events', async () => {
       amountOut: 2464n,
       fee: 27n,
       startSqrtPrice: 1000000000000000000000000n,
-      targetSqrtPrice: 997534045508480530459903n,
+      targetSqrtPrice: 997534045508785821944214n,
       xToY: true,
       timestamp: 0n
     }

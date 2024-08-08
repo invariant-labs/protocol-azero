@@ -112,7 +112,7 @@ describe('invariant', async function () {
       sign: true,
       liquidityChange: 1000000n,
       liquidityGross: 1000000n,
-      sqrtPrice: 999500149965000000000000n,
+      sqrtPrice: 999500149965006998740209n,
       feeGrowthOutsideX: 0n,
       feeGrowthOutsideY: 0n,
       secondsOutside: lowerTick.secondsOutside
@@ -124,7 +124,7 @@ describe('invariant', async function () {
       sign: false,
       liquidityChange: 1000000n,
       liquidityGross: 1000000n,
-      sqrtPrice: 1000500100010000000000000n,
+      sqrtPrice: 1000500100010000500010000n,
       feeGrowthOutsideX: 0n,
       feeGrowthOutsideY: 0n,
       secondsOutside: upperTick.secondsOutside

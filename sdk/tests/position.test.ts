@@ -122,7 +122,6 @@ describe('position', async () => {
         timestamp: 0n
       }
 
-      console.log(result)
       objectEquals(result.events[4], expectedRemovePositionEvent, ['timestamp'])
 
       assertThrowsAsync(invariant.getPosition(account.address, 0n), InvariantError.PositionNotFound)

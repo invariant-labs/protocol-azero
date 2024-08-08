@@ -80,7 +80,7 @@ pub mod e2e_tests {
         .unwrap();
         assert_eq!(pool.liquidity, liquidity);
 
-        let amount = 760_000;
+        let amount = 660_900;
         let bob = ink_e2e::bob();
         mint!(client, token_x, address_of!(Bob), amount, bob).unwrap();
         let amount_x = balance_of!(client, token_x, address_of!(Bob));
@@ -113,7 +113,7 @@ pub mod e2e_tests {
         let crosses_after_quote =
             ((pool_after_quote.current_tick_index - pool_before.current_tick_index) / 10).abs();
         assert_eq!(crosses_after_quote, 0);
-        assert_eq!(quote_result.ticks.len() - 1, 145);
+        assert_eq!(quote_result.ticks.len(), 128);
 
         swap!(
             client,
@@ -137,7 +137,7 @@ pub mod e2e_tests {
         .unwrap();
 
         let crosses = ((pool_after.current_tick_index - pool_before.current_tick_index) / 10).abs();
-        assert_eq!(crosses, 146);
+        assert_eq!(crosses, 128);
         assert_eq!(
             pool_after.current_tick_index,
             get_tick_at_sqrt_price(quote_result.target_sqrt_price, 10).unwrap()

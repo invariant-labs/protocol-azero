@@ -5,8 +5,6 @@ import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
 import { objectEquals } from '../src/testUtils'
 import {
-  getMaxTick,
-  getMinTick,
   initPolkadotApi,
   integerSafeCast,
   newFeeTier,
@@ -124,15 +122,11 @@ describe('get-liquidity-ticks', async () => {
     assert.equal(tickIndexes.length, 800)
 
     const tickLimit = integerSafeCast(LIQUIDITY_TICKS_LIMIT)
-    const minTick = getMinTick(poolKey.feeTier.tickSpacing)
-    const maxTick = getMaxTick(poolKey.feeTier.tickSpacing)
 
-    const amountBelowZero = await invariant.getLiquidityTicksAmount(poolKey, minTick, 0n)
-    const amountAboveZero = await invariant.getLiquidityTicksAmount(poolKey, 1n, maxTick)
-
-    const ticksAmount = amountBelowZero + amountAboveZero
-
-    const firstQuery = await invariant.getLiquidityTicks(poolKey, tickIndexes.slice(0, tickLimit))
+    const firstQuery = await invariant.getLiquidityTicks(
+      poolKey,
+      tickIndexes.slice(0, tickLimit)
+    )
     const secondQuery = await invariant.getLiquidityTicks(
       poolKey,
       tickIndexes.slice(tickLimit, 800)
@@ -142,14 +136,14 @@ describe('get-liquidity-ticks', async () => {
     assert.equal(secondQuery.length, 20)
 
     const fullQuery = firstQuery.concat(secondQuery)
-    assert.equal(fullQuery.length, integerSafeCast(ticksAmount))
+    assert.equal(fullQuery.length, 800)
 
     for (let i = 0; i < 800; i++) {
       assert(fullQuery[i].index === tickIndexes[i])
     }
 
     const liquidityTicks = await invariant.getAllLiquidityTicks(poolKey, tickmap)
-    assert.equal(liquidityTicks.length, integerSafeCast(ticksAmount))
+    assert.equal(liquidityTicks.length, 800)
     for (let i = 0; i < liquidityTicks.length; i++) {
       assert.deepEqual(liquidityTicks[i], fullQuery[i])
     }

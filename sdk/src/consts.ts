@@ -30,7 +30,6 @@ export const MAX_REF_TIME = 259058343000
 export const DEFAULT_REF_TIME = 1250000000000
 export const DEFAULT_PROOF_SIZE = 1250000000000
 export const CONCENTRATION_FACTOR = 1.00001526069123
-
 export const TESTNET = 'alephzero-testnet'
 export const MAINNET = 'alephzero-mainnet'
 export const DEFAULT_LOCAL = 'ws://127.0.0.1:9944'

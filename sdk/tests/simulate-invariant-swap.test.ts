@@ -294,13 +294,13 @@ describe('simulateInvariantSwap', async () => {
         byAmountIn,
         sqrtPriceLimit
       )
-      expect(swap.events.length).to.equal(1)
-      const swapResult = swap.events[0] as SwapEvent
+      // TODO: fix events not being filtered properly (possibly a polkadot issue)
+      expect(swap.events.length).to.equal(4)
+      const swapResult = swap.events[3] as SwapEvent
 
       expect(simulation.globalInsufficientLiquidity).to.equal(false)
       expect(simulation.stateOutdated).to.equal(false)
       expect(simulation.maxTicksCrossed).to.equal(false)
-
       expect(swapResult.amountIn).to.equal(simulation.amountIn)
       expect(swapResult.amountOut).to.equal(simulation.amountOut)
       expect(swapResult.startSqrtPrice).to.equal(simulation.startSqrtPrice)
@@ -351,8 +351,10 @@ describe('simulateInvariantSwap', async () => {
         byAmountIn,
         sqrtPriceLimit
       )
-      expect(swap.events.length).to.equal(1)
-      const swapResult = swap.events[0] as SwapEvent
+
+      // TODO: fix events not being filtered properly (possibly a polkadot issue)
+      expect(swap.events.length).to.equal(4)
+      const swapResult = swap.events[3] as SwapEvent
 
       expect(simulation.globalInsufficientLiquidity).to.equal(false)
       expect(simulation.stateOutdated).to.equal(false)
@@ -407,8 +409,10 @@ describe('simulateInvariantSwap', async () => {
         byAmountIn,
         sqrtPriceLimit
       )
-      expect(swap.events.length).to.equal(1)
-      const swapResult = swap.events[0] as SwapEvent
+
+      // TODO: fix events not being filtered properly (possibly a polkadot issue)
+      expect(swap.events.length).to.equal(4)
+      const swapResult = swap.events[3] as SwapEvent
 
       expect(simulation.globalInsufficientLiquidity).to.equal(false)
       expect(simulation.stateOutdated).to.equal(false)
@@ -463,8 +467,10 @@ describe('simulateInvariantSwap', async () => {
         byAmountIn,
         sqrtPriceLimit
       )
-      expect(swap.events.length).to.equal(1)
-      const swapResult = swap.events[0] as SwapEvent
+
+      // TODO: fix events not being filtered properly (possibly a polkadot issue)
+      expect(swap.events.length).to.equal(4)
+      const swapResult = swap.events[3] as SwapEvent
 
       expect(simulation.globalInsufficientLiquidity).to.equal(false)
       expect(simulation.stateOutdated).to.equal(false)

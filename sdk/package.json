@@ -51,7 +51,7 @@
     "test:storage-limit": "mocha ./tests/storage-limit.test.ts -g storage-limit",
     "test:example": "mocha ./tests/example.test.ts -g sdk-guide-snippets",
     "test:events": "mocha ./tests/events.test.ts -g events",
-    "test:crosses": "mocha ./tests/crosses-testnet.test.ts -g testnet-crosses-limitations",
+    "test:crosses": "npx mocha ./tests/crosses-testnet.test.ts -g testnet-crosses-limitations",
     "test:tx": "mocha ./tests/tx.test.ts -g tx",
     "test:simulate-invariant-swap": "mocha ./tests/simulate-invariant-swap.test.ts -g simulateInvariantSwap",
     "test:query-on-pair": "mocha ./tests/query-on-pair.test.ts -g query-on-pair",
@@ -61,7 +61,7 @@
     "@polkadot/api": "^10.12.4",
     "@polkadot/api-contract": "^10.12.4",
     "@scio-labs/use-inkathon": "^0.6.3",
-    "@invariant-labs/a0-sdk-wasm": "^0.1.23",
+    "@invariant-labs/a0-sdk-wasm": "file:./src/wasm/pkg",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   },
