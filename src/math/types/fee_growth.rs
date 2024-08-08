@@ -220,7 +220,7 @@ mod tests {
             let basis_point = 10000;
             let min_token = TokenAmount::new(1);
             let max_l = (U256::from(min_token.get())
-                * U256::from(FeeGrowth::from_integer(1).get())
+                * FeeGrowth::from_integer(1).get()
                 * U256::from(Liquidity::from_integer(1).get())
                 * U256::from(basis_point))
             .as_u128();

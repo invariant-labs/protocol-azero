@@ -17,7 +17,7 @@ cd ../..
 cargo test -p decimal
 
 cargo fmt --all -- --check
-cargo clippy -- --no-deps -D warnings
+cargo clippy --all-targets -- --no-deps -D warnings
 
 cargo test --features e2e-tests
 
