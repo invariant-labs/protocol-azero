@@ -199,7 +199,7 @@ mod tests {
             // token / L < delta_price
             // token < L * delta_price
             // token_max = L_max * delta_price_max
-            let max_token = u128::MAX; //panics
+            let max_token = u128::MAX;
             let fee_growth = FeeGrowth::from_fee(max_l, TokenAmount(max_token)).unwrap();
 
             assert_eq!(
