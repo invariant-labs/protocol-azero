@@ -17,6 +17,12 @@ impl<T> UintCast<T> for T {
     }
 }
 
+impl<T> UintCheckedCast<T> for T {
+    fn uint_checked_cast(value: Self) -> Result<T, String> {
+        Ok(value)
+    }
+}
+
 pub trait Decimal: Sized {
     type U: Debug + Default;
 

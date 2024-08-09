@@ -3,7 +3,7 @@ use decimal::*;
 use num_traits::{WrappingAdd, WrappingSub};
 use traceable_result::*;
 
-#[decimal(28, U512)]
+#[decimal(28)]
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
 #[ink::scale_derive(Encode, Decode)]
 #[cfg_attr(
