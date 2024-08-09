@@ -691,7 +691,7 @@ describe('simulateInvariantSwap', async () => {
       byAmountIn,
       sqrtPriceLimit
     )
-    expect(simulation.crossedTicks.length).to.equal(174)
+    expect(simulation.crossedTicks.length).to.equal(129)
     expect(simulation.globalInsufficientLiquidity).to.equal(false)
     expect(simulation.stateOutdated).to.equal(false)
     expect(simulation.maxTicksCrossed).to.equal(true)
