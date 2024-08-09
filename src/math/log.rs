@@ -9,8 +9,8 @@ const LOG2_ONE: u128 = 1 << LOG2_SCALE;
 const LOG2_HALF: u128 = LOG2_ONE >> 1;
 const LOG2_TWO: u128 = LOG2_ONE << 1;
 const LOG2_DOUBLE_ONE: U256 = U256([0, 0, 1, 0]); // 1 << LOG2_SCALE * 2
-const LOG2_SQRT_10001: u64 = 1330584781654116; // adjusted to fit the approximation of the SqrtPrice for tick = 1;
-const LOG2_NEGATIVE_MAX_LOSE: u64 = 1330580000000000 * 7 / 9; // max accuracy in <-MAX_TICK, 0> domain
+const LOG2_SQRT_10001: u128 = 1330584781654116; // adjusted to fit the approximation of the SqrtPrice for tick = 1;
+const LOG2_NEGATIVE_MAX_LOSE: u128 = 1330580000000000 * 7 / 9; // max accuracy in <-MAX_TICK, 0> domain
 const LOG2_MIN_BINARY_POSITION: i32 = 46; // accuracy = 2^(-46)
 const LOG2_ACCURACY: u64 = 1u64 << (63 - LOG2_MIN_BINARY_POSITION);
 const SQRT_PRICE_DENOMINATOR: u128 = 1_000000_000000_000000_000000;
@@ -117,14 +117,10 @@ pub fn get_tick_at_sqrt_price(sqrt_price: SqrtPrice, tick_spacing: u16) -> Track
     let (log2_sign, log2_sqrt_price) = log2_iterative_approximation_x64(sqrt_price_x64);
 
     let abs_floor_tick: i32 = match log2_sign {
-        true => log2_sqrt_price
-            .checked_div(LOG2_SQRT_10001 as u128)
+        true => log2_sqrt_price.checked_div(LOG2_SQRT_10001).unwrap(),
+        false => (log2_sqrt_price.checked_add(LOG2_NEGATIVE_MAX_LOSE).unwrap())
+            .checked_div(LOG2_SQRT_10001)
             .unwrap(),
-        false => (log2_sqrt_price
-            .checked_add(LOG2_NEGATIVE_MAX_LOSE as u128)
-            .unwrap())
-        .checked_div(LOG2_SQRT_10001 as u128)
-        .unwrap(),
     } as i32;
 
     let nearer_tick = match log2_sign {
