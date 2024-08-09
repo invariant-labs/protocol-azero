@@ -1081,8 +1081,8 @@ mod tests {
         }
         // get_next_sqrt_price_from_input -> get_next_sqrt_price_x_up
         {
-            //     // by_amount_in == true
-            //     // x_to_y == true => current_sqrt_price >= target_sqrt_price == true
+            // by_amount_in == true
+            // x_to_y == true => current_sqrt_price >= target_sqrt_price == true
 
             let result = compute_swap_step(
                 max_sqrt_price,
@@ -1163,7 +1163,7 @@ mod tests {
 
             // min_sqrt_price different at maximum amount
             {
-                let min_diff = 232_826_265_438_719_159_684u128;
+                let min_diff = 232_840_798_329_098_928_375_u128;
                 let result = compute_swap_step(
                     max_sqrt_price - SqrtPrice::new(min_diff),
                     max_sqrt_price,
@@ -1178,8 +1178,8 @@ mod tests {
                     result,
                     SwapResult {
                         next_sqrt_price: SqrtPrice::new(MAX_SQRT_PRICE),
-                        amount_in: TokenAmount(79226672684850046813853155300),
-                        amount_out: TokenAmount(0),
+                        amount_in: TokenAmount(79231617971186677040295384043),
+                        amount_out: TokenAmount(1),
                         fee_amount: TokenAmount(0)
                     }
                 )
@@ -1976,12 +1976,12 @@ mod tests {
                 let target_sqrt_price = get_next_sqrt_price_x_up(
                     almost_min_sqrt_price,
                     max_liquidity,
-                    TokenAmount(2000000000000000000),
+                    TokenAmount(2_u128.pow(125)),
                     true,
                 )
                 .unwrap();
 
-                assert_eq!(target_sqrt_price, SqrtPrice::new(3552636208));
+                assert_eq!(target_sqrt_price, SqrtPrice::new(MIN_SQRT_PRICE));
             }
         }
         // max value inside domain
