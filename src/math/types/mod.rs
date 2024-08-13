@@ -1,5 +1,5 @@
 pub mod fee_growth;
-pub mod fixed_point;
+mod fixed_point;
 pub mod liquidity;
 pub mod percentage;
 pub mod seconds_per_liquidity;
