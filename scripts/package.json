@@ -14,7 +14,8 @@
     "query-tickmap": "npx tsc && node --experimental-wasm-modules target/query-tickmap.js",
     "swap": "npx tsc && node --experimental-wasm-modules target/swap.js",
     "setup": "npx tsc && node --experimental-wasm-modules target/setup.js",
-    "replace-code": "npx tsc && node --experimental-wasm-modules target/replace-code.js"
+    "replace-code": "npx tsc && node --experimental-wasm-modules target/replace-code.js",
+    "setup-mainnet": "npx tsc && node --experimental-wasm-modules target/setup-mainnet.js"
   },
   "keywords": [],
   "author": "",

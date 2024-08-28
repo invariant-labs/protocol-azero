@@ -25,6 +25,7 @@ import {
   getTokenAmountDenominator,
   getTokenAmountScale
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
+import { Network } from './network'
 
 export const MAX_REF_TIME = 259058343000
 export const DEFAULT_REF_TIME = 1250000000000
@@ -32,17 +33,45 @@ export const DEFAULT_PROOF_SIZE = 1250000000000
 export const CONCENTRATION_FACTOR = 1.00001526069123
 
 export const TESTNET = 'alephzero-testnet'
-export const MAINNET = 'alephzero-mainnet'
+export const MAINNET = 'alephzero'
 export const DEFAULT_LOCAL = 'ws://127.0.0.1:9944'
 
-export const TESTNET_WAZERO_ADDRESS = '5EFDb7mKbougLtr5dnwd5KDfZ3wK55JPGPLiryKq4uRMPR46'
+export const WAZERO_ADDRESS = {
+  [Network.Testnet]: '5EFDb7mKbougLtr5dnwd5KDfZ3wK55JPGPLiryKq4uRMPR46',
+  [Network.Mainnet]: '5CtuFVgEUz13SFPVY6s2cZrnLDEkxQXc19aXrNARwEBeCXgg',
+  [Network.Local]: ''
+}
 
-export const TESTNET_INVARIANT_ADDRESS = '5HJJ5K4vGixAZo3fpG6niXKKRgvsxsur9CBuiVQGW9AHrnSo'
-export const TESTNET_BTC_ADDRESS = '5GPoVZGgTGvXNK85MUYzVCtWgKDT4UPqQti4X5tZGm7ntxPz'
-export const TESTNET_ETH_ADDRESS = '5FJvhnohVmEZNVxZatASSgFxpUNe1Nqxccd1gLxHrZoMGdy1'
-export const TESTNET_USDC_ADDRESS = '5Hj9dcaNhAMuhY8ju7crf1Uj4nJexVJWBdRf2WZGE3a78j3G'
-export const TESTNET_USDT_ADDRESS = '5G91YrSRyJhuu6BswzSxcS5QTkoEwhhZpFay3LHMSFZBue4r'
-export const TESTNET_SOL_ADDRESS = '5DGCxfxuKiE2JasJLstVSaYBXvQJQK7tr87ndWtgYtCqv8vs'
+export const INVARIANT_ADDRESS = {
+  [Network.Testnet]: '5HJJ5K4vGixAZo3fpG6niXKKRgvsxsur9CBuiVQGW9AHrnSo',
+  [Network.Mainnet]: '5CvocBcChFccUkNGZpYf1mThQQDaY7ZxXEmdTXbTLqt1SaYQ',
+  [Network.Local]: ''
+}
+export const BTC_ADDRESS = {
+  [Network.Testnet]: '5GPoVZGgTGvXNK85MUYzVCtWgKDT4UPqQti4X5tZGm7ntxPz',
+  [Network.Mainnet]: '5HW9QeCifdKt8gXwXVSE8z56njDQBhGfses1KJNFL68qius9',
+  [Network.Local]: ''
+}
+export const ETH_ADDRESS = {
+  [Network.Testnet]: '5FJvhnohVmEZNVxZatASSgFxpUNe1Nqxccd1gLxHrZoMGdy1',
+  [Network.Mainnet]: '5EEzffpXkfYKkdtmqNh9UNctYTjmbi9GfKKAWRTKKFh6F1FU',
+  [Network.Local]: ''
+}
+export const USDC_ADDRESS = {
+  [Network.Testnet]: '5Hj9dcaNhAMuhY8ju7crf1Uj4nJexVJWBdRf2WZGE3a78j3G',
+  [Network.Mainnet]: '5GDsB8Qm6CAoBi7rmM6TCKMQQUg8CiRzuH9YVyfcrwDKWoqB',
+  [Network.Local]: ''
+}
+export const USDT_ADDRESS = {
+  [Network.Testnet]: '5G91YrSRyJhuu6BswzSxcS5QTkoEwhhZpFay3LHMSFZBue4r',
+  [Network.Mainnet]: '5HX57YoV7h51NEKhpfXZAJk8RzLX4Uutp36S23RDMPZ424LY',
+  [Network.Local]: ''
+}
+export const SOL_ADDRESS = {
+  [Network.Testnet]: '5DGCxfxuKiE2JasJLstVSaYBXvQJQK7tr87ndWtgYtCqv8vs',
+  [Network.Mainnet]: '5F2xiTnahG1tFY3ZHyghh25JsjuCaamRnN7ddQjPEzwvdd3j',
+  [Network.Local]: ''
+}
 
 export const FEE_GROWTH_DENOMINATOR = getFeeGrowthDenominator()
 export const FIXED_POINT_DENOMINATOR = getFixedPointDenominator()
