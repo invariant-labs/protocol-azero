@@ -23,7 +23,7 @@ impl SecondsPerLiquidity {
         current_timestamp: u64,
         last_timestamp: u64,
     ) -> TrackableResult<Self> {
-        if current_timestamp <= last_timestamp {
+        if current_timestamp < last_timestamp {
             return Err(err!("current_timestamp > last_timestamp failed"));
         }
         let delta_time = current_timestamp
@@ -80,7 +80,7 @@ pub mod tests {
     use crate::math::types::seconds_per_liquidity::SecondsPerLiquidity;
     #[test]
     fn test_domain_calculate_seconds_per_liquidity_global() {
-        // current_timestamp <= last_timestamp
+        // current_timestamp < last_timestamp
         {
             let liquidity = Liquidity::from_integer(1);
             let current_timestamp = 0;
@@ -94,6 +94,19 @@ pub mod tests {
             .get();
             assert_eq!(cause, "current_timestamp > last_timestamp failed");
             assert_eq!(stack.len(), 1);
+        }
+        // current_timestamp == last_timestamp
+        {
+            let liquidity = Liquidity::from_integer(1);
+            let current_timestamp = 100;
+            let last_timestamp = 100;
+            let seconds_per_liquidity = SecondsPerLiquidity::calculate_seconds_per_liquidity_global(
+                liquidity,
+                current_timestamp,
+                last_timestamp,
+            )
+            .unwrap();
+            assert_eq!(seconds_per_liquidity.get(), 0);
         }
         // L == 0
         {

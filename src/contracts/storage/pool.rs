@@ -704,6 +704,28 @@ mod tests {
             );
             assert_eq!(seconds_per_liquidity_inside.unwrap().get(), 100000011000);
         }
+        // delta_time == 0
+        {
+            let mut pool = pool.clone();
+            pool.liquidity = Liquidity::from_integer(1000);
+            tick_lower.seconds_per_liquidity_outside = SecondsPerLiquidity::new(201233320000);
+            tick_upper.seconds_per_liquidity_outside = SecondsPerLiquidity::new(301233331000);
+            let seconds_per_liquidity_inside = pool.update_seconds_per_liquidity_inside(
+                tick_lower.index,
+                tick_lower.seconds_per_liquidity_outside,
+                tick_upper.index,
+                tick_upper.seconds_per_liquidity_outside,
+                current_timestamp,
+            );
+            assert_eq!(
+                seconds_per_liquidity_inside.unwrap().get(),
+                100000011000
+            );
+            assert_eq!(
+                pool.seconds_per_liquidity_global.get(),
+                400000000000000000000000
+            );
+        }
         {
             current_timestamp += 100;
             tick_lower.seconds_per_liquidity_outside = SecondsPerLiquidity::new(201233320000);

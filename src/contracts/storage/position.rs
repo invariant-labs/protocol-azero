@@ -483,4 +483,119 @@ mod tests {
             assert_eq!({ position.tokens_owed_x }, TokenAmount(151167));
         }
     }
+    #[test]
+    fn test_update_seconds_per_liquidity() {
+        {
+            let current_timestamp = 100;
+
+            let mut pool = Pool {
+                current_tick_index: 0,
+                sqrt_price: SqrtPrice::from_tick(0).unwrap(),
+                liquidity: Liquidity::new(20000000000000),
+                ..Default::default()
+            };
+
+            let mut upper_tick = Tick {
+                index: 10,
+                liquidity_change: Liquidity::new(10),
+                ..Default::default()
+            };
+            let mut lower_tick = Tick {
+                index: -10,
+                ..Default::default()
+            };
+            let pool_before = pool.clone();
+            let (mut pos, _, _) = Position::create(
+                &mut pool,
+                PoolKey::default(),
+                &mut lower_tick,
+                &mut upper_tick,
+                current_timestamp,
+                Liquidity::new(100000000),
+                pool_before.sqrt_price,
+                pool_before.sqrt_price,
+                0,
+                1,
+            )
+            .unwrap();
+
+            assert_eq!(pos.seconds_per_liquidity_inside, SecondsPerLiquidity(0));
+            pos.update_seconds_per_liquidity(
+                pool.clone(),
+                lower_tick,
+                upper_tick,
+                current_timestamp,
+            );
+
+            assert_eq!(
+                pos.seconds_per_liquidity_inside,
+                SecondsPerLiquidity(5000000000000000000)
+            );
+            // liquidity change on delta_time == 0
+            {
+                pool.liquidity += Liquidity::new(20000000000000);
+                pos.liquidity += Liquidity::new(20000000000000);
+
+                let _ = Position::create(
+                    &mut pool,
+                    PoolKey::default(),
+                    &mut lower_tick,
+                    &mut upper_tick,
+                    current_timestamp,
+                    Liquidity::new(100000000),
+                    pool_before.sqrt_price,
+                    pool_before.sqrt_price,
+                    0,
+                    1,
+                )
+                .unwrap();
+
+                pos.update_seconds_per_liquidity(
+                    pool.clone(),
+                    lower_tick,
+                    upper_tick,
+                    current_timestamp,
+                );
+
+                assert_eq!(
+                    pos.seconds_per_liquidity_inside,
+                    SecondsPerLiquidity(5000000000000000000)
+                );
+            }
+
+            // liquidity change after update on delta_time == 0
+            {
+                let _ = Position::create(
+                    &mut pool,
+                    PoolKey::default(),
+                    &mut lower_tick,
+                    &mut upper_tick,
+                    current_timestamp + 1,
+                    Liquidity::new(100000000),
+                    pool_before.sqrt_price,
+                    pool_before.sqrt_price,
+                    0,
+                    1,
+                )
+                .unwrap();
+
+                assert_eq!(
+                    pos.seconds_per_liquidity_inside,
+                    SecondsPerLiquidity(5000000000000000000)
+                );
+
+                pos.update_seconds_per_liquidity(
+                    pool.clone(),
+                    lower_tick,
+                    upper_tick,
+                    current_timestamp + 1,
+                );
+
+                assert_eq!(
+                    pos.seconds_per_liquidity_inside,
+                    SecondsPerLiquidity(5024999875000624996)
+                );
+            }
+        }
+    }
 }
