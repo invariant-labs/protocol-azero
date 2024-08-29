@@ -9,11 +9,10 @@ pub mod math;
 #[ink::contract]
 pub mod invariant {
     use crate::contracts::{
-        get_max_chunk, get_min_chunk, tick_to_position, CalculateSwapResult, CreatePositionEvent,
-        CrossTickEvent, FeeTier, FeeTiers, InvariantConfig, InvariantTrait, LiquidityTick, Pool,
-        PoolKey, PoolKeys, Pools, Position, PositionTick, Positions, QuoteResult,
-        RemovePositionEvent, SwapEvent, SwapHop, Tick, Tickmap, Ticks, UpdatePoolTick, CHUNK_SIZE,
-        LIQUIDITY_TICK_LIMIT, MAX_TICKMAP_QUERY_SIZE, POSITION_TICK_LIMIT,
+        tick_to_position, CalculateSwapResult, CreatePositionEvent, CrossTickEvent, FeeTier,
+        FeeTiers, InvariantConfig, InvariantTrait, LiquidityTick, Pool, PoolKey, PoolKeys, Pools,
+        Position, Positions, QuoteResult, RemovePositionEvent, SwapEvent, SwapHop, Tick, Tickmap,
+        Ticks, UpdatePoolTick, CHUNK_SIZE, LIQUIDITY_TICK_LIMIT, MAX_TICKMAP_QUERY_SIZE,
     };
     use crate::math::calculate_min_amount_out;
     use crate::math::check_tick;
@@ -30,6 +29,7 @@ pub mod invariant {
 
     use ink::codegen::TraitCallBuilder;
     use ink::contract_ref;
+    use ink::env::DefaultEnvironment;
     use ink::prelude::vec;
     use ink::prelude::vec::Vec;
     use token::{PSP22Error, PSP22};
@@ -428,7 +428,7 @@ pub mod invariant {
                 return Err(InvariantError::NotFeeReceiver);
             }
 
-            let (fee_protocol_token_x, fee_protocol_token_y) = pool.withdraw_protocol_fee(pool_key);
+            let (fee_protocol_token_x, fee_protocol_token_y) = pool.withdraw_protocol_fee();
             self.pools.update(pool_key, &pool)?;
 
             transfer_v1!(
@@ -688,30 +688,18 @@ pub mod invariant {
         }
 
         #[ink(message)]
-        fn get_all_positions(&mut self, owner_id: AccountId) -> Vec<Position> {
-            self.positions
-                .get_all(owner_id, self.positions.get_length(owner_id), 0)
-        }
-
-        #[ink(message)]
         fn get_positions(
             &mut self,
             owner_id: AccountId,
             size: u32,
             offset: u32,
-        ) -> Result<(Vec<(Position, Pool, Tick, Tick)>, u32), InvariantError> {
+        ) -> Result<(Vec<(Position, Pool)>, u32), InvariantError> {
             let positions = self.positions.get_all(owner_id, size, offset);
             let mut entries = vec![];
 
             for position in &positions {
                 let pool = self.pools.get(position.pool_key)?;
-                let lower_tick = self
-                    .ticks
-                    .get(position.pool_key, position.lower_tick_index)?;
-                let upper_tick = self
-                    .ticks
-                    .get(position.pool_key, position.upper_tick_index)?;
-                entries.push((*position, pool, lower_tick, upper_tick))
+                entries.push((*position, pool))
             }
 
             Ok((entries, self.positions.get_length(owner_id)))
@@ -937,8 +925,12 @@ pub mod invariant {
         }
 
         #[ink(message)]
-        fn get_pools(&self, size: u8, offset: u16) -> Result<(Vec<PoolKey>, u16), InvariantError> {
-            let pool_keys = self.pool_keys.get_all(size, offset)?;
+        fn get_pool_keys(
+            &self,
+            size: u16,
+            offset: u16,
+        ) -> Result<(Vec<PoolKey>, u16), InvariantError> {
+            let pool_keys = self.pool_keys.get_all(size, offset);
             let pool_keys_count = self.pool_keys.count();
             Ok((pool_keys, pool_keys_count))
         }
@@ -949,46 +941,20 @@ pub mod invariant {
         }
 
         #[ink(message)]
-        fn get_position_ticks(&self, owner: AccountId, offset: u32) -> Vec<PositionTick> {
-            let positions_length = self.positions.get_length(owner);
-            let mut ticks = vec![];
-
-            for i in offset..positions_length {
-                self.positions
-                    .get(owner, i)
-                    .map(|position| {
-                        self.ticks
-                            .get(position.pool_key, position.lower_tick_index)
-                            .map(|tick| {
-                                ticks.push(PositionTick {
-                                    index: tick.index,
-                                    fee_growth_outside_x: tick.fee_growth_outside_x,
-                                    fee_growth_outside_y: tick.fee_growth_outside_y,
-                                    seconds_outside: tick.seconds_outside,
-                                })
-                            })
-                            .ok();
-
-                        self.ticks
-                            .get(position.pool_key, position.upper_tick_index)
-                            .map(|tick| {
-                                ticks.push(PositionTick {
-                                    index: tick.index,
-                                    fee_growth_outside_x: tick.fee_growth_outside_x,
-                                    fee_growth_outside_y: tick.fee_growth_outside_y,
-                                    seconds_outside: tick.seconds_outside,
-                                })
-                            })
-                            .ok();
-                    })
-                    .ok();
-
-                if ticks.len() >= POSITION_TICK_LIMIT {
-                    break;
-                }
-            }
-
-            ticks
+        fn get_position_with_associates(
+            &self,
+            owner: AccountId,
+            index: u32,
+        ) -> Result<(Position, Pool, Tick, Tick), InvariantError> {
+            let position = self.positions.get(owner, index)?;
+            let pool = self.pools.get(position.pool_key)?;
+            let tick_lower = self
+                .ticks
+                .get(position.pool_key, position.lower_tick_index)?;
+            let tick_upper = self
+                .ticks
+                .get(position.pool_key, position.upper_tick_index)?;
+            Ok((position, pool, tick_lower, tick_upper))
         }
 
         #[ink(message)]
@@ -1003,13 +969,10 @@ pub mod invariant {
             let (start_chunk, _) = tick_to_position(lower_tick_index, tick_spacing);
             let (end_chunk, _) = tick_to_position(upper_tick_index, tick_spacing);
 
-            let min_chunk_index = get_min_chunk(tick_spacing).max(start_chunk);
-            let max_chunk_index = get_max_chunk(tick_spacing).min(end_chunk);
-
             if x_to_y {
-                self.tickmap_slice((min_chunk_index..=max_chunk_index).rev(), pool_key)
+                self.tickmap_slice((start_chunk..=end_chunk).rev(), pool_key)
             } else {
-                self.tickmap_slice(min_chunk_index..=max_chunk_index, pool_key)
+                self.tickmap_slice(start_chunk..=end_chunk, pool_key)
             }
         }
 
@@ -1130,6 +1093,20 @@ pub mod invariant {
                     .transfer(caller, balance)
                     .map_err(|_| InvariantError::TransferError)?;
             }
+
+            Ok(())
+        }
+
+        #[ink(message)]
+        fn set_code(&mut self, code_hash: Hash) -> Result<(), InvariantError> {
+            let caller = self.env().caller();
+
+            if caller != self.config.admin {
+                return Err(InvariantError::NotAdmin);
+            }
+
+            ink::env::set_code_hash::<DefaultEnvironment>(&code_hash)
+                .map_err(|_| InvariantError::SetCodeHashError)?;
 
             Ok(())
         }

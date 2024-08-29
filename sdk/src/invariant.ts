@@ -1,10 +1,5 @@
 /* eslint camelcase: off */
 
-import { ApiPromise } from '@polkadot/api'
-import { Abi, ContractPromise } from '@polkadot/api-contract'
-import { WeightV2 } from '@polkadot/types/interfaces'
-import { IKeyringPair } from '@polkadot/types/types/interfaces'
-import { deployContract } from '@scio-labs/use-inkathon'
 import {
   FeeTier,
   InvariantError,
@@ -14,7 +9,6 @@ import {
   Pool,
   PoolKey,
   Position,
-  PositionTick,
   QuoteResult,
   SqrtPrice,
   SwapHop,
@@ -25,12 +19,20 @@ import {
   getMaxSqrtPrice,
   getMinSqrtPrice
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
+import { ApiPromise } from '@polkadot/api'
+import { Abi, ContractPromise } from '@polkadot/api-contract'
+import { SubmittableExtrinsic } from '@polkadot/api/types/submittable'
+import { WeightV2 } from '@polkadot/types/interfaces'
+import { IKeyringPair } from '@polkadot/types/types/interfaces'
+import { deployContract } from '@scio-labs/use-inkathon'
 import {
   CHUNK_SIZE,
   DEFAULT_PROOF_SIZE,
   DEFAULT_REF_TIME,
   LIQUIDITY_TICKS_LIMIT,
-  MAX_TICKMAP_QUERY_SIZE
+  MAX_POOL_KEYS_RETURNED,
+  MAX_TICKMAP_QUERY_SIZE,
+  POSITIONS_ENTRIES_LIMIT
 } from './consts.js'
 import { Network } from './network.js'
 import {
@@ -49,18 +51,20 @@ import {
   calculateSqrtPriceAfterSlippage,
   createSignAndSendTx,
   createTx,
-  getAbi,
   extractError,
+  getAbi,
   getDeploymentData,
+  getMaxTick,
+  getMinTick,
   integerSafeCast,
   parse,
   parseEvent,
   positionToTick,
-  sendQuery,
-  getMaxTick,
-  getMinTick
+  sendQuery
 } from './utils.js'
-import { SubmittableExtrinsic } from '@polkadot/api/types/submittable'
+
+type Page = { index: number; entries: [Position, Pool][] }
+
 export class Invariant {
   contract: ContractPromise
   api: ApiPromise
@@ -502,7 +506,7 @@ export class Invariant {
       refTime: this.gasLimit.refTime.toNumber(),
       proofSize: this.gasLimit.proofSize.toNumber()
     }
-  ): Promise<[[Position, Pool, Tick, Tick][], bigint]> {
+  ): Promise<[[Position, Pool][], bigint]> {
     const result = await sendQuery(
       this.contract,
       this.api.registry.createType('WeightV2', {
@@ -523,22 +527,59 @@ export class Invariant {
 
   async getAllPositions(
     owner: string,
+    positionsCount?: bigint,
+    skipPages?: number[],
+    positionsPerPage?: bigint,
     options: ContractOptions = {
       storageDepositLimit: this.storageDepositLimit,
       refTime: this.gasLimit.refTime.toNumber(),
       proofSize: this.gasLimit.proofSize.toNumber()
     }
-  ): Promise<Position[]> {
-    return sendQuery(
-      this.contract,
-      this.api.registry.createType('WeightV2', {
-        refTime: options.refTime,
-        proofSize: options.proofSize
-      }) as WeightV2,
-      options.storageDepositLimit,
-      InvariantQuery.GetAllPositions,
-      [owner]
-    )
+  ): Promise<Page[]> {
+    const firstPageIndex = skipPages?.find(i => !skipPages.includes(i)) || 0
+    const positionsPerPageLimit = positionsPerPage || POSITIONS_ENTRIES_LIMIT
+
+    let pages: Page[] = []
+    let actualPositionsCount = positionsCount
+    if (!positionsCount) {
+      const [positionEntries, positionsCount] = await this.getPositions(
+        owner,
+        positionsPerPageLimit,
+        BigInt(firstPageIndex) * positionsPerPageLimit,
+        options
+      )
+
+      pages.push({ index: 0, entries: positionEntries })
+      actualPositionsCount = positionsCount
+    }
+
+    const promises: Promise<[[Position, Pool][], bigint]>[] = []
+    const pageIndexes: number[] = []
+
+    for (
+      let i = positionsCount ? firstPageIndex : firstPageIndex + 1;
+      i < Math.ceil(Number(actualPositionsCount) / Number(positionsPerPageLimit));
+      i++
+    ) {
+      if (skipPages?.includes(i)) {
+        continue
+      }
+
+      pageIndexes.push(i)
+      promises.push(
+        this.getPositions(owner, positionsPerPageLimit, BigInt(i) * positionsPerPageLimit, options)
+      )
+    }
+
+    const positionsEntriesList = await Promise.all(promises)
+    pages = [
+      ...pages,
+      ...positionsEntriesList.map(([positionsEntries], index) => {
+        return { index: pageIndexes[index], entries: positionsEntries }
+      })
+    ]
+
+    return pages
   }
 
   createPositionTx(
@@ -855,7 +896,7 @@ export class Invariant {
         proofSize: options.proofSize
       }) as WeightV2,
       options.storageDepositLimit,
-      InvariantQuery.GetPools,
+      InvariantQuery.GetPoolKeys,
       [size, offset]
     )
     if (result.ok) {
@@ -863,6 +904,26 @@ export class Invariant {
     } else {
       throw new Error(extractError(result.err))
     }
+  }
+
+  async getAllPoolKeys(
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): Promise<PoolKey[]> {
+    const [poolKeys, poolKeysCount] = await this.getPoolKeys(MAX_POOL_KEYS_RETURNED, 0n, options)
+
+    const promises: Promise<[PoolKey[], bigint]>[] = []
+    for (let i = 1; i < Math.ceil(Number(poolKeysCount) / Number(MAX_POOL_KEYS_RETURNED)); i++) {
+      promises.push(
+        this.getPoolKeys(MAX_POOL_KEYS_RETURNED, BigInt(i) * MAX_POOL_KEYS_RETURNED, options)
+      )
+    }
+
+    const poolKeysEntries = await Promise.all(promises)
+    return [...poolKeys, ...poolKeysEntries.map(([poolKeys]) => poolKeys).flat(1)]
   }
 
   createPoolTx(
@@ -1137,26 +1198,33 @@ export class Invariant {
     ) as Promise<SwapRouteTxResult>
   }
 
-  async getPositionTicks(
+  async getPositionWithAssociates(
     owner: string,
-    offset: bigint,
+    index: bigint,
     options: ContractOptions = {
       storageDepositLimit: this.storageDepositLimit,
       refTime: this.gasLimit.refTime.toNumber(),
       proofSize: this.gasLimit.proofSize.toNumber()
     }
-  ): Promise<PositionTick[]> {
-    return sendQuery(
+  ): Promise<[Position, Pool, Tick, Tick]> {
+    const result = await sendQuery(
       this.contract,
       this.api.registry.createType('WeightV2', {
         refTime: options.refTime,
         proofSize: options.proofSize
       }) as WeightV2,
       options.storageDepositLimit,
-      InvariantQuery.GetPositionTicks,
-      [owner, offset]
+      InvariantQuery.GetPositionWithAssociates,
+      [owner, index]
     )
+
+    if (result.ok) {
+      return parse(result.ok)
+    } else {
+      throw new Error(extractError(result.err))
+    }
   }
+
   async getRawTickmap(
     poolKey: PoolKey,
     lowerTick: bigint,
@@ -1397,5 +1465,52 @@ export class Invariant {
     } else {
       throw new Error(result.err ? InvariantError[result.err] : result)
     }
+  }
+
+  setCodeTx(
+    codeHash: string,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): SubmittableExtrinsic<'promise'> {
+    return createTx(
+      this.contract,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
+      0n,
+      InvariantTx.SetCode,
+      [codeHash]
+    )
+  }
+
+  async setCode(
+    account: IKeyringPair,
+    codeHash: string,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    },
+    block: boolean = true
+  ): Promise<any> {
+    return createSignAndSendTx(
+      this.contract,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
+      0n,
+      account,
+      InvariantTx.SetCode,
+      [codeHash],
+      this.waitForFinalization,
+      block
+    )
   }
 }

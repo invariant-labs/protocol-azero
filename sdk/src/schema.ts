@@ -7,15 +7,14 @@ export enum InvariantQuery {
   GetFeeTiers = `${invariantActionPrefix}getFeeTiers`,
   FeeTierExist = `${invariantActionPrefix}feeTierExist`,
   GetPool = `${invariantActionPrefix}getPool`,
-  GetPools = `${invariantActionPrefix}getPools`,
+  GetPoolKeys = `${invariantActionPrefix}getPoolKeys`,
   GetTick = `${invariantActionPrefix}getTick`,
   IsTickInitialized = `${invariantActionPrefix}isTickInitialized`,
   GetPosition = `${invariantActionPrefix}getPosition`,
-  GetAllPositions = `${invariantActionPrefix}getAllPositions`,
   GetPositions = `${invariantActionPrefix}getPositions`,
   Quote = `${invariantActionPrefix}quote`,
   QuoteRoute = `${invariantActionPrefix}quoteRoute`,
-  GetPositionTicks = `${invariantActionPrefix}getPositionTicks`,
+  GetPositionWithAssociates = `${invariantActionPrefix}getPositionWithAssociates`,
   GetUserPositionAmount = `${invariantActionPrefix}getUserPositionAmount`,
   GetTickmap = `${invariantActionPrefix}getTickmap`,
   GetLiquidityTicks = `${invariantActionPrefix}getLiquidityTicks`,
@@ -36,7 +35,8 @@ export enum InvariantTx {
   WithdrawProtocolFee = `${invariantActionPrefix}withdrawProtocolFee`,
   Swap = `${invariantActionPrefix}swap`,
   SwapRoute = `${invariantActionPrefix}swapRoute`,
-  WithdrawAllWAZERO = `${invariantActionPrefix}withdrawAllWazero`
+  WithdrawAllWAZERO = `${invariantActionPrefix}withdrawAllWazero`,
+  SetCode = `${invariantActionPrefix}setCode`
 }
 
 export enum PSP22Query {

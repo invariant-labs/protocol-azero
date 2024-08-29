@@ -10,12 +10,12 @@ import {
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { Keyring } from '@polkadot/api'
 import { assert } from 'chai'
+import { describe, it } from 'mocha'
 import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
 import { assertThrowsAsync, objectEquals } from '../src/testUtils'
 import { calculateTokenAmounts, initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
-import { describe, it } from 'mocha'
 
 const api = await initPolkadotApi(Network.Local)
 
@@ -85,9 +85,10 @@ describe('position', async () => {
       feeGrowthInsideY: 0n,
       lastBlockNumber: 0n,
       tokensOwedX: 0n,
-      tokensOwedY: 0n
+      tokensOwedY: 0n,
+      createdAt: 0n
     }
-    await objectEquals(position, expectedPosition, ['lastBlockNumber'])
+    objectEquals(position, expectedPosition, ['lastBlockNumber', 'createdAt'])
   })
   it('calculate token amounts from position liquidity', async () => {
     const position = await invariant.getPosition(account.address, 0n)
@@ -125,7 +126,7 @@ describe('position', async () => {
       objectEquals(result.events[4], expectedRemovePositionEvent, ['timestamp'])
 
       assertThrowsAsync(invariant.getPosition(account.address, 0n), InvariantError.PositionNotFound)
-      const positions = await invariant.getAllPositions(account.address)
+      const [positions] = await invariant.getPositions(account.address, 1n, 0n)
       assert.deepEqual(positions.length, 0)
     }
     {
@@ -162,9 +163,10 @@ describe('position', async () => {
         feeGrowthInsideY: 0n,
         lastBlockNumber: 0n,
         tokensOwedX: 0n,
-        tokensOwedY: 0n
+        tokensOwedY: 0n,
+        createdAt: 0n
       }
-      await objectEquals(position, expectedPosition, ['lastBlockNumber'])
+      objectEquals(position, expectedPosition, ['lastBlockNumber', 'createdAt'])
     }
   })
 

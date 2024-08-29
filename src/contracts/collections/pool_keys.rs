@@ -1,11 +1,6 @@
-use crate::contracts::{InvariantError, PoolKey};
+use crate::contracts::{InvariantError, PoolKey, MAX_POOL_KEYS_RETURNED};
 use alloc::vec::Vec;
 use ink::storage::Mapping;
-
-// size of PoolKey = 32+32+8+2 = 74 bytes, max size of ink! storage cell is 16384 bytes
-// that is 16384 - 32 (first 32B is the size of vec) = 16352 bytes left for memory
-// 16352 / 74 = 220 elements. Adding 221st element will panic because of not enough memory in the storage cell
-const MAX_POOL_KEYS_RETURNED: u8 = 220;
 
 #[ink::storage_item]
 #[derive(Debug, Default)]
@@ -16,10 +11,6 @@ pub struct PoolKeys {
 }
 
 impl PoolKeys {
-    pub fn get_index(&self, pool_key: PoolKey) -> Option<u16> {
-        self.pool_keys.get(pool_key)
-    }
-
     pub fn add(&mut self, pool_key: PoolKey) -> Result<(), InvariantError> {
         if self.contains(pool_key) {
             return Err(InvariantError::PoolKeyAlreadyExist);
@@ -39,44 +30,28 @@ impl PoolKeys {
         Ok(())
     }
 
-    #[allow(dead_code)]
-    pub fn remove(&mut self, pool_key: PoolKey) -> Result<(), InvariantError> {
-        match self.get_index(pool_key) {
-            Some(index) => {
-                self.pool_keys_by_index.remove(index);
-                self.pool_keys_length =
-                    self.pool_keys_length
-                        .checked_sub(1)
-                        .ok_or(InvariantError::SubUnderflow(
-                            self.pool_keys_length as u128,
-                            1,
-                        ))?;
-                self.pool_keys.remove(pool_key);
-                Ok(())
-            }
-            None => Err(InvariantError::PoolKeyNotFound),
-        }
-    }
-
     pub fn contains(&self, pool_key: PoolKey) -> bool {
         self.pool_keys.get(pool_key).is_some()
     }
 
-    pub fn get_all(&self, size: u8, offset: u16) -> Result<Vec<PoolKey>, InvariantError> {
-        if size > MAX_POOL_KEYS_RETURNED || offset > self.pool_keys_length {
-            return Err(InvariantError::InvalidSize);
-        }
+    pub fn get_all(&self, size: u16, offset: u16) -> Vec<PoolKey> {
+        let offset_with_size = offset.checked_add(size).unwrap();
 
-        let mut pool_keys = Vec::new();
-        for i in offset..self.pool_keys_length {
-            if size as u16 == i {
-                return Ok(pool_keys);
-            }
+        let upper_bound = if offset_with_size > self.pool_keys_length {
+            self.pool_keys_length
+        } else {
+            offset_with_size
+        };
 
-            let pool_key = self.pool_keys_by_index.get(i).unwrap();
-            pool_keys.push(pool_key);
-        }
-        Ok(pool_keys)
+        let max = if upper_bound.checked_sub(offset).unwrap() > MAX_POOL_KEYS_RETURNED {
+            offset.checked_add(MAX_POOL_KEYS_RETURNED).unwrap()
+        } else {
+            upper_bound
+        };
+
+        (offset..max)
+            .map(|index| self.pool_keys_by_index.get(index).unwrap())
+            .collect()
     }
 
     pub fn count(&self) -> u16 {
@@ -112,20 +87,6 @@ mod tests {
     }
 
     #[ink::test]
-    fn test_remove() {
-        let pool_keys = &mut PoolKeys::default();
-        let pool_key = PoolKey::default();
-
-        pool_keys.add(pool_key).unwrap();
-
-        pool_keys.remove(pool_key).unwrap();
-        assert!(!pool_keys.contains(pool_key));
-
-        let result = pool_keys.remove(pool_key);
-        assert_eq!(result, Err(InvariantError::PoolKeyNotFound));
-    }
-
-    #[ink::test]
     fn test_get_all() {
         let pool_keys = &mut PoolKeys::default();
         let pool_key = PoolKey::default();
@@ -137,14 +98,14 @@ mod tests {
         };
         let new_pool_key = PoolKey::new(token_x, token_y, fee_tier).unwrap();
 
-        let result = pool_keys.get_all(3, 0).unwrap();
+        let result = pool_keys.get_all(3, 0);
         assert_eq!(result, vec![]);
         assert_eq!(result.len(), 0);
 
         pool_keys.add(pool_key).unwrap();
         pool_keys.add(new_pool_key).unwrap();
 
-        let result = pool_keys.get_all(3, 0).unwrap();
+        let result = pool_keys.get_all(3, 0);
         assert_eq!(result, vec![pool_key, new_pool_key]);
         assert_eq!(result.len(), 2);
     }

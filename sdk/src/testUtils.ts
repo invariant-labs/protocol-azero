@@ -9,7 +9,7 @@ export const objectEquals = (
 ) => {
   for (const key in object) {
     if (!keys.includes(key)) {
-      assert.deepEqual(object[key], expectedObject[key])
+      assert.deepEqual(object[key], expectedObject[key], `Key missing: ${key}`)
     }
   }
 }

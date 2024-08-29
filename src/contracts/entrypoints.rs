@@ -1,7 +1,7 @@
 use crate::{
     contracts::{
         CalculateSwapResult, FeeTier, InvariantError, LiquidityTick, Pool, PoolKey, Position,
-        PositionTick, QuoteResult, SwapHop, Tick,
+        QuoteResult, SwapHop, Tick,
     },
     math::{
         liquidity::Liquidity, percentage::Percentage, sqrt_price::SqrtPrice,
@@ -10,6 +10,7 @@ use crate::{
 };
 use alloc::vec::Vec;
 use ink::primitives::AccountId;
+use ink::primitives::Hash;
 
 #[ink::trait_definition]
 pub trait InvariantTrait {
@@ -212,13 +213,6 @@ pub trait InvariantTrait {
     fn get_position(&mut self, owner_id: AccountId, index: u32)
         -> Result<Position, InvariantError>;
 
-    /// Retrieves a vector containing all positions held by the user.
-    ///
-    /// # Parameters
-    /// - `owner_id`: An `AccountId` identifying the user who owns the positions.
-    #[ink(message)]
-    fn get_all_positions(&mut self, owner_id: AccountId) -> Vec<Position>;
-
     /// Retrieves a vector containing position with size and offset.
     ///
     /// # Parameters
@@ -235,7 +229,7 @@ pub trait InvariantTrait {
         owner_id: AccountId,
         size: u32,
         offset: u32,
-    ) -> Result<(Vec<(Position, Pool, Tick, Tick)>, u32), InvariantError>;
+    ) -> Result<(Vec<(Position, Pool)>, u32), InvariantError>;
 
     /// Allows an authorized user (owner of the position) to claim collected fees.
     ///
@@ -361,11 +355,11 @@ pub trait InvariantTrait {
     #[ink(message)]
     fn is_tick_initialized(&self, key: PoolKey, index: i32) -> bool;
 
-    /// Retrieves listed pools
+    /// Retrieves listed pool keys
     /// - `size`: Amount of pool keys to retrive
     /// - `offset`: The offset from which retrive pools.
     #[ink(message)]
-    fn get_pools(&self, size: u8, offset: u16) -> Result<(Vec<PoolKey>, u16), InvariantError>;
+    fn get_pool_keys(&self, size: u16, offset: u16) -> Result<(Vec<PoolKey>, u16), InvariantError>;
 
     /// Retrieves listed pools for provided token pair
     /// - `token0`: Address of first token
@@ -381,20 +375,27 @@ pub trait InvariantTrait {
     #[ink(message)]
     fn get_fee_tiers(&self) -> Vec<FeeTier>;
 
-    /// Retrieves list of lower and upper ticks of user positions.
-    ///
-    /// # Parameters
-    /// - `owner`: An `AccountId` identifying the user who owns the position.
-    /// - `offset`: The offset from the current position index.
-    #[ink(message)]
-    fn get_position_ticks(&self, owner: AccountId, offset: u32) -> Vec<PositionTick>;
-
     /// Retrieves the amount of positions held by the user.
     ///
     /// # Parameters
     /// - `owner`: An `AccountId` identifying the user who owns the position.
     #[ink(message)]
     fn get_user_position_amount(&self, owner: AccountId) -> u32;
+
+    /// Retrieves information about a single position, the associated pool, lower and upper tick in this order.
+    ///
+    /// # Parameters
+    /// - `owner`: An `AccountId` identifying the user who owns the position.
+    /// - `index`: The index of the user position.
+    ///
+    /// # Errors
+    /// - Fails if position or any other associated structure cannot be found.
+    #[ink(message)]
+    fn get_position_with_associates(
+        &self,
+        owner: AccountId,
+        index: u32,
+    ) -> Result<(Position, Pool, Tick, Tick), InvariantError>;
 
     /// Retrieves tickmap chunks
     ///
@@ -459,4 +460,13 @@ pub trait InvariantTrait {
         index: u32,
         pool_key: PoolKey,
     ) -> Result<(), InvariantError>;
+    /// Modifies the contract code. Only the admin can call this function.
+    ///
+    /// WARNING: The state of this contract and the contract you want to change the code to must be the same.
+    /// See: https://use.ink/basics/upgradeable-contracts#storage-compatibility.
+    ///
+    /// # Parameters
+    /// - `code_hash`: The code hash of the contract you want to change the code to.
+    #[ink(message)]
+    fn set_code(&mut self, code_hash: Hash) -> Result<(), InvariantError>;
 }

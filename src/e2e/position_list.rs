@@ -2,7 +2,7 @@
 pub mod e2e_tests {
     use crate::invariant::Invariant;
     use crate::{
-        contracts::{entrypoints::InvariantTrait, FeeTier, InvariantError, PoolKey},
+        contracts::{entrypoints::InvariantTrait, FeeTier, InvariantError, PoolKey, Position},
         invariant::InvariantRef,
         math::types::{
             fee_growth::FeeGrowth,
@@ -157,6 +157,7 @@ pub mod e2e_tests {
         {
             let position_index_to_remove = 2;
             let positions_list_before = get_all_positions!(client, dex, alice);
+
             let last_position = positions_list_before[positions_list_before.len() - 1];
 
             remove_position!(client, dex, position_index_to_remove, alice).unwrap();
@@ -246,6 +247,104 @@ pub mod e2e_tests {
             let list_length_after = get_all_positions!(client, dex, alice).len();
             assert_eq!(list_length_after, list_length_before + 1);
         }
+        Ok(())
+    }
+
+    #[ink_e2e::test]
+    async fn test_positions_can_be_sorted_by_timestamp(
+        mut client: ink_e2e::Client<C, E>,
+    ) -> E2EResult<()> {
+        let alice = ink_e2e::alice();
+        let init_tick = -23028;
+        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
+        let dex = create_dex!(client, Percentage::new(0));
+        let initial_balance = 10u128.pow(10);
+
+        let (token_x, token_y) = create_tokens!(client, initial_balance, initial_balance);
+
+        let fee_tier = FeeTier::new(Percentage::from_scale(2, 4), 3).unwrap();
+
+        add_fee_tier!(client, dex, fee_tier, alice).unwrap();
+
+        create_pool!(
+            client,
+            dex,
+            token_x.account_id,
+            token_y.account_id,
+            fee_tier,
+            init_sqrt_price,
+            init_tick,
+            alice
+        )
+        .unwrap();
+
+        approve!(client, token_x, dex.account_id, initial_balance, alice).unwrap();
+        approve!(client, token_y, dex.account_id, initial_balance, alice).unwrap();
+
+        let pool_key = PoolKey::new(token_x.account_id, token_y.account_id, fee_tier).unwrap();
+        let tick_indexes = [-9780, -42, 0, 9, 276, 32343];
+        let liquidity_delta = Liquidity::from_integer(1_000_000);
+        let pool_state = get_pool!(
+            client,
+            dex,
+            token_x.account_id,
+            token_y.account_id,
+            fee_tier
+        )
+        .unwrap();
+
+        // open ten positions
+        let indice_pairs = [
+            (0, 1),
+            (0, 1),
+            (0, 2),
+            (1, 4),
+            (1, 5),
+            (2, 3),
+            (2, 4),
+            (3, 4),
+            (3, 5),
+            (4, 5),
+        ];
+
+        for (lower_tick_index, upper_tick_index) in indice_pairs.into_iter() {
+            create_position!(
+                client,
+                dex,
+                pool_key,
+                tick_indexes[lower_tick_index],
+                tick_indexes[upper_tick_index],
+                liquidity_delta,
+                pool_state.sqrt_price,
+                SqrtPrice::max_instance(),
+                alice
+            )
+            .unwrap();
+        }
+
+        let mut positions_list = get_all_positions!(client, dex, alice);
+        assert_eq!(positions_list.len(), 10);
+
+        let mut index_to_remove: [u32; 4] = [0, 4, 2, 6];
+        for index in index_to_remove.iter() {
+            remove_position!(client, dex, *index, alice).unwrap();
+        }
+        // order after removal: 9, 1, 7, 3, 8, 5
+        // operate on list that is always sorted so remove starting from the end
+        index_to_remove.sort();
+        for index in index_to_remove.iter().rev() {
+            positions_list.remove(*index as usize);
+        }
+
+        let mut positions_list_after = get_all_positions!(client, dex, alice);
+        positions_list_after.sort_by(|a, b| a.created_at.cmp(&b.created_at));
+
+        assert_eq!(positions_list.len(), positions_list_after.len());
+        for (i, position) in positions_list.iter().enumerate() {
+            let expected_position = positions_list_after[i];
+            positions_equals!(position, expected_position);
+        }
+
         Ok(())
     }
 

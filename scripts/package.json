@@ -1,5 +1,5 @@
 {
-  "name": "sdk-test",
+  "name": "scripts",
   "version": "1.0.0",
   "description": "",
   "main": "target/index.js",
@@ -13,13 +13,14 @@
     "create-pool": "npx tsc && node --experimental-wasm-modules target/create-pool.js",
     "query-tickmap": "npx tsc && node --experimental-wasm-modules target/query-tickmap.js",
     "swap": "npx tsc && node --experimental-wasm-modules target/swap.js",
-    "setup": "npx tsc && node --experimental-wasm-modules target/setup.js"
+    "setup": "npx tsc && node --experimental-wasm-modules target/setup.js",
+    "replace-code": "npx tsc && node --experimental-wasm-modules target/replace-code.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@invariant-labs/a0-sdk": "^0.2.8",
+    "@invariant-labs/a0-sdk": "../sdk",
     "dotenv": "^16.4.5"
   },
   "devDependencies": {

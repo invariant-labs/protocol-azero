@@ -25,7 +25,6 @@ export type {
   Pool,
   PoolKey,
   Position,
-  PositionTick,
   Price,
   QuoteResult,
   RemovePositionEvent,
@@ -81,6 +80,7 @@ export {
   sqrtPriceToPrice,
   parseEvent,
   getMinTick,
-  getMaxTick
+  getMaxTick,
+  getCodeHash
 } from './utils.js'
 export { WrappedAZERO } from './wrapped-azero.js'

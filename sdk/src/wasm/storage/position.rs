@@ -23,4 +23,6 @@ pub struct Position {
     pub last_block_number: u64,
     pub tokens_owed_x: TokenAmount,
     pub tokens_owed_y: TokenAmount,
+    #[tsify(type = "bigint")]
+    pub created_at: u64,
 }

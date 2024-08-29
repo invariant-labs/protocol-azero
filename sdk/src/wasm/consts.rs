@@ -26,11 +26,10 @@ pub const MAX_POOL_PAIRS_RETURNED: usize =
 
 pub const ACCOUNT_ID_SIZE: usize = 32 * 8;
 pub const POOL_KEY_SIZE: usize = ACCOUNT_ID_SIZE + ACCOUNT_ID_SIZE + (64 + 8);
-pub const POSITION_SIZE: usize = POOL_KEY_SIZE + 128 + 32 + 32 + 128 + 128 + 64 + 128 + 128;
+pub const POSITION_SIZE: usize = POOL_KEY_SIZE + 128 + 32 + 32 + 128 + 128 + 64 + 128 + 128 + 64;
 pub const POOL_SIZE: usize = 128 + 128 + 32 + 128 + 128 + 128 + 128 + 64 + 64 + ACCOUNT_ID_SIZE;
 pub const TICK_SIZE: usize = 32 + 8 + 128 + 128 + 128 + 128 + 128 + 64;
-pub const POSITIONS_ENTRIES_LIMIT: usize =
-    (MAX_RESULT_SIZE - 32) / (POSITION_SIZE + POOL_SIZE + TICK_SIZE + TICK_SIZE);
+pub const POSITIONS_ENTRIES_LIMIT: usize = (MAX_RESULT_SIZE - 32) / (POSITION_SIZE + POOL_SIZE);
 
 #[wasm_wrapper]
 pub fn get_global_max_sqrt_price() -> u128 {

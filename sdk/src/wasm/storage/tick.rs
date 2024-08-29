@@ -26,18 +26,6 @@ pub struct Tick {
     pub seconds_outside: u64,
 }
 
-#[derive(Debug, Copy, Clone, Serialize, Deserialize, Tsify)]
-#[tsify(into_wasm_abi, from_wasm_abi)]
-#[serde(rename_all = "camelCase")]
-pub struct PositionTick {
-    #[tsify(type = "bigint")]
-    pub index: i32,
-    pub fee_growth_outside_x: FeeGrowth,
-    pub fee_growth_outside_y: FeeGrowth,
-    #[tsify(type = "bigint")]
-    pub seconds_outside: u64,
-}
-
 #[derive(Eq, PartialEq, Debug, Copy, Clone, Serialize, Deserialize, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 #[serde(rename_all = "camelCase")]

@@ -10,7 +10,7 @@ import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
 import { assertThrowsAsync } from '../src/testUtils'
-import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
+import { getCodeHash, initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
 import { WrappedAZERO } from '../src/wrapped-azero'
 import { describe, it } from 'mocha'
 
@@ -224,5 +224,15 @@ describe('invariant', async function () {
 
     assert.isTrue(parsedAZEROBalanceAfter > parsedAZEROBalanceBefore)
     assert.equal(wAZEROBalanceAfter, wAZEROBalanceBefore - amount)
+  })
+
+  it('set code works', async () => {
+    const codeHash = await getCodeHash(api, invariant.contract.address.toString())
+
+    await invariant.setCode(account, codeHash)
+
+    await invariant.changeProtocolFee(account, 0n)
+    const protocolFee = await invariant.getProtocolFee()
+    assert.equal(protocolFee, 0n)
   })
 })

@@ -304,13 +304,17 @@ macro_rules! get_all_positions {
     ($client:ident, $dex:ident, $caller:ident) => {{
         let owner = AccountId::from($caller.public_key().0);
         let mut call_builder = $dex.call_builder::<Invariant>();
-        let call = call_builder.get_all_positions(owner);
-        $client
+        let call = call_builder.get_positions(owner, u32::MAX, 0);
+        let result = $client
             .call(&ink_e2e::alice(), &call)
             .dry_run()
             .await
             .unwrap()
             .return_value()
+            .unwrap()
+            .0;
+        let positions: Vec<Position> = result.iter().map(|&(position, _)| position).collect();
+        positions
     }};
 }
 
@@ -546,10 +550,10 @@ macro_rules! is_tick_initialized {
 }
 
 #[macro_export]
-macro_rules! get_pools {
+macro_rules! get_pool_keys {
     ($client:ident, $dex:ident, $size:expr, $offset:expr) => {{
         let mut call_builder = $dex.call_builder::<Invariant>();
-        let call = call_builder.get_pools($size, $offset);
+        let call = call_builder.get_pool_keys($size, $offset);
         $client
             .call(&ink_e2e::alice(), &call)
             .dry_run()
@@ -574,10 +578,11 @@ macro_rules! get_fee_tiers {
 }
 
 #[macro_export]
-macro_rules! get_position_ticks {
-    ($client:ident, $dex:ident, $owner:expr, $offset:expr) => {{
+macro_rules! get_position_with_associates {
+    ($client:ident, $dex:ident, $index:expr, $caller:ident) => {{
+        let owner = AccountId::from($caller.public_key().0);
         let mut call_builder = $dex.call_builder::<Invariant>();
-        let call = call_builder.get_position_ticks($owner, $offset);
+        let call = call_builder.get_position_with_associates(owner, $index);
         $client
             .call(&ink_e2e::alice(), &call)
             .dry_run()
@@ -612,5 +617,30 @@ macro_rules! get_liquidity_ticks_amount {
             .await
             .unwrap()
             .return_value()
+    }};
+}
+
+#[macro_export]
+macro_rules! set_code {
+    ($client:ident, $dex:ident, $code_hash:expr, $caller:ident) => {{
+        let mut call_builder = $dex.call_builder::<Invariant>();
+        let call = call_builder.set_code($code_hash);
+        let result = $client
+            .call(&$caller, &call)
+            .dry_run()
+            .await
+            .unwrap()
+            .return_value();
+
+        if result.is_ok() {
+            $client
+                .call(&$caller, &call)
+                .submit()
+                .await
+                .unwrap()
+                .return_value()
+        } else {
+            result
+        }
     }};
 }

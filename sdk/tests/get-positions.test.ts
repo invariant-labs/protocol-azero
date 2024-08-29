@@ -70,29 +70,9 @@ describe('get-positions', async () => {
       feeProtocolTokenY: 0n,
       feeReceiver: account.address
     }
-    const firstExpectedLowerTick = {
-      index: -10n,
-      sign: true,
-      liquidityChange: 1000000000000n,
-      liquidityGross: 1000000000000n,
-      sqrtPrice: 999500149965000000000000n,
-      feeGrowthOutsideX: 0n,
-      feeGrowthOutsideY: 0n
-    }
-    const firstExpectedUpperTick = {
-      index: 10n,
-      sign: false,
-      liquidityChange: 1000000000000n,
-      liquidityGross: 1000000000000n,
-      sqrtPrice: 1000500100010000000000000n,
-      feeGrowthOutsideX: 0n,
-      feeGrowthOutsideY: 0n
-    }
 
-    objectEquals(result[0][0][0], firstExpectedPosition, ['lastBlockNumber'])
+    objectEquals(result[0][0][0], firstExpectedPosition, ['lastBlockNumber', 'createdAt'])
     objectEquals(result[0][0][1], firstExpectedPool, ['startTimestamp', 'lastTimestamp'])
-    objectEquals(result[0][0][2], firstExpectedLowerTick, ['secondsOutside'])
-    objectEquals(result[0][0][3], firstExpectedUpperTick, ['secondsOutside'])
 
     const secondExpectedPosition = {
       poolKey,
@@ -114,29 +94,9 @@ describe('get-positions', async () => {
       feeProtocolTokenY: 0n,
       feeReceiver: account.address
     }
-    const secondExpectedLowerTick = {
-      index: -20n,
-      sign: true,
-      liquidityChange: 1000000000000n,
-      liquidityGross: 1000000000000n,
-      sqrtPrice: 999000549780000000000000n,
-      feeGrowthOutsideX: 0n,
-      feeGrowthOutsideY: 0n
-    }
-    const secondExpectedUpperTick = {
-      index: 20n,
-      sign: false,
-      liquidityChange: 1000000000000n,
-      liquidityGross: 1000000000000n,
-      sqrtPrice: 1001000450120000000000000n,
-      feeGrowthOutsideX: 0n,
-      feeGrowthOutsideY: 0n
-    }
 
-    objectEquals(result[0][1][0], secondExpectedPosition, ['lastBlockNumber'])
+    objectEquals(result[0][1][0], secondExpectedPosition, ['lastBlockNumber', 'createdAt'])
     objectEquals(result[0][1][1], secondExpectedPool, ['startTimestamp', 'lastTimestamp'])
-    objectEquals(result[0][1][2], secondExpectedLowerTick, ['secondsOutside'])
-    objectEquals(result[0][1][3], secondExpectedUpperTick, ['secondsOutside'])
   })
 
   it('get positions less than exist', async () => {
