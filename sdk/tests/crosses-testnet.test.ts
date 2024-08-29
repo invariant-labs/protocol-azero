@@ -56,7 +56,7 @@ describe('testnet-crosses-limitations', async () => {
     }
 
     const swapper = keyring.addFromUri('//Bob')
-    const swapAmount = 459500n
+    const swapAmount = 758215n
     const tokenX = isTokenX(token0Address, token1Address) ? token0Address : token1Address
 
     await psp22.mint(swapper, swapAmount, tokenX)
@@ -74,6 +74,6 @@ describe('testnet-crosses-limitations', async () => {
     const crossed = Math.abs(
       integerSafeCast((poolAfterSwap.currentTickIndex - poolBeforeSwap.currentTickIndex) / 10n)
     )
-    assert.equal(crossed, 90)
+    assert.equal(crossed, 146)
   })
 })
