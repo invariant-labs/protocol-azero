@@ -717,10 +717,7 @@ mod tests {
                 tick_upper.seconds_per_liquidity_outside,
                 current_timestamp,
             );
-            assert_eq!(
-                seconds_per_liquidity_inside.unwrap().get(),
-                100000011000
-            );
+            assert_eq!(seconds_per_liquidity_inside.unwrap().get(), 100000011000);
             assert_eq!(
                 pool.seconds_per_liquidity_global.get(),
                 400000000000000000000000

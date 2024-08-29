@@ -100,12 +100,13 @@ pub mod tests {
             let liquidity = Liquidity::from_integer(1);
             let current_timestamp = 100;
             let last_timestamp = 100;
-            let seconds_per_liquidity = SecondsPerLiquidity::calculate_seconds_per_liquidity_global(
-                liquidity,
-                current_timestamp,
-                last_timestamp,
-            )
-            .unwrap();
+            let seconds_per_liquidity =
+                SecondsPerLiquidity::calculate_seconds_per_liquidity_global(
+                    liquidity,
+                    current_timestamp,
+                    last_timestamp,
+                )
+                .unwrap();
             assert_eq!(seconds_per_liquidity.get(), 0);
         }
         // L == 0
