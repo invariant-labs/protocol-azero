@@ -176,7 +176,7 @@ impl Position {
         pool_key: PoolKey,
         lower_tick: &mut Tick,
         upper_tick: &mut Tick,
-        current_timestamp: u64,
+        current_timestamp_in_milliseconds: u64,
         liquidity_delta: Liquidity,
         slippage_limit_lower: SqrtPrice,
         slippage_limit_upper: SqrtPrice,
@@ -198,17 +198,18 @@ impl Position {
             last_block_number: block_number,
             tokens_owed_x: TokenAmount::new(0),
             tokens_owed_y: TokenAmount::new(0),
-            created_at: current_timestamp,
+            created_at: current_timestamp_in_milliseconds,
             seconds_per_liquidity_inside: SecondsPerLiquidity::new(0),
         };
 
+        let current_timestamp_in_seconds = current_timestamp_in_milliseconds / 1000;
         let (required_x, required_y) = unwrap!(position.modify(
             pool,
             upper_tick,
             lower_tick,
             liquidity_delta,
             true,
-            current_timestamp,
+            current_timestamp_in_seconds,
             tick_spacing
         ));
 
