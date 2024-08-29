@@ -1,7 +1,10 @@
 use crate::alloc::string::ToString;
 use crate::clamm::{calculate_amount_delta, is_enough_amount_to_change_price, SwapResult};
 use crate::fee_growth::FeeGrowth;
-use crate::types::{liquidity::Liquidity, sqrt_price::SqrtPrice, token_amount::TokenAmount};
+use crate::types::{
+    liquidity::Liquidity, seconds_per_liquidity::SecondsPerLiquidity, sqrt_price::SqrtPrice,
+    token_amount::TokenAmount,
+};
 use crate::{get_tick_at_sqrt_price, FeeTier, LiquidityTick};
 use decimal::CheckedOps;
 use serde::{Deserialize, Serialize};
@@ -27,6 +30,7 @@ pub struct Pool {
     pub last_timestamp: u64,
     #[tsify(type = "string")]
     pub fee_receiver: String,
+    pub seconds_per_liquidity_global: SecondsPerLiquidity,
 }
 
 impl Pool {

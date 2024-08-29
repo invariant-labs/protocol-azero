@@ -86,9 +86,14 @@ describe('position', async () => {
       lastBlockNumber: 0n,
       tokensOwedX: 0n,
       tokensOwedY: 0n,
+      secondsPerLiquidityInside: 0n,
       createdAt: 0n
     }
-    objectEquals(position, expectedPosition, ['lastBlockNumber', 'createdAt'])
+    objectEquals(position, expectedPosition, [
+      'lastBlockNumber',
+      'createdAt',
+      'secondsPerLiquidityInside'
+    ])
   })
   it('calculate token amounts from position liquidity', async () => {
     const position = await invariant.getPosition(account.address, 0n)
@@ -164,9 +169,14 @@ describe('position', async () => {
         lastBlockNumber: 0n,
         tokensOwedX: 0n,
         tokensOwedY: 0n,
+        secondsPerLiquidityInside: 0n,
         createdAt: 0n
       }
-      objectEquals(position, expectedPosition, ['lastBlockNumber', 'createdAt'])
+      objectEquals(position, expectedPosition, [
+        'lastBlockNumber',
+        'createdAt',
+        'secondsPerLiquidityInside'
+      ])
     }
   })
 

@@ -58,10 +58,11 @@
     "test:get-all": "mocha ./tests/get-all.test.ts -g get-all"
   },
   "dependencies": {
+    "@invariant-labs/a0-sdk-wasm": "file:./src/wasm/pkg",
     "@polkadot/api": "^10.12.4",
     "@polkadot/api-contract": "^10.12.4",
     "@scio-labs/use-inkathon": "^0.6.3",
-    "@invariant-labs/a0-sdk-wasm": "^0.1.23",
+    "mocha": "^10.7.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   },

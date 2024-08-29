@@ -517,7 +517,7 @@ mod tests {
                 PoolKey::default(),
                 &mut lower_tick,
                 &mut upper_tick,
-                current_timestamp,
+                current_timestamp*1000,
                 Liquidity::new(100000000),
                 pool_before.sqrt_price,
                 pool_before.sqrt_price,
@@ -540,15 +540,12 @@ mod tests {
             );
             // liquidity change on delta_time == 0
             {
-                pool.liquidity += Liquidity::new(20000000000000);
-                pos.liquidity += Liquidity::new(20000000000000);
-
                 let _ = Position::create(
                     &mut pool,
                     PoolKey::default(),
                     &mut lower_tick,
                     &mut upper_tick,
-                    current_timestamp,
+                    current_timestamp*1000,
                     Liquidity::new(100000000),
                     pool_before.sqrt_price,
                     pool_before.sqrt_price,
@@ -577,7 +574,7 @@ mod tests {
                     PoolKey::default(),
                     &mut lower_tick,
                     &mut upper_tick,
-                    current_timestamp + 1,
+                    (current_timestamp + 1)*1000,
                     Liquidity::new(100000000),
                     pool_before.sqrt_price,
                     pool_before.sqrt_price,
@@ -600,7 +597,7 @@ mod tests {
 
                 assert_eq!(
                     pos.seconds_per_liquidity_inside,
-                    SecondsPerLiquidity(5024999875000624996)
+                    SecondsPerLiquidity(5049999500004999950)
                 );
             }
         }
