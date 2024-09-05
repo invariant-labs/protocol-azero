@@ -256,11 +256,11 @@ describe('simulateInvariantSwap', async () => {
     it('X to Y by amount in', async () => {
       const poolKey = newPoolKey(token0Address, token1Address, feeTier)
       const pool = await invariant.getPool(token0Address, token1Address, feeTier)
-      const sqrtPriceLimit = getMaxSqrtPrice(feeTier.tickSpacing)
+      const sqrtPriceLimit = getMinSqrtPrice(feeTier.tickSpacing)
 
       const amountIn = 4999n
       const byAmountIn = true
-      const xToY = false
+      const xToY = true
 
       const tickmap = filterTickmap(
         await invariant.getFullTickmap(poolKey),
