@@ -71,7 +71,7 @@ pub mod invariant {
         }
 
         fn create_tick(&mut self, pool_key: PoolKey, index: i32) -> Result<Tick, InvariantError> {
-            let current_timestamp = self.get_timestamp_in_seconds();
+            let current_timestamp = self.get_timestamp();
 
             check_tick(index, pool_key.fee_tier.tick_spacing)
                 .map_err(|_| InvariantError::InvalidTickIndexOrTickSpacing)?;
@@ -95,7 +95,7 @@ pub mod invariant {
             by_amount_in: bool,
             sqrt_price_limit: SqrtPrice,
         ) -> Result<CalculateSwapResult, InvariantError> {
-            let current_timestamp = self.get_timestamp_in_seconds();
+            let current_timestamp = self.get_timestamp();
 
             if amount.is_zero() {
                 return Err(InvariantError::AmountIsZero);
@@ -388,10 +388,6 @@ pub mod invariant {
         }
 
         fn get_timestamp(&self) -> u64 {
-            self.env().block_timestamp()
-        }
-
-        fn get_timestamp_in_seconds(&self) -> u64 {
             self.env().block_timestamp() / 1000
         }
 
@@ -493,7 +489,7 @@ pub mod invariant {
         ) -> Result<Position, InvariantError> {
             let caller = self.env().caller();
             let contract = self.env().account_id();
-            let current_timestamp_in_milliseconds = self.get_timestamp();
+            let current_timestamp_in_milliseconds = self.env().block_timestamp();
             let current_block_number = self.env().block_number() as u64;
 
             // liquidity delta = 0 => return
@@ -712,7 +708,7 @@ pub mod invariant {
         #[ink(message)]
         fn claim_fee(&mut self, index: u32) -> Result<(TokenAmount, TokenAmount), InvariantError> {
             let caller = self.env().caller();
-            let current_timestamp = self.get_timestamp_in_seconds();
+            let current_timestamp = self.get_timestamp();
 
             let mut position = self.positions.get(caller, index)?;
 
@@ -757,7 +753,7 @@ pub mod invariant {
             index: u32,
         ) -> Result<(TokenAmount, TokenAmount), InvariantError> {
             let caller = self.env().caller();
-            let current_timestamp = self.get_timestamp_in_seconds();
+            let current_timestamp = self.get_timestamp();
 
             let mut position = self.positions.get(caller, index)?;
             let withdrawed_liquidity = position.liquidity;
@@ -862,7 +858,7 @@ pub mod invariant {
             init_sqrt_price: SqrtPrice,
             init_tick: i32,
         ) -> Result<(), InvariantError> {
-            let current_timestamp = self.get_timestamp_in_seconds();
+            let current_timestamp = self.get_timestamp();
 
             if !self.fee_tiers.contains(fee_tier) {
                 return Err(InvariantError::FeeTierNotFound);
@@ -1121,7 +1117,7 @@ pub mod invariant {
             index: u32,
         ) -> Result<(), InvariantError> {
             let caller = self.env().caller();
-            let current_timestamp = self.get_timestamp_in_seconds();
+            let current_timestamp = self.get_timestamp();
 
             let mut position = self.positions.get(caller, index)?;
 

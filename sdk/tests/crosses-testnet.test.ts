@@ -27,7 +27,7 @@ describe('testnet-crosses-limitations', async () => {
     const token1Address = await PSP22.deploy(api, deployer, 1000000000n, 'Coin', 'COIN', 0n)
     const psp22 = await PSP22.load(api, network, deployOptions)
 
-    const feeTier = newFeeTier(6000000000n, 10n)
+    const feeTier = newFeeTier(6000000000n, 1n)
     const poolKey = newPoolKey(token0Address, token1Address, feeTier)
 
     await invariant.addFeeTier(deployer, feeTier)
@@ -43,12 +43,12 @@ describe('testnet-crosses-limitations', async () => {
     const liquidityDelta = 10000000n * 10n ** 6n
     const spotSqrtPrice = 1000000000000000000000000n
     const slippageTolerance = 0n
-    for (let i = -2560n; i < 20; i += 10n) {
+    for (let i = -1n; i < 8; i++) {
       await invariant.createPosition(
         deployer,
         poolKey,
-        i,
-        i + 10n,
+        -i * 127n - 127n,
+        -i * 127n,
         liquidityDelta,
         spotSqrtPrice,
         slippageTolerance
@@ -56,7 +56,7 @@ describe('testnet-crosses-limitations', async () => {
     }
 
     const swapper = keyring.addFromUri('//Bob')
-    const swapAmount = 758215n
+    const swapAmount = 418000n
     const tokenX = isTokenX(token0Address, token1Address) ? token0Address : token1Address
 
     await psp22.mint(swapper, swapAmount, tokenX)
@@ -71,9 +71,10 @@ describe('testnet-crosses-limitations', async () => {
 
     const poolAfterSwap = await invariant.getPool(token0Address, token1Address, feeTier)
 
-    const crossed = Math.abs(
-      integerSafeCast((poolAfterSwap.currentTickIndex - poolBeforeSwap.currentTickIndex) / 10n)
-    )
-    assert.equal(crossed, 146)
+    const crossed =
+      Math.abs(
+        integerSafeCast((poolAfterSwap.currentTickIndex - poolBeforeSwap.currentTickIndex) / 127n)
+      ) + 1
+    assert.equal(crossed, 7)
   })
 })
