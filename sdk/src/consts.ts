@@ -25,7 +25,7 @@ import {
   getTokenAmountDenominator,
   getTokenAmountScale
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
-import { Network } from './network'
+import { Network } from './network.js'
 
 export const MAX_REF_TIME = 259058343000
 export const DEFAULT_REF_TIME = 1250000000000
@@ -43,32 +43,32 @@ export const WAZERO_ADDRESS = {
 }
 
 export const INVARIANT_ADDRESS = {
-  [Network.Testnet]: '5HJJ5K4vGixAZo3fpG6niXKKRgvsxsur9CBuiVQGW9AHrnSo',
+  [Network.Testnet]: '5CQ4E1PnyPTURTCioBqka1CEhfJ5g4wwK8dVLtw97YnLGrkV',
   [Network.Mainnet]: '5CvocBcChFccUkNGZpYf1mThQQDaY7ZxXEmdTXbTLqt1SaYQ',
   [Network.Local]: ''
 }
 export const BTC_ADDRESS = {
-  [Network.Testnet]: '5GPoVZGgTGvXNK85MUYzVCtWgKDT4UPqQti4X5tZGm7ntxPz',
+  [Network.Testnet]: '5E195YpqcMmBKc8nCyfZS2zvq2Fzwx5QEvi7cwwzVv34KLkq',
   [Network.Mainnet]: '5HW9QeCifdKt8gXwXVSE8z56njDQBhGfses1KJNFL68qius9',
   [Network.Local]: ''
 }
 export const ETH_ADDRESS = {
-  [Network.Testnet]: '5FJvhnohVmEZNVxZatASSgFxpUNe1Nqxccd1gLxHrZoMGdy1',
+  [Network.Testnet]: '5FfgLxfPM1NPoJ9FoZWuAgeeS8dQFrEmhP7axuqqygAr6SMz',
   [Network.Mainnet]: '5EEzffpXkfYKkdtmqNh9UNctYTjmbi9GfKKAWRTKKFh6F1FU',
   [Network.Local]: ''
 }
 export const USDC_ADDRESS = {
-  [Network.Testnet]: '5Hj9dcaNhAMuhY8ju7crf1Uj4nJexVJWBdRf2WZGE3a78j3G',
+  [Network.Testnet]: '5GMmP8aBpq1xEeh7vjm7fNuo9kGcUGA2gLyA7YRTRP2waKFD',
   [Network.Mainnet]: '5GDsB8Qm6CAoBi7rmM6TCKMQQUg8CiRzuH9YVyfcrwDKWoqB',
   [Network.Local]: ''
 }
 export const USDT_ADDRESS = {
-  [Network.Testnet]: '5G91YrSRyJhuu6BswzSxcS5QTkoEwhhZpFay3LHMSFZBue4r',
+  [Network.Testnet]: '5GfpcwQmcqtXBy4NkFCQJ2udZeLSfRwUz1FESozDrNFXakHs',
   [Network.Mainnet]: '5HX57YoV7h51NEKhpfXZAJk8RzLX4Uutp36S23RDMPZ424LY',
   [Network.Local]: ''
 }
 export const SOL_ADDRESS = {
-  [Network.Testnet]: '5DGCxfxuKiE2JasJLstVSaYBXvQJQK7tr87ndWtgYtCqv8vs',
+  [Network.Testnet]: '5EKM5zqpysKscQhnMYBMR7cjWEZcm2SiEUoNojNrAAEYUYMc',
   [Network.Mainnet]: '5F2xiTnahG1tFY3ZHyghh25JsjuCaamRnN7ddQjPEzwvdd3j',
   [Network.Local]: ''
 }

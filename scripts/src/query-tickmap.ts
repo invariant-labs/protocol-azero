@@ -1,7 +1,7 @@
 import {
   Invariant,
   Network,
-  TESTNET_INVARIANT_ADDRESS,
+  INVARIANT_ADDRESS,
   Tickmap,
   getMaxTick,
   getMinTick,
@@ -33,7 +33,7 @@ const main = async () => {
   const network = Network.Testnet
   const api = await initPolkadotApi(network)
 
-  const invariant = await Invariant.load(api, network, TESTNET_INVARIANT_ADDRESS, {
+  const invariant = await Invariant.load(api, network, INVARIANT_ADDRESS[network], {
     storageDepositLimit: 100000000000,
     refTime: 100000000000,
     proofSize: 100000000000

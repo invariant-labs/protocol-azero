@@ -2,7 +2,7 @@ import {
   Invariant,
   Keyring,
   Network,
-  TESTNET_INVARIANT_ADDRESS,
+  INVARIANT_ADDRESS,
   getCodeHash,
   initPolkadotApi,
   toPercentage
@@ -29,7 +29,7 @@ const main = async () => {
 
   const codeHash = await getCodeHash(api, invariant.contract.address.toString())
 
-  const testnetInvariant = await Invariant.load(api, network, TESTNET_INVARIANT_ADDRESS, {
+  const testnetInvariant = await Invariant.load(api, network, INVARIANT_ADDRESS[network], {
     storageDepositLimit: 100000000000,
     refTime: 100000000000,
     proofSize: 100000000000

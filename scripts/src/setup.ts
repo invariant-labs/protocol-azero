@@ -5,7 +5,7 @@ import {
   Network,
   PSP22,
   PoolKey,
-  TESTNET_WAZERO_ADDRESS,
+  WAZERO_ADDRESS,
   WrappedAZERO,
   calculateTick,
   initPolkadotApi,
@@ -49,7 +49,7 @@ const main = async () => {
     [USDCAddress]: 6n,
     [USDTAddress]: 6n,
     [SOLAddress]: 9n,
-    [TESTNET_WAZERO_ADDRESS]: 12n
+    [WAZERO_ADDRESS[network]]: 12n
   }
   console.log(
     `BTC: ${BTCAddress}, ETH: ${ETHAddress}, USDC: ${USDCAddress}, USDT: ${USDTAddress}, SOL: ${SOLAddress}`
@@ -65,18 +65,20 @@ const main = async () => {
     [USDCAddress]: 1,
     [USDTAddress]: 1,
     [SOLAddress]: data.find((coin: any) => coin.id === 'solana').current_price,
-    [TESTNET_WAZERO_ADDRESS]: data.find((coin: any) => coin.id === 'aleph-zero').current_price
+    [WAZERO_ADDRESS[network]]: data.find((coin: any) => coin.id === 'aleph-zero').current_price
   }
   console.log(
-    `BTC: ${prices[BTCAddress]}, ETH: ${prices[ETHAddress]}, USDC: ${prices[USDCAddress]}, USDT: ${prices[USDTAddress]}, SOL: ${prices[SOLAddress]}, AZERO: ${prices[TESTNET_WAZERO_ADDRESS]}`
+    `BTC: ${prices[BTCAddress]}, ETH: ${prices[ETHAddress]}, USDC: ${prices[USDCAddress]}, USDT: ${
+      prices[USDTAddress]
+    }, SOL: ${prices[SOLAddress]}, AZERO: ${prices[WAZERO_ADDRESS[network]]}`
   )
 
   const poolKeys: [PoolKey, bigint][] = [
-    [newPoolKey(TESTNET_WAZERO_ADDRESS, BTCAddress, FEE_TIERS[1]), 10804609546189987720n],
-    [newPoolKey(TESTNET_WAZERO_ADDRESS, ETHAddress, FEE_TIERS[1]), 4711830510277394610468n],
-    [newPoolKey(TESTNET_WAZERO_ADDRESS, USDCAddress, FEE_TIERS[1]), 272063075569508447756n],
-    [newPoolKey(TESTNET_WAZERO_ADDRESS, USDTAddress, FEE_TIERS[1]), 272063075569508447756n],
-    [newPoolKey(TESTNET_WAZERO_ADDRESS, SOLAddress, FEE_TIERS[1]), 37143700245489847211n],
+    [newPoolKey(WAZERO_ADDRESS[network], BTCAddress, FEE_TIERS[1]), 10804609546189987720n],
+    [newPoolKey(WAZERO_ADDRESS[network], ETHAddress, FEE_TIERS[1]), 4711830510277394610468n],
+    [newPoolKey(WAZERO_ADDRESS[network], USDCAddress, FEE_TIERS[1]), 272063075569508447756n],
+    [newPoolKey(WAZERO_ADDRESS[network], USDTAddress, FEE_TIERS[1]), 272063075569508447756n],
+    [newPoolKey(WAZERO_ADDRESS[network], SOLAddress, FEE_TIERS[1]), 37143700245489847211n],
     [newPoolKey(BTCAddress, ETHAddress, FEE_TIERS[1]), 130559235944405760n],
     [newPoolKey(BTCAddress, USDCAddress, FEE_TIERS[1]), 7865049221247086n],
     [newPoolKey(BTCAddress, USDTAddress, FEE_TIERS[1]), 7865049221247086n],
@@ -117,7 +119,7 @@ const main = async () => {
   await psp22.approve(account, invariant.contract.address.toString(), 2n ** 96n - 1n, USDCAddress)
   await psp22.approve(account, invariant.contract.address.toString(), 2n ** 96n - 1n, USDTAddress)
   await psp22.approve(account, invariant.contract.address.toString(), 2n ** 96n - 1n, SOLAddress)
-  const wazero = await WrappedAZERO.load(api, network, TESTNET_WAZERO_ADDRESS, {
+  const wazero = await WrappedAZERO.load(api, network, WAZERO_ADDRESS[network], {
     storageDepositLimit: 100000000000,
     refTime: 100000000000,
     proofSize: 100000000000
@@ -129,14 +131,14 @@ const main = async () => {
     account,
     invariant.contract.address.toString(),
     2n ** 96n - 1n,
-    TESTNET_WAZERO_ADDRESS
+    WAZERO_ADDRESS[network]
   )
   const BTCBefore = await psp22.balanceOf(account.address, BTCAddress)
   const ETHBefore = await psp22.balanceOf(account.address, ETHAddress)
   const USDCBefore = await psp22.balanceOf(account.address, USDCAddress)
   const USDTBefore = await psp22.balanceOf(account.address, USDTAddress)
   const SOLBefore = await psp22.balanceOf(account.address, SOLAddress)
-  const WAZEROBefore = await psp22.balanceOf(account.address, TESTNET_WAZERO_ADDRESS)
+  const WAZEROBefore = await psp22.balanceOf(account.address, WAZERO_ADDRESS[network])
   for (const [poolKey, amount] of poolKeys) {
     const price =
       (1 / (prices[poolKey.tokenY] / prices[poolKey.tokenX])) *
@@ -166,7 +168,7 @@ const main = async () => {
   const USDCAfter = await psp22.balanceOf(account.address, USDCAddress)
   const USDTAfter = await psp22.balanceOf(account.address, USDTAddress)
   const SOLAfter = await psp22.balanceOf(account.address, SOLAddress)
-  const WAZEROAfter = await psp22.balanceOf(account.address, TESTNET_WAZERO_ADDRESS)
+  const WAZEROAfter = await psp22.balanceOf(account.address, WAZERO_ADDRESS[network])
   console.log(
     `BTC: ${BTCBefore - BTCAfter}, ETH: ${ETHBefore - ETHAfter}, USDC: ${
       USDCBefore - USDCAfter

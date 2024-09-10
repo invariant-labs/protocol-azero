@@ -5,7 +5,7 @@ import {
   PSP22,
   PoolKey,
   SwapEvent,
-  TESTNET_INVARIANT_ADDRESS,
+  INVARIANT_ADDRESS,
   calculateFee,
   initPolkadotApi,
   positionToTick,
@@ -28,7 +28,7 @@ const main = async () => {
   const POSITION_ID = 0n
   const SWAP_AMOUNT = 1000000n
 
-  const invariant = await Invariant.load(api, network, TESTNET_INVARIANT_ADDRESS, {
+  const invariant = await Invariant.load(api, network, INVARIANT_ADDRESS[network], {
     storageDepositLimit: 100000000000,
     refTime: 100000000000,
     proofSize: 100000000000
@@ -45,7 +45,7 @@ const main = async () => {
   await psp22.mint(account, SWAP_AMOUNT, positionBefore.poolKey.tokenX)
   await psp22.approve(
     account,
-    TESTNET_INVARIANT_ADDRESS,
+    INVARIANT_ADDRESS[network],
     SWAP_AMOUNT,
     positionBefore.poolKey.tokenX
   )
@@ -53,7 +53,7 @@ const main = async () => {
   await psp22.mint(account, SWAP_AMOUNT, positionBefore.poolKey.tokenY)
   await psp22.approve(
     account,
-    TESTNET_INVARIANT_ADDRESS,
+    INVARIANT_ADDRESS[network],
     SWAP_AMOUNT,
     positionBefore.poolKey.tokenY
   )
