@@ -3,9 +3,9 @@ import {
   Keyring,
   Network,
   PSP22,
-  TESTNET_ETH_ADDRESS,
-  TESTNET_INVARIANT_ADDRESS,
-  TESTNET_USDC_ADDRESS,
+  ETH_ADDRESS,
+  INVARIANT_ADDRESS,
+  USDC_ADDRESS,
   initPolkadotApi,
   newFeeTier,
   newPoolKey,
@@ -25,12 +25,12 @@ const main = async () => {
   const account = keyring.addFromMnemonic(mnemonic)
 
   const FEE_TIER = newFeeTier(toPercentage(1n, 4n), 1n)
-  const TOKEN_0_ADDRESS = TESTNET_USDC_ADDRESS
-  const TOKEN_1_ADDRESS = TESTNET_ETH_ADDRESS
+  const TOKEN_0_ADDRESS = USDC_ADDRESS[network]
+  const TOKEN_1_ADDRESS = ETH_ADDRESS[network]
   const POOL_KEY = newPoolKey(TOKEN_0_ADDRESS, TOKEN_1_ADDRESS, FEE_TIER)
   const AMOUNT = 1000000000000000000n
 
-  const invariant = await Invariant.load(api, network, TESTNET_INVARIANT_ADDRESS, {
+  const invariant = await Invariant.load(api, network, INVARIANT_ADDRESS[network], {
     storageDepositLimit: 100000000000,
     refTime: 100000000000,
     proofSize: 100000000000
@@ -44,10 +44,10 @@ const main = async () => {
   console.log(`Deployer: ${account.address}, Uri: ${mnemonic}`)
 
   await psp22.mint(account, AMOUNT, TOKEN_0_ADDRESS)
-  await psp22.approve(account, TESTNET_INVARIANT_ADDRESS, AMOUNT, TOKEN_0_ADDRESS)
+  await psp22.approve(account, INVARIANT_ADDRESS[network], AMOUNT, TOKEN_0_ADDRESS)
 
   await psp22.mint(account, AMOUNT, TOKEN_1_ADDRESS)
-  await psp22.approve(account, TESTNET_INVARIANT_ADDRESS, AMOUNT, TOKEN_1_ADDRESS)
+  await psp22.approve(account, INVARIANT_ADDRESS[network], AMOUNT, TOKEN_1_ADDRESS)
 
   await invariant.createPosition(
     account,
