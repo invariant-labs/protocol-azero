@@ -89,18 +89,17 @@ pub trait InvariantTrait {
         slippage_limit_upper: SqrtPrice,
     ) -> Result<Position, InvariantError>;
 
-    /// Updates a position.
+    /// Changes a liquidity of a position.
     ///
     /// # Parameters
-    /// - `pool_key`: A unique key that identifies the specified pool.
-    /// - `owner`: Owner of the position to update
     /// - `index`: Index of the position to update
-    /// - `new_liquidity`: The desired liquidity provided by the user in the specified range.
+    /// - `new_liquidity`: Liquidity that the position should have after the change
     /// - `slippage_limit_lower`: The price limit for downward movement to execute the position update.
     /// - `slippage_limit_upper`: The price limit for upward movement to execute the position update.
     ///
     /// # Errors
     /// - Fails if the user attempts to update a position with zero liquidity.
+    /// - Fails if the user attempts to update a position with liquidity that would not result in a token transfer.
     /// - Fails if the price has reached the slippage limit.
     /// - Fails if the allowance is insufficient or the user balance transfer fails.
     /// - Fails if position does not exist
