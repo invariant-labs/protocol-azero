@@ -1,6 +1,7 @@
 import {
   CreatePositionEvent,
   CrossTickEvent,
+  ChangeLiquidityEvent,
   RemovePositionEvent,
   SwapEvent,
   getGlobalMinSqrtPrice,
@@ -255,6 +256,62 @@ describe('events', async () => {
 
     assert.deepEqual(result.events.length, 3)
     objectEquals(result.events[2], expectedRemovePositionEvent, ['timestamp'])
+    assert.deepEqual(wasFired, true)
+  })
+
+  it('change liquidity event', async () => {
+    let wasFired = false
+
+    await psp22.approve(
+      account,
+      invariant.contract.address.toString(),
+      1000000000000n,
+      token0Address
+    )
+    await psp22.approve(
+      account,
+      invariant.contract.address.toString(),
+      1000000000000n,
+      token1Address
+    )
+
+    await invariant.createPosition(
+      account,
+      poolKey,
+      -10n,
+      10n,
+      1000000000000n,
+      toSqrtPrice(1n, 0n),
+      0n
+    )
+
+    const expectedLiquidityChangeEvent: ChangeLiquidityEvent = {
+      address: account.address.toString(),
+      currentSqrtPrice: toSqrtPrice(1n, 0n),
+      newLiquidity: 2000000000000n,
+      oldLiquidity: 1000000000000n,
+      lowerTick: -10n,
+      upperTick: 10n,
+      pool: poolKey,
+      timestamp: 0n
+    }
+
+    invariant.on(InvariantEvent.ChangeLiquidityEvent, (event: any) => {
+      wasFired = true
+
+      objectEquals(event, expectedLiquidityChangeEvent, ['timestamp'])
+    })
+
+    const result = await invariant.changeLiquidity(
+      account,
+      0n,
+      2000000000000n,
+      toSqrtPrice(1n, 0),
+      0n
+    )
+
+    assert.deepEqual(result.events.length, 5)
+    objectEquals(result.events[4], expectedLiquidityChangeEvent, ['timestamp'])
     assert.deepEqual(wasFired, true)
   })
 

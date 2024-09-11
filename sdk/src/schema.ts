@@ -26,6 +26,7 @@ export enum InvariantTx {
   ChangeProtocolFee = `${invariantActionPrefix}changeProtocolFee`,
   CreatePool = `${invariantActionPrefix}createPool`,
   CreatePosition = `${invariantActionPrefix}createPosition`,
+  ChangeLiquidity = `${invariantActionPrefix}changeLiquidity`,
   TransferPosition = `${invariantActionPrefix}transferPosition`,
   RemovePosition = `${invariantActionPrefix}removePosition`,
   ClaimFee = `${invariantActionPrefix}claimFee`,
@@ -66,6 +67,7 @@ const invariantEventPrefix = 'invariant::contracts::events::'
 
 export enum InvariantEvent {
   CreatePositionEvent = `${invariantEventPrefix}CreatePositionEvent`,
+  ChangeLiquidityEvent = `${invariantEventPrefix}ChangeLiquidityEvent`,
   CrossTickEvent = `${invariantEventPrefix}CrossTickEvent`,
   RemovePositionEvent = `${invariantEventPrefix}RemovePositionEvent`,
   SwapEvent = `${invariantEventPrefix}SwapEvent`
@@ -80,6 +82,7 @@ export interface EventTxResult<T> extends TxResult {
 }
 
 export type CreatePositionTxResult = EventTxResult<object[]>
+export type ChangeLiquidityTxResult = EventTxResult<object[]>
 export type RemovePositionTxResult = EventTxResult<object[]>
 export type SwapTxResult = EventTxResult<object[]>
 export type SwapRouteTxResult = EventTxResult<object[]>

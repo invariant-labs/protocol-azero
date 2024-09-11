@@ -36,6 +36,7 @@ import {
 } from './consts.js'
 import { Network } from './network.js'
 import {
+  ChangeLiquidityTxResult,
   ContractOptions,
   CreatePositionTxResult,
   InvariantEvent,
@@ -659,6 +660,81 @@ export class Invariant {
       this.waitForFinalization,
       block
     ) as Promise<CreatePositionTxResult>
+  }
+
+  changeLiquidityTx(
+    index: bigint,
+    newLiquidity: Liquidity,
+    spotSqrtPrice: SqrtPrice,
+    slippageTolerance: Percentage,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): SubmittableExtrinsic<'promise'> {
+    const slippageLimitLower = calculateSqrtPriceAfterSlippage(
+      spotSqrtPrice,
+      slippageTolerance,
+      false
+    )
+    const slippageLimitUpper = calculateSqrtPriceAfterSlippage(
+      spotSqrtPrice,
+      slippageTolerance,
+      true
+    )
+
+    return createTx(
+      this.contract,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
+      0n,
+      InvariantTx.ChangeLiquidity,
+      [index, newLiquidity, slippageLimitLower, slippageLimitUpper]
+    )
+  }
+
+  async changeLiquidity(
+    account: IKeyringPair,
+    index: bigint,
+    newLiquidity: Liquidity,
+    spotSqrtPrice: SqrtPrice,
+    slippageTolerance: Percentage,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    },
+    block: boolean = true
+  ): Promise<ChangeLiquidityTxResult> {
+    const slippageLimitLower = calculateSqrtPriceAfterSlippage(
+      spotSqrtPrice,
+      slippageTolerance,
+      false
+    )
+    const slippageLimitUpper = calculateSqrtPriceAfterSlippage(
+      spotSqrtPrice,
+      slippageTolerance,
+      true
+    )
+
+    return createSignAndSendTx(
+      this.contract,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
+      0n,
+      account,
+      InvariantTx.ChangeLiquidity,
+      [index, newLiquidity, slippageLimitLower, slippageLimitUpper],
+      this.waitForFinalization,
+      block
+    ) as Promise<ChangeLiquidityTxResult>
   }
 
   transferPositionTx(

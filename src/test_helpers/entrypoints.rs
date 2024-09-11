@@ -136,6 +136,36 @@ macro_rules! create_position {
 }
 
 #[macro_export]
+macro_rules! change_liquidity {
+    ($client:ident, $dex:ident, $index:expr, $liquidity_delta:expr, $slippage_limit_lower:expr, $slippage_limit_upper:expr, $caller:ident) => {{
+        let mut call_builder = $dex.call_builder::<Invariant>();
+        let call = call_builder.change_liquidity(
+            $index,
+            $liquidity_delta,
+            $slippage_limit_lower,
+            $slippage_limit_upper,
+        );
+        let result = $client
+            .call(&$caller, &call)
+            .dry_run()
+            .await
+            .unwrap()
+            .return_value();
+
+        if result.is_ok() {
+            $client
+                .call(&$caller, &call)
+                .submit()
+                .await
+                .unwrap()
+                .return_value()
+        } else {
+            result
+        }
+    }};
+}
+
+#[macro_export]
 macro_rules! swap {
     ($client:ident, $dex:ident, $pool_key:expr, $x_to_y:expr, $amount:expr, $by_amount_in:expr, $sqrt_price_limit:expr, $caller:ident) => {{
         let mut call_builder = $dex.call_builder::<Invariant>();

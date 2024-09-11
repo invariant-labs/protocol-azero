@@ -1,7 +1,7 @@
 export const abi = `
 {
   "source": {
-    "hash": "0xd7b1e93c1aa80811707256fcdeab425c3ba1aae3ebe5b2cfaefae524d99760c4",
+    "hash": "0xf54f930a18121b0194ea148546ef66b341699044ef0f2393818f0713ddee0868",
     "language": "ink! 5.0.0",
     "compiler": "rustc 1.77.0",
     "build_info": {
@@ -176,6 +176,102 @@ export const abi = `
         "label": "CreatePositionEvent",
         "module_path": "invariant::contracts::events",
         "signature_topic": "0x50a25822f8984babdbc09246e1d170630167a27235d98a5ff8ac7516a5cdab15"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "timestamp",
+            "type": {
+              "displayName": [
+                "u64"
+              ],
+              "type": 9
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "address",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "pool",
+            "type": {
+              "displayName": [
+                "PoolKey"
+              ],
+              "type": 16
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "old_liquidity",
+            "type": {
+              "displayName": [
+                "Liquidity"
+              ],
+              "type": 19
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "new_liquidity",
+            "type": {
+              "displayName": [
+                "Liquidity"
+              ],
+              "type": 19
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "lower_tick",
+            "type": {
+              "displayName": [
+                "i32"
+              ],
+              "type": 12
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "upper_tick",
+            "type": {
+              "displayName": [
+                "i32"
+              ],
+              "type": 12
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "current_sqrt_price",
+            "type": {
+              "displayName": [
+                "SqrtPrice"
+              ],
+              "type": 26
+            }
+          }
+        ],
+        "docs": [],
+        "label": "ChangeLiquidityEvent",
+        "module_path": "invariant::contracts::events",
+        "signature_topic": "0x64170064e51c87ef344867b9add63810f5965e5ec094e6ff16cc5ada4fbd8a5a"
       },
       {
         "args": [
@@ -701,6 +797,59 @@ export const abi = `
           "type": 60
         },
         "selector": "0x0a1ca76b"
+      },
+      {
+        "args": [
+          {
+            "label": "index",
+            "type": {
+              "displayName": [
+                "u32"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "label": "new_liquidity",
+            "type": {
+              "displayName": [
+                "Liquidity"
+              ],
+              "type": 19
+            }
+          },
+          {
+            "label": "slippage_limit_lower",
+            "type": {
+              "displayName": [
+                "SqrtPrice"
+              ],
+              "type": 26
+            }
+          },
+          {
+            "label": "slippage_limit_upper",
+            "type": {
+              "displayName": [
+                "SqrtPrice"
+              ],
+              "type": 26
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "InvariantTrait::change_liquidity",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 57
+        },
+        "selector": "0x19b443b7"
       },
       {
         "args": [
@@ -4021,6 +4170,10 @@ export const abi = `
               {
                 "index": 34,
                 "name": "SetCodeHashError"
+              },
+              {
+                "index": 35,
+                "name": "LiquidityChangeZero"
               }
             ]
           }

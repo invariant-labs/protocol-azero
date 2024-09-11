@@ -89,6 +89,32 @@ pub trait InvariantTrait {
         slippage_limit_upper: SqrtPrice,
     ) -> Result<Position, InvariantError>;
 
+    /// Updates a position.
+    ///
+    /// # Parameters
+    /// - `pool_key`: A unique key that identifies the specified pool.
+    /// - `owner`: Owner of the position to update
+    /// - `index`: Index of the position to update
+    /// - `new_liquidity`: The desired liquidity provided by the user in the specified range.
+    /// - `slippage_limit_lower`: The price limit for downward movement to execute the position update.
+    /// - `slippage_limit_upper`: The price limit for upward movement to execute the position update.
+    ///
+    /// # Errors
+    /// - Fails if the user attempts to update a position with zero liquidity.
+    /// - Fails if the price has reached the slippage limit.
+    /// - Fails if the allowance is insufficient or the user balance transfer fails.
+    /// - Fails if position does not exist
+    ///
+    /// # External contracts
+    /// - PSP22
+    #[ink(message)]
+    fn change_liquidity(
+        &mut self,
+        index: u32,
+        new_liquidity: Liquidity,
+        slippage_limit_lower: SqrtPrice,
+        slippage_limit_upper: SqrtPrice,
+    ) -> Result<(), InvariantError>;
     /// Performs a single swap based on the provided parameters.
     ///
     /// # Parameters
