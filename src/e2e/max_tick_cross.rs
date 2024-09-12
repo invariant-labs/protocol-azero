@@ -28,7 +28,7 @@ pub mod e2e_tests {
     type E2EResult<T> = Result<T, Box<dyn std::error::Error>>;
 
     #[ink_e2e::test]
-    async fn max_tick_cross(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+    async fn max_swap_steps(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let (dex, token_x, token_y) = init_dex_and_tokens!(client);
         init_basic_pool!(client, dex, token_x, token_y);
 

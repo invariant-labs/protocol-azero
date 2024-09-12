@@ -25,7 +25,6 @@ import {
   calculateAmountDeltaResult,
   calculateTick,
   getMaxChunk,
-  getMaxTickCross,
   getPercentageDenominator,
   getSqrtPriceDenominator,
   tickIndexToPosition,
@@ -42,7 +41,7 @@ import { getSubstrateChain, initPolkadotJs as initApi } from '@scio-labs/use-ink
 import { abi as invariantAbi } from './abis/invariant.js'
 import { abi as PSP22Abi } from './abis/psp22.js'
 import { abi as wrappedAZEROAbi } from './abis/wrapped-azero.js'
-import { CONCENTRATION_FACTOR, MAINNET, TESTNET } from './consts.js'
+import { CONCENTRATION_FACTOR, MAINNET, MAX_SWAP_STEPS, TESTNET } from './consts.js'
 import { Network } from './network.js'
 import { EventTxResult, LiquidityBreakpoint, Query, Tx, TxResult } from './schema.js'
 
@@ -556,11 +555,11 @@ export function filterTicks<T extends Tick | LiquidityTick>(
   xToY: boolean
 ): T[] {
   const filteredTicks = new Array(...ticks)
-  const maxTicksCross = getMaxTickCross()
+  const maxSwapSteps = MAX_SWAP_STEPS
   let tickCount = 0
 
   for (const [index, tick] of filteredTicks.entries()) {
-    if (tickCount >= maxTicksCross) {
+    if (tickCount >= maxSwapSteps) {
       break
     }
 
@@ -587,10 +586,10 @@ export function filterTickmap(
 ): Tickmap {
   const filteredTickmap = new Map(tickmap.bitmap)
   const [currentChunkIndex] = tickIndexToPosition(index, tickSpacing)
-  const maxTicksCross = getMaxTickCross()
+  const maxSwapSteps = MAX_SWAP_STEPS
   let tickCount = 0
   for (const [chunkIndex] of filteredTickmap) {
-    if (tickCount >= maxTicksCross) {
+    if (tickCount >= maxSwapSteps) {
       break
     }
 

@@ -2,7 +2,7 @@ use crate::clamm::compute_swap_step;
 use crate::sqrt_price::{get_max_tick, get_min_tick, SqrtPrice};
 use crate::token_amount::TokenAmount;
 use crate::{
-    CalculateSwapResult, FeeTier, Tickmap, UpdatePoolTick, MAX_SQRT_PRICE, MAX_TICK_CROSS,
+    CalculateSwapResult, FeeTier, Tickmap, UpdatePoolTick, MAX_SQRT_PRICE, MAX_SWAP_STEPS,
     MIN_SQRT_PRICE,
 };
 use crate::{LiquidityTick, Pool};
@@ -56,8 +56,9 @@ pub fn simulate_invariant_swap(
 
     let mut global_insufficient_liquidity = false;
     let mut state_outdated = false;
-    let mut max_ticks_crossed = false;
+    let mut max_swap_steps_reached = false;
 
+    let mut swap_step_number = 0;
     let mut crossed_ticks: Vec<LiquidityTick> = vec![];
     let mut remaining_amount = amount;
     let mut total_amount_in = TokenAmount(0);
@@ -86,6 +87,7 @@ pub fn simulate_invariant_swap(
             by_amount_in,
             fee_tier.fee,
         )?;
+        swap_step_number += 1;
 
         // make remaining amount smaller
         if by_amount_in {
@@ -211,10 +213,6 @@ pub fn simulate_invariant_swap(
         if let UpdatePoolTick::TickInitialized(tick) = tick_update {
             if has_crossed {
                 crossed_ticks.push(tick);
-                if crossed_ticks.len() > MAX_TICK_CROSS as usize {
-                    max_ticks_crossed = true;
-                    break;
-                }
             }
         }
 
@@ -225,6 +223,11 @@ pub fn simulate_invariant_swap(
 
         if reached_tick_limit {
             global_insufficient_liquidity = true;
+            break;
+        }
+
+        if swap_step_number > MAX_SWAP_STEPS {
+            max_swap_steps_reached = true;
             break;
         }
     }
@@ -238,6 +241,6 @@ pub fn simulate_invariant_swap(
         crossed_ticks,
         global_insufficient_liquidity,
         state_outdated,
-        max_ticks_crossed,
+        max_swap_steps_reached,
     })
 }

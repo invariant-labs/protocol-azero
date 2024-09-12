@@ -245,7 +245,7 @@ pub mod invariant {
                     }
                 }
 
-                let reached_tick_limit = match x_to_y {
+                let reached_tick_limit: bool = match x_to_y {
                     true => pool.current_tick_index <= tick_limit,
                     false => pool.current_tick_index >= tick_limit,
                 };
