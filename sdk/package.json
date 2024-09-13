@@ -55,7 +55,8 @@
     "test:tx": "mocha ./tests/tx.test.ts -g tx",
     "test:simulate-invariant-swap": "mocha ./tests/simulate-invariant-swap.test.ts -g simulateInvariantSwap",
     "test:query-on-pair": "mocha ./tests/query-on-pair.test.ts -g query-on-pair",
-    "test:get-all": "mocha ./tests/get-all.test.ts -g get-all"
+    "test:get-all": "mocha ./tests/get-all.test.ts -g get-all",
+    "test:update-position-seconds-per-liquidity": "mocha ./tests/update-position-seconds-per-liquidity.test.ts -g update-position-seconds-per-liquidity"
   },
   "dependencies": {
     "@invariant-labs/a0-sdk-wasm": "file:./src/wasm/pkg",

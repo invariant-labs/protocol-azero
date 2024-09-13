@@ -251,11 +251,20 @@ impl Position {
 
     pub fn update_seconds_per_liquidity(
         &mut self,
-        pool: Pool,
+        pool: &mut Pool,
         lower_tick: Tick,
         upper_tick: Tick,
         current_timestamp: u64,
     ) {
+        pool.update_seconds_per_liquidity_inside(
+            lower_tick.index,
+            lower_tick.seconds_per_liquidity_outside,
+            upper_tick.index,
+            upper_tick.seconds_per_liquidity_outside,
+            current_timestamp,
+        )
+        .unwrap();
+
         self.seconds_per_liquidity_inside = unwrap!(calculate_seconds_per_liquidity_inside(
             lower_tick.index,
             upper_tick.index,
@@ -527,12 +536,7 @@ mod tests {
             .unwrap();
 
             assert_eq!(pos.seconds_per_liquidity_inside, SecondsPerLiquidity(0));
-            pos.update_seconds_per_liquidity(
-                pool.clone(),
-                lower_tick,
-                upper_tick,
-                current_timestamp,
-            );
+            pos.update_seconds_per_liquidity(&mut pool, lower_tick, upper_tick, current_timestamp);
 
             assert_eq!(
                 pos.seconds_per_liquidity_inside,
@@ -555,7 +559,7 @@ mod tests {
                 .unwrap();
 
                 pos.update_seconds_per_liquidity(
-                    pool.clone(),
+                    &mut pool,
                     lower_tick,
                     upper_tick,
                     current_timestamp,
@@ -589,7 +593,7 @@ mod tests {
                 );
 
                 pos.update_seconds_per_liquidity(
-                    pool.clone(),
+                    &mut pool,
                     lower_tick,
                     upper_tick,
                     current_timestamp + 1,

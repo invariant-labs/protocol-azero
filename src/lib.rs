@@ -1127,9 +1127,12 @@ pub mod invariant {
 
             let upper_tick = self.ticks.get(pool_key, position.upper_tick_index)?;
 
-            let pool = self.pools.get(pool_key)?;
+            let pool = &mut self.pools.get(pool_key)?;
 
             position.update_seconds_per_liquidity(pool, lower_tick, upper_tick, current_timestamp);
+
+            self.pools.update(pool_key, pool)?;
+            self.positions.update(caller, index, &position)?;
             Ok(())
         }
     }
