@@ -268,12 +268,12 @@ describe('simulateInvariantSwap', async () => {
       const poolKey = newPoolKey(token0Address, token1Address, feeTier)
       const pool = await invariant.getPool(token0Address, token1Address, feeTier)
       const sqrtPriceLimit = calculateSqrtPrice(
-        pool.currentTickIndex + feeTier.tickSpacing * SEARCH_RANGE * MAX_SWAP_STEPS
+        pool.currentTickIndex - feeTier.tickSpacing * SEARCH_RANGE * MAX_SWAP_STEPS
       )
 
       const amountIn = 4999n
       const byAmountIn = true
-      const xToY = false
+      const xToY = true
 
       const tickmap = filterTickmap(
         await invariant.getFullTickmap(poolKey),
