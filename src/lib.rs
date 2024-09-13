@@ -34,7 +34,7 @@ pub mod invariant {
     use ink::prelude::vec;
     use ink::prelude::vec::Vec;
     use token::{PSP22Error, PSP22};
-    use traceable_result::{unwrap, TrackableError};
+    use traceable_result::unwrap;
 
     type PSP22Wrapper = contract_ref!(PSP22);
     type WrappedAZEROWrapper = contract_ref!(WrappedAZERO);
