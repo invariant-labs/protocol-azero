@@ -93,7 +93,8 @@ pub trait InvariantTrait {
     ///
     /// # Parameters
     /// - `index`: Index of the position to update
-    /// - `new_liquidity`: Liquidity that the position should have after the change
+    /// - `add_liquidity`: Determines whether the liquidity should be increased or decreased
+    /// - `delta_liquidity`: Liquidity that the position should be taken or added
     /// - `slippage_limit_lower`: The price limit for downward movement to execute the position update.
     /// - `slippage_limit_upper`: The price limit for upward movement to execute the position update.
     ///
@@ -110,7 +111,8 @@ pub trait InvariantTrait {
     fn change_liquidity(
         &mut self,
         index: u32,
-        new_liquidity: Liquidity,
+        delta_liquidity: Liquidity,
+        add_liquidity: bool,
         slippage_limit_lower: SqrtPrice,
         slippage_limit_upper: SqrtPrice,
     ) -> Result<(), InvariantError>;

@@ -137,11 +137,12 @@ macro_rules! create_position {
 
 #[macro_export]
 macro_rules! change_liquidity {
-    ($client:ident, $dex:ident, $index:expr, $liquidity_delta:expr, $slippage_limit_lower:expr, $slippage_limit_upper:expr, $caller:ident) => {{
+    ($client:ident, $dex:ident, $index:expr, $liquidity_delta:expr, $add_liquidity:expr, $slippage_limit_lower:expr, $slippage_limit_upper:expr, $caller:ident) => {{
         let mut call_builder = $dex.call_builder::<Invariant>();
         let call = call_builder.change_liquidity(
             $index,
             $liquidity_delta,
+            $add_liquidity,
             $slippage_limit_lower,
             $slippage_limit_upper,
         );

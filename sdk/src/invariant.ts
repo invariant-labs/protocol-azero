@@ -65,7 +65,7 @@ import {
 } from './utils.js'
 
 type Page = { index: number; entries: [Position, Pool][] }
-
+export type DepositDirection = 'deposit' | 'withdraw'
 export class Invariant {
   contract: ContractPromise
   api: ApiPromise
@@ -664,7 +664,8 @@ export class Invariant {
 
   changeLiquidityTx(
     index: bigint,
-    newLiquidity: Liquidity,
+    deltaLiquidity: Liquidity,
+    isDeposit: boolean,
     spotSqrtPrice: SqrtPrice,
     slippageTolerance: Percentage,
     options: ContractOptions = {
@@ -693,14 +694,15 @@ export class Invariant {
       options.storageDepositLimit,
       0n,
       InvariantTx.ChangeLiquidity,
-      [index, newLiquidity, slippageLimitLower, slippageLimitUpper]
+      [index, deltaLiquidity, isDeposit, slippageLimitLower, slippageLimitUpper]
     )
   }
 
   async changeLiquidity(
     account: IKeyringPair,
     index: bigint,
-    newLiquidity: Liquidity,
+    deltaLiquidity: Liquidity,
+    isDeposit: boolean,
     spotSqrtPrice: SqrtPrice,
     slippageTolerance: Percentage,
     options: ContractOptions = {
@@ -731,7 +733,7 @@ export class Invariant {
       0n,
       account,
       InvariantTx.ChangeLiquidity,
-      [index, newLiquidity, slippageLimitLower, slippageLimitUpper],
+      [index, deltaLiquidity, isDeposit, slippageLimitLower, slippageLimitUpper],
       this.waitForFinalization,
       block
     ) as Promise<ChangeLiquidityTxResult>

@@ -32,8 +32,8 @@ pub struct ChangeLiquidityEvent {
     timestamp: u64,
     address: String,
     pool: PoolKey,
-    new_liquidity: Liquidity,
-    old_liquidity: Liquidity,
+    delta_liquidity: Liquidity,
+    add_liquidity: bool,
     #[tsify(type = "bigint")]
     lower_tick: i32,
     #[tsify(type = "bigint")]

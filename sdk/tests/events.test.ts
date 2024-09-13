@@ -288,8 +288,8 @@ describe('events', async () => {
     const expectedLiquidityChangeEvent: ChangeLiquidityEvent = {
       address: account.address.toString(),
       currentSqrtPrice: toSqrtPrice(1n, 0n),
-      newLiquidity: 2000000000000n,
-      oldLiquidity: 1000000000000n,
+      deltaLiquidity: 1000000000000n,
+      addLiquidity: true,
       lowerTick: -10n,
       upperTick: 10n,
       pool: poolKey,
@@ -305,7 +305,8 @@ describe('events', async () => {
     const result = await invariant.changeLiquidity(
       account,
       0n,
-      2000000000000n,
+      1000000000000n,
+      true,
       toSqrtPrice(1n, 0),
       0n
     )

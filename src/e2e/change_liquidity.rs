@@ -100,7 +100,8 @@ pub mod e2e_tests {
                 client,
                 dex,
                 0,
-                Liquidity::from_integer(20000),
+                Liquidity::from_integer(10000),
+                true,
                 SqrtPrice::new(0),
                 SqrtPrice::max_instance(),
                 alice
@@ -151,6 +152,7 @@ pub mod e2e_tests {
                 dex,
                 0,
                 Liquidity::from_integer(10000),
+                false,
                 SqrtPrice::new(0),
                 SqrtPrice::max_instance(),
                 alice
@@ -259,7 +261,8 @@ pub mod e2e_tests {
             client,
             dex,
             0,
-            Liquidity::from_integer(10000) - Liquidity::new(1),
+            Liquidity::new(1),
+            false,
             SqrtPrice::new(0),
             SqrtPrice::max_instance(),
             alice
@@ -338,7 +341,8 @@ pub mod e2e_tests {
             client,
             dex,
             0,
-            Liquidity::new(1),
+            position.liquidity - Liquidity::new(1),
+            false,
             SqrtPrice::new(0),
             SqrtPrice::max_instance(),
             alice
@@ -419,12 +423,164 @@ pub mod e2e_tests {
             client,
             dex,
             0,
-            Liquidity::from_integer(0),
+            position.liquidity,
+            false,
             SqrtPrice::new(0),
             SqrtPrice::max_instance(),
             alice
         );
         assert_eq!(result, Err(InvariantError::ZeroLiquidity));
+
+        Ok(())
+    }
+
+    #[ink_e2e::test]
+    async fn test_change_liquidity_zero_liquidity_change(
+        mut client: ink_e2e::Client<C, E>,
+    ) -> E2EResult<()> {
+        let dex = create_dex!(client, Percentage::new(0));
+        let (token_x, token_y) = create_tokens!(client, 500, 500);
+
+        let alice = ink_e2e::alice();
+
+        let fee_tier = FeeTier::new(Percentage::new(0), 1).unwrap();
+
+        add_fee_tier!(client, dex, fee_tier, alice).unwrap();
+
+        let init_tick = 0;
+        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
+        create_pool!(
+            client,
+            dex,
+            token_x.account_id,
+            token_y.account_id,
+            fee_tier,
+            init_sqrt_price,
+            init_tick,
+            alice
+        )
+        .unwrap();
+
+        approve!(client, token_x, dex.account_id, 500, alice).unwrap();
+        approve!(client, token_y, dex.account_id, 500, alice).unwrap();
+
+        let pool_key = PoolKey::new(token_x.account_id, token_y.account_id, fee_tier).unwrap();
+
+        create_position!(
+            client,
+            dex,
+            pool_key,
+            -10,
+            10,
+            Liquidity::from_integer(10000),
+            SqrtPrice::new(0),
+            SqrtPrice::max_instance(),
+            alice
+        )
+        .unwrap();
+
+        let position = get_position!(client, dex, 0, alice).unwrap();
+        let pool = get_pool!(
+            client,
+            dex,
+            token_x.account_id,
+            token_y.account_id,
+            fee_tier
+        )
+        .unwrap();
+        let lower_tick = get_tick!(client, dex, pool_key, -10).unwrap();
+        let upper_tick = get_tick!(client, dex, pool_key, 10).unwrap();
+
+        assert_eq!(position.liquidity, Liquidity::from_integer(10000));
+        assert_eq!(pool.liquidity, Liquidity::from_integer(10000));
+        assert_eq!(lower_tick.liquidity_change, Liquidity::from_integer(10000));
+        assert!(lower_tick.sign);
+
+        assert_eq!(upper_tick.liquidity_change, Liquidity::from_integer(10000));
+        assert!(!upper_tick.sign);
+
+        let result = change_liquidity!(
+            client,
+            dex,
+            0,
+            Liquidity::from_integer(0),
+            true,
+            SqrtPrice::new(0),
+            SqrtPrice::max_instance(),
+            alice
+        );
+        assert_eq!(result, Err(InvariantError::LiquidityChangeZero));
+
+        Ok(())
+    }
+
+    #[ink_e2e::test]
+    async fn test_change_liquidity_insufficient_balance(
+        mut client: ink_e2e::Client<C, E>,
+    ) -> E2EResult<()> {
+        let dex = create_dex!(client, Percentage::new(0));
+        let (token_x, token_y) = create_tokens!(client, 500, 500);
+
+        let alice = ink_e2e::alice();
+        let bob = ink_e2e::bob();
+
+        let fee_tier = FeeTier::new(Percentage::new(0), 1).unwrap();
+
+        add_fee_tier!(client, dex, fee_tier, alice).unwrap();
+
+        let init_tick = 0;
+        let init_sqrt_price = calculate_sqrt_price(init_tick).unwrap();
+        create_pool!(
+            client,
+            dex,
+            token_x.account_id,
+            token_y.account_id,
+            fee_tier,
+            init_sqrt_price,
+            init_tick,
+            alice
+        )
+        .unwrap();
+
+        approve!(client, token_x, dex.account_id, u128::MAX, alice).unwrap();
+        approve!(client, token_y, dex.account_id, u128::MAX, alice).unwrap();
+
+        let pool_key = PoolKey::new(token_x.account_id, token_y.account_id, fee_tier).unwrap();
+
+        create_position!(
+            client,
+            dex,
+            pool_key,
+            -10,
+            10,
+            Liquidity::from_integer(10000),
+            SqrtPrice::new(0),
+            SqrtPrice::max_instance(),
+            alice
+        )
+        .unwrap();
+
+        let position = get_position!(client, dex, 0, alice).unwrap();
+        let pool = get_pool!(
+            client,
+            dex,
+            token_x.account_id,
+            token_y.account_id,
+            fee_tier
+        )
+        .unwrap();
+
+        let result = change_liquidity!(
+            client,
+            dex,
+            0,
+            Liquidity::from_integer(1000000000),
+            true,
+            SqrtPrice::new(0),
+            SqrtPrice::max_instance(),
+            alice
+        );
+        assert_eq!(result, Err(InvariantError::TransferError));
 
         Ok(())
     }
@@ -440,6 +596,7 @@ pub mod e2e_tests {
             dex,
             0,
             Liquidity::from_integer(10000),
+            true,
             SqrtPrice::new(0),
             SqrtPrice::max_instance(),
             alice

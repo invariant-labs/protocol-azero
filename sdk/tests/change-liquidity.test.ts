@@ -59,7 +59,7 @@ describe('change-liquidity', async () => {
     const pool = await invariant.getPool(poolKey.tokenX,poolKey.tokenY,feeTier)
     {
       const positionBefore = await invariant.getPosition(account.address, 0n);
-      await invariant.changeLiquidity(account, 0n, 2000000000000n,pool.sqrtPrice, 0n)
+      await invariant.changeLiquidity(account, 0n, 1000000000000n, true, pool.sqrtPrice, 0n)
       const positionAfter = await invariant.getPosition(account.address, 0n);
       const expectedPosition: Position=  {
         poolKey: positionBefore.poolKey,
@@ -82,7 +82,7 @@ describe('change-liquidity', async () => {
     }
     {
       const positionBefore = await invariant.getPosition(account.address, 0n);
-      await invariant.changeLiquidity(account, 0n, 1000000000000n,pool.sqrtPrice, 0n)
+      await invariant.changeLiquidity(account, 0n, 1000000000000n, false, pool.sqrtPrice, 0n)
       const positionAfter = await invariant.getPosition(account.address, 0n);
       const expectedPosition: Position=  {
         poolKey: positionBefore.poolKey,

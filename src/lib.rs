@@ -362,8 +362,8 @@ pub mod invariant {
             &self,
             address: AccountId,
             pool: PoolKey,
-            old_liquidity: Liquidity,
-            new_liquidity: Liquidity,
+            delta_liquidity: Liquidity,
+            add_liquidity: bool,
             lower_tick: i32,
             upper_tick: i32,
             current_sqrt_price: SqrtPrice,
@@ -373,8 +373,8 @@ pub mod invariant {
                 timestamp,
                 address,
                 pool,
-                old_liquidity,
-                new_liquidity,
+                delta_liquidity,
+                add_liquidity,
                 lower_tick,
                 upper_tick,
                 current_sqrt_price,
@@ -576,7 +576,8 @@ pub mod invariant {
         fn change_liquidity(
             &mut self,
             index: u32,
-            new_liquidity: Liquidity,
+            delta_liquidity: Liquidity,
+            add_liquidity: bool,
             slippage_limit_lower: SqrtPrice,
             slippage_limit_upper: SqrtPrice,
         ) -> Result<(), InvariantError> {
@@ -590,28 +591,9 @@ pub mod invariant {
             let mut lower_tick = self.ticks.get(pool_key, position.lower_tick_index)?;
             let mut upper_tick = self.ticks.get(pool_key, position.upper_tick_index)?;
 
-            if new_liquidity.get() == 0 {
+            if !add_liquidity && delta_liquidity == position.liquidity {
                 return Err(InvariantError::ZeroLiquidity);
             }
-
-            let (delta_liquidity, add_liquidity) = if position.liquidity >= new_liquidity {
-                (
-                    position
-                        .liquidity
-                        .checked_sub(new_liquidity)
-                        .map_err(|_| TrackableError::SUB)
-                        .unwrap(),
-                    false,
-                )
-            } else {
-                (
-                    new_liquidity
-                        .checked_sub(position.liquidity)
-                        .map_err(|_| TrackableError::SUB)
-                        .unwrap(),
-                    true,
-                )
-            };
 
             if delta_liquidity.get() == 0 {
                 return Err(InvariantError::LiquidityChangeZero);
@@ -620,8 +602,6 @@ pub mod invariant {
             if pool.sqrt_price < slippage_limit_lower || pool.sqrt_price > slippage_limit_upper {
                 return Err(InvariantError::PriceLimitReached);
             }
-
-            let old_liquidity = position.liquidity;
 
             let (x, y) = unwrap!(position.modify(
                 &mut pool,
@@ -664,8 +644,8 @@ pub mod invariant {
             self.emit_change_liquidity_event(
                 caller,
                 pool_key,
-                old_liquidity,
-                new_liquidity,
+                delta_liquidity,
+                add_liquidity,
                 lower_tick.index,
                 upper_tick.index,
                 pool.sqrt_price,

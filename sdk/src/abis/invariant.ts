@@ -1,7 +1,7 @@
 export const abi = `
 {
   "source": {
-    "hash": "0xf54f930a18121b0194ea148546ef66b341699044ef0f2393818f0713ddee0868",
+    "hash": "0xa4a857242e883bf990e5c70de073e3b9a39ae8b63cdfb29daf677d2d78aafd63",
     "language": "ink! 5.0.0",
     "compiler": "rustc 1.77.0",
     "build_info": {
@@ -215,7 +215,7 @@ export const abi = `
           {
             "docs": [],
             "indexed": false,
-            "label": "old_liquidity",
+            "label": "delta_liquidity",
             "type": {
               "displayName": [
                 "Liquidity"
@@ -226,12 +226,12 @@ export const abi = `
           {
             "docs": [],
             "indexed": false,
-            "label": "new_liquidity",
+            "label": "add_liquidity",
             "type": {
               "displayName": [
-                "Liquidity"
+                "bool"
               ],
-              "type": 19
+              "type": 33
             }
           },
           {
@@ -271,7 +271,7 @@ export const abi = `
         "docs": [],
         "label": "ChangeLiquidityEvent",
         "module_path": "invariant::contracts::events",
-        "signature_topic": "0x64170064e51c87ef344867b9add63810f5965e5ec094e6ff16cc5ada4fbd8a5a"
+        "signature_topic": "0x46cd3c5dbfeaa26a33c451719cec81defa409942d31339858154c409c72b6d5a"
       },
       {
         "args": [
@@ -810,12 +810,21 @@ export const abi = `
             }
           },
           {
-            "label": "new_liquidity",
+            "label": "delta_liquidity",
             "type": {
               "displayName": [
                 "Liquidity"
               ],
               "type": 19
+            }
+          },
+          {
+            "label": "add_liquidity",
+            "type": {
+              "displayName": [
+                "bool"
+              ],
+              "type": 33
             }
           },
           {
