@@ -1,7 +1,10 @@
 use super::PoolKey;
 use crate::alloc::string::ToString;
 
-use crate::types::{fee_growth::FeeGrowth, liquidity::Liquidity, token_amount::TokenAmount};
+use crate::types::{
+    fee_growth::FeeGrowth, liquidity::Liquidity, seconds_per_liquidity::SecondsPerLiquidity,
+    token_amount::TokenAmount,
+};
 
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
@@ -23,6 +26,8 @@ pub struct Position {
     pub last_block_number: u64,
     pub tokens_owed_x: TokenAmount,
     pub tokens_owed_y: TokenAmount,
+    #[tsify(type = "bigint")]
+    seconds_per_liquidity_inside: SecondsPerLiquidity,
     #[tsify(type = "bigint")]
     pub created_at: u64,
 }

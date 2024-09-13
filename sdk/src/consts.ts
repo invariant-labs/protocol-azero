@@ -11,7 +11,7 @@ import {
   getLiquidityTicksLimit,
   getMaxPoolKeysReturned,
   getMaxPoolPairsReturned,
-  getMaxTickCross,
+  getMaxSwapSteps,
   getMaxTickmapQuerySize,
   getPercentageDenominator,
   getPercentageScale,
@@ -22,6 +22,7 @@ import {
   getSecondsPerLiquidityScale,
   getSqrtPriceDenominator,
   getSqrtPriceScale,
+  getTickSearchRange,
   getTokenAmountDenominator,
   getTokenAmountScale
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
@@ -95,8 +96,9 @@ export const MAX_SQRT_PRICE = getGlobalMaxSqrtPrice()
 export const MIN_SQRT_PRICE = getGlobalMinSqrtPrice()
 export const CHUNK_SIZE = getChunkSize()
 export const MAX_TICKMAP_QUERY_SIZE = getMaxTickmapQuerySize()
-export const MAX_TICK_CROSS = getMaxTickCross()
+export const MAX_SWAP_STEPS = getMaxSwapSteps()
 export const LIQUIDITY_TICKS_LIMIT = getLiquidityTicksLimit()
 export const MAX_POOL_KEYS_RETURNED = getMaxPoolKeysReturned()
 export const MAX_POOL_PAIRS_RETURNED = getMaxPoolPairsReturned()
 export const POSITIONS_ENTRIES_LIMIT = getPositionsEntriesLimit()
+export const SEARCH_RANGE = getTickSearchRange()
