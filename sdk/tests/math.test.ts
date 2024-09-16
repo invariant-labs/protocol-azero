@@ -119,10 +119,15 @@ describe('get-liquidity-by-x', async () => {
         lastBlockNumber: 0n,
         tokensOwedX: 0n,
         tokensOwedY: 0n,
+        secondsPerLiquidityInside: 0n,
         createdAt: 0n
       }
 
-      objectEquals(position, expectedPosition, ['lastBlockNumber', 'createdAt'])
+      objectEquals(position, expectedPosition, [
+        'lastBlockNumber',
+        'createdAt',
+        'secondsPerLiquidityInside'
+      ])
     }
     // above range
     {
@@ -170,9 +175,14 @@ describe('get-liquidity-by-x', async () => {
         lastBlockNumber: 0n,
         tokensOwedX: 0n,
         tokensOwedY: 0n,
+        secondsPerLiquidityInside: 0n,
         createdAt: 0n
       }
-      objectEquals(position, expectedPosition, ['lastBlockNumber', 'createdAt'])
+      objectEquals(position, expectedPosition, [
+        'lastBlockNumber',
+        'createdAt',
+        'secondsPerLiquidityInside'
+      ])
     }
   })
 })
@@ -257,9 +267,14 @@ describe('get-liquidity-by-y', async () => {
         lastBlockNumber: 0n,
         tokensOwedX: 0n,
         tokensOwedY: 0n,
+        secondsPerLiquidityInside: 0n,
         createdAt: 0n
       }
-      objectEquals(position, expectedPosition, ['lastBlockNumber', 'createdAt'])
+      objectEquals(position, expectedPosition, [
+        'lastBlockNumber',
+        'createdAt',
+        'secondsPerLiquidityInside'
+      ])
     }
     // in range
     {
@@ -307,9 +322,14 @@ describe('get-liquidity-by-y', async () => {
         lastBlockNumber: 0n,
         tokensOwedX: 0n,
         tokensOwedY: 0n,
+        secondsPerLiquidityInside: 0n,
         createdAt: 0n
       }
-      objectEquals(position, expectedPosition, ['lastBlockNumber', 'createdAt'])
+      objectEquals(position, expectedPosition, [
+        'lastBlockNumber',
+        'createdAt',
+        'secondsPerLiquidityInside'
+      ])
     }
     // above range
     {

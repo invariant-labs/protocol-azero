@@ -1,5 +1,8 @@
 use crate::{
-    types::{fee_growth::FeeGrowth, liquidity::Liquidity, sqrt_price::SqrtPrice},
+    types::{
+        fee_growth::FeeGrowth, liquidity::Liquidity, seconds_per_liquidity::SecondsPerLiquidity,
+        sqrt_price::SqrtPrice,
+    },
     Pool,
 };
 use decimal::*;
@@ -24,6 +27,8 @@ pub struct Tick {
     pub fee_growth_outside_y: FeeGrowth,
     #[tsify(type = "bigint")]
     pub seconds_outside: u64,
+    #[tsify(type = "bigint")]
+    pub seconds_per_liquidity_outside: SecondsPerLiquidity,
 }
 
 #[derive(Eq, PartialEq, Debug, Copy, Clone, Serialize, Deserialize, Tsify)]
@@ -47,6 +52,7 @@ impl Default for Tick {
             fee_growth_outside_x: FeeGrowth::new(0.into()),
             fee_growth_outside_y: FeeGrowth::new(0.into()),
             seconds_outside: 0u64,
+            seconds_per_liquidity_outside: SecondsPerLiquidity::new(0),
         }
     }
 }

@@ -71,8 +71,16 @@ describe('get-positions', async () => {
       feeReceiver: account.address
     }
 
-    objectEquals(result[0][0][0], firstExpectedPosition, ['lastBlockNumber', 'createdAt'])
-    objectEquals(result[0][0][1], firstExpectedPool, ['startTimestamp', 'lastTimestamp'])
+    objectEquals(result[0][0][0], firstExpectedPosition, [
+      'lastBlockNumber',
+      'createdAt',
+      'secondsPerLiquidityInside'
+    ])
+    objectEquals(result[0][0][1], firstExpectedPool, [
+      'startTimestamp',
+      'lastTimestamp',
+      'secondsPerLiquidityGlobal'
+    ])
 
     const secondExpectedPosition = {
       poolKey,
@@ -95,8 +103,16 @@ describe('get-positions', async () => {
       feeReceiver: account.address
     }
 
-    objectEquals(result[0][1][0], secondExpectedPosition, ['lastBlockNumber', 'createdAt'])
-    objectEquals(result[0][1][1], secondExpectedPool, ['startTimestamp', 'lastTimestamp'])
+    objectEquals(result[0][1][0], secondExpectedPosition, [
+      'lastBlockNumber',
+      'createdAt',
+      'secondsPerLiquidityInside'
+    ])
+    objectEquals(result[0][1][1], secondExpectedPool, [
+      'startTimestamp',
+      'lastTimestamp',
+      'secondsPerLiquidityGlobal'
+    ])
   })
 
   it('get positions less than exist', async () => {

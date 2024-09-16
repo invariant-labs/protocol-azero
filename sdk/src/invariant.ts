@@ -770,6 +770,53 @@ export class Invariant {
     ) as Promise<RemovePositionTxResult>
   }
 
+  updatePositionSecondsPerLiquidityTx(
+    index: bigint,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): SubmittableExtrinsic<'promise'> {
+    return createTx(
+      this.contract,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
+      0n,
+      InvariantTx.UpdatePositionSecondsPerLiquidity,
+      [index]
+    )
+  }
+
+  async updatePositionSecondsPerLiquidity(
+    account: IKeyringPair,
+    index: bigint,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    },
+    block: boolean = true
+  ): Promise<any> {
+    return createSignAndSendTx(
+      this.contract,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
+      0n,
+      account,
+      InvariantTx.UpdatePositionSecondsPerLiquidity,
+      [index],
+      this.waitForFinalization,
+      block
+    )
+  }
+
   claimFeeTx(
     index: bigint,
     options: ContractOptions = {

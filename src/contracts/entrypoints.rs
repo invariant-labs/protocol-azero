@@ -437,6 +437,12 @@ pub trait InvariantTrait {
     #[ink(message)]
     fn withdraw_all_wazero(&self, address: AccountId) -> Result<(), InvariantError>;
 
+    /// Updates seconds per liquidity for a given position
+    ///
+    /// # Parameters
+    /// - `index`: index of the updated position
+    #[ink(message)]
+    fn update_position_seconds_per_liquidity(&mut self, index: u32) -> Result<(), InvariantError>;
     /// Modifies the contract code. Only the admin can call this function.
     ///
     /// WARNING: The state of this contract and the contract you want to change the code to must be the same.

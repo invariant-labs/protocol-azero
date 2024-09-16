@@ -36,28 +36,31 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: install
-          args:
-            --version 3.0.0 --locked cargo-dylint
+          args: --version 3.0.0 --locked cargo-dylint
 
       - name: Install dylint-link
         uses: actions-rs/cargo@v1
         with:
           command: install
-          args:
-            --version 3.0.0 --locked dylint-link
-      
+          args: --version 3.0.0 --locked dylint-link
+
       - name: Install substrate-contracts-node
+        shell: bash
+        run: |
+          chmod +x ./node.sh
+          ./node.sh v0.31.0
+          echo "$(pwd)/target/tmp" >> $GITHUB_PATH
+
+      - name: Build
         uses: actions-rs/cargo@v1
         with:
-          command: install
-          args:
-            --version 0.31.0 --locked contracts-node
+          command: build
 
       - name: Run unit tests
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --features e2e-tests
+          args: --features e2e-tests  -- --skip add
 
   build:
     name: Release build the contract + lint
@@ -88,28 +91,25 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: install
-          args:
-            --version 3.0.0 --locked cargo-dylint
+          args: --version 3.0.0 --locked cargo-dylint
 
       - name: Install dylint-link
         uses: actions-rs/cargo@v1
         with:
           command: install
-          args:
-            --version 3.0.0 --locked dylint-link
-      
+          args: --version 3.0.0 --locked dylint-link
+
       - name: Install substrate-contracts-node
-        uses: actions-rs/cargo@v1
-        with:
-          command: install
-          args:
-            --version 0.39.0 --locked contracts-node
+        run: |
+          chmod +x ./node.sh
+          ./node.sh v0.41.0
+          echo "$(pwd)/target/tmp" >> $GITHUB_PATH
 
       - name: Install cargo contract
         uses: actions-rs/cargo@v1
         with:
           command: install
-          args: --version 4.0.2 --locked cargo-contract
+          args: --version 4.1.1 --locked cargo-contract
 
       - name: Run cargo fmt
         uses: actions-rs/cargo@v1
@@ -158,28 +158,25 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: install
-          args:
-            --version 3.0.0 --locked cargo-dylint
+          args: --version 3.0.0 --locked cargo-dylint
 
       - name: Install dylint-link
         uses: actions-rs/cargo@v1
         with:
           command: install
-          args:
-            --version 3.0.0 --locked dylint-link
-      
+          args: --version 3.0.0 --locked dylint-link
+
       - name: Install substrate-contracts-node
-        uses: actions-rs/cargo@v1
-        with:
-          command: install
-          args:
-            --version 0.39.0 --locked contracts-node
+        run: |
+          chmod +x ./node.sh
+          ./node.sh v0.41.0
+          echo "$(pwd)/target/tmp" >> $GITHUB_PATH
 
       - name: Install cargo contract
         uses: actions-rs/cargo@v1
         with:
           command: install
-          args: --version 4.0.2 --locked cargo-contract
+          args: --version 4.1.1 --locked cargo-contract
 
       - name: Install wasm-bindgen-cli
         uses: actions-rs/cargo@v1

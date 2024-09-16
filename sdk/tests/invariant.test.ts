@@ -115,7 +115,8 @@ describe('invariant', async function () {
       sqrtPrice: 999500149965006998740209n,
       feeGrowthOutsideX: 0n,
       feeGrowthOutsideY: 0n,
-      secondsOutside: lowerTick.secondsOutside
+      secondsOutside: lowerTick.secondsOutside,
+      secondsPerLiquidityOutside: lowerTick.secondsPerLiquidityOutside
     })
     await assertThrowsAsync(invariant.getTick(poolKey, 0n), InvariantError.TickNotFound)
     const upperTick = await invariant.getTick(poolKey, 10n)
@@ -127,7 +128,8 @@ describe('invariant', async function () {
       sqrtPrice: 1000500100010000500010000n,
       feeGrowthOutsideX: 0n,
       feeGrowthOutsideY: 0n,
-      secondsOutside: upperTick.secondsOutside
+      secondsOutside: upperTick.secondsOutside,
+      secondsPerLiquidityOutside: lowerTick.secondsPerLiquidityOutside
     })
 
     const isLowerTickInitialized = await invariant.isTickInitialized(poolKey, -10n)
@@ -162,7 +164,8 @@ describe('invariant', async function () {
       feeProtocolTokenY: 0n,
       startTimestamp: pool.startTimestamp,
       lastTimestamp: pool.lastTimestamp,
-      feeReceiver: pool.feeReceiver
+      feeReceiver: pool.feeReceiver,
+      secondsPerLiquidityGlobal: pool.secondsPerLiquidityGlobal
     })
   })
 
@@ -192,7 +195,8 @@ describe('invariant', async function () {
         feeProtocolTokenY: 0n,
         startTimestamp: pool.startTimestamp,
         lastTimestamp: pool.lastTimestamp,
-        feeReceiver: pool.feeReceiver
+        feeReceiver: pool.feeReceiver,
+        secondsPerLiquidityGlobal: pool.secondsPerLiquidityGlobal
       })
     }
     {

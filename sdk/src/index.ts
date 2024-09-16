@@ -47,11 +47,11 @@ export {
   MAX_SQRT_PRICE,
   MIN_SQRT_PRICE,
   TESTNET,
-  TESTNET_BTC_ADDRESS,
-  TESTNET_ETH_ADDRESS,
-  TESTNET_INVARIANT_ADDRESS,
-  TESTNET_USDC_ADDRESS,
-  TESTNET_WAZERO_ADDRESS
+  BTC_ADDRESS,
+  ETH_ADDRESS,
+  INVARIANT_ADDRESS,
+  USDC_ADDRESS,
+  WAZERO_ADDRESS
 } from './consts.js'
 export { Invariant } from './invariant.js'
 export { Network } from './network.js'

@@ -6,6 +6,7 @@ use crate::{
         types::{
             fee_growth::{calculate_fee_growth_inside, FeeGrowth},
             liquidity::Liquidity,
+            seconds_per_liquidity::{calculate_seconds_per_liquidity_inside, SecondsPerLiquidity},
             sqrt_price::SqrtPrice,
             token_amount::TokenAmount,
         },
@@ -31,6 +32,7 @@ pub struct Position {
     pub tokens_owed_x: TokenAmount,
     pub tokens_owed_y: TokenAmount,
     pub created_at: u64,
+    pub seconds_per_liquidity_inside: SecondsPerLiquidity,
 }
 
 impl Position {
@@ -45,8 +47,11 @@ impl Position {
         current_timestamp: u64,
         tick_spacing: u16,
     ) -> TrackableResult<(TokenAmount, TokenAmount)> {
-        pool.last_timestamp = current_timestamp;
-
+        if !pool.liquidity.is_zero() && current_timestamp > pool.last_timestamp {
+            ok_or_mark_trace!(pool.update_seconds_per_liquidity_global(current_timestamp))?;
+        } else {
+            pool.last_timestamp = current_timestamp;
+        }
         // calculate dynamically limit allows easy modification
         let max_liquidity_per_tick = calculate_max_liquidity_per_tick(tick_spacing);
 
@@ -171,7 +176,7 @@ impl Position {
         pool_key: PoolKey,
         lower_tick: &mut Tick,
         upper_tick: &mut Tick,
-        current_timestamp: u64,
+        current_timestamp_in_milliseconds: u64,
         liquidity_delta: Liquidity,
         slippage_limit_lower: SqrtPrice,
         slippage_limit_upper: SqrtPrice,
@@ -193,16 +198,18 @@ impl Position {
             last_block_number: block_number,
             tokens_owed_x: TokenAmount::new(0),
             tokens_owed_y: TokenAmount::new(0),
-            created_at: current_timestamp,
+            created_at: current_timestamp_in_milliseconds,
+            seconds_per_liquidity_inside: SecondsPerLiquidity::new(0),
         };
 
+        let current_timestamp_in_seconds = current_timestamp_in_milliseconds / 1000;
         let (required_x, required_y) = unwrap!(position.modify(
             pool,
             upper_tick,
             lower_tick,
             liquidity_delta,
             true,
-            current_timestamp,
+            current_timestamp_in_seconds,
             tick_spacing
         ));
 
@@ -240,6 +247,33 @@ impl Position {
             deinitialize_lower_tick,
             deinitialize_upper_tick,
         )
+    }
+
+    pub fn update_seconds_per_liquidity(
+        &mut self,
+        pool: &mut Pool,
+        lower_tick: Tick,
+        upper_tick: Tick,
+        current_timestamp: u64,
+    ) {
+        pool.update_seconds_per_liquidity_inside(
+            lower_tick.index,
+            lower_tick.seconds_per_liquidity_outside,
+            upper_tick.index,
+            upper_tick.seconds_per_liquidity_outside,
+            current_timestamp,
+        )
+        .unwrap();
+
+        self.seconds_per_liquidity_inside = unwrap!(calculate_seconds_per_liquidity_inside(
+            lower_tick.index,
+            upper_tick.index,
+            pool.current_tick_index,
+            lower_tick.seconds_per_liquidity_outside,
+            upper_tick.seconds_per_liquidity_outside,
+            pool.seconds_per_liquidity_global,
+        ));
+        self.last_block_number = current_timestamp;
     }
 }
 
@@ -463,6 +497,113 @@ mod tests {
                 .unwrap();
 
             assert_eq!({ position.tokens_owed_x }, TokenAmount(151167));
+        }
+    }
+    #[test]
+    fn test_update_seconds_per_liquidity() {
+        {
+            let current_timestamp = 100;
+
+            let mut pool = Pool {
+                current_tick_index: 0,
+                sqrt_price: SqrtPrice::from_tick(0).unwrap(),
+                liquidity: Liquidity::new(20000000000000),
+                ..Default::default()
+            };
+
+            let mut upper_tick = Tick {
+                index: 10,
+                liquidity_change: Liquidity::new(10),
+                ..Default::default()
+            };
+            let mut lower_tick = Tick {
+                index: -10,
+                ..Default::default()
+            };
+            let pool_before = pool.clone();
+            let (mut pos, _, _) = Position::create(
+                &mut pool,
+                PoolKey::default(),
+                &mut lower_tick,
+                &mut upper_tick,
+                current_timestamp * 1000,
+                Liquidity::new(100000000),
+                pool_before.sqrt_price,
+                pool_before.sqrt_price,
+                0,
+                1,
+            )
+            .unwrap();
+
+            assert_eq!(pos.seconds_per_liquidity_inside, SecondsPerLiquidity(0));
+            pos.update_seconds_per_liquidity(&mut pool, lower_tick, upper_tick, current_timestamp);
+
+            assert_eq!(
+                pos.seconds_per_liquidity_inside,
+                SecondsPerLiquidity(5000000000000000000)
+            );
+            // liquidity change on delta_time == 0
+            {
+                let _ = Position::create(
+                    &mut pool,
+                    PoolKey::default(),
+                    &mut lower_tick,
+                    &mut upper_tick,
+                    current_timestamp * 1000,
+                    Liquidity::new(100000000),
+                    pool_before.sqrt_price,
+                    pool_before.sqrt_price,
+                    0,
+                    1,
+                )
+                .unwrap();
+
+                pos.update_seconds_per_liquidity(
+                    &mut pool,
+                    lower_tick,
+                    upper_tick,
+                    current_timestamp,
+                );
+
+                assert_eq!(
+                    pos.seconds_per_liquidity_inside,
+                    SecondsPerLiquidity(5000000000000000000)
+                );
+            }
+
+            // liquidity change after update on delta_time == 0
+            {
+                let _ = Position::create(
+                    &mut pool,
+                    PoolKey::default(),
+                    &mut lower_tick,
+                    &mut upper_tick,
+                    (current_timestamp + 1) * 1000,
+                    Liquidity::new(100000000),
+                    pool_before.sqrt_price,
+                    pool_before.sqrt_price,
+                    0,
+                    1,
+                )
+                .unwrap();
+
+                assert_eq!(
+                    pos.seconds_per_liquidity_inside,
+                    SecondsPerLiquidity(5000000000000000000)
+                );
+
+                pos.update_seconds_per_liquidity(
+                    &mut pool,
+                    lower_tick,
+                    upper_tick,
+                    current_timestamp + 1,
+                );
+
+                assert_eq!(
+                    pos.seconds_per_liquidity_inside,
+                    SecondsPerLiquidity(5049999500004999950)
+                );
+            }
         }
     }
 }
