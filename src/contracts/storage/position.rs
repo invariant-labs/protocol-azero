@@ -530,7 +530,13 @@ mod tests {
             .unwrap();
 
             assert_eq!(pos.seconds_per_liquidity_inside, SecondsPerLiquidity(0));
-            pos.update_seconds_per_liquidity(&mut pool, lower_tick, upper_tick, current_timestamp);
+            pos.update_seconds_per_liquidity(
+                &mut pool,
+                lower_tick,
+                upper_tick,
+                current_timestamp,
+                0,
+            );
 
             assert_eq!(
                 pos.seconds_per_liquidity_inside,
@@ -557,6 +563,7 @@ mod tests {
                     lower_tick,
                     upper_tick,
                     current_timestamp,
+                    0,
                 );
 
                 assert_eq!(
@@ -591,6 +598,7 @@ mod tests {
                     lower_tick,
                     upper_tick,
                     current_timestamp + 1,
+                    0,
                 );
 
                 assert_eq!(
