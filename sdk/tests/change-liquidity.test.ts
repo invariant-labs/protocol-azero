@@ -1,7 +1,4 @@
-import {
-  Pool,
-  Position,
-} from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
+import { Pool, Position } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 import { Keyring } from '@polkadot/api'
 import { describe, it } from 'mocha'
 import { Invariant } from '../src/invariant'
@@ -56,12 +53,12 @@ describe('change-liquidity', async () => {
   })
 
   it('change liquidity', async () => {
-    const pool = await invariant.getPool(poolKey.tokenX,poolKey.tokenY,feeTier)
+    const pool = await invariant.getPool(poolKey.tokenX, poolKey.tokenY, feeTier)
     {
-      const positionBefore = await invariant.getPosition(account.address, 0n);
+      const positionBefore = await invariant.getPosition(account.address, 0n)
       await invariant.changeLiquidity(account, 0n, 1000000000000n, true, pool.sqrtPrice, 0n)
-      const positionAfter = await invariant.getPosition(account.address, 0n);
-      const expectedPosition: Position=  {
+      const positionAfter = await invariant.getPosition(account.address, 0n)
+      const expectedPosition: Position = {
         poolKey: positionBefore.poolKey,
         liquidity: 2000000000000n,
         lowerTickIndex: positionBefore.lowerTickIndex,
@@ -71,20 +68,21 @@ describe('change-liquidity', async () => {
         lastBlockNumber: 0n,
         tokensOwedX: 0n,
         tokensOwedY: 0n,
-        createdAt: 0n
-      };
-  
-      objectEquals(
-        expectedPosition,
-        positionAfter,
-        ['createdAt', 'lastBlockNumber']
-      )
+        createdAt: 0n,
+        secondsPerLiquidityInside: 0n
+      }
+
+      objectEquals(expectedPosition, positionAfter, [
+        'createdAt',
+        'lastBlockNumber',
+        'secondsPerLiquidityInside'
+      ])
     }
     {
-      const positionBefore = await invariant.getPosition(account.address, 0n);
+      const positionBefore = await invariant.getPosition(account.address, 0n)
       await invariant.changeLiquidity(account, 0n, 1000000000000n, false, pool.sqrtPrice, 0n)
-      const positionAfter = await invariant.getPosition(account.address, 0n);
-      const expectedPosition: Position=  {
+      const positionAfter = await invariant.getPosition(account.address, 0n)
+      const expectedPosition: Position = {
         poolKey: positionBefore.poolKey,
         liquidity: 1000000000000n,
         lowerTickIndex: positionBefore.lowerTickIndex,
@@ -94,14 +92,15 @@ describe('change-liquidity', async () => {
         lastBlockNumber: 0n,
         tokensOwedX: 0n,
         tokensOwedY: 0n,
-        createdAt: 0n
-      };
-  
-      objectEquals(
-        expectedPosition,
-        positionAfter,
-        ['createdAt', 'lastBlockNumber']
-      )
+        createdAt: 0n,
+        secondsPerLiquidityInside: 0n
+      }
+
+      objectEquals(expectedPosition, positionAfter, [
+        'createdAt',
+        'lastBlockNumber',
+        'secondsPerLiquidityInside'
+      ])
     }
   })
 })

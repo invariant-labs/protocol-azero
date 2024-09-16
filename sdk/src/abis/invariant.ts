@@ -1,7 +1,7 @@
 export const abi = `
 {
   "source": {
-    "hash": "0xa4a857242e883bf990e5c70de073e3b9a39ae8b63cdfb29daf677d2d78aafd63",
+    "hash": "0xcc659012169a620a3cd6565f4f6c238646150a3d846fc4849c1a5718f803cda5",
     "language": "ink! 5.0.0",
     "compiler": "rustc 1.77.0",
     "build_info": {
@@ -231,7 +231,7 @@ export const abi = `
               "displayName": [
                 "bool"
               ],
-              "type": 33
+              "type": 34
             }
           },
           {
@@ -264,7 +264,7 @@ export const abi = `
               "displayName": [
                 "SqrtPrice"
               ],
-              "type": 26
+              "type": 27
             }
           }
         ],
@@ -824,7 +824,7 @@ export const abi = `
               "displayName": [
                 "bool"
               ],
-              "type": 33
+              "type": 34
             }
           },
           {
@@ -833,7 +833,7 @@ export const abi = `
               "displayName": [
                 "SqrtPrice"
               ],
-              "type": 26
+              "type": 27
             }
           },
           {
@@ -842,7 +842,7 @@ export const abi = `
               "displayName": [
                 "SqrtPrice"
               ],
-              "type": 26
+              "type": 27
             }
           }
         ],
@@ -856,7 +856,7 @@ export const abi = `
             "ink",
             "MessageResult"
           ],
-          "type": 57
+          "type": 58
         },
         "selector": "0x19b443b7"
       },

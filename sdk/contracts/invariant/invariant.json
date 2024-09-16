@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x4f19a0152491660087fd1d38d163ab436967e96ac14a07220133afc86e2bd9ec",
+    "hash": "0xcc659012169a620a3cd6565f4f6c238646150a3d846fc4849c1a5718f803cda5",
     "language": "ink! 5.0.0",
     "compiler": "rustc 1.77.0",
     "build_info": {
@@ -230,7 +230,7 @@
               "displayName": [
                 "bool"
               ],
-              "type": 33
+              "type": 34
             }
           },
           {
@@ -263,7 +263,7 @@
               "displayName": [
                 "SqrtPrice"
               ],
-              "type": 26
+              "type": 27
             }
           }
         ],
@@ -823,7 +823,7 @@
               "displayName": [
                 "bool"
               ],
-              "type": 33
+              "type": 34
             }
           },
           {
@@ -832,7 +832,7 @@
               "displayName": [
                 "SqrtPrice"
               ],
-              "type": 26
+              "type": 27
             }
           },
           {
@@ -841,7 +841,7 @@
               "displayName": [
                 "SqrtPrice"
               ],
-              "type": 26
+              "type": 27
             }
           }
         ],
@@ -855,7 +855,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 57
+          "type": 58
         },
         "selector": "0x19b443b7"
       },

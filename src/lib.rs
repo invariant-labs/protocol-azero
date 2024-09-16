@@ -582,11 +582,12 @@ pub mod invariant {
             slippage_limit_upper: SqrtPrice,
         ) -> Result<(), InvariantError> {
             let caller = self.env().caller();
+            let current_timestamp = self.get_timestamp();
+            let current_block_number = self.env().block_number() as u64;
             let contract = self.env().account_id();
 
             let mut position = self.positions.get(caller, index)?;
             let pool_key = position.pool_key;
-
             let mut pool = self.pools.get(pool_key)?;
             let mut lower_tick = self.ticks.get(pool_key, position.lower_tick_index)?;
             let mut upper_tick = self.ticks.get(pool_key, position.upper_tick_index)?;
@@ -603,13 +604,21 @@ pub mod invariant {
                 return Err(InvariantError::PriceLimitReached);
             }
 
+            position.update_seconds_per_liquidity(
+                &mut pool,
+                lower_tick,
+                upper_tick,
+                current_timestamp,
+                current_block_number,
+            );
+
             let (x, y) = unwrap!(position.modify(
                 &mut pool,
                 &mut upper_tick,
                 &mut lower_tick,
                 delta_liquidity,
                 add_liquidity,
-                self.get_timestamp(),
+                current_timestamp,
                 pool_key.fee_tier.tick_spacing,
             ));
 
@@ -1225,6 +1234,7 @@ pub mod invariant {
         ) -> Result<(), InvariantError> {
             let caller = self.env().caller();
             let current_timestamp = self.get_timestamp();
+            let current_block_number = self.env().block_number() as u64;
 
             let mut position = self.positions.get(caller, index)?;
 
@@ -1236,7 +1246,13 @@ pub mod invariant {
 
             let pool = &mut self.pools.get(pool_key)?;
 
-            position.update_seconds_per_liquidity(pool, lower_tick, upper_tick, current_timestamp);
+            position.update_seconds_per_liquidity(
+                pool,
+                lower_tick,
+                upper_tick,
+                current_timestamp,
+                current_block_number,
+            );
 
             self.pools.update(pool_key, pool)?;
             self.positions.update(caller, index, &position)?;
