@@ -15,5 +15,5 @@ pub struct CalculateSwapResult {
     pub crossed_ticks: Vec<LiquidityTick>,
     pub global_insufficient_liquidity: bool,
     pub state_outdated: bool,
-    pub max_ticks_crossed: bool,
+    pub max_swap_steps_reached: bool,
 }
