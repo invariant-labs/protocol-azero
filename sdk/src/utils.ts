@@ -401,6 +401,23 @@ export const _calculateTokenAmounts = (
   )
 }
 
+function copyObject(obj: any): any {
+  if (obj === null || typeof obj !== 'object') {
+    return obj
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(copyObject)
+  }
+
+  const copiedObject = {} as any
+  for (const key in obj) {
+    copiedObject[key] = copyObject(obj[key])
+  }
+
+  return copiedObject
+}
+
 // deserialize functions should be used after calling parse
 export const deserializeArrayToU256 = (value: [bigint, bigint, bigint, bigint]) => {
   let ret = 0n
@@ -411,21 +428,24 @@ export const deserializeArrayToU256 = (value: [bigint, bigint, bigint, bigint]) 
 }
 
 export const deserializeTickFromContract = (value: any) => {
-  value.feeGrowthOutsideX = deserializeArrayToU256(value.feeGrowthOutsideX)
-  value.feeGrowthOutsideY = deserializeArrayToU256(value.feeGrowthOutsideY)
-  return value
+  const newVal = copyObject(value)
+  newVal.feeGrowthOutsideX = deserializeArrayToU256(value.feeGrowthOutsideX)
+  newVal.feeGrowthOutsideY = deserializeArrayToU256(value.feeGrowthOutsideY)
+  return newVal
 }
 
 export const deserializePoolFromContract = (value: any) => {
-  value.feeGrowthGlobalX = deserializeArrayToU256(value.feeGrowthGlobalX)
-  value.feeGrowthGlobalY = deserializeArrayToU256(value.feeGrowthGlobalY)
-  return value
+  const newVal = copyObject(value)
+  newVal.feeGrowthGlobalX = deserializeArrayToU256(value.feeGrowthGlobalX)
+  newVal.feeGrowthGlobalY = deserializeArrayToU256(value.feeGrowthGlobalY)
+  return newVal
 }
 
 export const deserializePositionFromContract = (value: any) => {
-  value.feeGrowthInsideX = deserializeArrayToU256(value.feeGrowthInsideX)
-  value.feeGrowthInsideY = deserializeArrayToU256(value.feeGrowthInsideY)
-  return value
+  const newVal = copyObject(value)
+  newVal.feeGrowthInsideX = deserializeArrayToU256(value.feeGrowthInsideX)
+  newVal.feeGrowthInsideY = deserializeArrayToU256(value.feeGrowthInsideY)
+  return newVal
 }
 
 // serialize functions should be used before passing FeeGrowth to wasm via a struct or just a raw variable
@@ -434,21 +454,24 @@ export const serializeU256 = (value: bigint) => {
 }
 
 export const serializeTick = (value: any) => {
-  value.feeGrowthOutsideX = serializeU256(value.feeGrowthOutsideX)
-  value.feeGrowthOutsideY = serializeU256(value.feeGrowthOutsideY)
-  return value
+  const newVal = copyObject(value)
+  newVal.feeGrowthOutsideX = serializeU256(value.feeGrowthOutsideX)
+  newVal.feeGrowthOutsideY = serializeU256(value.feeGrowthOutsideY)
+  return newVal
 }
 
 export const serializePool = (value: any) => {
-  value.feeGrowthGlobalX = serializeU256(value.feeGrowthGlobalX)
-  value.feeGrowthGlobalY = serializeU256(value.feeGrowthGlobalY)
-  return value
+  const newVal = copyObject(value)
+  newVal.feeGrowthGlobalX = serializeU256(value.feeGrowthGlobalX)
+  newVal.feeGrowthGlobalY = serializeU256(value.feeGrowthGlobalY)
+  return newVal
 }
 
 export const serializePosition = (value: any) => {
-  value.feeGrowthInsideX = serializeU256(value.feeGrowthInsideX)
-  value.feeGrowthInsideY = serializeU256(value.feeGrowthInsideY)
-  return value
+  const newVal = copyObject(value)
+  newVal.feeGrowthInsideX = serializeU256(value.feeGrowthInsideX)
+  newVal.feeGrowthInsideY = serializeU256(value.feeGrowthInsideY)
+  return newVal
 }
 
 export const parse = (value: any) => {
