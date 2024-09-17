@@ -39,7 +39,7 @@ const main = async () => {
   console.log('Successfully added fee tiers')
 
   const BTCAddress = await PSP22.deploy(api, account, 0n, 'Bitcoin', 'BTC', 8n)
-  const ETHAddress = await PSP22.deploy(api, account, 0n, 'Ether', 'ETH', 12n)
+  const ETHAddress = await PSP22.deploy(api, account, 0n, 'Ether', 'ETH', 18n)
   const USDCAddress = await PSP22.deploy(api, account, 0n, 'USDC', 'USDC', 6n)
   const USDTAddress = await PSP22.deploy(api, account, 0n, 'Tether USD', 'USDT', 6n)
   const SOLAddress = await PSP22.deploy(api, account, 0n, 'Solana', 'SOL', 9n)
