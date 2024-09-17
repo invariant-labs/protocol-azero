@@ -158,6 +158,7 @@ macro_rules! change_liquidity {
         );
         let result = $client
             .call(&$caller, &call)
+            .extra_gas_portion(1000)
             .dry_run()
             .await
             .unwrap()
@@ -166,6 +167,7 @@ macro_rules! change_liquidity {
         if result.is_ok() {
             $client
                 .call(&$caller, &call)
+                .extra_gas_portion(1000)
                 .submit()
                 .await
                 .unwrap()

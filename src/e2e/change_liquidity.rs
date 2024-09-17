@@ -522,7 +522,6 @@ pub mod e2e_tests {
         let (token_x, token_y) = create_tokens!(client, 500, 500);
 
         let alice = ink_e2e::alice();
-        let bob = ink_e2e::bob();
 
         let fee_tier = FeeTier::new(Percentage::new(0), 1).unwrap();
 
@@ -557,16 +556,6 @@ pub mod e2e_tests {
             SqrtPrice::new(0),
             SqrtPrice::max_instance(),
             alice
-        )
-        .unwrap();
-
-        let position = get_position!(client, dex, 0, alice).unwrap();
-        let pool = get_pool!(
-            client,
-            dex,
-            token_x.account_id,
-            token_y.account_id,
-            fee_tier
         )
         .unwrap();
 
