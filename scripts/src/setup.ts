@@ -97,7 +97,6 @@ const main = async () => {
       10 ** 24
     try {
       const poolSqrtPrice = priceToSqrtPrice(BigInt(Math.round(price)))
-      console.log(poolKey)
       await invariant.createPool(account, poolKey, poolSqrtPrice)
     } catch (e) {
       console.log('Create pool error', poolKey, e)

@@ -43,32 +43,32 @@ export const WAZERO_ADDRESS = {
 }
 
 export const INVARIANT_ADDRESS = {
-  [Network.Testnet]: '5FrYjo3Y7CmzvLveD96F66SMYJdcBPcJh9kSxq214y4LTXdj',
+  [Network.Testnet]: '5CZDYJxe8K5PQa6fD9ee5zCTxPCrGKFLev3yE6Zzr1wbGCPC',
   [Network.Mainnet]: '5CvocBcChFccUkNGZpYf1mThQQDaY7ZxXEmdTXbTLqt1SaYQ',
   [Network.Local]: ''
 }
 export const BTC_ADDRESS = {
-  [Network.Testnet]: '5DHLwE9znALML2kaKbHz1X4W243ae3ijqCQjbVoVwVpsEGnp',
+  [Network.Testnet]: '5FKAq1VfuiPCzRkKo6MUa3P8Gx5AP46SDfJLs6W2M4U2Q1WU',
   [Network.Mainnet]: '5HW9QeCifdKt8gXwXVSE8z56njDQBhGfses1KJNFL68qius9',
   [Network.Local]: ''
 }
 export const ETH_ADDRESS = {
-  [Network.Testnet]: '5Cqosz5NxwvuudycTmphjmjBaGnUf25wnu9CSbDAR2616j7h',
+  [Network.Testnet]: '5F7yHkALqCfNsXU4FabvxUtHL9Td43eMkGXKH8HRMpVvmr8U',
   [Network.Mainnet]: '5EEzffpXkfYKkdtmqNh9UNctYTjmbi9GfKKAWRTKKFh6F1FU',
   [Network.Local]: ''
 }
 export const USDC_ADDRESS = {
-  [Network.Testnet]: '5HGDNuKD1knU8ZQ3zQXZCMniKiPWuN18dr2RkhPDkwifPS2R',
+  [Network.Testnet]: '5Ck5t4ADuj7JhLfRBSWkRyzGasLoRX2dNEXx9uDhG6X7oarA',
   [Network.Mainnet]: '5GDsB8Qm6CAoBi7rmM6TCKMQQUg8CiRzuH9YVyfcrwDKWoqB',
   [Network.Local]: ''
 }
 export const USDT_ADDRESS = {
-  [Network.Testnet]: '5DnXKCPAqTMWWqDoC8NhBo6V8SFh2mqfk3NaRfs6pbQbCZHg',
+  [Network.Testnet]: '5GTNpBU7dFCainPBvGRytCDUkVmZenuQkdTvQbGVMG3R21kB',
   [Network.Mainnet]: '5HX57YoV7h51NEKhpfXZAJk8RzLX4Uutp36S23RDMPZ424LY',
   [Network.Local]: ''
 }
 export const SOL_ADDRESS = {
-  [Network.Testnet]: '5Cym4cb86pGxP1NcuXqXMgUMy12Bqeat587Bi5YNQNHKfNQY',
+  [Network.Testnet]: '5HD7ui4MaLT2GWmaLN6TXrqD2djk38u4F4H1tDkuAyCwtvtC',
   [Network.Mainnet]: '5F2xiTnahG1tFY3ZHyghh25JsjuCaamRnN7ddQjPEzwvdd3j',
   [Network.Local]: ''
 }
