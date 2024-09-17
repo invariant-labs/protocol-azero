@@ -428,7 +428,7 @@ export const deserializePositionFromContract = (value: any) => {
   return value
 }
 
-// deserialize functions should be used before passing FeeGrowth to wasm via a struct or just a raw variable
+// serialize functions should be used before passing FeeGrowth to wasm via a struct or just a raw variable
 export const serializeU256 = (value: bigint) => {
   return value.toString()
 }

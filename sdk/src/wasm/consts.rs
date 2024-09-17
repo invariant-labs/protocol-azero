@@ -12,7 +12,7 @@ pub const MIN_SQRT_PRICE: u128 = 3552636207;
 pub const TICK_SEARCH_RANGE: i32 = 256;
 pub const CHUNK_SIZE: i32 = 64;
 
-pub const MAX_SWAP_STEPS: i32 = 90;
+pub const MAX_SWAP_STEPS: i32 = 114;
 
 pub const MAX_RESULT_SIZE: usize = 16 * 1024 * 8;
 pub const MAX_TICKMAP_QUERY_SIZE: usize = MAX_RESULT_SIZE / (16 + 64);

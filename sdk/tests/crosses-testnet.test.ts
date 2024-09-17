@@ -5,7 +5,7 @@ import { Invariant } from '../src/invariant.js'
 import { Network } from '../src/network.js'
 import { PSP22 } from '../src/psp22.js'
 import { ContractOptions } from '../src/schema.js'
-import { initPolkadotApi, newFeeTier, newPoolKey, simulateInvariantSwap } from '../src/utils.js'
+import { initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils.js'
 import { describe, it } from 'mocha'
 
 describe('testnet-crosses-limitations', async () => {
@@ -59,29 +59,13 @@ describe('testnet-crosses-limitations', async () => {
     }
 
     const swapper = keyring.addFromUri('//Bob')
-    const swapAmount = 2177323n
+    const swapAmount = 3322033n
     const tokenX = isTokenX(token0Address, token1Address) ? token0Address : token1Address
 
     await psp22.mint(swapper, swapAmount, tokenX)
     await psp22.approve(swapper, invariant.contract.address.toString(), swapAmount, tokenX)
-    const poolBeforeSwap = await invariant.getPool(token0Address, token1Address, feeTier)
-    const tickmap = await invariant.getFullTickmap(poolKey)
-    const liquidityTicks = await invariant.getAllLiquidityTicks(poolKey, tickmap)
 
-    const sim = simulateInvariantSwap(
-      tickmap,
-      feeTier,
-      poolBeforeSwap,
-      liquidityTicks,
-      true,
-      swapAmount,
-      true,
-      getMinSqrtPrice(poolKey.feeTier.tickSpacing)
-    )
-
-    const targetSqrtPrice = sim.targetSqrtPrice
-
-    const tx = await invariant.swap(swapper, poolKey, true, swapAmount, true, targetSqrtPrice)
-    assert.equal((tx.events[0] as CrossTickEvent).indexes.length, 90)
+    const tx = await invariant.swap(swapper, poolKey, true, swapAmount, true, getMinSqrtPrice(1n))
+    assert.equal((tx.events[0] as CrossTickEvent).indexes.length, 114)
   })
 })
