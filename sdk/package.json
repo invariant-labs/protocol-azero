@@ -1,6 +1,6 @@
 {
   "name": "@invariant-labs/a0-sdk",
-  "version": "0.2.23",
+  "version": "0.2.24",
   "collaborators": [
     "Invariant Labs"
   ],
@@ -60,7 +60,7 @@
     "test:update-position-seconds-per-liquidity": "mocha ./tests/update-position-seconds-per-liquidity.test.ts -g update-position-seconds-per-liquidity"
   },
   "dependencies": {
-    "@invariant-labs/a0-sdk-wasm": "0.1.25",
+    "@invariant-labs/a0-sdk-wasm": "0.1.26",
     "@polkadot/api": "^10.12.4",
     "@polkadot/api-contract": "^10.12.4",
     "@scio-labs/use-inkathon": "^0.6.3",
