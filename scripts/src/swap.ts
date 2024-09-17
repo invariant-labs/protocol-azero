@@ -83,7 +83,7 @@ const main = async () => {
   )
   const firstSwapEvent = firstSwapResult.events[0] as SwapEvent
   assert(firstSimualtion.globalInsufficientLiquidity === false)
-  assert(firstSimualtion.maxTicksCrossed === false)
+  assert(firstSimualtion.maxSwapStepsReached === false)
   assert(firstSimualtion.stateOutdated === false)
   assert(firstSimualtion.amountIn == firstSwapEvent.amountIn)
   assert(firstSimualtion.amountOut == firstSwapEvent.amountOut)
@@ -117,7 +117,7 @@ const main = async () => {
   )
   const secondSwapEvent = secondSwapResult.events[0] as SwapEvent
   assert(secondSimulation.globalInsufficientLiquidity === false)
-  assert(secondSimulation.maxTicksCrossed === false)
+  assert(secondSimulation.maxSwapStepsReached === false)
   assert(secondSimulation.stateOutdated === false)
   assert(secondSimulation.amountIn === secondSwapEvent.amountIn)
   assert(secondSimulation.amountOut === secondSwapEvent.amountOut)
