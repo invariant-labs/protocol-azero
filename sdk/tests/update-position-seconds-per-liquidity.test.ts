@@ -16,7 +16,7 @@ const account = await keyring.addFromUri('//Alice')
 let invariant = await Invariant.deploy(api, Network.Local, account, 10000000000n)
 let token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
 let token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
-const psp22 = await PSP22.load(api, Network.Testnet)
+const psp22 = await PSP22.load(api, Network.Local)
 
 const lowerTickIndex = -20n
 const upperTickIndex = 10n
@@ -27,8 +27,8 @@ let pool: Pool
 
 describe('update-position-seconds-per-liquidity', async () => {
   beforeEach(async function () {
-    this.timeout(40000)
-    invariant = await Invariant.deploy(api, Network.Testnet, account, 10000000000n)
+    this.timeout(80000)
+    invariant = await Invariant.deploy(api, Network.Local, account, 10000000000n)
     token0Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
     token1Address = await PSP22.deploy(api, account, 1000000000n, 'Coin', 'COIN', 0n)
 
@@ -126,7 +126,6 @@ describe('update-position-seconds-per-liquidity', async () => {
     assert.equal(poolBefore.secondsPerLiquidityGlobal, 0n)
     assert.equal(positionBefore.secondsPerLiquidityInside, 0n)
 
-    console.log(positionBefore, poolBefore)
     await delay(5000)
 
     await invariant.changeLiquidity(
