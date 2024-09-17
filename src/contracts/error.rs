@@ -36,4 +36,5 @@ pub enum InvariantError {
     DivByZero,
     WAZEROWithdrawError,
     SetCodeHashError,
+    LiquidityChangeZero,
 }

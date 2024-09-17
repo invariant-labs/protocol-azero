@@ -6,7 +6,7 @@ use crate::{
         types::{
             fee_growth::{calculate_fee_growth_inside, FeeGrowth},
             liquidity::Liquidity,
-            seconds_per_liquidity::{calculate_seconds_per_liquidity_inside, SecondsPerLiquidity},
+            seconds_per_liquidity::SecondsPerLiquidity,
             sqrt_price::SqrtPrice,
             token_amount::TokenAmount,
         },
@@ -255,25 +255,19 @@ impl Position {
         lower_tick: Tick,
         upper_tick: Tick,
         current_timestamp: u64,
+        current_block_number: u64,
     ) {
-        pool.update_seconds_per_liquidity_inside(
-            lower_tick.index,
-            lower_tick.seconds_per_liquidity_outside,
-            upper_tick.index,
-            upper_tick.seconds_per_liquidity_outside,
-            current_timestamp,
-        )
-        .unwrap();
+        self.seconds_per_liquidity_inside = pool
+            .update_seconds_per_liquidity_inside(
+                lower_tick.index,
+                lower_tick.seconds_per_liquidity_outside,
+                upper_tick.index,
+                upper_tick.seconds_per_liquidity_outside,
+                current_timestamp,
+            )
+            .unwrap();
 
-        self.seconds_per_liquidity_inside = unwrap!(calculate_seconds_per_liquidity_inside(
-            lower_tick.index,
-            upper_tick.index,
-            pool.current_tick_index,
-            lower_tick.seconds_per_liquidity_outside,
-            upper_tick.seconds_per_liquidity_outside,
-            pool.seconds_per_liquidity_global,
-        ));
-        self.last_block_number = current_timestamp;
+        self.last_block_number = current_block_number;
     }
 }
 
@@ -536,7 +530,13 @@ mod tests {
             .unwrap();
 
             assert_eq!(pos.seconds_per_liquidity_inside, SecondsPerLiquidity(0));
-            pos.update_seconds_per_liquidity(&mut pool, lower_tick, upper_tick, current_timestamp);
+            pos.update_seconds_per_liquidity(
+                &mut pool,
+                lower_tick,
+                upper_tick,
+                current_timestamp,
+                0,
+            );
 
             assert_eq!(
                 pos.seconds_per_liquidity_inside,
@@ -563,6 +563,7 @@ mod tests {
                     lower_tick,
                     upper_tick,
                     current_timestamp,
+                    0,
                 );
 
                 assert_eq!(
@@ -597,6 +598,7 @@ mod tests {
                     lower_tick,
                     upper_tick,
                     current_timestamp + 1,
+                    0,
                 );
 
                 assert_eq!(
