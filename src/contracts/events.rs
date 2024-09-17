@@ -17,6 +17,19 @@ pub struct CreatePositionEvent {
 }
 
 #[ink::event]
+pub struct ChangeLiquidityEvent {
+    #[ink(topic)]
+    pub timestamp: u64,
+    pub address: AccountId,
+    pub pool: PoolKey,
+    pub delta_liquidity: Liquidity,
+    pub add_liquidity: bool,
+    pub lower_tick: i32,
+    pub upper_tick: i32,
+    pub current_sqrt_price: SqrtPrice,
+}
+
+#[ink::event]
 pub struct CrossTickEvent {
     #[ink(topic)]
     pub timestamp: u64,

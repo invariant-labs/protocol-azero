@@ -6,6 +6,7 @@ import { Invariant } from '../src/invariant'
 import { Network } from '../src/network'
 import { PSP22 } from '../src/psp22'
 import { delay, initPolkadotApi, newFeeTier, newPoolKey } from '../src/utils'
+import { LIQUIDITY_DENOMINATOR, SECONDS_PER_LIQUIDITY_DENOMINATOR } from '../src/consts'
 
 const api = await initPolkadotApi(Network.Local)
 
@@ -67,6 +68,7 @@ describe('update-position-seconds-per-liquidity', async () => {
     const poolAfter = await invariant.getPool(poolKey.tokenX, poolKey.tokenY, poolKey.feeTier)
     const positionAfter = await invariant.getPosition(account.address, positionIndex)
 
+    assert.notEqual(poolAfter.secondsPerLiquidityGlobal, 0n)
     assert.equal(poolAfter.secondsPerLiquidityGlobal, positionAfter.secondsPerLiquidityInside)
   })
 
@@ -103,5 +105,77 @@ describe('update-position-seconds-per-liquidity', async () => {
     )
     assert.equal(lowerTickAfter.secondsPerLiquidityOutside, poolAfter.secondsPerLiquidityGlobal)
     assert.equal(positionAfter.secondsPerLiquidityInside, 0n)
+  })
+
+  it('position inside liquidity changed', async function () {
+    this.timeout(60000)
+
+    await invariant.createPosition(
+      account,
+      poolKey,
+      lowerTickIndex,
+      upperTickIndex,
+      1000000000000n,
+      pool.sqrtPrice,
+      0n
+    )
+
+    const positionIndex = 0n
+    const poolBefore = await invariant.getPool(poolKey.tokenX, poolKey.tokenY, poolKey.feeTier)
+    const positionBefore = await invariant.getPosition(account.address, positionIndex)
+    assert.equal(poolBefore.secondsPerLiquidityGlobal, 0n)
+    assert.equal(positionBefore.secondsPerLiquidityInside, 0n)
+
+    console.log(positionBefore, poolBefore)
+    await delay(5000)
+
+    await invariant.changeLiquidity(
+      account,
+      positionIndex,
+      positionBefore.liquidity * 4n,
+      true,
+      poolBefore.sqrtPrice,
+      0n
+    )
+
+    const poolAfterChange = await invariant.getPool(poolKey.tokenX, poolKey.tokenY, poolKey.feeTier)
+    const positionAfterChange = await invariant.getPosition(account.address, positionIndex)
+
+    assert.equal(
+      poolAfterChange.secondsPerLiquidityGlobal,
+      positionAfterChange.secondsPerLiquidityInside
+    )
+
+    const secondsPassed =
+      (poolAfterChange.secondsPerLiquidityGlobal * poolBefore.liquidity) /
+      SECONDS_PER_LIQUIDITY_DENOMINATOR /
+      LIQUIDITY_DENOMINATOR
+
+    await delay(Number(secondsPassed * 1000n * 4n))
+
+    await invariant.updatePositionSecondsPerLiquidity(account, positionIndex)
+
+    const poolAfterUpdate = await invariant.getPool(poolKey.tokenX, poolKey.tokenY, poolKey.feeTier)
+    const positionAfterUpdate = await invariant.getPosition(account.address, positionIndex)
+
+    const precision = poolAfterChange.secondsPerLiquidityGlobal / 4n
+
+    if (
+      positionAfterChange.secondsPerLiquidityInside * 2n >
+        positionAfterUpdate.secondsPerLiquidityInside + precision ||
+      poolAfterChange.secondsPerLiquidityGlobal * 2n <
+        positionAfterUpdate.secondsPerLiquidityInside - precision
+    ) {
+      throw new Error(
+        `result outside of precision range actual: ${
+          positionAfterUpdate.secondsPerLiquidityInside
+        }, expected: ${positionAfterChange.secondsPerLiquidityInside * 2n}`
+      )
+    }
+
+    assert.equal(
+      poolAfterUpdate.secondsPerLiquidityGlobal,
+      positionAfterUpdate.secondsPerLiquidityInside
+    )
   })
 })

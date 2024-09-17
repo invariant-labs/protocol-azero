@@ -9,10 +9,11 @@ pub mod math;
 #[ink::contract]
 pub mod invariant {
     use crate::contracts::{
-        tick_to_position, CalculateSwapResult, CreatePositionEvent, CrossTickEvent, FeeTier,
-        FeeTiers, InvariantConfig, InvariantTrait, LiquidityTick, Pool, PoolKey, PoolKeys, Pools,
-        Position, Positions, QuoteResult, RemovePositionEvent, SwapEvent, SwapHop, Tick, Tickmap,
-        Ticks, UpdatePoolTick, LIQUIDITY_TICK_LIMIT, MAX_TICKMAP_QUERY_SIZE,
+        tick_to_position, CalculateSwapResult, ChangeLiquidityEvent, CreatePositionEvent,
+        CrossTickEvent, FeeTier, FeeTiers, InvariantConfig, InvariantTrait, LiquidityTick, Pool,
+        PoolKey, PoolKeys, Pools, Position, Positions, QuoteResult, RemovePositionEvent, SwapEvent,
+        SwapHop, Tick, Tickmap, Ticks, UpdatePoolTick, LIQUIDITY_TICK_LIMIT,
+        MAX_TICKMAP_QUERY_SIZE,
     };
     use crate::math::calculate_min_amount_out;
     use crate::math::check_tick;
@@ -356,6 +357,30 @@ pub mod invariant {
             });
         }
 
+        #[allow(clippy::too_many_arguments)]
+        fn emit_change_liquidity_event(
+            &self,
+            address: AccountId,
+            pool: PoolKey,
+            delta_liquidity: Liquidity,
+            add_liquidity: bool,
+            lower_tick: i32,
+            upper_tick: i32,
+            current_sqrt_price: SqrtPrice,
+        ) {
+            let timestamp = self.get_timestamp();
+            self.env().emit_event(ChangeLiquidityEvent {
+                timestamp,
+                address,
+                pool,
+                delta_liquidity,
+                add_liquidity,
+                lower_tick,
+                upper_tick,
+                current_sqrt_price,
+            });
+        }
+
         fn emit_remove_position_event(
             &self,
             address: AccountId,
@@ -545,6 +570,97 @@ pub mod invariant {
                 pool.sqrt_price,
             );
             Ok(position)
+        }
+
+        #[ink(message)]
+        fn change_liquidity(
+            &mut self,
+            index: u32,
+            delta_liquidity: Liquidity,
+            add_liquidity: bool,
+            slippage_limit_lower: SqrtPrice,
+            slippage_limit_upper: SqrtPrice,
+        ) -> Result<(), InvariantError> {
+            let caller = self.env().caller();
+            let current_timestamp = self.get_timestamp();
+            let current_block_number = self.env().block_number() as u64;
+            let contract = self.env().account_id();
+
+            let mut position = self.positions.get(caller, index)?;
+            let pool_key = position.pool_key;
+            let mut pool = self.pools.get(pool_key)?;
+            let mut lower_tick = self.ticks.get(pool_key, position.lower_tick_index)?;
+            let mut upper_tick = self.ticks.get(pool_key, position.upper_tick_index)?;
+
+            if !add_liquidity && delta_liquidity == position.liquidity {
+                return Err(InvariantError::ZeroLiquidity);
+            }
+
+            if delta_liquidity.get() == 0 {
+                return Err(InvariantError::LiquidityChangeZero);
+            }
+
+            if pool.sqrt_price < slippage_limit_lower || pool.sqrt_price > slippage_limit_upper {
+                return Err(InvariantError::PriceLimitReached);
+            }
+
+            position.update_seconds_per_liquidity(
+                &mut pool,
+                lower_tick,
+                upper_tick,
+                current_timestamp,
+                current_block_number,
+            );
+
+            let (x, y) = unwrap!(position.modify(
+                &mut pool,
+                &mut upper_tick,
+                &mut lower_tick,
+                delta_liquidity,
+                add_liquidity,
+                current_timestamp,
+                pool_key.fee_tier.tick_spacing,
+            ));
+
+            self.pools.update(pool_key, &pool)?;
+            self.positions.update(caller, index, &position)?;
+            self.ticks.update(pool_key, lower_tick.index, &lower_tick)?;
+            self.ticks.update(pool_key, upper_tick.index, &upper_tick)?;
+
+            let x_is_zero = x.get() == 0;
+            let y_is_zero = y.get() == 0;
+
+            if y_is_zero && x_is_zero {
+                return Err(InvariantError::AmountIsZero);
+            }
+
+            if !x_is_zero {
+                if add_liquidity {
+                    transfer_from_v1!(pool_key.token_x, caller, contract, x.get());
+                } else {
+                    transfer_v1!(pool_key.token_x, caller, x.get());
+                }
+            }
+
+            if !y_is_zero {
+                if add_liquidity {
+                    transfer_from_v1!(pool_key.token_y, caller, contract, y.get());
+                } else {
+                    transfer_v1!(pool_key.token_y, caller, y.get());
+                }
+            }
+
+            self.emit_change_liquidity_event(
+                caller,
+                pool_key,
+                delta_liquidity,
+                add_liquidity,
+                lower_tick.index,
+                upper_tick.index,
+                pool.sqrt_price,
+            );
+
+            Ok(())
         }
 
         #[ink(message)]
@@ -1040,6 +1156,7 @@ pub mod invariant {
         ) -> Result<(), InvariantError> {
             let caller = self.env().caller();
             let current_timestamp = self.get_timestamp();
+            let current_block_number = self.env().block_number() as u64;
 
             let mut position = self.positions.get(caller, index)?;
 
@@ -1051,7 +1168,13 @@ pub mod invariant {
 
             let pool = &mut self.pools.get(pool_key)?;
 
-            position.update_seconds_per_liquidity(pool, lower_tick, upper_tick, current_timestamp);
+            position.update_seconds_per_liquidity(
+                pool,
+                lower_tick,
+                upper_tick,
+                current_timestamp,
+                current_block_number,
+            );
 
             self.pools.update(pool_key, pool)?;
             self.positions.update(caller, index, &position)?;

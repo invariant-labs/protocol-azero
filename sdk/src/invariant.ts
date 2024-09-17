@@ -36,6 +36,7 @@ import {
 } from './consts.js'
 import { Network } from './network.js'
 import {
+  ChangeLiquidityTxResult,
   ContractOptions,
   CreatePositionTxResult,
   InvariantEvent,
@@ -67,7 +68,7 @@ import {
 } from './utils.js'
 
 type Page = { index: number; entries: [Position, Pool][] }
-
+export type DepositDirection = 'deposit' | 'withdraw'
 export class Invariant {
   contract: ContractPromise
   api: ApiPromise
@@ -672,6 +673,83 @@ export class Invariant {
       this.waitForFinalization,
       block
     ) as Promise<CreatePositionTxResult>
+  }
+
+  changeLiquidityTx(
+    index: bigint,
+    deltaLiquidity: Liquidity,
+    isDeposit: boolean,
+    spotSqrtPrice: SqrtPrice,
+    slippageTolerance: Percentage,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    }
+  ): SubmittableExtrinsic<'promise'> {
+    const slippageLimitLower = calculateSqrtPriceAfterSlippage(
+      spotSqrtPrice,
+      slippageTolerance,
+      false
+    )
+    const slippageLimitUpper = calculateSqrtPriceAfterSlippage(
+      spotSqrtPrice,
+      slippageTolerance,
+      true
+    )
+
+    return createTx(
+      this.contract,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
+      0n,
+      InvariantTx.ChangeLiquidity,
+      [index, deltaLiquidity, isDeposit, slippageLimitLower, slippageLimitUpper]
+    )
+  }
+
+  async changeLiquidity(
+    account: IKeyringPair,
+    index: bigint,
+    deltaLiquidity: Liquidity,
+    isDeposit: boolean,
+    spotSqrtPrice: SqrtPrice,
+    slippageTolerance: Percentage,
+    options: ContractOptions = {
+      storageDepositLimit: this.storageDepositLimit,
+      refTime: this.gasLimit.refTime.toNumber(),
+      proofSize: this.gasLimit.proofSize.toNumber()
+    },
+    block: boolean = true
+  ): Promise<ChangeLiquidityTxResult> {
+    const slippageLimitLower = calculateSqrtPriceAfterSlippage(
+      spotSqrtPrice,
+      slippageTolerance,
+      false
+    )
+    const slippageLimitUpper = calculateSqrtPriceAfterSlippage(
+      spotSqrtPrice,
+      slippageTolerance,
+      true
+    )
+
+    return createSignAndSendTx(
+      this.contract,
+      this.api.registry.createType('WeightV2', {
+        refTime: options.refTime,
+        proofSize: options.proofSize
+      }) as WeightV2,
+      options.storageDepositLimit,
+      0n,
+      account,
+      InvariantTx.ChangeLiquidity,
+      [index, deltaLiquidity, isDeposit, slippageLimitLower, slippageLimitUpper],
+      this.waitForFinalization,
+      block
+    ) as Promise<ChangeLiquidityTxResult>
   }
 
   transferPositionTx(
