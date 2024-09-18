@@ -481,9 +481,9 @@ macro_rules! init_basic_swap {
 
         assert_eq!(
             pool_after.fee_growth_global_x,
-            FeeGrowth::new(50000000000000000000000)
+            FeeGrowth::new(50000000000000000000000_u128.into())
         );
-        assert_eq!(pool_after.fee_growth_global_y, FeeGrowth::new(0));
+        assert_eq!(pool_after.fee_growth_global_y, FeeGrowth::new(0.into()));
 
         assert_eq!(pool_after.fee_protocol_token_x, TokenAmount::new(1));
         assert_eq!(pool_after.fee_protocol_token_y, TokenAmount::new(0));
@@ -562,9 +562,9 @@ macro_rules! init_cross_swap {
 
         assert_eq!(
             pool_after.fee_growth_global_x,
-            FeeGrowth::new(40000000000000000000000)
+            FeeGrowth::new(40000000000000000000000_u128.into())
         );
-        assert_eq!(pool_after.fee_growth_global_y, FeeGrowth::new(0));
+        assert_eq!(pool_after.fee_growth_global_y, FeeGrowth::new(0.into()));
 
         assert_eq!(pool_after.fee_protocol_token_x, TokenAmount::new(2));
         assert_eq!(pool_after.fee_protocol_token_y, TokenAmount::new(0));
@@ -609,7 +609,7 @@ macro_rules! big_deposit_and_swap {
     ($client:ident, $x_to_y:expr) => {{
         let (dex, token_x, token_y) = init_dex_and_tokens_max_mint_amount!($client);
 
-        let mint_amount = 2u128.pow(75) - 1;
+        let mint_amount = 2u128.pow(73) - 1;
         let alice = ink_e2e::alice();
         approve!($client, token_x, dex.account_id, u128::MAX, alice).unwrap();
         approve!($client, token_y, dex.account_id, u128::MAX, alice).unwrap();
@@ -695,9 +695,9 @@ macro_rules! big_deposit_and_swap {
         let amount_y = balance_of!($client, token_y, address_of!(Alice));
         if $x_to_y {
             assert_eq!(amount_x, 340282366920938463463374607431768211455);
-            assert_eq!(amount_y, 340282366920938425684442744474606501888);
+            assert_eq!(amount_y, 340282366920938454018641641692477784064);
         } else {
-            assert_eq!(amount_x, 340282366920938425684442744474606501888);
+            assert_eq!(amount_x, 340282366920938454018641641692477784064);
             assert_eq!(amount_y, 340282366920938463463374607431768211455);
         }
 
@@ -722,11 +722,11 @@ macro_rules! big_deposit_and_swap {
         let amount_x = balance_of!($client, token_x, address_of!(Alice));
         let amount_y = balance_of!($client, token_y, address_of!(Alice));
         if $x_to_y {
-            assert_eq!(amount_x, 340282366920938425684442744474606501888);
+            assert_eq!(amount_x, 340282366920938454018641641692477784064);
             assert_ne!(amount_y, 0);
         } else {
             assert_ne!(amount_x, 0);
-            assert_eq!(amount_y, 340282366920938425684442744474606501888);
+            assert_eq!(amount_y, 340282366920938454018641641692477784064);
         }
     }};
 }
@@ -833,8 +833,8 @@ macro_rules! multiple_swap {
         } else {
             assert_eq!(pool.current_tick_index, 820);
         }
-        assert_eq!(pool.fee_growth_global_x, FeeGrowth::new(0));
-        assert_eq!(pool.fee_growth_global_y, FeeGrowth::new(0));
+        assert_eq!(pool.fee_growth_global_x, FeeGrowth::new(0.into()));
+        assert_eq!(pool.fee_growth_global_y, FeeGrowth::new(0.into()));
         if $x_to_y {
             assert_eq!(pool.fee_protocol_token_x, TokenAmount(10));
             assert_eq!(pool.fee_protocol_token_y, TokenAmount(0));

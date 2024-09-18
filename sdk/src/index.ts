@@ -7,8 +7,6 @@ export {
   getMaxSqrtPrice,
   getMinSqrtPrice,
   isTokenX,
-  toFeeGrowth,
-  toFixedPoint,
   toLiquidity,
   toPercentage,
   toPrice,
@@ -81,6 +79,7 @@ export {
   parseEvent,
   getMinTick,
   getMaxTick,
-  getCodeHash
+  getCodeHash,
+  toFeeGrowth,
 } from './utils.js'
 export { WrappedAZERO } from './wrapped-azero.js'

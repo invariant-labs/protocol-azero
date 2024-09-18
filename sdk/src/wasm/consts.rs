@@ -3,16 +3,16 @@ use js_sys::BigInt;
 use traceable_result::*;
 use wasm_bindgen::prelude::*;
 use wasm_wrapper::wasm_wrapper;
-pub const MAX_TICK: i32 = 221_818;
+pub const MAX_TICK: i32 = 665455;
 pub const MIN_TICK: i32 = -MAX_TICK;
 
-pub const MAX_SQRT_PRICE: u128 = 65535383934512647000000000000;
-pub const MIN_SQRT_PRICE: u128 = 15258932000000000000;
+pub const MAX_SQRT_PRICE: u128 = 281481114768267672330495788147852355926;
+pub const MIN_SQRT_PRICE: u128 = 3552636207;
 
 pub const TICK_SEARCH_RANGE: i32 = 256;
 pub const CHUNK_SIZE: i32 = 64;
 
-pub const MAX_SWAP_STEPS: i32 = 90;
+pub const MAX_SWAP_STEPS: i32 = 114;
 
 pub const MAX_RESULT_SIZE: usize = 16 * 1024 * 8;
 pub const MAX_TICKMAP_QUERY_SIZE: usize = MAX_RESULT_SIZE / (16 + 64);
@@ -23,12 +23,11 @@ pub const MAX_POOL_KEYS_RETURNED: u16 = 220;
 
 pub const MAX_POOL_PAIRS_RETURNED: usize =
     MAX_RESULT_SIZE / (128 + 128 + 32 + 128 + 128 + 128 + 128 + 64 + 64 + 32 + 64 + 16);
-
 pub const ACCOUNT_ID_SIZE: usize = 32 * 8;
-pub const POOL_KEY_SIZE: usize = ACCOUNT_ID_SIZE + ACCOUNT_ID_SIZE + (64 + 8);
-pub const POSITION_SIZE: usize = POOL_KEY_SIZE + 128 + 32 + 32 + 128 + 128 + 64 + 128 + 128 + 64 + 128;
-pub const POOL_SIZE: usize = 128 + 128 + 32 + 128 + 128 + 128 + 128 + 64 + 64 + ACCOUNT_ID_SIZE + 128;
-pub const TICK_SIZE: usize = 32 + 8 + 128 + 128 + 128 + 128 + 128 + 64;
+pub const POOL_KEY_SIZE: usize = ACCOUNT_ID_SIZE + ACCOUNT_ID_SIZE + (64 + 16);
+pub const POSITION_SIZE: usize = POOL_KEY_SIZE + 128 + 32 + 32 + 256 + 32 + 256 + 32 + 64 + 128 + 128 + 128 + 64;
+pub const POOL_SIZE: usize = 128 + 128 + 32 + 256 + 32 + 256 + 32 +  128 + 128 + 64 + 64 + ACCOUNT_ID_SIZE + 128;
+pub const TICK_SIZE: usize = 32 + 8 + 128 + 128 + 128 + 256 + 32 + 256 + 32 + 64;
 pub const POSITIONS_ENTRIES_LIMIT: usize = (MAX_RESULT_SIZE - 32) / (POSITION_SIZE + POOL_SIZE);
 
 #[wasm_wrapper]

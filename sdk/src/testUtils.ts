@@ -2,8 +2,8 @@ import {
   getMinSqrtPrice,
   InvariantError,
   PoolKey,
-  simulateInvariantSwap
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
+import { simulateInvariantSwap} from './utils.js'
 import { assert } from 'chai'
 import { InvariantTx } from './schema.js'
 import { PSP22 } from './psp22.js'
@@ -53,12 +53,9 @@ export const getMaxCrossesLimit = async (
 ) => {
   const psp22 = await PSP22.load(api, network)
 
-  const mintAmount = 1n << 110n
   const tickmap = await invariant.getFullTickmap(poolKey)
   const liquidityTicks = await invariant.getAllLiquidityTicks(poolKey, tickmap)
   const poolBeforeSwap = await invariant.getPool(poolKey.tokenX, poolKey.tokenY, poolKey.feeTier)
-  await psp22.mint(swapper, mintAmount, poolKey.tokenX)
-  await psp22.approve(swapper, invariant.contract.address.toString(), mintAmount, poolKey.tokenX)
   const invBalance = await psp22.balanceOf(invariant.contract.address.toString(), poolKey.tokenY)
 
   const tickCountToAmountOut = new Array<bigint>()
@@ -116,7 +113,6 @@ export const getMaxCrossesLimit = async (
     } finally {
       prev = i
     }
-    
-    throw new Error("Failed to find a swap that wouldn't panic")
   }
+  throw new Error("Failed to find a swap that wouldn't panic")
 }

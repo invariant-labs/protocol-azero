@@ -522,7 +522,7 @@ mod tests {
 
         let tickmap = &mut Tickmap::default();
 
-        assert_eq!(tickmap.next_initialized(MAX_TICK - 22, 4, pool_key), None);
+        assert_eq!(tickmap.next_initialized(MAX_TICK - 23, 4, pool_key), None);
     }
 
     #[ink::test]
@@ -730,14 +730,14 @@ mod tests {
         {
             let step = 5u16;
             let result = get_search_limit(MAX_TICK - 22, step, true);
-            let expected = MAX_TICK - 3;
+            let expected = MAX_TICK;
             assert_eq!(result, expected);
         }
         // At the price limit
         {
             let step = 5u16;
-            let result = get_search_limit(MAX_TICK - 3, step, true);
-            let expected = MAX_TICK - 3;
+            let result = get_search_limit(MAX_TICK, step, true);
+            let expected = MAX_TICK;
             assert_eq!(result, expected);
         }
     }

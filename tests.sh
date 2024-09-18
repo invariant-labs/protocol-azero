@@ -11,13 +11,10 @@ cd ..
 # Test trackable result
 cd traceable_result
 cargo test
-cd ..
+cd ../..
 
 # Test decimal
-cd decimal
-cargo test
-cd decimal_core
-cd ../../..
+cargo test -p decimal
 
 cargo fmt --all -- --check
 cargo clippy --all-targets -- --no-deps -D warnings

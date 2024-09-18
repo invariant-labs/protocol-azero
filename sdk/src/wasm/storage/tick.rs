@@ -49,8 +49,8 @@ impl Default for Tick {
             liquidity_change: Liquidity::new(0),
             liquidity_gross: Liquidity::new(0),
             sqrt_price: SqrtPrice::from_integer(1),
-            fee_growth_outside_x: FeeGrowth::new(0),
-            fee_growth_outside_y: FeeGrowth::new(0),
+            fee_growth_outside_x: FeeGrowth::new(0.into()),
+            fee_growth_outside_y: FeeGrowth::new(0.into()),
             seconds_outside: 0u64,
             seconds_per_liquidity_outside: SecondsPerLiquidity::new(0),
         }

@@ -72,8 +72,8 @@ pub mod e2e_tests {
             client,
             dex,
             pool_key,
-            -58,
-            5,
+            -47,
+            16,
             liquidity_delta,
             pool.sqrt_price,
             SqrtPrice::max_instance(),
@@ -94,7 +94,7 @@ pub mod e2e_tests {
         assert_eq!(
             tickmap[0],
             (
-                3465,
+                10397,
                 0b1000000000000000000000000000000000000000000000000000000000000001
             )
         );
@@ -184,11 +184,15 @@ pub mod e2e_tests {
         assert_eq!(tickmap[0], (0, 0b1));
         assert_eq!(
             tickmap[1],
-            (346, 0b1100000000000000000000000000000000000000)
+            (1039, 0b1100000000000000000000000000000000000000000000000000)
         );
+
         assert_eq!(
             tickmap[2],
-            (get_max_chunk(fee_tier.tick_spacing), 0b10000000000)
+            (
+                get_max_chunk(fee_tier.tick_spacing),
+                0b10000000000000000000000000000000000
+            )
         );
         assert_eq!(tickmap.len(), 3);
 
@@ -196,7 +200,7 @@ pub mod e2e_tests {
     }
 
     #[ink_e2e::test]
-    async fn test_get_tickmap_edge_ticks_intialized(
+    async fn test_get_tickmap_edge_ticks_initialized(
         mut client: ink_e2e::Client<C, E>,
     ) -> E2EResult<()> {
         let alice = ink_e2e::alice();
@@ -241,8 +245,8 @@ pub mod e2e_tests {
             client,
             dex,
             pool_key,
-            -221818,
-            -221817,
+            get_min_tick(fee_tier.tick_spacing),
+            get_min_tick(fee_tier.tick_spacing) + 1,
             liquidity_delta,
             pool.sqrt_price,
             SqrtPrice::max_instance(),
@@ -254,34 +258,14 @@ pub mod e2e_tests {
             client,
             dex,
             pool_key,
-            221817,
-            221818,
+            get_max_tick(fee_tier.tick_spacing) - 1,
+            get_max_tick(fee_tier.tick_spacing),
             liquidity_delta,
             pool.sqrt_price,
             SqrtPrice::max_instance(),
             alice
         )
         .unwrap();
-
-        let tickmap = get_tickmap!(
-            client,
-            dex,
-            pool_key,
-            get_min_tick(fee_tier.tick_spacing),
-            get_max_tick(fee_tier.tick_spacing),
-            false,
-            alice
-        );
-
-        assert_eq!(tickmap[0], (0, 0b11));
-        assert_eq!(
-            tickmap[1],
-            (
-                get_max_chunk(fee_tier.tick_spacing),
-                0b11000000000000000000000000000000000000000000000000000
-            )
-        );
-        assert_eq!(tickmap.len(), 2);
         {
             let tickmap = get_tickmap!(
                 client,
@@ -292,31 +276,13 @@ pub mod e2e_tests {
                 false,
                 alice
             );
-            assert_eq!(tickmap[0], (0, 0b11));
-            assert_eq!(
-                tickmap[1],
-                (
-                    get_max_chunk(fee_tier.tick_spacing),
-                    0b11000000000000000000000000000000000000000000000000000
-                )
-            );
-            assert_eq!(tickmap.len(), 2);
 
-            let tickmap = get_tickmap!(
-                client,
-                dex,
-                pool_key,
-                get_min_tick(fee_tier.tick_spacing),
-                get_max_tick(fee_tier.tick_spacing),
-                false,
-                alice
-            );
             assert_eq!(tickmap[0], (0, 0b11));
             assert_eq!(
                 tickmap[1],
                 (
                     get_max_chunk(fee_tier.tick_spacing),
-                    0b11000000000000000000000000000000000000000000000000000
+                    0b1100000000000000000000000000000
                 )
             );
             assert_eq!(tickmap.len(), 2);
@@ -330,14 +296,14 @@ pub mod e2e_tests {
                 true,
                 alice
             );
-            assert_eq!(tickmap[1], (0, 0b11));
             assert_eq!(
                 tickmap[0],
                 (
                     get_max_chunk(fee_tier.tick_spacing),
-                    0b11000000000000000000000000000000000000000000000000000
+                    0b1100000000000000000000000000000
                 )
             );
+            assert_eq!(tickmap[1], (0, 0b11));
             assert_eq!(tickmap.len(), 2);
         }
 
@@ -412,8 +378,14 @@ pub mod e2e_tests {
         );
 
         for (i, _) in (0..tickmap.len()).enumerate() {
-            let current = 3466 + i as u16;
-            assert_eq!(tickmap[i], (current, 0b11));
+            let current = 10397 + i as u16;
+            assert_eq!(
+                tickmap[i],
+                (
+                    current,
+                    0b1100000000000000000000000000000000000000000000000000000
+                )
+            );
         }
         Ok(())
     }
@@ -485,13 +457,10 @@ pub mod e2e_tests {
             alice
         );
         for (i, _) in (0..tickmap.len()).enumerate() {
-            let current = 2644 + i as u16;
+            let current = 9576 + i as u16;
             assert_eq!(
                 tickmap[i],
-                (
-                    current,
-                    0b110000000000000000000000000000000000000000000000000000000000
-                )
+                (current, 0b1100000000000000000000000000000000000000000000000)
             );
         }
         Ok(())

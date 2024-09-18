@@ -55,7 +55,7 @@ pub mod e2e_tests {
     ) -> E2EResult<()> {
         let (dex, token_x, token_y) = init_dex_and_tokens_max_mint_amount!(client);
 
-        let mint_amount = 2u128.pow(75) - 1;
+        let mint_amount = 2u128.pow(73) - 1;
         let alice = ink_e2e::alice();
         approve!(client, token_x, dex.account_id, u128::MAX, alice).unwrap();
         approve!(client, token_y, dex.account_id, u128::MAX, alice).unwrap();
@@ -208,7 +208,7 @@ pub mod e2e_tests {
     async fn test_limits_big_deposit_and_swaps(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         let (dex, token_x, token_y) = init_dex_and_tokens_max_mint_amount!(client);
 
-        let mint_amount = 2u128.pow(76) - 1;
+        let mint_amount = 2u128.pow(74) - 1;
         let alice = ink_e2e::alice();
         approve!(client, token_x, dex.account_id, u128::MAX, alice).unwrap();
         approve!(client, token_y, dex.account_id, u128::MAX, alice).unwrap();
@@ -350,7 +350,7 @@ pub mod e2e_tests {
         assert_eq!(pool.sqrt_price, calculate_sqrt_price(init_tick).unwrap());
 
         let pool_key = PoolKey::new(token_x.account_id, token_y.account_id, fee_tier).unwrap();
-        let liquidity_delta = Liquidity::new(2u128.pow(109) - 1);
+        let liquidity_delta = Liquidity::new(1208899457432799883049625000361); // < 2^100
         let slippage_limit_lower = pool.sqrt_price;
         let slippage_limit_upper = pool.sqrt_price;
         create_position!(
@@ -365,12 +365,11 @@ pub mod e2e_tests {
             alice
         )
         .unwrap();
-
         let contract_amount_x = balance_of!(client, token_x, dex.account_id);
         let contract_amount_y = balance_of!(client, token_y, dex.account_id);
 
         let expected_x = 0;
-        let expected_y = 42534896005851865508212194815854; // < 2^106
+        let expected_y = 340282366920938463463374607431721256973; // < 2^127
         assert_eq!(contract_amount_x, expected_x);
         assert_eq!(contract_amount_y, expected_y);
         Ok(())

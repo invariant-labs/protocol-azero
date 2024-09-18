@@ -951,7 +951,7 @@ pub mod e2e_tests {
             let lower_tick = get_tick!(client, dex, pool_key, lower_tick_index).unwrap();
             let upper_tick = get_tick!(client, dex, pool_key, upper_tick_index).unwrap();
             let expected_liquidity = Liquidity::new(liquidity_delta.get() * 3);
-            let zero_fee = FeeGrowth::new(0);
+            let zero_fee = FeeGrowth::new(0.into());
 
             // Check ticks
             assert!(lower_tick.index == lower_tick_index);
@@ -994,7 +994,7 @@ pub mod e2e_tests {
         {
             let lower_tick_index = -10;
             let upper_tick_index = 10;
-            let zero_fee = FeeGrowth::new(0);
+            let zero_fee = FeeGrowth::new(0.into());
 
             let liquidity_delta = Liquidity::new(100);
 

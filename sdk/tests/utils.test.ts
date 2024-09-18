@@ -108,8 +108,7 @@ describe('utils', () => {
       const maxConcentration = 10
       const expectedResult = 11
 
-      const result = getConcentrationArray(tickSpacing, maxConcentration, 221752)
-
+      const result = getConcentrationArray(tickSpacing, maxConcentration, 665388)
       assert.equal(result.length, expectedResult)
     })
     it('middle current tick ', async () => {
@@ -117,7 +116,7 @@ describe('utils', () => {
       const maxConcentration = 10
       const expectedResult = 124
 
-      const result = getConcentrationArray(tickSpacing, maxConcentration, 221300)
+      const result = getConcentrationArray(tickSpacing, maxConcentration, 664936)
       assert.equal(result.length, expectedResult)
     })
     it('low current tick ', async () => {

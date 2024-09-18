@@ -14,6 +14,7 @@ ink = { version = "5.0.0", default-features = false }
 token = { path = "src/token", default-features = false, features = [
   "ink-as-dependency",
 ] }
+scale-info = { version = "2.11.3", default-features = false }
 
 [dev-dependencies]
 ink_e2e = "5.0.0"
@@ -25,7 +26,7 @@ path = "src/lib.rs"
 
 [features]
 default = ["std"]
-std = ["ink/std", "token/std"]
+std = ["ink/std", "token/std", "decimal/std"]
 ink-as-dependency = []
 e2e-tests = []
 

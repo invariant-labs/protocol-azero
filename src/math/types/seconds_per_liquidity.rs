@@ -31,15 +31,13 @@ impl SecondsPerLiquidity {
             .ok_or(err!("Underflow while calculating delta time"))?;
 
         Ok(Self::new(
-            U256::from(delta_time)
-                .checked_mul(SecondsPerLiquidity::one())
+            u128::from(delta_time)
+                .checked_mul(SecondsPerLiquidity::one().get())
                 .ok_or_else(|| err!(TrackableError::MUL))?
-                .checked_mul(Liquidity::one())
+                .checked_mul(Liquidity::one().get())
                 .ok_or_else(|| err!(TrackableError::MUL))?
                 .checked_div(liquidity.here())
-                .ok_or_else(|| err!(TrackableError::DIV))?
-                .try_into()
-                .map_err(|_| err!(TrackableError::cast::<Self>().as_str()))?,
+                .ok_or_else(|| err!(TrackableError::DIV))?,
         ))
     }
 }
@@ -167,7 +165,7 @@ pub mod tests {
             )
             .unwrap_err()
             .get();
-            assert_eq!(cause, "conversion to invariant::math::types::seconds_per_liquidity::SecondsPerLiquidity type failed");
+            assert_eq!(cause, "multiplication overflow");
             assert_eq!(stack.len(), 1);
         }
 

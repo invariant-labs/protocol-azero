@@ -276,7 +276,7 @@ pub mod e2e_tests {
         .unwrap();
         assert_eq!(
             pool_state_after.fee_growth_global_x,
-            FeeGrowth::new(49999950000049999)
+            FeeGrowth::new(49999950000049999_u128.into())
         );
         assert_eq!(pool_state_after.fee_protocol_token_x, TokenAmount(1));
         assert_eq!(pool_state_after.fee_protocol_token_y, TokenAmount(0));
@@ -418,7 +418,7 @@ pub mod e2e_tests {
         let dex_x = balance_of!(client, token_x, dex.account_id);
         let dex_y = balance_of!(client, token_y, dex.account_id);
 
-        let zero_fee = FeeGrowth::new(0);
+        let zero_fee = FeeGrowth::new(0.into());
         let expected_x_increase = 317;
         let expected_y_increase = 32;
 
@@ -527,7 +527,7 @@ pub mod e2e_tests {
         let dex_x = balance_of!(client, token_x, dex.account_id);
         let dex_y = balance_of!(client, token_y, dex.account_id);
 
-        let zero_fee = FeeGrowth::new(0);
+        let zero_fee = FeeGrowth::new(0.into());
         let expected_x_increase = 0;
         let expected_y_increase = 2162;
 
@@ -637,7 +637,7 @@ pub mod e2e_tests {
         let dex_x = balance_of!(client, token_x, dex.account_id);
         let dex_y = balance_of!(client, token_y, dex.account_id);
 
-        let zero_fee = FeeGrowth::new(0);
+        let zero_fee = FeeGrowth::new(0.into());
         let expected_x_increase = 21549;
         let expected_y_increase = 0;
 

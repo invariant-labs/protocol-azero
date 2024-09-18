@@ -52,6 +52,9 @@ import {
   calculateSqrtPriceAfterSlippage,
   createSignAndSendTx,
   createTx,
+  deserializeTickFromContract,
+  deserializePoolFromContract,
+  deserializePositionFromContract,
   extractError,
   getAbi,
   getDeploymentData,
@@ -170,7 +173,6 @@ export class Invariant {
 
             const parsedEvent = parseEvent(decoded)
 
-            // console.log(this.eventListeners, parsedEvent)
             this.eventListeners.map(eventListener => {
               if (eventListener.identifier === decoded.event.identifier) {
                 eventListener.listener(parsedEvent)
@@ -492,7 +494,7 @@ export class Invariant {
     )
 
     if (result.ok) {
-      return parse(result.ok)
+      return deserializePositionFromContract(parse(result.ok))
     } else {
       throw new Error(extractError(result.err))
     }
@@ -518,9 +520,17 @@ export class Invariant {
       InvariantQuery.GetPositions,
       [owner, size, offset]
     )
-
     if (result.ok) {
-      return parse(result.ok)
+      const parsedResult = parse(result.ok) as [[Position, Pool][], bigint]
+      let positionList = parsedResult[0]
+      positionList = positionList.map(positionPoolPair => {
+        return [
+          deserializePositionFromContract(positionPoolPair[0]),
+          deserializePoolFromContract(positionPoolPair[1])
+        ]
+      })
+
+      return [positionList, parsedResult[1]]
     } else {
       throw new Error(InvariantError[result.err])
     }
@@ -550,7 +560,10 @@ export class Invariant {
         options
       )
 
-      pages.push({ index: 0, entries: positionEntries })
+      pages.push({
+        index: 0,
+        entries: positionEntries
+      })
       actualPositionsCount = positionsCount
     }
 
@@ -950,7 +963,7 @@ export class Invariant {
     )
 
     if (result.ok) {
-      return parse(result.ok)
+      return deserializeTickFromContract(parse(result.ok))
     } else {
       throw new Error(extractError(result.err))
     }
@@ -999,7 +1012,7 @@ export class Invariant {
     )
 
     if (result.ok) {
-      return parse(result.ok)
+      return deserializePoolFromContract(parse(result.ok))
     } else {
       throw new Error(extractError(result.err))
     }
@@ -1344,7 +1357,13 @@ export class Invariant {
     )
 
     if (result.ok) {
-      return parse(result.ok)
+      const parsedResult = parse(result.ok)
+      return [
+        deserializePositionFromContract(parsedResult[0]),
+        deserializePoolFromContract(parsedResult[1]),
+        deserializeTickFromContract(parsedResult[2]),
+        deserializeTickFromContract(parsedResult[3])
+      ]
     } else {
       throw new Error(extractError(result.err))
     }
@@ -1489,35 +1508,6 @@ export class Invariant {
     )
   }
 
-  // Query needs to be split in the case where tickSpacing = 1, otherwise a single query will fit within the gas limit
-  async getLiquidityTicksAmount(
-    poolKey: PoolKey,
-    lowerTick: bigint,
-    upperTick: bigint,
-    options: ContractOptions = {
-      storageDepositLimit: this.storageDepositLimit,
-      refTime: this.gasLimit.refTime.toNumber(),
-      proofSize: this.gasLimit.proofSize.toNumber()
-    }
-  ): Promise<bigint> {
-    const result = await sendQuery(
-      this.contract,
-      this.api.registry.createType('WeightV2', {
-        refTime: options.refTime,
-        proofSize: options.proofSize
-      }) as WeightV2,
-      options.storageDepositLimit,
-      InvariantQuery.GetLiquidityTicksAmount,
-      [poolKey, lowerTick, upperTick]
-    )
-
-    if (result.ok) {
-      return parse(result.ok)
-    } else {
-      throw new Error(result.err ? InvariantError[result.err] : result)
-    }
-  }
-
   withdrawAllWAZEROTx(
     address: string,
     options: ContractOptions = {
@@ -1586,7 +1576,10 @@ export class Invariant {
     )
 
     if (result.ok) {
-      return parse(result.ok)
+      return (parse(result.ok) as any[]).map(value => [
+        value[0],
+        deserializePoolFromContract(value[1])
+      ])
     } else {
       throw new Error(result.err ? InvariantError[result.err] : result)
     }

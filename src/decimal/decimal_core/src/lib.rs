@@ -13,11 +13,33 @@ mod factories;
 mod ops;
 mod others;
 mod structs;
+mod uint_casts;
 mod utils;
 
 use structs::DecimalCharacteristics;
 
+use crate::uint_casts::{Uint, UintsCastsInput};
 use crate::utils::string_to_ident;
+use quote::TokenStreamExt;
+#[proc_macro]
+pub fn impl_units_casts(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input = parse_macro_input!(input as UintsCastsInput);
+    let mut uints: Vec<(syn::Ident, usize)> = alloc::vec![];
+    let mut expanded = proc_macro2::TokenStream::new();
+    input.uints.iter().for_each(|Uint(ident, size)| {
+        let count: usize = size.base10_parse().expect("Failed to parse usize");
+        expanded.append_all(uint_casts::validate_uint(ident.clone(), count));
+        expanded.append_all(uint_casts::impl_uint_casts(
+            uints.clone(),
+            ident.clone(),
+            count,
+        ));
+        expanded.append_all(uint_casts::impl_primitive_casts(ident.clone(), count));
+
+        uints.push((ident.clone(), count))
+    });
+    expanded.into()
+}
 
 #[proc_macro_attribute]
 pub fn decimal(
@@ -64,9 +86,7 @@ pub fn decimal(
         scale: parsed_scale,
     };
 
-    let mut result = proc_macro::TokenStream::from(quote! {
-        // #[derive(Default, std::fmt::Debug, Clone, Copy, PartialEq, )]
-    });
+    let mut result = proc_macro::TokenStream::from(quote! {});
 
     result.extend(item.clone());
 

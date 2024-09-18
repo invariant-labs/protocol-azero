@@ -1412,8 +1412,11 @@ name = "decimal"
 version = "0.1.0"
 dependencies = [
  "decimal_core",
+ "ink",
  "integer-sqrt",
  "num-traits",
+ "scale-info",
+ "serde",
  "uint",
 ]
 
@@ -2898,6 +2901,7 @@ dependencies = [
  "decimal",
  "ink",
  "ink_e2e",
+ "scale-info",
  "test_helpers",
  "token",
  "traceable_result",

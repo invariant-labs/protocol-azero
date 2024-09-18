@@ -256,17 +256,23 @@ pub mod e2e_tests {
         assert_eq!(pool.current_tick_index, -20);
         assert_eq!(
             pool.fee_growth_global_x,
-            FeeGrowth::new(29991002699190242927121)
+            FeeGrowth::new(29991002699190242927121_u128.into())
         );
-        assert_eq!(pool.fee_growth_global_y, FeeGrowth::new(0));
+        assert_eq!(pool.fee_growth_global_y, FeeGrowth::new(0.into()));
         assert_eq!(pool.fee_protocol_token_x, TokenAmount(4));
         assert_eq!(pool.fee_protocol_token_y, TokenAmount(2));
         assert_eq!(pool.liquidity, expected_liquidity);
-        assert_eq!(pool.sqrt_price, SqrtPrice::new(999500149964999999999999));
+        assert_eq!(pool.sqrt_price, SqrtPrice::new(999500149965006998740208));
 
         let final_last_tick = get_tick!(client, dex, pool_key, -20).unwrap();
-        assert_eq!(final_last_tick.fee_growth_outside_x, FeeGrowth::new(0));
-        assert_eq!(final_last_tick.fee_growth_outside_y, FeeGrowth::new(0));
+        assert_eq!(
+            final_last_tick.fee_growth_outside_x,
+            FeeGrowth::new(0.into())
+        );
+        assert_eq!(
+            final_last_tick.fee_growth_outside_y,
+            FeeGrowth::new(0.into())
+        );
         assert_eq!(
             final_last_tick.liquidity_change,
             expected_liquidity_change_on_last_tick
@@ -275,14 +281,23 @@ pub mod e2e_tests {
         let final_lower_tick = get_tick!(client, dex, pool_key, -10).unwrap();
         assert_eq!(
             final_lower_tick.fee_growth_outside_x,
-            FeeGrowth::new(29991002699190242927121)
+            FeeGrowth::new(29991002699190242927121_u128.into())
         );
-        assert_eq!(final_lower_tick.fee_growth_outside_y, FeeGrowth::new(0));
+        assert_eq!(
+            final_lower_tick.fee_growth_outside_y,
+            FeeGrowth::new(0.into())
+        );
         assert_eq!(final_lower_tick.liquidity_change, Liquidity::new(0));
 
         let final_upper_tick = get_tick!(client, dex, pool_key, 10).unwrap();
-        assert_eq!(final_upper_tick.fee_growth_outside_x, FeeGrowth::new(0));
-        assert_eq!(final_upper_tick.fee_growth_outside_y, FeeGrowth::new(0));
+        assert_eq!(
+            final_upper_tick.fee_growth_outside_x,
+            FeeGrowth::new(0.into())
+        );
+        assert_eq!(
+            final_upper_tick.fee_growth_outside_y,
+            FeeGrowth::new(0.into())
+        );
         assert_eq!(
             final_upper_tick.liquidity_change,
             expected_liquidity_change_on_upper_tick

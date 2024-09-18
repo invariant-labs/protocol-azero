@@ -169,11 +169,17 @@ pub fn get_delta_x(
     ok_or_mark_trace!(match rounding_up {
         true => SqrtPrice::big_div_values_to_token_up(
             nominator,
-            sqrt_price_a.big_mul_to_value(sqrt_price_b),
+            sqrt_price_a
+                .cast::<U256>()
+                .checked_mul(sqrt_price_b.here())
+                .ok_or_else(|| err!(TrackableError::MUL))?,
         ),
         false => SqrtPrice::big_div_values_to_token(
             nominator,
-            sqrt_price_a.big_mul_to_value_up(sqrt_price_b),
+            sqrt_price_a
+                .cast::<U256>()
+                .checked_mul(sqrt_price_b.here())
+                .ok_or_else(|| err!(TrackableError::MUL))?,
         ),
     })
 }
@@ -198,13 +204,13 @@ pub fn get_delta_y(
     let delta_y = match rounding_up {
         true => delta
             .big_mul_to_value_up(liquidity)
-            .checked_add(SqrtPrice::almost_one())
+            .checked_add(U256::from(SqrtPrice::almost_one().get()))
             .ok_or_else(|| err!(TrackableError::ADD))?
-            .checked_div(SqrtPrice::one())
+            .checked_div(U256::from(SqrtPrice::one().get()))
             .ok_or_else(|| err!(TrackableError::DIV))?,
         false => delta
             .big_mul_to_value(liquidity)
-            .checked_div(SqrtPrice::one())
+            .checked_div(U256::from(SqrtPrice::one().get()))
             .ok_or_else(|| err!(TrackableError::DIV))?,
     };
 
@@ -212,7 +218,6 @@ pub fn get_delta_y(
         err!(TrackableError::cast::<TokenAmount>().as_str())
     })?))
 }
-
 #[wasm_wrapper]
 pub fn get_next_sqrt_price_from_input(
     starting_sqrt_price: SqrtPrice,
@@ -260,19 +265,26 @@ pub fn get_next_sqrt_price_x_up(
     let price_delta = ok_or_mark_trace!(SqrtPrice::checked_from_decimal_to_value(liquidity)
         .map_err(|_| err!("extending liquidity overflow")))?;
 
-    
     let denominator = match add_x {
-        true => price_delta.checked_add(starting_sqrt_price.big_mul_to_value(x)).unwrap_or(U256::from(MAX_SQRT_PRICE)),
-        false => price_delta.checked_sub(starting_sqrt_price.big_mul_to_value(x)).unwrap_or(U256::from(MIN_SQRT_PRICE)),
+        true => price_delta
+            .checked_add(starting_sqrt_price.big_mul_to_value(x))
+            .unwrap_or(U256::from(MAX_SQRT_PRICE)),
+        false => price_delta
+            .checked_sub(starting_sqrt_price.big_mul_to_value(x))
+            .unwrap_or(U256::from(MIN_SQRT_PRICE)),
     };
 
     let raw_result = SqrtPrice::checked_big_div_values_up(
         starting_sqrt_price.big_mul_to_value_up(liquidity),
-        denominator
+        denominator,
     );
 
     let result = raw_result.unwrap_or_else(|_| {
-        SqrtPrice::new(if add_x { MIN_SQRT_PRICE } else { MAX_SQRT_PRICE })
+        SqrtPrice::new(if add_x {
+            MIN_SQRT_PRICE
+        } else {
+            MAX_SQRT_PRICE
+        })
     });
 
     Ok(result)
@@ -291,13 +303,17 @@ pub fn get_next_sqrt_price_y_down(
         .map_err(|_| err!("extending liquidity overflow"))?;
 
     let raw_result = if add_y {
-        let quotient =
-            SqrtPrice::checked_big_div_values(numerator, denominator).unwrap_or(SqrtPrice::new(MAX_SQRT_PRICE));
-        starting_sqrt_price.checked_add(quotient).unwrap_or(SqrtPrice::new(MAX_SQRT_PRICE))
+        let quotient = SqrtPrice::checked_big_div_values(numerator, denominator)
+            .unwrap_or(SqrtPrice::new(MAX_SQRT_PRICE));
+        starting_sqrt_price
+            .checked_add(quotient)
+            .unwrap_or(SqrtPrice::new(MAX_SQRT_PRICE))
     } else {
-        let quotient: SqrtPrice =
-            SqrtPrice::checked_big_div_values_up(numerator, denominator).unwrap_or(SqrtPrice::new(MAX_SQRT_PRICE));
-        starting_sqrt_price.checked_sub(quotient).unwrap_or(SqrtPrice::new(MIN_SQRT_PRICE))
+        let quotient: SqrtPrice = SqrtPrice::checked_big_div_values_up(numerator, denominator)
+            .unwrap_or(SqrtPrice::new(MAX_SQRT_PRICE));
+        starting_sqrt_price
+            .checked_sub(quotient)
+            .unwrap_or(SqrtPrice::new(MIN_SQRT_PRICE))
     };
 
     Ok(raw_result)
