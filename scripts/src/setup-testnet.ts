@@ -75,6 +75,11 @@ const main = async () => {
   )
 
   const poolKeys: PoolKey[] = [
+    newPoolKey(WAZERO_ADDRESS[network], BTCAddress, FEE_TIERS[1]),
+    newPoolKey(WAZERO_ADDRESS[network], ETHAddress, FEE_TIERS[1]),
+    newPoolKey(WAZERO_ADDRESS[network], USDCAddress, FEE_TIERS[1]),
+    newPoolKey(WAZERO_ADDRESS[network], USDTAddress, FEE_TIERS[1]),
+    newPoolKey(WAZERO_ADDRESS[network], SOLAddress, FEE_TIERS[1]),
     newPoolKey(BTCAddress, ETHAddress, FEE_TIERS[1]),
     newPoolKey(BTCAddress, USDCAddress, FEE_TIERS[1]),
     newPoolKey(BTCAddress, USDTAddress, FEE_TIERS[1]),
@@ -120,9 +125,9 @@ const main = async () => {
     refTime: 100000000000,
     proofSize: 100000000000
   })
-  // const wazeroBalance = await wazero.balanceOf(account.address)
-  // await wazero.withdraw(account, wazeroBalance)
-  // await wazero.deposit(account, 50000n * 10n ** 12n)
+  const wazeroBalance = await wazero.balanceOf(account.address)
+  await wazero.withdraw(account, wazeroBalance)
+  await wazero.deposit(account, 100000n * 10n ** 12n)
   await psp22.approve(
     account,
     invariant.contract.address.toString(),
