@@ -8,6 +8,7 @@ import {
   WAZERO_ADDRESS,
   WrappedAZERO,
   calculateTick,
+  getLiquidityByX,
   initPolkadotApi,
   newPoolKey,
   priceToSqrtPrice,
@@ -73,24 +74,19 @@ const main = async () => {
     }, SOL: ${prices[SOLAddress]}, AZERO: ${prices[WAZERO_ADDRESS[network]]}`
   )
 
-  const poolKeys: [PoolKey, bigint][] = [
-    [newPoolKey(WAZERO_ADDRESS[network], BTCAddress, FEE_TIERS[1]), 10804609546189987720n],
-    [newPoolKey(WAZERO_ADDRESS[network], ETHAddress, FEE_TIERS[1]), 4711830510277394610468n],
-    [newPoolKey(WAZERO_ADDRESS[network], USDCAddress, FEE_TIERS[1]), 272063075569508447756n],
-    [newPoolKey(WAZERO_ADDRESS[network], USDTAddress, FEE_TIERS[1]), 272063075569508447756n],
-    [newPoolKey(WAZERO_ADDRESS[network], SOLAddress, FEE_TIERS[1]), 37143700245489847211n],
-    [newPoolKey(BTCAddress, ETHAddress, FEE_TIERS[1]), 130559235944405760n],
-    [newPoolKey(BTCAddress, USDCAddress, FEE_TIERS[1]), 7865049221247086n],
-    [newPoolKey(BTCAddress, USDTAddress, FEE_TIERS[1]), 7865049221247086n],
-    [newPoolKey(BTCAddress, SOLAddress, FEE_TIERS[1]), 977937074251981n],
-    [newPoolKey(ETHAddress, USDCAddress, FEE_TIERS[1]), 3454809855596621497n],
-    [newPoolKey(ETHAddress, USDTAddress, FEE_TIERS[1]), 3454809855596621497n],
-    [newPoolKey(ETHAddress, SOLAddress, FEE_TIERS[1]), 423131631710393596n],
-    [newPoolKey(USDCAddress, USDTAddress, FEE_TIERS[1]), 9999818389598293n],
-    [newPoolKey(USDCAddress, SOLAddress, FEE_TIERS[1]), 24911294718392400n],
-    [newPoolKey(USDTAddress, SOLAddress, FEE_TIERS[1]), 24911294718392400n]
+  const poolKeys: PoolKey[] = [
+    newPoolKey(BTCAddress, ETHAddress, FEE_TIERS[1]),
+    newPoolKey(BTCAddress, USDCAddress, FEE_TIERS[1]),
+    newPoolKey(BTCAddress, USDTAddress, FEE_TIERS[1]),
+    newPoolKey(BTCAddress, SOLAddress, FEE_TIERS[1]),
+    newPoolKey(ETHAddress, USDCAddress, FEE_TIERS[1]),
+    newPoolKey(ETHAddress, USDTAddress, FEE_TIERS[1]),
+    newPoolKey(ETHAddress, SOLAddress, FEE_TIERS[1]),
+    newPoolKey(USDCAddress, USDTAddress, FEE_TIERS[1]),
+    newPoolKey(USDCAddress, SOLAddress, FEE_TIERS[1]),
+    newPoolKey(USDTAddress, SOLAddress, FEE_TIERS[1])
   ]
-  for (const [poolKey] of poolKeys) {
+  for (const poolKey of poolKeys) {
     const price =
       (1 / (prices[poolKey.tokenY] / prices[poolKey.tokenX])) *
       10 ** (Number(decimals[poolKey.tokenY]) - Number(decimals[poolKey.tokenX])) *
@@ -124,9 +120,9 @@ const main = async () => {
     refTime: 100000000000,
     proofSize: 100000000000
   })
-  const wazeroBalance = await wazero.balanceOf(account.address)
-  await wazero.withdraw(account, wazeroBalance)
-  await wazero.deposit(account, 50000n * 10n ** 12n)
+  // const wazeroBalance = await wazero.balanceOf(account.address)
+  // await wazero.withdraw(account, wazeroBalance)
+  // await wazero.deposit(account, 50000n * 10n ** 12n)
   await psp22.approve(
     account,
     invariant.contract.address.toString(),
@@ -139,7 +135,7 @@ const main = async () => {
   const USDTBefore = await psp22.balanceOf(account.address, USDTAddress)
   const SOLBefore = await psp22.balanceOf(account.address, SOLAddress)
   const WAZEROBefore = await psp22.balanceOf(account.address, WAZERO_ADDRESS[network])
-  for (const [poolKey, amount] of poolKeys) {
+  for (const poolKey of poolKeys) {
     const price =
       (1 / (prices[poolKey.tokenY] / prices[poolKey.tokenX])) *
       10 ** (Number(decimals[poolKey.tokenY]) - Number(decimals[poolKey.tokenX])) *
@@ -150,12 +146,22 @@ const main = async () => {
     try {
       const lowerTick = calculateTick(lowerSqrtPrice, FEE_TIERS[1].tickSpacing)
       const upperTick = calculateTick(upperSqrtPrice, FEE_TIERS[1].tickSpacing)
+      const tokenXAmount = BigInt(
+        Math.round((5000 / prices[poolKey.tokenX]) * 10 ** Number(decimals[poolKey.tokenX]))
+      )
+      const { l: liquidity } = getLiquidityByX(
+        tokenXAmount,
+        lowerTick,
+        upperTick,
+        poolSqrtPrice,
+        true
+      )
       await invariant.createPosition(
         account,
         poolKey,
         lowerTick,
         upperTick,
-        amount,
+        liquidity,
         poolSqrtPrice,
         0n
       )
