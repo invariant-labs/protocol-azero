@@ -5,6 +5,7 @@ import {
   Network,
   PSP22,
   PoolKey,
+  WrappedAZERO,
   calculateTick,
   getLiquidityByX,
   initPolkadotApi,
@@ -17,19 +18,15 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const main = async () => {
-  const network = Network.Mainnet
+  const network = Network.Local
   const api = await initPolkadotApi(network)
 
   const keyring = new Keyring({ type: 'sr25519' })
-  const mnemonic = process.env.DEPLOYER_MNEMONIC ?? ''
-  const account = keyring.addFromMnemonic(mnemonic)
-  console.log(`Deployer: ${account.address}, Mnemonic: ${mnemonic}`)
+  const account = keyring.addFromUri('//Alice')
+  console.log(`Deployer: ${account.address}`)
 
-  const invariant = await Invariant.deploy(api, network, account, toPercentage(1n, 2n), {
-    storageDepositLimit: 100000000000,
-    refTime: 100000000000,
-    proofSize: 100000000000
-  })
+  const invariant = await Invariant.deploy(api, network, account, toPercentage(1n, 2n))
+  const WAZERO = await WrappedAZERO.deploy(api, network, account)
   console.log(`Invariant: ${invariant.contract.address.toString()}`)
 
   for (const feeTier of FEE_TIERS) {
@@ -37,8 +34,9 @@ const main = async () => {
   }
   console.log('Successfully added fee tiers')
 
+  const WAZEROAddress = WAZERO.contract.address.toString()
   const BTCAddress = await PSP22.deploy(api, account, 0n, 'Bitcoin', 'BTC', 8n)
-  const ETHAddress = await PSP22.deploy(api, account, 0n, 'Ether', 'ETH', 12n)
+  const ETHAddress = await PSP22.deploy(api, account, 0n, 'Ether', 'ETH', 18n)
   const USDCAddress = await PSP22.deploy(api, account, 0n, 'USDC', 'USDC', 6n)
   const USDTAddress = await PSP22.deploy(api, account, 0n, 'Tether USD', 'USDT', 6n)
   const SOLAddress = await PSP22.deploy(api, account, 0n, 'Solana', 'SOL', 9n)
@@ -47,14 +45,15 @@ const main = async () => {
     [ETHAddress]: 12n,
     [USDCAddress]: 6n,
     [USDTAddress]: 6n,
-    [SOLAddress]: 9n
+    [SOLAddress]: 9n,
+    [WAZEROAddress]: 12n
   }
   console.log(
     `BTC: ${BTCAddress}, ETH: ${ETHAddress}, USDC: ${USDCAddress}, USDT: ${USDTAddress}, SOL: ${SOLAddress}`
   )
 
   const response = await fetch(
-    'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,ethereum,solana'
+    'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,ethereum,aleph-zero,solana'
   )
   const data = await response.json()
   const prices = {
@@ -62,13 +61,19 @@ const main = async () => {
     [ETHAddress]: data.find((coin: any) => coin.id === 'ethereum').current_price,
     [USDCAddress]: 1,
     [USDTAddress]: 1,
-    [SOLAddress]: data.find((coin: any) => coin.id === 'solana').current_price
+    [SOLAddress]: data.find((coin: any) => coin.id === 'solana').current_price,
+    [WAZEROAddress]: data.find((coin: any) => coin.id === 'aleph-zero').current_price
   }
   console.log(
-    `BTC: ${prices[BTCAddress]}, ETH: ${prices[ETHAddress]}, USDC: ${prices[USDCAddress]}, USDT: ${prices[USDTAddress]}, SOL: ${prices[SOLAddress]}`
+    `BTC: ${prices[BTCAddress]}, ETH: ${prices[ETHAddress]}, USDC: ${prices[USDCAddress]}, USDT: ${prices[USDTAddress]}, SOL: ${prices[SOLAddress]}, AZERO: ${prices[WAZEROAddress]}`
   )
 
   const poolKeys: PoolKey[] = [
+    newPoolKey(WAZEROAddress, BTCAddress, FEE_TIERS[1]),
+    newPoolKey(WAZEROAddress, ETHAddress, FEE_TIERS[1]),
+    newPoolKey(WAZEROAddress, USDCAddress, FEE_TIERS[1]),
+    newPoolKey(WAZEROAddress, USDTAddress, FEE_TIERS[1]),
+    newPoolKey(WAZEROAddress, SOLAddress, FEE_TIERS[1]),
     newPoolKey(BTCAddress, ETHAddress, FEE_TIERS[1]),
     newPoolKey(BTCAddress, USDCAddress, FEE_TIERS[1]),
     newPoolKey(BTCAddress, USDTAddress, FEE_TIERS[1]),
@@ -94,11 +99,7 @@ const main = async () => {
   }
   console.log('Successfully added pools')
 
-  const psp22 = await PSP22.load(api, network, {
-    storageDepositLimit: 100000000000,
-    refTime: 100000000000,
-    proofSize: 100000000000
-  })
+  const psp22 = await PSP22.load(api, network)
   await psp22.mint(account, 2n ** 96n - 1n, BTCAddress)
   await psp22.mint(account, 2n ** 96n - 1n, ETHAddress)
   await psp22.mint(account, 2n ** 96n - 1n, USDCAddress)
@@ -109,12 +110,17 @@ const main = async () => {
   await psp22.approve(account, invariant.contract.address.toString(), 2n ** 96n - 1n, USDCAddress)
   await psp22.approve(account, invariant.contract.address.toString(), 2n ** 96n - 1n, USDTAddress)
   await psp22.approve(account, invariant.contract.address.toString(), 2n ** 96n - 1n, SOLAddress)
-
+  const wazero = await WrappedAZERO.load(api, network, WAZEROAddress)
+  const wazeroBalance = await wazero.balanceOf(account.address)
+  await wazero.withdraw(account, wazeroBalance)
+  await wazero.deposit(account, 100000n * 10n ** 12n)
+  await psp22.approve(account, invariant.contract.address.toString(), 2n ** 96n - 1n, WAZEROAddress)
   const BTCBefore = await psp22.balanceOf(account.address, BTCAddress)
   const ETHBefore = await psp22.balanceOf(account.address, ETHAddress)
   const USDCBefore = await psp22.balanceOf(account.address, USDCAddress)
   const USDTBefore = await psp22.balanceOf(account.address, USDTAddress)
   const SOLBefore = await psp22.balanceOf(account.address, SOLAddress)
+  const WAZEROBefore = await psp22.balanceOf(account.address, WAZEROAddress)
   for (const poolKey of poolKeys) {
     const price =
       (1 / (prices[poolKey.tokenY] / prices[poolKey.tokenX])) *
@@ -154,10 +160,13 @@ const main = async () => {
   const USDCAfter = await psp22.balanceOf(account.address, USDCAddress)
   const USDTAfter = await psp22.balanceOf(account.address, USDTAddress)
   const SOLAfter = await psp22.balanceOf(account.address, SOLAddress)
+  const WAZEROAfter = await psp22.balanceOf(account.address, WAZEROAddress)
   console.log(
     `BTC: ${BTCBefore - BTCAfter}, ETH: ${ETHBefore - ETHAfter}, USDC: ${
       USDCBefore - USDCAfter
-    }, USDT: ${USDTBefore - USDTAfter}, SOL: ${SOLBefore - SOLAfter}`
+    }, USDT: ${USDTBefore - USDTAfter}, SOL: ${SOLBefore - SOLAfter}, AZERO: ${
+      WAZEROBefore - WAZEROAfter
+    }`
   )
   console.log('Successfully created positions')
 
