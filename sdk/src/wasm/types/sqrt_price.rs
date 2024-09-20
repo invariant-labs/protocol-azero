@@ -30,7 +30,7 @@ impl SqrtPrice {
         let nominator = U448::uint_cast(nominator);
         let denominator = U448::uint_cast(denominator);
 
-        let intermediate_u320 = nominator
+        let intermediate_u448 = nominator
             .checked_mul(Self::one().cast::<U448>())
             .ok_or_else(|| err!(TrackableError::MUL))?
             .checked_mul(Self::one().cast::<U448>())
@@ -38,7 +38,7 @@ impl SqrtPrice {
             .checked_div(denominator)
             .ok_or_else(|| err!(TrackableError::DIV))?;
 
-        let result = U256::uint_checked_cast(intermediate_u320)
+        let result = U256::uint_checked_cast(intermediate_u448)
             .map_err(|e| err!(&e))?
             .checked_div(U256::from(Self::one().get()))
             .ok_or_else(|| err!(TrackableError::DIV))?
@@ -54,7 +54,7 @@ impl SqrtPrice {
         let nominator = U448::uint_cast(nominator);
         let denominator = U448::uint_cast(denominator);
 
-        let intermediate_u320 = nominator
+        let intermediate_u448 = nominator
             .checked_mul(Self::one().cast::<U448>())
             .ok_or_else(|| err!(TrackableError::MUL))?
             .checked_mul(Self::one().cast::<U448>())
@@ -64,7 +64,7 @@ impl SqrtPrice {
             .checked_div(denominator)
             .ok_or_else(|| err!(TrackableError::DIV))?;
 
-        let result = U256::uint_checked_cast(intermediate_u320)
+        let result = U256::uint_checked_cast(intermediate_u448)
             .map_err(|e| err!(&e))?
             .checked_add(U256::from(Self::almost_one().get()))
             .ok_or_else(|| err!(TrackableError::ADD))?
