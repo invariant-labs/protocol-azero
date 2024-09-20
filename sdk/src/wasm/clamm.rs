@@ -179,7 +179,9 @@ pub fn get_delta_x(
             sqrt_price_a
                 .cast::<U256>()
                 .checked_mul(sqrt_price_b.here())
-                .ok_or_else(|| err!(TrackableError::MUL))?,
+                .ok_or_else(|| err!(TrackableError::MUL))?
+                .checked_add(SqrtPrice::almost_one().here())
+                .ok_or_else(|| err!(TrackableError::ADD))?,
         ),
     })
 }

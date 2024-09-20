@@ -164,7 +164,9 @@ pub fn get_delta_x(
             sqrt_price_a
                 .cast::<U256>()
                 .checked_mul(sqrt_price_b.here())
-                .ok_or_else(|| err!(TrackableError::MUL))?,
+                .ok_or_else(|| err!(TrackableError::MUL))?
+                .checked_add(SqrtPrice::almost_one().here())
+                .ok_or_else(|| err!(TrackableError::ADD))?,
         ),
     })
 }
@@ -1030,7 +1032,7 @@ mod tests {
                 SwapResult {
                     next_sqrt_price: SqrtPrice::new(2000000000000000000000000),
                     amount_in: TokenAmount(340282366920938463463374607431769),
-                    amount_out: TokenAmount(170141183460469231731687303715884),
+                    amount_out: TokenAmount(170141183460469231731687218645292),
                     fee_amount: TokenAmount(0)
                 }
             )
@@ -1064,7 +1066,7 @@ mod tests {
             let expected_result = SwapResult {
                 next_sqrt_price: SqrtPrice::new(1000018999999999999999999),
                 amount_in: TokenAmount(6465364971497830805463835175),
-                amount_out: TokenAmount(6465242131897324756293472063),
+                amount_out: TokenAmount(6465242131897324756293465598),
                 fee_amount: TokenAmount(340282366914473098491876776626304376280),
             };
 
@@ -1127,7 +1129,7 @@ mod tests {
                     SwapResult {
                         next_sqrt_price: SqrtPrice::new(MAX_SQRT_PRICE),
                         amount_in: TokenAmount(340282366891153598040639304410374383019),
-                        amount_out: TokenAmount(340282366920938463463374607431551802886),
+                        amount_out: TokenAmount(340282366920938463463374267149184852163),
                         fee_amount: TokenAmount(0)
                     }
                 )
@@ -1203,7 +1205,7 @@ mod tests {
                     SwapResult {
                         next_sqrt_price: SqrtPrice::new(MAX_SQRT_PRICE),
                         amount_in: TokenAmount(79230632432451957492634392915),
-                        amount_out: TokenAmount(79230632439387003072335686522),
+                        amount_out: TokenAmount(79230632439387003072335607291),
                         fee_amount: TokenAmount(0)
                     }
                 );
@@ -1548,7 +1550,7 @@ mod tests {
             let result = get_delta_x(
                 SqrtPrice::from_integer(1u8),
                 SqrtPrice::from_integer(2u8),
-                Liquidity::from_integer(2u8),
+                Liquidity::from_integer(2u8) + Liquidity::new(1),
                 false,
             )
             .unwrap();
@@ -1576,7 +1578,10 @@ mod tests {
             let result_down = get_delta_x(sqrt_price_a, sqrt_price_b, liquidity, false).unwrap();
             let result_up = get_delta_x(sqrt_price_a, sqrt_price_b, liquidity, true).unwrap();
 
-            assert_eq!(result_down, TokenAmount::from_decimal(liquidity));
+            assert_eq!(
+                result_down,
+                TokenAmount::from_decimal(liquidity) - TokenAmount::new(1)
+            );
             assert_eq!(result_up, TokenAmount::from_decimal(liquidity));
         }
         // no more overflow after extending the type to U320 in intermediate operations
@@ -1627,7 +1632,7 @@ mod tests {
                 let result =
                     get_delta_x(max_sqrt_price, min_sqrt_price, max_liquidity, false).unwrap();
 
-                assert_eq!(result, TokenAmount(340282366920938463463374468856710103650))
+                assert_eq!(result, TokenAmount(340282366920938463463374128574343152927))
             }
         }
         {
@@ -1661,7 +1666,7 @@ mod tests {
                     false,
                 )
                 .unwrap();
-                assert_eq!(TokenAmount(340282366920938463463374607431768146213), result);
+                assert_eq!(TokenAmount(4294940505789835294958676759947697), result);
             }
         }
         // minimize denominator on minimize liquidity which fits into TokenAmount
