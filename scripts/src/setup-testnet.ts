@@ -46,7 +46,7 @@ const main = async () => {
   const SOLAddress = await PSP22.deploy(api, account, 0n, 'Solana', 'SOL', 9n)
   const decimals = {
     [BTCAddress]: 8n,
-    [ETHAddress]: 12n,
+    [ETHAddress]: 18n,
     [USDCAddress]: 6n,
     [USDTAddress]: 6n,
     [SOLAddress]: 9n,
@@ -127,19 +127,13 @@ const main = async () => {
   })
   const wazeroBalance = await wazero.balanceOf(account.address)
   await wazero.withdraw(account, wazeroBalance)
-  await wazero.deposit(account, 100000n * 10n ** 12n)
+  await wazero.deposit(account, 75000n * 10n ** 12n)
   await psp22.approve(
     account,
     invariant.contract.address.toString(),
     2n ** 96n - 1n,
     WAZERO_ADDRESS[network]
   )
-  const BTCBefore = await psp22.balanceOf(account.address, BTCAddress)
-  const ETHBefore = await psp22.balanceOf(account.address, ETHAddress)
-  const USDCBefore = await psp22.balanceOf(account.address, USDCAddress)
-  const USDTBefore = await psp22.balanceOf(account.address, USDTAddress)
-  const SOLBefore = await psp22.balanceOf(account.address, SOLAddress)
-  const WAZEROBefore = await psp22.balanceOf(account.address, WAZERO_ADDRESS[network])
   for (const poolKey of poolKeys) {
     const price =
       (1 / (prices[poolKey.tokenY] / prices[poolKey.tokenX])) *
@@ -174,19 +168,6 @@ const main = async () => {
       console.log('Create position error', poolKey, e)
     }
   }
-  const BTCAfter = await psp22.balanceOf(account.address, BTCAddress)
-  const ETHAfter = await psp22.balanceOf(account.address, ETHAddress)
-  const USDCAfter = await psp22.balanceOf(account.address, USDCAddress)
-  const USDTAfter = await psp22.balanceOf(account.address, USDTAddress)
-  const SOLAfter = await psp22.balanceOf(account.address, SOLAddress)
-  const WAZEROAfter = await psp22.balanceOf(account.address, WAZERO_ADDRESS[network])
-  console.log(
-    `BTC: ${BTCBefore - BTCAfter}, ETH: ${ETHBefore - ETHAfter}, USDC: ${
-      USDCBefore - USDCAfter
-    }, USDT: ${USDTBefore - USDTAfter}, SOL: ${SOLBefore - SOLAfter}, AZERO: ${
-      WAZEROBefore - WAZEROAfter
-    }`
-  )
   console.log('Successfully created positions')
 
   process.exit(0)
