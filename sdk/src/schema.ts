@@ -19,7 +19,8 @@ export enum InvariantQuery {
   GetTickmap = `${invariantActionPrefix}getTickmap`,
   GetLiquidityTicks = `${invariantActionPrefix}getLiquidityTicks`,
   GetLiquidityTicksAmount = `${invariantActionPrefix}getLiquidityTicksAmount`,
-  GetAllPoolsForPair = `${invariantActionPrefix}getAllPoolsForPair`
+  GetAllPoolsForPair = `${invariantActionPrefix}getAllPoolsForPair`,
+  GetAdmin = `${invariantActionPrefix}getAdmin`
 }
 
 export enum InvariantTx {
@@ -39,6 +40,7 @@ export enum InvariantTx {
   WithdrawAllWAZERO = `${invariantActionPrefix}withdrawAllWazero`,
   SetCode = `${invariantActionPrefix}setCode`,
   UpdatePositionSecondsPerLiquidity = `${invariantActionPrefix}updatePositionSecondsPerLiquidity`,
+  ChangeAdmin = `${invariantActionPrefix}changeAdmin`
 }
 
 export enum PSP22Query {

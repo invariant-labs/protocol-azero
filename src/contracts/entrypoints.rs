@@ -479,4 +479,21 @@ pub trait InvariantTrait {
     /// - `code_hash`: The code hash of the contract you want to change the code to.
     #[ink(message)]
     fn set_code(&mut self, code_hash: Hash) -> Result<(), InvariantError>;
+
+    /// Retrieves the admin of the contract.
+    ///
+    /// # Returns
+    /// - The admin address.
+    #[ink(message)]
+    fn get_admin(&self) -> AccountId;
+
+    /// Changes the admin of the contract.
+    ///
+    /// # Parameters
+    /// - `new_admin`: The new admin address.
+    ///
+    /// # Errors
+    /// - Fails if the caller is not the current admin.
+    #[ink(message)]
+    fn change_admin(&mut self, new_admin: AccountId) -> Result<(), InvariantError>;
 }

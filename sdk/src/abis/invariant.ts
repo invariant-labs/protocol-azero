@@ -1,7 +1,7 @@
 export const abi = `
 {
   "source": {
-    "hash": "0x8dc9df28bd121964ee2a8bb81ea6945b0d5ac58dfa67869ea48dcabdba92dc07",
+    "hash": "0xb0412003405594b9015f94142a81160fdee3ffb22f22451eaa18cb82171254ef",
     "language": "ink! 5.0.0",
     "compiler": "rustc 1.77.0",
     "build_info": {
@@ -74,7 +74,7 @@ export const abi = `
         "displayName": [
           "ChainExtension"
         ],
-        "type": 112
+        "type": 113
       },
       "hash": {
         "displayName": [
@@ -578,7 +578,7 @@ export const abi = `
               "displayName": [
                 "Option"
               ],
-              "type": 111
+              "type": 112
             }
           },
           {
@@ -591,7 +591,7 @@ export const abi = `
               "displayName": [
                 "Option"
               ],
-              "type": 111
+              "type": 112
             }
           },
           {
@@ -1804,6 +1804,48 @@ export const abi = `
           "type": 60
         },
         "selector": "0x292f3055"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [],
+        "label": "InvariantTrait::get_admin",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 111
+        },
+        "selector": "0x22e60cf9"
+      },
+      {
+        "args": [
+          {
+            "label": "new_admin",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 2
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "InvariantTrait::change_admin",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 60
+        },
+        "selector": "0x6a761352"
       }
     ]
   },
@@ -5909,6 +5951,48 @@ export const abi = `
           "variant": {
             "variants": [
               {
+                "fields": [
+                  {
+                    "type": 2
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 58
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 2
+          },
+          {
+            "name": "E",
+            "type": 58
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 112,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
                 "index": 0,
                 "name": "None"
               },
@@ -5936,7 +6020,7 @@ export const abi = `
       }
     },
     {
-      "id": 112,
+      "id": 113,
       "type": {
         "def": {
           "variant": {}
