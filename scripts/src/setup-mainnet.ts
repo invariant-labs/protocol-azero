@@ -38,13 +38,13 @@ const main = async () => {
   console.log('Successfully added fee tiers')
 
   const BTCAddress = await PSP22.deploy(api, account, 0n, 'Bitcoin', 'BTC', 8n)
-  const ETHAddress = await PSP22.deploy(api, account, 0n, 'Ether', 'ETH', 12n)
+  const ETHAddress = await PSP22.deploy(api, account, 0n, 'Ether', 'ETH', 18n)
   const USDCAddress = await PSP22.deploy(api, account, 0n, 'USDC', 'USDC', 6n)
   const USDTAddress = await PSP22.deploy(api, account, 0n, 'Tether USD', 'USDT', 6n)
   const SOLAddress = await PSP22.deploy(api, account, 0n, 'Solana', 'SOL', 9n)
   const decimals = {
     [BTCAddress]: 8n,
-    [ETHAddress]: 12n,
+    [ETHAddress]: 18n,
     [USDCAddress]: 6n,
     [USDTAddress]: 6n,
     [SOLAddress]: 9n
@@ -109,12 +109,6 @@ const main = async () => {
   await psp22.approve(account, invariant.contract.address.toString(), 2n ** 96n - 1n, USDCAddress)
   await psp22.approve(account, invariant.contract.address.toString(), 2n ** 96n - 1n, USDTAddress)
   await psp22.approve(account, invariant.contract.address.toString(), 2n ** 96n - 1n, SOLAddress)
-
-  const BTCBefore = await psp22.balanceOf(account.address, BTCAddress)
-  const ETHBefore = await psp22.balanceOf(account.address, ETHAddress)
-  const USDCBefore = await psp22.balanceOf(account.address, USDCAddress)
-  const USDTBefore = await psp22.balanceOf(account.address, USDTAddress)
-  const SOLBefore = await psp22.balanceOf(account.address, SOLAddress)
   for (const poolKey of poolKeys) {
     const price =
       (1 / (prices[poolKey.tokenY] / prices[poolKey.tokenX])) *
@@ -149,16 +143,6 @@ const main = async () => {
       console.log('Create position error', poolKey, e)
     }
   }
-  const BTCAfter = await psp22.balanceOf(account.address, BTCAddress)
-  const ETHAfter = await psp22.balanceOf(account.address, ETHAddress)
-  const USDCAfter = await psp22.balanceOf(account.address, USDCAddress)
-  const USDTAfter = await psp22.balanceOf(account.address, USDTAddress)
-  const SOLAfter = await psp22.balanceOf(account.address, SOLAddress)
-  console.log(
-    `BTC: ${BTCBefore - BTCAfter}, ETH: ${ETHBefore - ETHAfter}, USDC: ${
-      USDCBefore - USDCAfter
-    }, USDT: ${USDTBefore - USDTAfter}, SOL: ${SOLBefore - SOLAfter}`
-  )
   console.log('Successfully created positions')
 
   process.exit(0)
