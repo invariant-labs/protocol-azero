@@ -101,3 +101,9 @@ export const MAX_POOL_KEYS_RETURNED = getMaxPoolKeysReturned()
 export const MAX_POOL_PAIRS_RETURNED = getMaxPoolPairsReturned()
 export const POSITIONS_ENTRIES_LIMIT = getPositionsEntriesLimit()
 export const SEARCH_RANGE = getTickSearchRange()
+
+export const RPC = {
+  [Network.Testnet]: 'wss://ws.test.azero.dev',
+  [Network.Mainnet]: 'wss://ws.azero.dev',
+  [Network.Local]: undefined
+}
