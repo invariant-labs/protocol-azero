@@ -38,41 +38,18 @@ import { ContractPromise } from '@polkadot/api-contract'
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types'
 import { WeightV2 } from '@polkadot/types/interfaces'
 import { IKeyringPair } from '@polkadot/types/types/interfaces'
-import { getSubstrateChain, initPolkadotJs as initApi } from '@scio-labs/use-inkathon'
 import { abi as invariantAbi } from './abis/invariant.js'
 import { abi as PSP22Abi } from './abis/psp22.js'
 import { abi as wrappedAZEROAbi } from './abis/wrapped-azero.js'
-import { CONCENTRATION_FACTOR, MAINNET, MAX_SWAP_STEPS, TESTNET } from './consts.js'
+import { CONCENTRATION_FACTOR, MAX_SWAP_STEPS, RPC } from './consts.js'
 import { Network } from './network.js'
 import { EventTxResult, LiquidityBreakpoint, Query, Tx, TxResult } from './schema.js'
 
 export const initPolkadotApi = async (network: Network, ws?: string): Promise<ApiPromise> => {
-  if (network === Network.Local) {
-    const wsProvider = new WsProvider(ws)
-    const api = await ApiPromise.create({ provider: wsProvider })
-    await api.isReady
-    return api
-  } else if (network === Network.Testnet) {
-    const chain = getSubstrateChain(TESTNET)
-
-    if (!chain) {
-      throw new Error('chain not found')
-    }
-
-    const { api } = await initApi(chain, { noInitWarn: true })
-    return api
-  } else if (network === Network.Mainnet) {
-    const chain = getSubstrateChain(MAINNET)
-
-    if (!chain) {
-      throw new Error('chain not found')
-    }
-
-    const { api } = await initApi(chain, { noInitWarn: true })
-    return api
-  } else {
-    throw new Error('invalid network')
-  }
+  const wsProvider = new WsProvider(ws ?? RPC[network])
+  const api = await ApiPromise.create({ provider: wsProvider })
+  await api.isReady
+  return api
 }
 
 export async function sendQuery(
