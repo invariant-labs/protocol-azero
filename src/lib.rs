@@ -1180,6 +1180,23 @@ pub mod invariant {
             self.positions.update(caller, index, &position)?;
             Ok(())
         }
+
+        #[ink(message)]
+        fn get_admin(&self) -> AccountId {
+            self.config.admin
+        }
+
+        #[ink(message)]
+        fn change_admin(&mut self, new_admin: AccountId) -> Result<(), InvariantError> {
+            let caller = self.env().caller();
+
+            if caller != self.config.admin {
+                return Err(InvariantError::NotAdmin);
+            }
+
+            self.config.admin = new_admin;
+            Ok(())
+        }
     }
 
     #[cfg(test)]

@@ -16,7 +16,8 @@
     "replace-code": "npx tsc && node --experimental-wasm-modules target/replace-code.js",
     "setup-localnet": "npx tsc && node --experimental-wasm-modules target/setup-localnet.js",
     "setup-testnet": "npx tsc && node --experimental-wasm-modules target/setup-testnet.js",
-    "setup-mainnet": "npx tsc && node --experimental-wasm-modules target/setup-mainnet.js"
+    "setup-mainnet": "npx tsc && node --experimental-wasm-modules target/setup-mainnet.js",
+    "change-admin": "npx tsc && node --experimental-wasm-modules target/change-admin.js"
   },
   "keywords": [],
   "author": "",

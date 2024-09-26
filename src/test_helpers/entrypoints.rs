@@ -677,3 +677,42 @@ macro_rules! set_code {
         }
     }};
 }
+
+#[macro_export]
+macro_rules! get_admin {
+    ($client:ident, $dex:ident) => {{
+        let mut call_builder = $dex.call_builder::<Invariant>();
+        let call = call_builder.get_admin();
+        $client
+            .call(&ink_e2e::alice(), &call)
+            .dry_run()
+            .await
+            .unwrap()
+            .return_value()
+    }};
+}
+
+#[macro_export]
+macro_rules! change_admin {
+    ($client:ident, $dex:ident, $new_admin:expr, $caller:ident) => {{
+        let mut call_builder = $dex.call_builder::<Invariant>();
+        let call = call_builder.change_admin($new_admin);
+        let result = $client
+            .call(&$caller, &call)
+            .dry_run()
+            .await
+            .unwrap()
+            .return_value();
+
+        if result.is_ok() {
+            $client
+                .call(&$caller, &call)
+                .submit()
+                .await
+                .unwrap()
+                .return_value()
+        } else {
+            result
+        }
+    }};
+}
