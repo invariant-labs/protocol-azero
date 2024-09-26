@@ -1,5 +1,4 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
-
 extern crate alloc;
 mod contracts;
 #[cfg(all(test, feature = "e2e-tests"))]
@@ -9,10 +8,11 @@ pub mod math;
 #[ink::contract]
 pub mod invariant {
     use crate::contracts::{
-        tick_to_position, CalculateSwapResult, ChangeLiquidityEvent, CreatePositionEvent,
-        CrossTickEvent, FeeTier, FeeTiers, InvariantConfig, InvariantTrait, LiquidityTick, Pool,
-        PoolKey, PoolKeys, Pools, Position, Positions, QuoteResult, RemovePositionEvent, SwapEvent,
-        SwapHop, Tick, Tickmap, Ticks, UpdatePoolTick, LIQUIDITY_TICK_LIMIT,
+        get_chunk_lookup_bit, get_chunk_lookup_index, tick_to_position, CalculateSwapResult,
+        ChangeLiquidityEvent, CreatePositionEvent, CrossTickEvent, FeeTier, FeeTiers,
+        InvariantConfig, InvariantTrait, LiquidityTick, Pool, PoolKey, PoolKeys, Pools, Position,
+        Positions, QuoteResult, RemovePositionEvent, SwapEvent, SwapHop, Tick, Tickmap, Ticks,
+        UpdatePoolTick, CHUNK_LOOKUP_SIZE, CHUNK_SIZE, LIQUIDITY_TICK_LIMIT,
         MAX_TICKMAP_QUERY_SIZE,
     };
     use crate::math::calculate_min_amount_out;
@@ -416,24 +416,98 @@ pub mod invariant {
             self.env().block_timestamp() / 1000
         }
 
-        fn tickmap_slice(
+        fn tickmap_slice_from_chunk_lookup(
             &self,
-            range: impl Iterator<Item = u16>,
             pool_key: PoolKey,
-        ) -> Vec<(u16, u64)> {
+            chunk_lookup_start: u16,
+            chunk_lookup_bit_start: u16,
+            chunk_lookup_end: u16,
+            chunk_lookup_bit_end: u16,
+            range: impl Iterator<Item = u16>,
+        ) -> Result<Vec<(u16, u64)>, InvariantError> {
             let mut tickmap_slice: Vec<(u16, u64)> = vec![];
 
-            for chunk_index in range {
-                if let Some(chunk) = self.tickmap.bitmap.get((chunk_index, pool_key)) {
-                    tickmap_slice.push((chunk_index, chunk));
+            for chunk_lookup_index in range {
+                if let Some(chunk_lookup) = self
+                    .tickmap
+                    .chunk_lookups
+                    .get((chunk_lookup_index, pool_key))
+                {
+                    let push = |range, slice: &mut Vec<(u16, u64)>| -> Result<(), InvariantError> {
+                        for i in range {
+                            if chunk_lookup & (1u64 << i) != 0 {
+                                if MAX_TICKMAP_QUERY_SIZE == slice.len() {
+                                    break;
+                                }
 
-                    if tickmap_slice.len() == MAX_TICKMAP_QUERY_SIZE {
-                        return tickmap_slice;
+                                let chunk_offset = chunk_lookup_index
+                                    .checked_mul(CHUNK_LOOKUP_SIZE as u16)
+                                    .ok_or(InvariantError::MulOverflow)?;
+
+                                let chunk_index = chunk_offset.checked_add(i).ok_or(
+                                    InvariantError::AddOverflow(chunk_offset as u128, i as u128),
+                                )?;
+                                if let Some(val) = self.tickmap.bitmap.get((chunk_index, pool_key))
+                                {
+                                    slice.push((chunk_index, val))
+                                }
+                            }
+                        }
+
+                        Ok(())
+                    };
+
+                    if chunk_lookup_index == chunk_lookup_start {
+                        push(
+                            chunk_lookup_bit_start..(CHUNK_SIZE as u16),
+                            &mut tickmap_slice,
+                        )?;
+                    } else if chunk_lookup_index == chunk_lookup_end {
+                        push(
+                            0..(chunk_lookup_bit_end.checked_add(1).ok_or(
+                                InvariantError::AddOverflow(chunk_lookup_bit_end as u128, 1),
+                            )?),
+                            &mut tickmap_slice,
+                        )?;
+                    } else {
+                        push(0..(CHUNK_SIZE as u16), &mut tickmap_slice)?;
                     }
                 }
             }
 
-            tickmap_slice
+            Ok(tickmap_slice)
+        }
+
+        fn tickmap_slice(
+            &self,
+            start: u16,
+            end: u16,
+            x_to_y: bool,
+            pool_key: PoolKey,
+        ) -> Result<Vec<(u16, u64)>, InvariantError> {
+            let chunk_lookup_bit_start = get_chunk_lookup_bit(start);
+            let chunk_lookup_bit_end = get_chunk_lookup_bit(end);
+            let chunk_lookup_start = get_chunk_lookup_index(start);
+            let chunk_lookup_end = get_chunk_lookup_index(end);
+            if x_to_y {
+                self.tickmap_slice_from_chunk_lookup(
+                    pool_key,
+                    chunk_lookup_start,
+                    chunk_lookup_bit_start,
+                    chunk_lookup_end,
+                    chunk_lookup_bit_end,
+                    (chunk_lookup_start..=chunk_lookup_end).rev(),
+                )
+            } else {
+                self.tickmap_slice_from_chunk_lookup(
+                    pool_key,
+                    chunk_lookup_start,
+                    chunk_lookup_bit_start,
+                    chunk_lookup_end,
+                    chunk_lookup_bit_end,
+                    chunk_lookup_start..=chunk_lookup_end,
+                )
+            }
         }
     }
 
@@ -1080,16 +1154,13 @@ pub mod invariant {
             lower_tick_index: i32,
             upper_tick_index: i32,
             x_to_y: bool,
-        ) -> Vec<(u16, u64)> {
+        ) -> Result<Vec<(u16, u64)>, InvariantError> {
             let tick_spacing = pool_key.fee_tier.tick_spacing;
+
             let (start_chunk, _) = tick_to_position(lower_tick_index, tick_spacing);
             let (end_chunk, _) = tick_to_position(upper_tick_index, tick_spacing);
 
-            if x_to_y {
-                self.tickmap_slice((start_chunk..=end_chunk).rev(), pool_key)
-            } else {
-                self.tickmap_slice(start_chunk..=end_chunk, pool_key)
-            }
+            self.tickmap_slice(start_chunk, end_chunk, x_to_y, pool_key)
         }
 
         #[ink(message)]
