@@ -62,7 +62,7 @@
     "test:tickmap-testnet": "mocha ./tests/tickmap-limit-testnet.test.ts -g 'testnet-tickmap-limitations'"
   },
   "dependencies": {
-    "@invariant-labs/a0-sdk-wasm": "file:./src/wasm/pkg/",
+    "@invariant-labs/a0-sdk-wasm": "0.1.28",
     "@polkadot/api": "^10.12.4",
     "@polkadot/api-contract": "^10.12.4",
     "@scio-labs/use-inkathon": "^0.6.3",

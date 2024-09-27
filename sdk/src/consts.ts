@@ -43,33 +43,33 @@ export const WAZERO_ADDRESS = {
 }
 
 export const INVARIANT_ADDRESS = {
-  [Network.Testnet]: '5GmvfVAmALxttyzgRg62R5puhzRwD6N58nAdFmZV9gQG1RGK',
-  [Network.Mainnet]: '5GTv4yqNS48e5QJ9fr14ck6i2gpn1gFvL7MNnQadFtEDYALF',
+  [Network.Testnet]: '5EmtoXQqLPw5Qu43ZkFRzjRLUmkzDV9cKTZm8ADmnvS78BpV',
+  [Network.Mainnet]: '5FVYdhN1rCSQeVdYch84DXyanHEtVyeSCE482oGXb6YG7AGk',
   [Network.Local]: ''
 }
 export const BTC_ADDRESS = {
-  [Network.Testnet]: '5Cvyd9GtVUSuigFkAjimYqxpqUfzXaht3rKMA9WjQBDeeeiu',
-  [Network.Mainnet]: '5D6Lga7jXKAx4kFHprP1AbPc3zrvbBZvZBUHMTH4LrdsWdkG',
+  [Network.Testnet]: '5Cr6XesdYm2eC9Fxtm5uLP1c8EzKSyzWFgtB56bhZaLAchWq',
+  [Network.Mainnet]: '5Gbp6cdVtWtQpRrKvPkZV5PTRKPPytc2D5tDVaC5Bg5VYARx',
   [Network.Local]: ''
 }
 export const ETH_ADDRESS = {
-  [Network.Testnet]: '5CvotjnedNwsJ2thPjiqE4MEsJXhfQB99uC2fkCKnQkgJqj1',
-  [Network.Mainnet]: '5F8o46LxMg3LF26DtCZWV8fwinSg5sYs2sBi3XypZWsTYQKB',
+  [Network.Testnet]: '5FFdg7r8Xckkyhtj5NNRqXvBsToZYvciRsQQ2aEcojUGqEqp',
+  [Network.Mainnet]: '5D1GnFQZiQVdFgBRRuFbAgxis9GscFzUU9f5PQjuzEcZdsgU',
   [Network.Local]: ''
 }
 export const USDC_ADDRESS = {
-  [Network.Testnet]: '5FaDyzc3K1TtYiuwjcqJzYsXn4NG93Yrimz1dTXPY6HyVFp4',
-  [Network.Mainnet]: '5Dj9Jmk2GnLSuXaEZN8WjUxB9zWNKa75tKYdpsUQFqzaCJ6Y',
+  [Network.Testnet]: '5CqkYZrAg89tAKFiNEFDVCNAccQ6MC5p3jBa8u5ECD8pcHgg',
+  [Network.Mainnet]: '5DJz7bTVts3YVrGhHFVawiQbwzfiPZxrRY5S9vnfFDYctC9w',
   [Network.Local]: ''
 }
 export const USDT_ADDRESS = {
-  [Network.Testnet]: '5Gf9znZokPCkgczpsZDRYQCF7n9iCuWRzNgbTenPoQRHz33V',
-  [Network.Mainnet]: '5DgtfRBJjEqwJqLYPxgesmNsTuxcxhR2xCGaPEpYBDq4LyhJ',
+  [Network.Testnet]: '5CTMVdWxf8UeCojQTcvka4qAEXwLHFnpJ6JXxwASWPzn9i3t',
+  [Network.Mainnet]: '5GE5H4dFDYfb8NV64pvzoxd9n1pJTVpoRAtfymsVBdVUosW3',
   [Network.Local]: ''
 }
 export const SOL_ADDRESS = {
-  [Network.Testnet]: '5EDwDPeXY7kkLnTfWGjXex3n6gkp9swynm82hpL3LanW1MaH',
-  [Network.Mainnet]: '5GVuwRfGo5e5YRvBpq1rsQd3KKfCLWppHUuXyDsj89ASuNuq',
+  [Network.Testnet]: '5GVm1gVJNWtYyi6iFE7XsKC1nKKLBQHw78g7Hvgxzrj3QWta',
+  [Network.Mainnet]: '5HBhXtmAGnsFYge32TT71cnVcCbky8NHqunrWTdixhSfbjtN',
   [Network.Local]: ''
 }
 
