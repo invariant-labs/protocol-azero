@@ -58,7 +58,8 @@
     "test:get-all": "mocha ./tests/get-all.test.ts -g get-all",
     "test:change-liquidity": "mocha ./tests/change-liquidity.test.ts -g change-liquidity",
     "test:update-position-seconds-per-liquidity": "mocha ./tests/update-position-seconds-per-liquidity.test.ts -g update-position-seconds-per-liquidity",
-    "test:change-admin": "mocha ./tests/change-admin.test.ts -g change-admin"
+    "test:change-admin": "mocha ./tests/change-admin.test.ts -g change-admin",
+    "test:tickmap-testnet": "mocha ./tests/tickmap-limit-testnet.test.ts -g 'testnet-tickmap-limitations'"
   },
   "dependencies": {
     "@invariant-labs/a0-sdk-wasm": "file:./src/wasm/pkg/",
