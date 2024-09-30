@@ -9,19 +9,25 @@ use ink::storage::Mapping;
 
 pub const TICK_SEARCH_RANGE: i32 = 256;
 pub const CHUNK_SIZE: i32 = 64;
+pub const CHUNK_LOOKUP_SIZE: i32 = 64;
 pub const MAX_RESULT_SIZE: usize = 16 * 1024 * 8;
 pub const MAX_TICKMAP_QUERY_SIZE: usize = MAX_RESULT_SIZE / (16 + 64);
 
 #[derive(Debug)]
 #[ink::storage_item]
 pub struct Tickmap {
+    pub chunk_lookups: Mapping<(u16, PoolKey), u64>,
     pub bitmap: Mapping<(u16, PoolKey), u64>,
 }
 
 impl Default for Tickmap {
     fn default() -> Self {
+        let chunk_lookups = Mapping::default();
         let bitmap = Mapping::default();
-        Tickmap { bitmap }
+        Tickmap {
+            chunk_lookups,
+            bitmap,
+        }
     }
 }
 
@@ -277,12 +283,33 @@ impl Tickmap {
             value,
             "tick initialize tick again"
         );
-
-        self.bitmap.insert(
-            (chunk, pool_key),
-            &flip_bit_at_position(returned_chunk, bit),
-        );
+        self.update_or_create_chunk(chunk, &pool_key, &flip_bit_at_position(returned_chunk, bit));
     }
+
+    fn update_or_create_chunk(&mut self, chunk_index: u16, pool_key: &PoolKey, chunk_value: &u64) {
+        let chunk_lookup_index = get_chunk_lookup_index(chunk_index);
+        let chunk_lookup_bit = get_chunk_lookup_bit(chunk_index);
+
+        let chunk_lookup = self
+            .chunk_lookups
+            .get((chunk_lookup_index, pool_key))
+            .unwrap_or(0);
+
+        self.chunk_lookups.insert(
+            (chunk_lookup_index, pool_key),
+            &(chunk_lookup | (1 << chunk_lookup_bit)),
+        );
+
+        self.bitmap.insert((chunk_index, pool_key), chunk_value);
+    }
+}
+
+pub fn get_chunk_lookup_index(chunk_index: u16) -> u16 {
+    chunk_index.checked_div(CHUNK_LOOKUP_SIZE as u16).unwrap()
+}
+
+pub fn get_chunk_lookup_bit(chunk_index: u16) -> u16 {
+    chunk_index.checked_rem(CHUNK_LOOKUP_SIZE as u16).unwrap()
 }
 
 #[cfg(test)]

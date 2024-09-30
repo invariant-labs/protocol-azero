@@ -438,7 +438,7 @@ pub trait InvariantTrait {
         start_tick_index: i32,
         end_tick_index: i32,
         x_to_y: bool,
-    ) -> Vec<(u16, u64)>;
+    ) -> Result<Vec<(u16, u64)>, InvariantError>;
 
     /// Retrieves ticks of a specified pool.
     ///

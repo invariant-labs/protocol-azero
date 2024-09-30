@@ -89,7 +89,8 @@ pub mod e2e_tests {
             get_max_tick(fee_tier.tick_spacing),
             false,
             alice
-        );
+        )
+        .unwrap();
 
         assert_eq!(
             tickmap[0],
@@ -179,7 +180,8 @@ pub mod e2e_tests {
             get_max_tick(fee_tier.tick_spacing),
             false,
             alice
-        );
+        )
+        .unwrap();
 
         assert_eq!(tickmap[0], (0, 0b1));
         assert_eq!(
@@ -275,7 +277,8 @@ pub mod e2e_tests {
                 get_max_tick(fee_tier.tick_spacing),
                 false,
                 alice
-            );
+            )
+            .unwrap();
 
             assert_eq!(tickmap[0], (0, 0b11));
             assert_eq!(
@@ -295,7 +298,8 @@ pub mod e2e_tests {
                 get_max_tick(fee_tier.tick_spacing),
                 true,
                 alice
-            );
+            )
+            .unwrap();
             assert_eq!(
                 tickmap[0],
                 (
@@ -375,7 +379,8 @@ pub mod e2e_tests {
             get_max_tick(fee_tier.tick_spacing),
             false,
             alice
-        );
+        )
+        .unwrap();
 
         for (i, _) in (0..tickmap.len()).enumerate() {
             let current = 10397 + i as u16;
@@ -455,7 +460,8 @@ pub mod e2e_tests {
             get_max_tick(fee_tier.tick_spacing),
             false,
             alice
-        );
+        )
+        .unwrap();
         for (i, _) in (0..tickmap.len()).enumerate() {
             let current = 9576 + i as u16;
             assert_eq!(
@@ -531,7 +537,8 @@ pub mod e2e_tests {
             get_max_tick(fee_tier.tick_spacing),
             false,
             alice
-        );
+        )
+        .unwrap();
 
         assert_eq!(tickmap.len(), 1638);
 

@@ -14,18 +14,28 @@ import {
   priceToSqrtPrice,
   toPercentage
 } from '@invariant-labs/a0-sdk'
+import { PERCENTAGE_DENOMINATOR } from '@invariant-labs/a0-sdk/target/consts.js'
+import { assert } from '@invariant-labs/a0-sdk/target/utils.js'
 import dotenv from 'dotenv'
 
 dotenv.config()
+const testnetDeployCost = 85000n * 10n ** 12n
 
 const main = async () => {
   const network = Network.Testnet
   const api = await initPolkadotApi(network)
-
   const keyring = new Keyring({ type: 'sr25519' })
   const mnemonic = process.env.DEPLOYER_MNEMONIC ?? ''
   const account = keyring.addFromMnemonic(mnemonic)
   console.log(`Deployer: ${account.address}, Mnemonic: ${mnemonic}`)
+
+  {
+    const {
+      data: { free }
+    } = (await api.query.system.account(account.publicKey)) as any
+
+    assert(free.toBigInt() > testnetDeployCost, 'Insufficient funds')
+  }
 
   const invariant = await Invariant.deploy(api, network, account, toPercentage(1n, 2n), {
     storageDepositLimit: 100000000000,
@@ -162,7 +172,7 @@ const main = async () => {
         upperTick,
         liquidity,
         poolSqrtPrice,
-        0n
+        PERCENTAGE_DENOMINATOR
       )
     } catch (e) {
       console.log('Create position error', poolKey, e)

@@ -59,13 +59,13 @@ describe('testnet-crosses-limitations', async () => {
     }
 
     const swapper = keyring.addFromUri('//Bob')
-    const swapAmount = 3322033n
+    const swapAmount = 3266764n
     const tokenX = isTokenX(token0Address, token1Address) ? token0Address : token1Address
 
     await psp22.mint(swapper, swapAmount, tokenX)
     await psp22.approve(swapper, invariant.contract.address.toString(), swapAmount, tokenX)
 
     const tx = await invariant.swap(swapper, poolKey, true, swapAmount, true, getMinSqrtPrice(1n))
-    assert.equal((tx.events[0] as CrossTickEvent).indexes.length, 114)
+    assert.equal((tx.events[0] as CrossTickEvent).indexes.length, 113)
   })
 })

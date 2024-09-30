@@ -48,7 +48,6 @@ import {
   TxResult
 } from './schema.js'
 import {
-  assert,
   calculateSqrtPriceAfterSlippage,
   createSignAndSendTx,
   createTx,
@@ -1380,7 +1379,7 @@ export class Invariant {
       proofSize: this.gasLimit.proofSize.toNumber()
     }
   ): Promise<[bigint, bigint][]> {
-    return await sendQuery(
+    const result = await sendQuery(
       this.contract,
       this.api.registry.createType('WeightV2', {
         refTime: options.refTime,
@@ -1390,54 +1389,34 @@ export class Invariant {
       InvariantQuery.GetTickmap,
       [poolKey, lowerTick, upperTick, xToY]
     )
+
+    if (result.ok) {
+      return parse(result.ok)
+    } else {
+      throw new Error(InvariantError[result.err])
+    }
   }
 
   async getFullTickmap(poolKey: PoolKey): Promise<Tickmap> {
     const maxTick = getMaxTick(poolKey.feeTier.tickSpacing)
     let lowerTick = getMinTick(poolKey.feeTier.tickSpacing)
-
     const xToY = false
 
-    const promises: Promise<[bigint, bigint][]>[] = []
-    const tickSpacing = poolKey.feeTier.tickSpacing
-    assert(tickSpacing <= 100)
-
-    assert(MAX_TICKMAP_QUERY_SIZE > 3)
-    assert(CHUNK_SIZE * 2n > tickSpacing)
-    // move back 1 chunk since the range is inclusive
-    // then move back additional 2 chunks to ensure that adding tickspacing won't exceed the query limit
-    const jump = (MAX_TICKMAP_QUERY_SIZE - 3n) * CHUNK_SIZE
-
+    const allResponses = []
     while (lowerTick <= maxTick) {
-      let nextTick = lowerTick + jump
-      const remainder = nextTick % tickSpacing
+      const response = await this.getRawTickmap(poolKey, lowerTick, maxTick, xToY)
+      allResponses.push(...response)
 
-      if (remainder > 0) {
-        nextTick += tickSpacing - remainder
-      } else if (remainder < 0) {
-        nextTick -= remainder
+      if (response.length < MAX_TICKMAP_QUERY_SIZE) {
+        break
       }
 
-      let upperTick = nextTick
+      const lastChunkIndex = response[response.length - 1][0]
 
-      if (upperTick > maxTick) {
-        upperTick = maxTick
-      }
-
-      assert(upperTick % tickSpacing === 0n)
-      assert(lowerTick % tickSpacing === 0n)
-
-      const result = this.getRawTickmap(poolKey, lowerTick, upperTick, xToY)
-      promises.push(result)
-
-      lowerTick = upperTick + tickSpacing
+      lowerTick = positionToTick(lastChunkIndex, 0n, poolKey.feeTier.tickSpacing)
     }
 
-    const fullResult: [bigint, bigint][] = (await Promise.all(promises)).flat(1)
-
-    const storedTickmap = new Map<bigint, bigint>(fullResult)
-
-    return { bitmap: storedTickmap }
+    return { bitmap: new Map<bigint, bigint>(allResponses) }
   }
 
   async getLiquidityTicks(
