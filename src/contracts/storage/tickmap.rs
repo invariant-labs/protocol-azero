@@ -295,12 +295,22 @@ impl Tickmap {
             .get((chunk_lookup_index, pool_key))
             .unwrap_or(0);
 
-        self.chunk_lookups.insert(
-            (chunk_lookup_index, pool_key),
-            &(chunk_lookup | (1 << chunk_lookup_bit)),
-        );
+        let chunk_lookup = if chunk_value == &0 {
+            self.bitmap.remove((chunk_index, pool_key));
 
-        self.bitmap.insert((chunk_index, pool_key), chunk_value);
+            chunk_lookup & !(1 << chunk_lookup_bit)
+        } else {
+            self.bitmap.insert((chunk_index, pool_key), chunk_value);
+
+            chunk_lookup | (1 << chunk_lookup_bit)
+        };
+
+        if chunk_lookup == 0 {
+            self.chunk_lookups.remove((chunk_lookup_index, pool_key));
+        } else {
+            self.chunk_lookups
+                .insert((chunk_lookup_index, pool_key), &(chunk_lookup));
+        }
     }
 }
 
@@ -386,53 +396,128 @@ mod tests {
         //zero
         {
             let index = 0;
+            let (chunk_index, chunk_bit) = tick_to_position(index, fee_tier.tick_spacing);
+            let lookup_index = get_chunk_lookup_index(chunk_index);
+            let lookup_bit = get_chunk_lookup_bit(chunk_index);
 
             assert!(!tickmap.get(index, 1, pool_key));
+            assert_eq!(tickmap.bitmap.get((chunk_index, pool_key)), None);
+            assert_eq!(tickmap.chunk_lookups.get((lookup_index, pool_key)), None);
             tickmap.flip(true, index, 1, pool_key);
             assert!(tickmap.get(index, 1, pool_key));
+            assert_eq!(
+                tickmap.chunk_lookups.get((lookup_index, pool_key)),
+                Some(1u64 << lookup_bit)
+            );
+            assert_eq!(
+                tickmap.bitmap.get((chunk_index, pool_key)),
+                Some(1u64 << chunk_bit)
+            );
             tickmap.flip(false, index, 1, pool_key);
             assert!(!tickmap.get(index, 1, pool_key));
+            assert_eq!(tickmap.bitmap.get((chunk_index, pool_key)), None);
+            assert_eq!(tickmap.chunk_lookups.get((lookup_index, pool_key)), None);
         }
         // small
         {
             let index = 7;
+            let (chunk_index, chunk_bit) = tick_to_position(index, fee_tier.tick_spacing);
+            let lookup_index = get_chunk_lookup_index(chunk_index);
+            let lookup_bit = get_chunk_lookup_bit(chunk_index);
 
             assert!(!tickmap.get(index, 1, pool_key));
+            assert_eq!(tickmap.bitmap.get((chunk_index, pool_key)), None);
+            assert_eq!(tickmap.chunk_lookups.get((lookup_index, pool_key)), None);
             tickmap.flip(true, index, 1, pool_key);
             assert!(tickmap.get(index, 1, pool_key));
+            assert_eq!(
+                tickmap.chunk_lookups.get((lookup_index, pool_key)),
+                Some(1u64 << lookup_bit)
+            );
+            assert_eq!(
+                tickmap.bitmap.get((chunk_index, pool_key)),
+                Some(1u64 << chunk_bit)
+            );
             tickmap.flip(false, index, 1, pool_key);
             assert!(!tickmap.get(index, 1, pool_key));
+            assert_eq!(tickmap.bitmap.get((chunk_index, pool_key)), None);
+            assert_eq!(tickmap.chunk_lookups.get((lookup_index, pool_key)), None);
         }
         // big
         {
             let index = MAX_TICK - 1;
+            let (chunk_index, chunk_bit) = tick_to_position(index, fee_tier.tick_spacing);
+            let lookup_index = get_chunk_lookup_index(chunk_index);
+            let lookup_bit = get_chunk_lookup_bit(chunk_index);
 
             assert!(!tickmap.get(index, 1, pool_key));
+            assert_eq!(tickmap.bitmap.get((chunk_index, pool_key)), None);
+            assert_eq!(tickmap.chunk_lookups.get((lookup_index, pool_key)), None);
             tickmap.flip(true, index, 1, pool_key);
             assert!(tickmap.get(index, 1, pool_key));
+            assert_eq!(
+                tickmap.chunk_lookups.get((lookup_index, pool_key)),
+                Some(1u64 << lookup_bit)
+            );
+            assert_eq!(
+                tickmap.bitmap.get((chunk_index, pool_key)),
+                Some(1u64 << chunk_bit)
+            );
             tickmap.flip(false, index, 1, pool_key);
             assert!(!tickmap.get(index, 1, pool_key));
+            assert_eq!(tickmap.bitmap.get((chunk_index, pool_key)), None);
+            assert_eq!(tickmap.chunk_lookups.get((lookup_index, pool_key)), None);
         }
         // negative
         {
             let index = MAX_TICK - 40;
+            let (chunk_index, chunk_bit) = tick_to_position(index, fee_tier.tick_spacing);
+            let lookup_index = get_chunk_lookup_index(chunk_index);
+            let lookup_bit = get_chunk_lookup_bit(chunk_index);
 
             assert!(!tickmap.get(index, 1, pool_key));
+            assert_eq!(tickmap.bitmap.get((chunk_index, pool_key)), None);
+            assert_eq!(tickmap.chunk_lookups.get((lookup_index, pool_key)), None);
             tickmap.flip(true, index, 1, pool_key);
             assert!(tickmap.get(index, 1, pool_key));
+            assert_eq!(
+                tickmap.chunk_lookups.get((lookup_index, pool_key)),
+                Some(1u64 << lookup_bit)
+            );
+            assert_eq!(
+                tickmap.bitmap.get((chunk_index, pool_key)),
+                Some(1u64 << chunk_bit)
+            );
             tickmap.flip(false, index, 1, pool_key);
             assert!(!tickmap.get(index, 1, pool_key));
+            assert_eq!(tickmap.bitmap.get((chunk_index, pool_key)), None);
+            assert_eq!(tickmap.chunk_lookups.get((lookup_index, pool_key)), None);
         }
         // tick spacing
         {
             let index = 20000;
             let tick_spacing = 1000;
+            let (chunk_index, chunk_bit) = tick_to_position(index, tick_spacing);
+            let lookup_index = get_chunk_lookup_index(chunk_index);
+            let lookup_bit = get_chunk_lookup_bit(chunk_index);
 
             assert!(!tickmap.get(index, tick_spacing, pool_key));
+            assert_eq!(tickmap.bitmap.get((chunk_index, pool_key)), None);
+            assert_eq!(tickmap.chunk_lookups.get((lookup_index, pool_key)), None);
             tickmap.flip(true, index, tick_spacing, pool_key);
             assert!(tickmap.get(index, tick_spacing, pool_key));
+            assert_eq!(
+                tickmap.chunk_lookups.get((lookup_index, pool_key)),
+                Some(1u64 << lookup_bit)
+            );
+            assert_eq!(
+                tickmap.bitmap.get((chunk_index, pool_key)),
+                Some(1u64 << chunk_bit)
+            );
             tickmap.flip(false, index, tick_spacing, pool_key);
             assert!(!tickmap.get(index, tick_spacing, pool_key));
+            assert_eq!(tickmap.bitmap.get((chunk_index, pool_key)), None);
+            assert_eq!(tickmap.chunk_lookups.get((lookup_index, pool_key)), None);
         }
     }
 
