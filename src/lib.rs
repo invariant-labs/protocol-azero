@@ -1226,7 +1226,7 @@ pub mod invariant {
                 ]);
 
                 if address != wazero {
-                    return Err(InvariantError::NotAdmin);
+                    return Err(InvariantError::WAZEROIncorrectMainnetAddressId);
                 }
             }
 

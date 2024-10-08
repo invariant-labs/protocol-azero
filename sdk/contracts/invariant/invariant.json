@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x078230cf393a47d0386deaf76cb288bf3cf8d56f4d3fc4a056b4ced42fedc68f",
+    "hash": "0xb84f94eb180b28bdc6279d30c80c77eb0286e04d1bb2044952aa004736d19a71",
     "language": "ink! 5.0.0",
     "compiler": "rustc 1.77.0",
     "build_info": {
@@ -4517,6 +4517,10 @@
               {
                 "index": 35,
                 "name": "LiquidityChangeZero"
+              },
+              {
+                "index": 36,
+                "name": "WAZEROIncorrectMainnetAddressId"
               }
             ]
           }

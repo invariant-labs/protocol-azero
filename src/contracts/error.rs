@@ -37,4 +37,5 @@ pub enum InvariantError {
     WAZEROWithdrawError,
     SetCodeHashError,
     LiquidityChangeZero,
+    WAZEROIncorrectMainnetAddressId,
 }
