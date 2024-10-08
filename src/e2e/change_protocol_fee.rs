@@ -3,7 +3,7 @@ pub mod e2e_tests {
     use crate::contracts::InvariantError;
     use crate::invariant::Invariant;
     use crate::{
-        contracts::entrypoints::InvariantTrait, invariant::InvariantRef,
+        contracts::entrypoints::InvariantEntrypoints, invariant::InvariantRef,
         math::types::percentage::Percentage,
     };
     use decimal::*;

@@ -3,7 +3,7 @@ pub mod e2e_tests {
     use crate::invariant::Invariant;
     use crate::{
         contracts::tickmap::get_max_chunk,
-        contracts::{entrypoints::InvariantTrait, FeeTier, PoolKey},
+        contracts::{entrypoints::InvariantEntrypoints, FeeTier, PoolKey},
         invariant::InvariantRef,
         math::types::liquidity::Liquidity,
         math::types::percentage::Percentage,

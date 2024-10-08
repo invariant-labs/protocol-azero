@@ -1093,6 +1093,7 @@ name = "token"
 version = "2.0.0"
 dependencies = [
  "ink",
+ "scale-info",
 ]
 
 [[package]]

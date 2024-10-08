@@ -10,9 +10,9 @@ pub mod invariant {
     use crate::contracts::{
         get_chunk_lookup_bit, get_chunk_lookup_index, tick_to_position, CalculateSwapResult,
         ChangeLiquidityEvent, CreatePositionEvent, CrossTickEvent, FeeTier, FeeTiers,
-        InvariantConfig, InvariantTrait, LiquidityTick, Pool, PoolKey, PoolKeys, Pools, Position,
-        Positions, QuoteResult, RemovePositionEvent, SwapEvent, SwapHop, Tick, Tickmap, Ticks,
-        UpdatePoolTick, CHUNK_LOOKUP_SIZE, CHUNK_SIZE, LIQUIDITY_TICK_LIMIT,
+        InvariantConfig, InvariantEntrypoints, LiquidityTick, Pool, PoolKey, PoolKeys, Pools,
+        Position, Positions, QuoteResult, RemovePositionEvent, SwapEvent, SwapHop, Tick, Tickmap,
+        Ticks, UpdatePoolTick, CHUNK_LOOKUP_SIZE, CHUNK_SIZE, LIQUIDITY_TICK_LIMIT,
         MAX_TICKMAP_QUERY_SIZE,
     };
     use crate::math::calculate_min_amount_out;
@@ -271,8 +271,7 @@ pub mod invariant {
         }
 
         fn route(
-            &mut self,
-            is_swap: bool,
+            &self,
             amount_in: TokenAmount,
             swaps: Vec<SwapHop>,
         ) -> Result<TokenAmount, InvariantError> {
@@ -287,12 +286,37 @@ pub mod invariant {
                     SqrtPrice::new(MAX_SQRT_PRICE)
                 };
 
-                let result = if is_swap {
-                    self.swap(pool_key, x_to_y, next_swap_amount, true, sqrt_price_limit)
-                } else {
-                    self.calculate_swap(pool_key, x_to_y, next_swap_amount, true, sqrt_price_limit)
-                }?;
+                let result = self.calculate_swap(
+                    pool_key,
+                    x_to_y,
+                    next_swap_amount,
+                    true,
+                    sqrt_price_limit,
+                )?;
+                next_swap_amount = result.amount_out;
+            }
 
+            Ok(next_swap_amount)
+        }
+
+        fn route_mut(
+            &mut self,
+            amount_in: TokenAmount,
+            swaps: Vec<SwapHop>,
+        ) -> Result<TokenAmount, InvariantError> {
+            let mut next_swap_amount = amount_in;
+
+            for swap in swaps.iter() {
+                let SwapHop { pool_key, x_to_y } = *swap;
+
+                let sqrt_price_limit = if x_to_y {
+                    SqrtPrice::new(MIN_SQRT_PRICE)
+                } else {
+                    SqrtPrice::new(MAX_SQRT_PRICE)
+                };
+
+                let result =
+                    self.swap(pool_key, x_to_y, next_swap_amount, true, sqrt_price_limit)?;
                 next_swap_amount = result.amount_out;
             }
 
@@ -511,7 +535,7 @@ pub mod invariant {
         }
     }
 
-    impl InvariantTrait for Invariant {
+    impl InvariantEntrypoints for Invariant {
         #[ink(message)]
         fn get_protocol_fee(&self) -> Percentage {
             self.config.protocol_fee
@@ -813,7 +837,7 @@ pub mod invariant {
             slippage: Percentage,
             swaps: Vec<SwapHop>,
         ) -> Result<(), InvariantError> {
-            let amount_out = self.route(true, amount_in, swaps)?;
+            let amount_out = self.route_mut(amount_in, swaps)?;
 
             let min_amount_out = calculate_min_amount_out(expected_amount_out, slippage);
 
@@ -846,11 +870,11 @@ pub mod invariant {
 
         #[ink(message)]
         fn quote_route(
-            &mut self,
+            &self,
             amount_in: TokenAmount,
             swaps: Vec<SwapHop>,
         ) -> Result<TokenAmount, InvariantError> {
-            let amount_out = self.route(false, amount_in, swaps)?;
+            let amount_out = self.route(amount_in, swaps)?;
 
             Ok(amount_out)
         }
@@ -870,7 +894,7 @@ pub mod invariant {
 
         #[ink(message)]
         fn get_position(
-            &mut self,
+            &self,
             owner_id: AccountId,
             index: u32,
         ) -> Result<Position, InvariantError> {
@@ -879,7 +903,7 @@ pub mod invariant {
 
         #[ink(message)]
         fn get_positions(
-            &mut self,
+            &self,
             owner_id: AccountId,
             size: u32,
             offset: u32,
@@ -1193,6 +1217,18 @@ pub mod invariant {
         fn withdraw_all_wazero(&self, address: AccountId) -> Result<(), InvariantError> {
             let caller = self.env().caller();
             let contract = self.env().account_id();
+
+            #[cfg(not(feature = "dev"))]
+            {
+                let wazero = AccountId::from([
+                    36, 194, 34, 48, 111, 252, 26, 13, 113, 175, 229, 187, 186, 36, 84, 83, 9, 31,
+                    24, 227, 253, 232, 49, 168, 168, 78, 169, 46, 66, 157, 224, 0,
+                ]);
+
+                if address != wazero {
+                    return Err(InvariantError::NotAdmin);
+                }
+            }
 
             let balance = balance_of_v1!(address, caller);
             if balance > 0 {

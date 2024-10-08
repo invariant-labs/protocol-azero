@@ -22,8 +22,8 @@ cargo clippy --all-targets -- --no-deps -D warnings
 cargo test --features e2e-tests
 
 # Build contract
-cargo contract build
-cargo contract build --release
+cargo contract build --features dev
+cargo contract build --release --features dev
 
 # Build and test SDK
 cd sdk

@@ -13,6 +13,9 @@ exclude = [ ".github/*" ]
 [dependencies]
 ink = { version = "5.0.0", default-features = false }
 
+[dev-dependencies]
+scale-info = "2.11.3"
+
 [lib]
 path = "lib.rs"
 

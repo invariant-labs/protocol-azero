@@ -2,7 +2,7 @@
 pub mod e2e_tests {
     use crate::invariant::Invariant;
     use crate::{
-        contracts::{entrypoints::InvariantTrait, FeeTier, PoolKey, SwapHop},
+        contracts::{entrypoints::InvariantEntrypoints, FeeTier, PoolKey, SwapHop},
         invariant::InvariantRef,
         math::types::{
             liquidity::Liquidity, percentage::Percentage, sqrt_price::calculate_sqrt_price,

@@ -2,7 +2,7 @@
 pub mod e2e_tests {
     use crate::invariant::Invariant;
     use crate::{
-        contracts::{entrypoints::InvariantTrait, FeeTier, InvariantError, PoolKey},
+        contracts::{entrypoints::InvariantEntrypoints, FeeTier, InvariantError, PoolKey},
         invariant::InvariantRef,
         math::types::{
             liquidity::Liquidity,

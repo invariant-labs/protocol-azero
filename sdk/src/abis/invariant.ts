@@ -1,7 +1,7 @@
 export const abi = `
 {
   "source": {
-    "hash": "0x1cb24d4deb9c26024479701449993e8696236281e7f6d4253678b9a757732846",
+    "hash": "0x078230cf393a47d0386deaf76cb288bf3cf8d56f4d3fc4a056b4ced42fedc68f",
     "language": "ink! 5.0.0",
     "compiler": "rustc 1.77.0",
     "build_info": {
@@ -628,7 +628,7 @@ export const abi = `
         "args": [],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::get_protocol_fee",
+        "label": "InvariantEntrypoints::get_protocol_fee",
         "mutates": false,
         "payable": false,
         "returnType": {
@@ -638,7 +638,7 @@ export const abi = `
           ],
           "type": 62
         },
-        "selector": "0xe285b69a"
+        "selector": "0xba7a3696"
       },
       {
         "args": [
@@ -654,7 +654,7 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::withdraw_protocol_fee",
+        "label": "InvariantEntrypoints::withdraw_protocol_fee",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -664,7 +664,7 @@ export const abi = `
           ],
           "type": 63
         },
-        "selector": "0x5a059796"
+        "selector": "0xdf787704"
       },
       {
         "args": [
@@ -680,7 +680,7 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::change_protocol_fee",
+        "label": "InvariantEntrypoints::change_protocol_fee",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -690,7 +690,7 @@ export const abi = `
           ],
           "type": 63
         },
-        "selector": "0xc8bd0f58"
+        "selector": "0x833b1d98"
       },
       {
         "args": [
@@ -715,7 +715,7 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::change_fee_receiver",
+        "label": "InvariantEntrypoints::change_fee_receiver",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -725,7 +725,7 @@ export const abi = `
           ],
           "type": 63
         },
-        "selector": "0x0ebd3ec6"
+        "selector": "0xd2ec8584"
       },
       {
         "args": [
@@ -786,7 +786,7 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::create_position",
+        "label": "InvariantEntrypoints::create_position",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -796,7 +796,7 @@ export const abi = `
           ],
           "type": 66
         },
-        "selector": "0x0a1ca76b"
+        "selector": "0x9202adf1"
       },
       {
         "args": [
@@ -848,7 +848,7 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::change_liquidity",
+        "label": "InvariantEntrypoints::change_liquidity",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -858,7 +858,7 @@ export const abi = `
           ],
           "type": 63
         },
-        "selector": "0x19b443b7"
+        "selector": "0xd3d7ea1c"
       },
       {
         "args": [
@@ -910,7 +910,7 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::swap",
+        "label": "InvariantEntrypoints::swap",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -920,7 +920,7 @@ export const abi = `
           ],
           "type": 68
         },
-        "selector": "0x1c590004"
+        "selector": "0x27a0d96d"
       },
       {
         "args": [
@@ -963,7 +963,7 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::swap_route",
+        "label": "InvariantEntrypoints::swap_route",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -973,7 +973,7 @@ export const abi = `
           ],
           "type": 63
         },
-        "selector": "0x5ff8d655"
+        "selector": "0x5642d509"
       },
       {
         "args": [
@@ -1025,7 +1025,7 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::quote",
+        "label": "InvariantEntrypoints::quote",
         "mutates": false,
         "payable": false,
         "returnType": {
@@ -1035,7 +1035,7 @@ export const abi = `
           ],
           "type": 74
         },
-        "selector": "0xa2bd3fc7"
+        "selector": "0x5a4ea9d2"
       },
       {
         "args": [
@@ -1060,8 +1060,8 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::quote_route",
-        "mutates": true,
+        "label": "InvariantEntrypoints::quote_route",
+        "mutates": false,
         "payable": false,
         "returnType": {
           "displayName": [
@@ -1070,7 +1070,7 @@ export const abi = `
           ],
           "type": 77
         },
-        "selector": "0x879b5256"
+        "selector": "0x116c59b5"
       },
       {
         "args": [
@@ -1095,7 +1095,7 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::transfer_position",
+        "label": "InvariantEntrypoints::transfer_position",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -1105,7 +1105,7 @@ export const abi = `
           ],
           "type": 63
         },
-        "selector": "0xe5af145a"
+        "selector": "0x7450cf79"
       },
       {
         "args": [
@@ -1130,8 +1130,8 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::get_position",
-        "mutates": true,
+        "label": "InvariantEntrypoints::get_position",
+        "mutates": false,
         "payable": false,
         "returnType": {
           "displayName": [
@@ -1140,7 +1140,7 @@ export const abi = `
           ],
           "type": 66
         },
-        "selector": "0xccb84930"
+        "selector": "0xab4ae13f"
       },
       {
         "args": [
@@ -1174,8 +1174,8 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::get_positions",
-        "mutates": true,
+        "label": "InvariantEntrypoints::get_positions",
+        "mutates": false,
         "payable": false,
         "returnType": {
           "displayName": [
@@ -1184,7 +1184,7 @@ export const abi = `
           ],
           "type": 79
         },
-        "selector": "0xb2155f6b"
+        "selector": "0xe5845583"
       },
       {
         "args": [
@@ -1200,7 +1200,7 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::claim_fee",
+        "label": "InvariantEntrypoints::claim_fee",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -1210,7 +1210,7 @@ export const abi = `
           ],
           "type": 84
         },
-        "selector": "0x4eb580e1"
+        "selector": "0xa55ee285"
       },
       {
         "args": [
@@ -1226,7 +1226,7 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::remove_position",
+        "label": "InvariantEntrypoints::remove_position",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -1236,7 +1236,7 @@ export const abi = `
           ],
           "type": 84
         },
-        "selector": "0xfe63d239"
+        "selector": "0xe283d7d5"
       },
       {
         "args": [
@@ -1252,7 +1252,7 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::add_fee_tier",
+        "label": "InvariantEntrypoints::add_fee_tier",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -1262,7 +1262,7 @@ export const abi = `
           ],
           "type": 63
         },
-        "selector": "0x009b6a3d"
+        "selector": "0x1034a75e"
       },
       {
         "args": [
@@ -1278,7 +1278,7 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::remove_fee_tier",
+        "label": "InvariantEntrypoints::remove_fee_tier",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -1288,7 +1288,7 @@ export const abi = `
           ],
           "type": 63
         },
-        "selector": "0x3b497d6e"
+        "selector": "0x6a81357c"
       },
       {
         "args": [
@@ -1304,7 +1304,7 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::fee_tier_exist",
+        "label": "InvariantEntrypoints::fee_tier_exist",
         "mutates": false,
         "payable": false,
         "returnType": {
@@ -1314,7 +1314,7 @@ export const abi = `
           ],
           "type": 87
         },
-        "selector": "0x4e9e07ce"
+        "selector": "0x1f607c7e"
       },
       {
         "args": [
@@ -1366,7 +1366,7 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::create_pool",
+        "label": "InvariantEntrypoints::create_pool",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -1376,7 +1376,7 @@ export const abi = `
           ],
           "type": 63
         },
-        "selector": "0x98b595e9"
+        "selector": "0xd637bca7"
       },
       {
         "args": [
@@ -1410,7 +1410,7 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::get_pool",
+        "label": "InvariantEntrypoints::get_pool",
         "mutates": false,
         "payable": false,
         "returnType": {
@@ -1420,7 +1420,7 @@ export const abi = `
           ],
           "type": 88
         },
-        "selector": "0xf91e4a49"
+        "selector": "0xdefe35c1"
       },
       {
         "args": [
@@ -1445,7 +1445,7 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::get_all_pools_for_pair",
+        "label": "InvariantEntrypoints::get_all_pools_for_pair",
         "mutates": false,
         "payable": false,
         "returnType": {
@@ -1455,7 +1455,7 @@ export const abi = `
           ],
           "type": 90
         },
-        "selector": "0xb62aa10d"
+        "selector": "0x4773786e"
       },
       {
         "args": [
@@ -1480,7 +1480,7 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::get_tick",
+        "label": "InvariantEntrypoints::get_tick",
         "mutates": false,
         "payable": false,
         "returnType": {
@@ -1490,7 +1490,7 @@ export const abi = `
           ],
           "type": 94
         },
-        "selector": "0xeebd620b"
+        "selector": "0x52703d54"
       },
       {
         "args": [
@@ -1515,7 +1515,7 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::is_tick_initialized",
+        "label": "InvariantEntrypoints::is_tick_initialized",
         "mutates": false,
         "payable": false,
         "returnType": {
@@ -1525,7 +1525,7 @@ export const abi = `
           ],
           "type": 87
         },
-        "selector": "0xdbae15e5"
+        "selector": "0xeef14ebb"
       },
       {
         "args": [
@@ -1550,7 +1550,7 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::get_pool_keys",
+        "label": "InvariantEntrypoints::get_pool_keys",
         "mutates": false,
         "payable": false,
         "returnType": {
@@ -1560,13 +1560,13 @@ export const abi = `
           ],
           "type": 96
         },
-        "selector": "0x57d47dcb"
+        "selector": "0x0c98e928"
       },
       {
         "args": [],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::get_fee_tiers",
+        "label": "InvariantEntrypoints::get_fee_tiers",
         "mutates": false,
         "payable": false,
         "returnType": {
@@ -1576,7 +1576,7 @@ export const abi = `
           ],
           "type": 100
         },
-        "selector": "0xd05b6003"
+        "selector": "0x01526a55"
       },
       {
         "args": [
@@ -1601,7 +1601,7 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::get_position_with_associates",
+        "label": "InvariantEntrypoints::get_position_with_associates",
         "mutates": false,
         "payable": false,
         "returnType": {
@@ -1611,7 +1611,7 @@ export const abi = `
           ],
           "type": 101
         },
-        "selector": "0x96ccf001"
+        "selector": "0x79370d40"
       },
       {
         "args": [
@@ -1654,7 +1654,7 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::get_tickmap",
+        "label": "InvariantEntrypoints::get_tickmap",
         "mutates": false,
         "payable": false,
         "returnType": {
@@ -1664,7 +1664,7 @@ export const abi = `
           ],
           "type": 104
         },
-        "selector": "0x3b83b256"
+        "selector": "0x1bd856b1"
       },
       {
         "args": [
@@ -1689,7 +1689,7 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::get_liquidity_ticks",
+        "label": "InvariantEntrypoints::get_liquidity_ticks",
         "mutates": false,
         "payable": false,
         "returnType": {
@@ -1699,7 +1699,7 @@ export const abi = `
           ],
           "type": 109
         },
-        "selector": "0x8ef8d345"
+        "selector": "0x919afc3c"
       },
       {
         "args": [
@@ -1715,7 +1715,7 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::get_user_position_amount",
+        "label": "InvariantEntrypoints::get_user_position_amount",
         "mutates": false,
         "payable": false,
         "returnType": {
@@ -1725,7 +1725,7 @@ export const abi = `
           ],
           "type": 113
         },
-        "selector": "0xd842f034"
+        "selector": "0xe067ac17"
       },
       {
         "args": [
@@ -1741,7 +1741,7 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::withdraw_all_wazero",
+        "label": "InvariantEntrypoints::withdraw_all_wazero",
         "mutates": false,
         "payable": false,
         "returnType": {
@@ -1751,7 +1751,7 @@ export const abi = `
           ],
           "type": 63
         },
-        "selector": "0x06099ca3"
+        "selector": "0x3afcb176"
       },
       {
         "args": [
@@ -1767,7 +1767,7 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::set_code",
+        "label": "InvariantEntrypoints::set_code",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -1777,7 +1777,7 @@ export const abi = `
           ],
           "type": 63
         },
-        "selector": "0xe33a2343"
+        "selector": "0x66628ced"
       },
       {
         "args": [
@@ -1793,7 +1793,7 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::update_position_seconds_per_liquidity",
+        "label": "InvariantEntrypoints::update_position_seconds_per_liquidity",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -1803,13 +1803,13 @@ export const abi = `
           ],
           "type": 63
         },
-        "selector": "0x292f3055"
+        "selector": "0xc5fe9585"
       },
       {
         "args": [],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::get_admin",
+        "label": "InvariantEntrypoints::get_admin",
         "mutates": false,
         "payable": false,
         "returnType": {
@@ -1819,7 +1819,7 @@ export const abi = `
           ],
           "type": 115
         },
-        "selector": "0x22e60cf9"
+        "selector": "0xf973a11f"
       },
       {
         "args": [
@@ -1835,7 +1835,7 @@ export const abi = `
         ],
         "default": false,
         "docs": [],
-        "label": "InvariantTrait::change_admin",
+        "label": "InvariantEntrypoints::change_admin",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -1845,7 +1845,7 @@ export const abi = `
           ],
           "type": 63
         },
-        "selector": "0x6a761352"
+        "selector": "0xb2e0f28d"
       }
     ]
   },
