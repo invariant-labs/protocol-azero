@@ -12,7 +12,8 @@ export {
   toPrice,
   toSecondsPerLiquidity,
   toSqrtPrice,
-  toTokenAmount
+  toTokenAmount,
+  calculateAmountDelta
 } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 export type {
   CreatePositionEvent,
