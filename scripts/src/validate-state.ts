@@ -1,17 +1,13 @@
 import {
-  calculateSqrtPrice,
   Invariant,
   LiquidityTick,
   Network,
   Pool,
   PoolKey,
-  PSP22
+  PSP22,
+  calculateAmountDelta
 } from '@invariant-labs/a0-sdk'
-import {
-  INVARIANT_ADDRESS,
-  LIQUIDITY_DENOMINATOR,
-  PRICE_DENOMINATOR
-} from '@invariant-labs/a0-sdk/target/consts.js'
+import { INVARIANT_ADDRESS } from '@invariant-labs/a0-sdk/target/consts.js'
 import { assert, initPolkadotApi } from '@invariant-labs/a0-sdk/target/utils.js'
 
 const main = async () => {
@@ -99,7 +95,6 @@ const getPairLiquidityValues = (pool: Pool, liquidityTicks: LiquidityTick[]) => 
       let liquidityLower = prev.liquidityChange
       let liquidityUpper = curr.liquidityChange
 
-      let xVal, yVal
       let liquidityDelta
       let lowerTickIndex = prev.index
       let upperTickIndex = curr.index
@@ -114,22 +109,15 @@ const getPairLiquidityValues = (pool: Pool, liquidityTicks: LiquidityTick[]) => 
         prev.liquidityChange = liquidityLower - liquidityUpper
       }
 
-      const lowerSqrtPrice = calculateSqrtPrice(lowerTickIndex)
-      const upperSqrtPrice = calculateSqrtPrice(upperTickIndex)
+      const [xVal, yVal] = calculateAmountDelta(
+        pool.currentTickIndex,
+        pool.sqrtPrice,
+        liquidityDelta,
+        false,
+        upperTickIndex,
+        lowerTickIndex
+      )
 
-      try {
-        xVal = getX(liquidityDelta, upperSqrtPrice, pool.sqrtPrice, lowerSqrtPrice)
-      } catch (error) {
-        console.error(error)
-        xVal = 0n
-      }
-
-      try {
-        yVal = getY(liquidityDelta, upperSqrtPrice, pool.sqrtPrice, lowerSqrtPrice)
-      } catch (error) {
-        console.error(error)
-        yVal = 0n
-      }
       liquidityX = liquidityX + xVal
       liquidityY = liquidityY + yVal
     }
@@ -138,54 +126,6 @@ const getPairLiquidityValues = (pool: Pool, liquidityTicks: LiquidityTick[]) => 
   assert(visitedTicks.length === 0, 'Ticks were not emptied')
 
   return { liquidityX, liquidityY }
-}
-
-const getX = (
-  liquidity: bigint,
-  upperSqrtPrice: bigint,
-  currentSqrtPrice: bigint,
-  lowerSqrtPrice: bigint
-): bigint => {
-  if (upperSqrtPrice <= 0n || currentSqrtPrice <= 0n || lowerSqrtPrice <= 0n) {
-    throw new Error('Price cannot be lower or equal 0')
-  }
-
-  let denominator: bigint
-  let nominator: bigint
-
-  if (currentSqrtPrice >= upperSqrtPrice) {
-    return 0n
-  } else if (currentSqrtPrice < lowerSqrtPrice) {
-    denominator = (lowerSqrtPrice * upperSqrtPrice) / PRICE_DENOMINATOR
-    nominator = upperSqrtPrice - lowerSqrtPrice
-  } else {
-    denominator = (upperSqrtPrice * currentSqrtPrice) / PRICE_DENOMINATOR
-    nominator = upperSqrtPrice - currentSqrtPrice
-  }
-
-  return (liquidity * nominator) / denominator / LIQUIDITY_DENOMINATOR
-}
-
-export const getY = (
-  liquidity: bigint,
-  upperSqrtPrice: bigint,
-  currentSqrtPrice: bigint,
-  lowerSqrtPrice: bigint
-): bigint => {
-  if (lowerSqrtPrice <= 0n || currentSqrtPrice <= 0n || upperSqrtPrice <= 0n) {
-    throw new Error('Price cannot be 0')
-  }
-
-  let difference: bigint
-  if (currentSqrtPrice <= lowerSqrtPrice) {
-    return 0n
-  } else if (currentSqrtPrice >= upperSqrtPrice) {
-    difference = upperSqrtPrice - lowerSqrtPrice
-  } else {
-    difference = currentSqrtPrice - lowerSqrtPrice
-  }
-
-  return (liquidity * difference) / PRICE_DENOMINATOR / LIQUIDITY_DENOMINATOR
 }
 
 main()
