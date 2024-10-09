@@ -221,6 +221,7 @@ pub trait InvariantEntrypoints {
     ) -> Result<TokenAmount, InvariantError>;
 
     /// Transfers a position between users.
+    /// Also used to burn positions.
     ///
     /// # Parameters
     /// - `index`: The index of the user position to transfer.
