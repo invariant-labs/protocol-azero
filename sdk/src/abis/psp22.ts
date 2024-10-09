@@ -1,7 +1,7 @@
 export const abi = `
 {
   "source": {
-    "hash": "0xc286df19a483e4b4fcb2b2342b14e33cdb6dade49ebe0dea80f4fab27ae200ba",
+    "hash": "0x25f86558683436a17b386cc41583659ffffb69d87c70e995945a2baf1a299074",
     "language": "ink! 5.0.0",
     "compiler": "rustc 1.77.0",
     "build_info": {

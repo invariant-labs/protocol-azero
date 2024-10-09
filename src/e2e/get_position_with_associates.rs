@@ -1,7 +1,7 @@
 #[cfg(test)]
 pub mod e2e_tests {
     use crate::{
-        contracts::{entrypoints::InvariantTrait, FeeTier, InvariantError, PoolKey},
+        contracts::{entrypoints::InvariantEntrypoints, FeeTier, InvariantError, PoolKey},
         invariant::{Invariant, InvariantRef},
         math::types::{
             liquidity::Liquidity, percentage::Percentage, sqrt_price::calculate_sqrt_price,

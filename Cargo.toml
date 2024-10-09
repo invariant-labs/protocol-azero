@@ -19,6 +19,7 @@ scale-info = { version = "2.11.3", default-features = false }
 [dev-dependencies]
 ink_e2e = "5.0.0"
 test_helpers = { path = "src/test_helpers", default-features = false }
+scale-info = "2.11.3"
 
 [lib]
 name = "invariant"
@@ -29,6 +30,7 @@ default = ["std"]
 std = ["ink/std", "token/std", "decimal/std"]
 ink-as-dependency = []
 e2e-tests = []
+dev = []
 
 # comment this out for release build
 [profile.release]

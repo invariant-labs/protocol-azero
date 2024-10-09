@@ -1,6 +1,6 @@
 import { Liquidity } from '@invariant-labs/a0-sdk-wasm/invariant_a0_wasm.js'
 
-const invariantActionPrefix = 'invariantTrait::'
+const invariantActionPrefix = 'invariantEntrypoints::'
 
 export enum InvariantQuery {
   ProtocolFee = `${invariantActionPrefix}getProtocolFee`,

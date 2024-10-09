@@ -1,6 +1,6 @@
 #[cfg(test)]
 pub mod e2e_tests {
-    use crate::contracts::{entrypoints::InvariantTrait, InvariantError};
+    use crate::contracts::{entrypoints::InvariantEntrypoints, InvariantError};
     use crate::invariant::{Invariant, InvariantRef};
     use crate::math::types::percentage::Percentage;
     use decimal::*;

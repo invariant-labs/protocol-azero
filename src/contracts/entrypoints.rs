@@ -13,7 +13,7 @@ use ink::primitives::AccountId;
 use ink::primitives::Hash;
 
 #[ink::trait_definition]
-pub trait InvariantTrait {
+pub trait InvariantEntrypoints {
     /// Retrieves the protocol fee represented as a percentage.
     #[ink(message)]
     fn get_protocol_fee(&self) -> Percentage;
@@ -215,12 +215,13 @@ pub trait InvariantTrait {
     /// - Fails if pool does not exist
     #[ink(message)]
     fn quote_route(
-        &mut self,
+        &self,
         amount_in: TokenAmount,
         swaps: Vec<SwapHop>,
     ) -> Result<TokenAmount, InvariantError>;
 
     /// Transfers a position between users.
+    /// Also used to burn positions.
     ///
     /// # Parameters
     /// - `index`: The index of the user position to transfer.
@@ -237,8 +238,7 @@ pub trait InvariantTrait {
     /// # Errors
     /// - Fails if position cannot be found
     #[ink(message)]
-    fn get_position(&mut self, owner_id: AccountId, index: u32)
-        -> Result<Position, InvariantError>;
+    fn get_position(&self, owner_id: AccountId, index: u32) -> Result<Position, InvariantError>;
 
     /// Retrieves a vector containing position with size and offset.
     ///
@@ -252,7 +252,7 @@ pub trait InvariantTrait {
     /// - Fails if ticks from position cannot be found
     #[ink(message)]
     fn get_positions(
-        &mut self,
+        &self,
         owner_id: AccountId,
         size: u32,
         offset: u32,

@@ -4,7 +4,7 @@ pub mod e2e_tests {
     use crate::invariant::Invariant;
     use crate::math::types::percentage::Percentage;
     use crate::{
-        contracts::{entrypoints::InvariantTrait, FeeTier},
+        contracts::{entrypoints::InvariantEntrypoints, FeeTier},
         invariant::InvariantRef,
     };
     use decimal::*;
