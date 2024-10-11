@@ -49,9 +49,11 @@ export {
   MIN_SQRT_PRICE,
   TESTNET,
   BTC_ADDRESS,
+  SOL_ADDRESS,
   ETH_ADDRESS,
-  INVARIANT_ADDRESS,
+  USDT_ADDRESS,
   USDC_ADDRESS,
+  INVARIANT_ADDRESS,
   WAZERO_ADDRESS
 } from './consts.js'
 export { Invariant } from './invariant.js'
