@@ -107,6 +107,7 @@ const getPairLiquidityValues = (pool: Pool, liquidityTicks: LiquidityTick[]) => 
       } else {
         liquidityDelta = liquidityUpper
         prev.liquidityChange = liquidityLower - liquidityUpper
+        break;
       }
 
       const [xVal, yVal] = calculateAmountDelta(
