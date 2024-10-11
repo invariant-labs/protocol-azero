@@ -18,7 +18,8 @@
     "setup-testnet": "npx tsc && node --experimental-wasm-modules target/setup-testnet.js",
     "setup-mainnet": "npx tsc && node --experimental-wasm-modules target/setup-mainnet.js",
     "validate-state": "npx tsc && node --experimental-wasm-modules target/validate-state.js",
-    "change-admin": "npx tsc && node --experimental-wasm-modules target/change-admin.js"
+    "change-admin": "npx tsc && node --experimental-wasm-modules target/change-admin.js",
+    "random-swap-testnet": "npx tsc && node --experimental-wasm-modules target/random-swap-testnet.js"
   },
   "keywords": [],
   "author": "",
