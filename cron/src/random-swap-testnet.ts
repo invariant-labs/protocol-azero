@@ -13,6 +13,7 @@ import {
   Network,
   PoolKey,
   PSP22,
+  signAndSendTx,
   simulateInvariantSwap,
   SOL_ADDRESS,
   toPercentage,
@@ -40,6 +41,7 @@ const main = async () => {
   const account = keyring.addFromMnemonic(mnemonic)
   console.log(`Trader: ${account.address}, Mnemonic: ${mnemonic}`)
 
+  api.tx.utility.batch
   const invariant = await Invariant.load(api, NETWORK, INVARIANT_ADDRESS[NETWORK], {
     storageDepositLimit: 100000000000,
     refTime: 100000000000,
@@ -51,6 +53,60 @@ const main = async () => {
     refTime: 100000000000,
     proofSize: 100000000000
   })
+
+  // IKeyRingPair is not re-exported in Invariant SDK
+  const mintTokenUnderThreshold = async (tokenAddress: string, threshold: bigint) => {
+    const balance = await psp22.balanceOf(account.address, tokenAddress)
+    if (balance < threshold) {
+      const mintTx = psp22.mintTx(threshold, tokenAddress)
+      const approveTx = psp22.approveTx(
+        invariant.contract.address.toString(),
+        balance + threshold,
+        tokenAddress
+      )
+      return [mintTx, approveTx]
+    }
+    return []
+  }
+
+  const performSwap = async (poolKey: PoolKey, xToY: boolean) => {
+    const byAmountIn = Math.random() > 0.5
+
+    const pool = await invariant.getPool(poolKey.tokenX, poolKey.tokenY, poolKey.feeTier)
+
+    const tickmap = filterTickmap(
+      await invariant.getFullTickmap(poolKey),
+      poolKey.feeTier.tickSpacing,
+      pool.currentTickIndex,
+      xToY
+    )
+    const ticks = filterTicks(
+      await invariant.getAllLiquidityTicks(poolKey, tickmap),
+      pool.currentTickIndex,
+      xToY
+    )
+    const simulation = simulateInvariantSwap(
+      tickmap,
+      poolKey.feeTier,
+      pool,
+      ticks,
+      xToY,
+      1n << (128n - 1n),
+      byAmountIn,
+      xToY ? MIN_SQRT_PRICE : MAX_SQRT_PRICE
+    )
+
+    const multiplier = Math.random() * 1.25
+    const amount = (simulation.amountIn * BigInt(Math.trunc(multiplier * 100000))) / 100000n
+
+    return invariant.swapTx(
+      poolKey,
+      xToY,
+      amount,
+      byAmountIn,
+      xToY ? MIN_SQRT_PRICE : MAX_SQRT_PRICE
+    )
+  }
 
   let pools: { poolKey: PoolKey; id: string }[] = []
   const poolKeys = await invariant.getAllPoolKeys()
@@ -76,72 +132,46 @@ const main = async () => {
 
   while (true) {
     const { poolKey, id } = pools[Math.floor(Math.random() * pools.length)]
-
-    console.log('pool: ', id)
-    const pool = await invariant.getPool(poolKey.tokenX, poolKey.tokenY, poolKey.feeTier)
-
     const xToY = Math.random() > 0.5
-    const byAmountIn = Math.random() > 0.5
 
-    const tickmap = filterTickmap(
-      await invariant.getFullTickmap(poolKey),
-      poolKey.feeTier.tickSpacing,
-      pool.currentTickIndex,
-      xToY
-    )
-    const ticks = filterTicks(
-      await invariant.getAllLiquidityTicks(poolKey, tickmap),
-      pool.currentTickIndex,
-      xToY
-    )
-    const simulation = simulateInvariantSwap(
-      tickmap,
-      poolKey.feeTier,
-      pool,
-      ticks,
-      xToY,
-      1n << (128n - 1n),
-      byAmountIn,
-      xToY ? MIN_SQRT_PRICE : MAX_SQRT_PRICE
-    )
-    console.log('Swap: ', ++attemptCounter)
-    console.log('Simulation: ', simulation)
-    console.log('xToY: ', xToY)
-    console.log('byAmountIn: ', byAmountIn)
-    const multiplier = Math.random() * 1.25
-    const amount = (simulation.amountIn * BigInt(Math.trunc(multiplier * 100000))) / 100000n
-    console.log('amountMultiplier: ', multiplier)
-    console.log('amount: ', amount)
-    const tokenAddress = xToY ? poolKey.tokenX : poolKey.tokenY
-    if (!(attemptCounter % 1023)) {
+    attemptCounter += 1
+    if (!(attemptCounter % 32)) {
       await api.disconnect()
       await delay(1000)
       await api.connect()
       await delay(1000)
     }
+
+    const { sqrtPrice: sqrtPriceBefore } = await invariant.getPool(
+      poolKey.tokenX,
+      poolKey.tokenY,
+      poolKey.feeTier
+    )
+
+    let txBatchArray = await mintTokenUnderThreshold(
+      xToY ? poolKey.tokenX : poolKey.tokenY,
+      1n << 99n
+    )
+    txBatchArray.push(await performSwap(poolKey, xToY))
+    const txBatch = api.tx.utility.batch(txBatchArray)
     try {
-      await psp22.mint(account, amount, tokenAddress)
-      await psp22.approve(account, invariant.contract.address.toString(), amount, tokenAddress)
-      console.log(
-        'Minted and approved:',
-        await psp22.allowance(account.address, invariant.contract.address.toString(), tokenAddress)
-      )
-      const tx = await invariant.swap(
-        account,
-        poolKey,
-        xToY,
-        amount,
-        byAmountIn,
-        xToY ? MIN_SQRT_PRICE : MAX_SQRT_PRICE
-      )
-      ++successCounter
-      console.log('success [', id, ']: ', tx)
-    } catch (err: any) {
-      console.log(`error: ${err.toString()}`)
-      continue
-    } finally {
-      console.log('Success percentage: ', (successCounter / attemptCounter) * 100, '%')
+      await signAndSendTx(txBatch, account, true, true)
+    } catch (e) {
+      console.error(e)
     }
+
+    console.log('---------------')
+    const { sqrtPrice } = await invariant.getPool(poolKey.tokenX, poolKey.tokenY, poolKey.feeTier)
+
+    if (sqrtPrice !== sqrtPriceBefore) {
+      ++successCounter
+      console.log('success [', id, ']')
+    } else {
+      console.log('failure [', id, ']')
+    }
+
+    console.log('Attempt counter: ', attemptCounter)
+    console.log('Success percentage: ', (successCounter / attemptCounter) * 100, '%')
   }
 }
 
