@@ -2,7 +2,6 @@ import dotenv from 'dotenv'
 import {
   BTC_ADDRESS,
   ETH_ADDRESS,
-  FEE_TIERS,
   filterTickmap,
   filterTicks,
   initPolkadotApi,
@@ -12,11 +11,11 @@ import {
   MAX_SQRT_PRICE,
   MIN_SQRT_PRICE,
   Network,
-  newPoolKey,
   PoolKey,
   PSP22,
   simulateInvariantSwap,
   SOL_ADDRESS,
+  toPercentage,
   USDC_ADDRESS,
   USDT_ADDRESS,
   WAZERO_ADDRESS
@@ -24,49 +23,61 @@ import {
 
 dotenv.config()
 
+const NETWORK = Network.Testnet
+const FAUCET_TOKENS = new Map<string, string>([
+  [WAZERO_ADDRESS[NETWORK], 'WAZERO'],
+  [BTC_ADDRESS[NETWORK], 'BTC'],
+  [ETH_ADDRESS[NETWORK], 'ETH'],
+  [USDC_ADDRESS[NETWORK], 'USDC'],
+  [USDT_ADDRESS[NETWORK], 'USDT'],
+  [SOL_ADDRESS[NETWORK], 'SOL']
+])
+
 const main = async () => {
-  const network = Network.Testnet
-  const api = await initPolkadotApi(network)
+  const api = await initPolkadotApi(NETWORK)
   const keyring = new Keyring({ type: 'sr25519' })
   const mnemonic = process.env.DEPLOYER_MNEMONIC ?? ''
   const account = keyring.addFromMnemonic(mnemonic)
   console.log(`Trader: ${account.address}, Mnemonic: ${mnemonic}`)
 
-  const invariant = await Invariant.load(api, network, INVARIANT_ADDRESS[network], {
+  const invariant = await Invariant.load(api, NETWORK, INVARIANT_ADDRESS[NETWORK], {
     storageDepositLimit: 100000000000,
     refTime: 100000000000,
     proofSize: 100000000000
   })
 
-  const poolKeys: [PoolKey, string][] = [
-    [newPoolKey(WAZERO_ADDRESS[network], BTC_ADDRESS[network], FEE_TIERS[1]), 'WAZERO-BTC 1'],
-    [newPoolKey(WAZERO_ADDRESS[network], ETH_ADDRESS[network], FEE_TIERS[1]), 'WAZERO-ETH 1'],
-    [newPoolKey(WAZERO_ADDRESS[network], USDC_ADDRESS[network], FEE_TIERS[1]), 'WAZERO-USDC 1'],
-    [newPoolKey(WAZERO_ADDRESS[network], USDT_ADDRESS[network], FEE_TIERS[1]), 'WAZERO-USDT 1'],
-    [newPoolKey(WAZERO_ADDRESS[network], SOL_ADDRESS[network], FEE_TIERS[1]), 'WAZERO-SOL 1'],
-    [newPoolKey(BTC_ADDRESS[network], ETH_ADDRESS[network], FEE_TIERS[1]), 'BTC-ETH 1'],
-    [newPoolKey(BTC_ADDRESS[network], USDC_ADDRESS[network], FEE_TIERS[1]), 'BTC-USDC 1'],
-    [newPoolKey(BTC_ADDRESS[network], USDT_ADDRESS[network], FEE_TIERS[1]), 'BTC-USDT 1'],
-    [newPoolKey(BTC_ADDRESS[network], SOL_ADDRESS[network], FEE_TIERS[1]), 'BTC-SOL 1'],
-    [newPoolKey(ETH_ADDRESS[network], USDC_ADDRESS[network], FEE_TIERS[1]), 'ETH-USDC 1'],
-    [newPoolKey(ETH_ADDRESS[network], USDT_ADDRESS[network], FEE_TIERS[1]), 'ETH-USDT 1'],
-    [newPoolKey(ETH_ADDRESS[network], SOL_ADDRESS[network], FEE_TIERS[1]), 'ETH-SOL 1'],
-    [newPoolKey(USDC_ADDRESS[network], USDT_ADDRESS[network], FEE_TIERS[1]), 'USDC-USDT 1'],
-    [newPoolKey(USDC_ADDRESS[network], SOL_ADDRESS[network], FEE_TIERS[1]), 'USDC-SOL 1'],
-    [newPoolKey(USDT_ADDRESS[network], SOL_ADDRESS[network], FEE_TIERS[1]), 'USDT-SOL 1']
-  ]
-
-  const psp22 = await PSP22.load(api, network, {
+  const psp22 = await PSP22.load(api, NETWORK, {
     storageDepositLimit: 100000000000,
     refTime: 100000000000,
     proofSize: 100000000000
   })
 
-  let counter = 0
+  let pools: { poolKey: PoolKey; id: string }[] = []
+  const poolKeys = await invariant.getAllPoolKeys()
+  for (const poolKey of poolKeys) {
+    if (isFaucetToken(poolKey.tokenX) && isFaucetToken(poolKey.tokenY)) {
+      pools.push({
+        poolKey,
+        id:
+          FAUCET_TOKENS.get(poolKey.tokenX) +
+          '-' +
+          FAUCET_TOKENS.get(poolKey.tokenY) +
+          ' ' +
+          Number(poolKey.feeTier.fee) / Number(toPercentage(1, 2)) +
+          '%' +
+          ' ' +
+          poolKey.feeTier.tickSpacing
+      })
+    }
+  }
+
+  let attemptCounter = 0
+  let successCounter = 0
+
   while (true) {
-    const [poolKey, name] = poolKeys[Math.floor(Math.random() * poolKeys.length)]
+    const { poolKey, id } = pools[Math.floor(Math.random() * pools.length)]
 
-    console.log('pool: ', name)
+    console.log('pool: ', id)
     const pool = await invariant.getPool(poolKey.tokenX, poolKey.tokenY, poolKey.feeTier)
 
     const xToY = Math.random() > 0.5
@@ -93,7 +104,7 @@ const main = async () => {
       byAmountIn,
       xToY ? MIN_SQRT_PRICE : MAX_SQRT_PRICE
     )
-    console.log('Swap: ', ++counter)
+    console.log('Swap: ', ++attemptCounter)
     console.log('Simulation: ', simulation)
     console.log('xToY: ', xToY)
     console.log('byAmountIn: ', byAmountIn)
@@ -102,7 +113,7 @@ const main = async () => {
     console.log('amountMultiplier: ', multiplier)
     console.log('amount: ', amount)
     const tokenAddress = xToY ? poolKey.tokenX : poolKey.tokenY
-    if (!(counter % 1023)) {
+    if (!(attemptCounter % 1023)) {
       await api.disconnect()
       await delay(1000)
       await api.connect()
@@ -123,12 +134,19 @@ const main = async () => {
         byAmountIn,
         xToY ? MIN_SQRT_PRICE : MAX_SQRT_PRICE
       )
-      console.log('success [', name, ']: ', tx)
+      ++successCounter
+      console.log('success [', id, ']: ', tx)
     } catch (err: any) {
       console.log(`error: ${err.toString()}`)
       continue
+    } finally {
+      console.log('Success percentage: ', (successCounter / attemptCounter) * 100, '%')
     }
   }
+}
+
+const isFaucetToken = (address: string): boolean => {
+  return FAUCET_TOKENS.has(address)
 }
 
 const delay = (delayMs: number) => {
