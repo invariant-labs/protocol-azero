@@ -1,0 +1,23 @@
+{
+  "name": "cron",
+  "version": "1.0.0",
+  "description": "",
+  "main": "target/index.js",
+  "scripts": {
+    "start": "npx tsc && node --experimental-wasm-modules .",
+    "node:start": "substrate-contracts-node purge-chain -y && substrate-contracts-node --rpc-port 9944 --dev",
+    "node:stop": "ps aux | grep substrate-contracts-node | tr -s ' ' | cut -d ' ' -f 2 | head -n 1 | xargs -r kill -9",
+    "random-swap-testnet": "npx tsc && node --experimental-wasm-modules target/random-swap-testnet.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@invariant-labs/a0-sdk": "0.2.32",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.2"
+  },
+  "type": "module"
+}
