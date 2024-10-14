@@ -92,12 +92,15 @@ const main = async () => {
       ticks,
       xToY,
       1n << (128n - 1n),
-      byAmountIn,
+      true,
       xToY ? MIN_SQRT_PRICE : MAX_SQRT_PRICE
     )
 
     const multiplier = Math.random() * 1.25
-    const amount = (simulation.amountIn * BigInt(Math.trunc(multiplier * 100000))) / 100000n
+    const amount =
+      (byAmountIn
+        ? simulation.amountIn
+        : simulation.amountOut * BigInt(Math.trunc(multiplier * 100000))) / 100000n
 
     return invariant.swapTx(
       poolKey,
@@ -134,44 +137,45 @@ const main = async () => {
     const { poolKey, id } = pools[Math.floor(Math.random() * pools.length)]
     const xToY = Math.random() > 0.5
 
-    attemptCounter += 1
-    if (!(attemptCounter % 32)) {
-      await api.disconnect()
-      await delay(1000)
-      await api.connect()
-      await delay(1000)
-    }
-
-    const { sqrtPrice: sqrtPriceBefore } = await invariant.getPool(
-      poolKey.tokenX,
-      poolKey.tokenY,
-      poolKey.feeTier
-    )
-
-    let txBatchArray = await mintTokenUnderThreshold(
-      xToY ? poolKey.tokenX : poolKey.tokenY,
-      1n << 99n
-    )
-    txBatchArray.push(await performSwap(poolKey, xToY))
-    const txBatch = api.tx.utility.batch(txBatchArray)
     try {
+      attemptCounter += 1
+      if (!(attemptCounter % 32)) {
+        await api.disconnect()
+        await delay(1000)
+        await api.connect()
+        await delay(1000)
+      }
+
+      const { sqrtPrice: sqrtPriceBefore } = await invariant.getPool(
+        poolKey.tokenX,
+        poolKey.tokenY,
+        poolKey.feeTier
+      )
+
+      let txBatchArray = await mintTokenUnderThreshold(
+        xToY ? poolKey.tokenX : poolKey.tokenY,
+        1n << 99n
+      )
+      txBatchArray.push(await performSwap(poolKey, xToY))
+      const txBatch = api.tx.utility.batch(txBatchArray)
+
       await signAndSendTx(txBatch, account, true, true)
+
+      console.log('---------------')
+      const { sqrtPrice } = await invariant.getPool(poolKey.tokenX, poolKey.tokenY, poolKey.feeTier)
+
+      if (sqrtPrice !== sqrtPriceBefore) {
+        ++successCounter
+        console.log('success [', id, ']')
+      } else {
+        console.log('failure [', id, ']')
+      }
+
+      console.log('Attempt counter: ', attemptCounter)
+      console.log('Success percentage: ', (successCounter / attemptCounter) * 100, '%')
     } catch (e) {
       console.error(e)
     }
-
-    console.log('---------------')
-    const { sqrtPrice } = await invariant.getPool(poolKey.tokenX, poolKey.tokenY, poolKey.feeTier)
-
-    if (sqrtPrice !== sqrtPriceBefore) {
-      ++successCounter
-      console.log('success [', id, ']')
-    } else {
-      console.log('failure [', id, ']')
-    }
-
-    console.log('Attempt counter: ', attemptCounter)
-    console.log('Success percentage: ', (successCounter / attemptCounter) * 100, '%')
   }
 }
 
