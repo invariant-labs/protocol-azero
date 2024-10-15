@@ -32,6 +32,8 @@ const FAUCET_TOKENS = new Map<string, string>([
   [SOL_ADDRESS[NETWORK], 'SOL']
 ])
 
+const RECONNECT_INTERVAL = 523
+
 const main = async () => {
   const api = await initPolkadotApi(NETWORK)
   const keyring = new Keyring({ type: 'sr25519' })
@@ -140,7 +142,7 @@ const main = async () => {
 
     try {
       attemptCounter += 1
-      if (!(attemptCounter % 523)) {
+      if (!(attemptCounter % RECONNECT_INTERVAL)) {
         await api.disconnect()
         await delay(1000)
         await api.connect()
