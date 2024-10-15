@@ -41,8 +41,8 @@ const main = async () => {
   for (const [poolKey, pool, liquidityTicks] of poolsWithTicks) {
     const { liquidityX, liquidityY } = getPairLiquidityValues(pool, liquidityTicks)
 
-    const newBalanceX = (balances.get(poolKey.tokenX) ?? 0n) + liquidityX
-    const newBalanceY = (balances.get(poolKey.tokenY) ?? 0n) + liquidityY
+    const newBalanceX = (balances.get(poolKey.tokenX) ?? 0n) + liquidityX + pool.feeProtocolTokenX
+    const newBalanceY = (balances.get(poolKey.tokenY) ?? 0n) + liquidityY + pool.feeProtocolTokenY
 
     balances.set(poolKey.tokenX, newBalanceX)
     balances.set(poolKey.tokenY, newBalanceY)
