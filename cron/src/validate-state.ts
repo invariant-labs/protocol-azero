@@ -68,7 +68,7 @@ const main = async () => {
       console.error('Invalid balance', token, balance, onchainBalance, diff)
     }
   }
-
+  
   process.exit(failed ? 1 : 0)
 }
 

@@ -18,15 +18,13 @@ import {
   SOL_ADDRESS,
   toPercentage,
   USDC_ADDRESS,
-  USDT_ADDRESS,
-  WAZERO_ADDRESS
+  USDT_ADDRESS
 } from '@invariant-labs/a0-sdk'
 
 dotenv.config()
 
 const NETWORK = Network.Testnet
 const FAUCET_TOKENS = new Map<string, string>([
-  [WAZERO_ADDRESS[NETWORK], 'WAZERO'],
   [BTC_ADDRESS[NETWORK], 'BTC'],
   [ETH_ADDRESS[NETWORK], 'ETH'],
   [USDC_ADDRESS[NETWORK], 'USDC'],
@@ -37,11 +35,10 @@ const FAUCET_TOKENS = new Map<string, string>([
 const main = async () => {
   const api = await initPolkadotApi(NETWORK)
   const keyring = new Keyring({ type: 'sr25519' })
-  const mnemonic = process.env.DEPLOYER_MNEMONIC ?? ''
+  const mnemonic = process.env.USER_MNEMONIC ?? ''
   const account = keyring.addFromMnemonic(mnemonic)
   console.log(`Trader: ${account.address}, Mnemonic: ${mnemonic}`)
 
-  api.tx.utility.batch
   const invariant = await Invariant.load(api, NETWORK, INVARIANT_ADDRESS[NETWORK], {
     storageDepositLimit: 100000000000,
     refTime: 100000000000,
@@ -59,12 +56,7 @@ const main = async () => {
     const balance = await psp22.balanceOf(account.address, tokenAddress)
     if (balance < threshold) {
       const mintTx = psp22.mintTx(threshold, tokenAddress)
-      const approveTx = psp22.approveTx(
-        invariant.contract.address.toString(),
-        balance + threshold,
-        tokenAddress
-      )
-      return [mintTx, approveTx]
+      return [mintTx]
     }
     return []
   }
@@ -98,9 +90,9 @@ const main = async () => {
 
     const multiplier = Math.random() * 1.25
     const amount =
-      (byAmountIn
-        ? simulation.amountIn
-        : simulation.amountOut * BigInt(Math.trunc(multiplier * 100000))) / 100000n
+      ((byAmountIn ? simulation.amountIn : simulation.amountOut) *
+        BigInt(Math.trunc(multiplier * 100000))) /
+      100000n
 
     return invariant.swapTx(
       poolKey,
@@ -114,7 +106,7 @@ const main = async () => {
   let pools: { poolKey: PoolKey; id: string }[] = []
   const poolKeys = await invariant.getAllPoolKeys()
   for (const poolKey of poolKeys) {
-    if (isFaucetToken(poolKey.tokenX) && isFaucetToken(poolKey.tokenY)) {
+    if (isSupportedToken(poolKey.tokenX) && isSupportedToken(poolKey.tokenY)) {
       pools.push({
         poolKey,
         id:
@@ -130,6 +122,15 @@ const main = async () => {
     }
   }
 
+  for (const [tokenAddress] of FAUCET_TOKENS) {
+    await psp22.approve(
+      account,
+      invariant.contract.address.toString(),
+      1n << (128n - 1n),
+      tokenAddress
+    )
+  }
+
   let attemptCounter = 0
   let successCounter = 0
 
@@ -139,7 +140,7 @@ const main = async () => {
 
     try {
       attemptCounter += 1
-      if (!(attemptCounter % 32)) {
+      if (!(attemptCounter % 1023)) {
         await api.disconnect()
         await delay(1000)
         await api.connect()
@@ -179,7 +180,7 @@ const main = async () => {
   }
 }
 
-const isFaucetToken = (address: string): boolean => {
+const isSupportedToken = (address: string): boolean => {
   return FAUCET_TOKENS.has(address)
 }
 
