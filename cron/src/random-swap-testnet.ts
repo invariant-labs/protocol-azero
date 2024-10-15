@@ -140,7 +140,7 @@ const main = async () => {
 
     try {
       attemptCounter += 1
-      if (!(attemptCounter % 1023)) {
+      if (!(attemptCounter % 523)) {
         await api.disconnect()
         await delay(1000)
         await api.connect()
