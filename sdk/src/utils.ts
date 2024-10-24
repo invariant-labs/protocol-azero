@@ -185,11 +185,17 @@ export async function signAndSendTx(
   waitForFinalization: boolean = true,
   block: boolean = true
 ): Promise<EventTxResult<any> | TxResult> {
-  return new Promise(async (resolve, reject) => {
-    await tx.signAndSend(signer, result => {
+  let unsub: () => void = null as any
+  const request: Promise<EventTxResult<any> | TxResult> = new Promise(async (resolve, reject) => {
+    unsub = await tx.signAndSend(signer, result => {
       handleTxResult(result, resolve, reject, waitForFinalization, block)
     })
   })
+  await request
+  
+  unsub()
+  
+  return request
 }
 
 export async function createSignAndSendTx(

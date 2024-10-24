@@ -142,12 +142,6 @@ const main = async () => {
 
     try {
       attemptCounter += 1
-      if (!(attemptCounter % RECONNECT_INTERVAL)) {
-        await api.disconnect()
-        await delay(1000)
-        await api.connect()
-        await delay(1000)
-      }
 
       const { sqrtPrice: sqrtPriceBefore } = await invariant.getPool(
         poolKey.tokenX,
